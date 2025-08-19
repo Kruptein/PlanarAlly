@@ -167,11 +167,15 @@
                 "reset_round": "Reset rounds/turns",
                 "next": "Next",
                 "previous": "Previous",
+                "next_round": "Next round",
+                "previous_round": "Previous round",
                 "clear": "Clear initiatives",
                 "change_sort": "Change sorting",
                 "settings": "Settings",
-								"remove_group_msg": "Are you sure you wish to remove this group from the initiative order?",
-								"clear_initiatives_msg": "Are you sure you wish to clear all initiatives?"
+                "remove_group_msg": "Are you sure you wish to remove this group from the initiative order?",
+                "clear_entries_msg": "Are you sure you wish to clear all initiatives?",
+                "clear_initiatives_msg": "Are you sure you wish to clear all initiatives?",
+                "empty_initiative": "Initiative is empty"
             },
             "menu": {
                 "LocationBar": {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
@@ -40,14 +40,26 @@ interface ConfirmationDialog {
 }
 
 const confirmationDialog = ref<ConfirmationDialog | null>(null);
+const listElement = ref<HTMLElement | null>(null);
 
-const nextTurn = (): void => initiativeStore.nextTurn();
-const previousTurn = (): void => initiativeStore.previousTurn();
 const owns = (actorId?: GlobalId): boolean => initiativeStore.owns(actorId);
 const toggleOption = (index: number, option: "isVisible" | "isGroup"): void =>
     initiativeStore.toggleOption(index, option);
 
-onMounted(() => initiativeStore.show(false, false));
+onMounted(() => {
+    initiativeStore.show(false, false);
+    setTimeout(() => {
+        scrollToInitiative();
+    }, 100);
+});
+
+watch(
+    () => initiativeStore.state.turnCounter,
+    async () => {
+        await nextTick();
+        scrollToInitiative();
+    },
+);
 
 const alwaysShowEffects = computed(
     () => playerSettingsState.reactive.initiativeEffectVisibility.value === InitiativeEffectMode.Always,
@@ -77,6 +89,18 @@ function clearInitiativeValues(): void {
         message: t("game.ui.initiative.clear_initiatives_msg"),
     });
 }
+
+function scrollToInitiative(): void {
+    if (listElement.value === null || listElement.value.children.length <= 0) return;
+
+    const entryElement = listElement.value.children[0]!.querySelector(".initiative-selected");
+    if (!entryElement) return;
+
+    entryElement.parentElement!.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+const nextTurn = (): void => initiativeStore.nextTurn();
+const previousTurn = (): void => initiativeStore.previousTurn();
 
 function getName(actor: InitiativeData): string {
     if (actor.localId === undefined) return "?";
@@ -157,6 +181,7 @@ function reset(): void {
     initiativeStore.setTurnCounter(0, InitiativeTurnDirection.Null, { sync: true, updateEffects: false });
     initiativeStore.setRoundCounter(1, true);
     sendRequestInitiatives();
+    scrollToInitiative();
 }
 
 function lock(globalId: GlobalId): void {
@@ -219,169 +244,223 @@ function n(e: any): number {
             </div>
         </template>
         <div class="modal-body">
-            <draggable
-                id="initiative-list"
-                :model-value="initiativeStore.state.locationData"
-                :disabled="!gameState.reactive.isDm"
-                item-key="uuid"
-                @change="changeOrder"
-            >
-                <template #item="{ element: actor, index }: { element: InitiativeData; index: number }">
-                    <div v-if="canSee(actor)" style="display: flex; flex-direction: column; align-items: flex-end">
-                        <div
-                            class="initiative-actor"
-                            :class="{
-                                'initiative-selected': initiativeStore.state.turnCounter === index,
-                                blurred:
-                                    initiativeStore.state.editLock !== undefined &&
-                                    initiativeStore.state.editLock !== actor.globalId,
-                            }"
-                            :style="{ cursor: gameState.reactive.isDm ? 'move' : 'auto' }"
-                            @mouseenter="toggleHighlight(actor.localId, true)"
-                            @mouseleave="toggleHighlight(actor.localId, false)"
-                        >
+            <div id="initiative-border-container">
+                <div id="initiative-container" ref="listElement">
+                    <div v-if="initiativeStore.state.locationData.length === 0" id="empty-placeholder">
+                        {{ t("game.ui.initiative.empty_initiative") }}
+                    </div>
+                    <draggable
+                        v-else
+                        id="initiative-list"
+                        :model-value="initiativeStore.state.locationData"
+                        :disabled="!gameState.reactive.isDm"
+                        handle=".drag-handle"
+                        item-key="uuid"
+                        @change="changeOrder"
+                    >
+                        <template #item="{ element: actor, index }: { element: InitiativeData; index: number }">
                             <div
-                                v-if="owns(actor.globalId)"
-                                class="remove"
-                                :class="{ notAllowed: !owns(actor.globalId) }"
-                                @click="removeInitiative(actor)"
+                                v-if="canSee(actor)"
+                                class="initiative-entry"
+                                :class="{ 'owned-actor': owns(actor.globalId) && !gameState.reactive.isDm }"
                             >
-                                &#215;
-                            </div>
-                            <template v-if="hasImage(actor)">
-                                <img :src="getImage(actor)" :title="getName(actor)" alt="" />
-                            </template>
-                            <template v-else>
-                                <span style="width: auto">{{ getName(actor) }}</span>
-                            </template>
-                            <input
-                                class="initiative-value"
-                                type="text"
-                                :placeholder="t('common.value')"
-                                :value="actor.initiative"
-                                :disabled="!owns(actor.globalId)"
-                                :class="{ notAllowed: !owns(actor.globalId) }"
-                                @focus="lock(actor.globalId)"
-                                @blur="unlock"
-                                @change="setInitiative(actor.globalId, getValue($event))"
-                                @keyup.enter="getTarget($event).blur()"
-                            />
-                            <div
-                                :style="{ opacity: actor.isVisible ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor.globalId) }"
-                                :title="t('common.toggle_public_private')"
-                                @click="toggleOption(index, 'isVisible')"
-                            >
-                                <font-awesome-icon icon="eye" />
-                            </div>
-                            <div
-                                :style="{ opacity: actor.isGroup ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor.globalId) }"
-                                :title="t('game.ui.initiative.toggle_group')"
-                                @click="toggleOption(index, 'isGroup')"
-                            >
-                                <font-awesome-icon icon="users" />
-                            </div>
-                            <div
-                                class="initiative-effects-icon"
-                                style="opacity: 0.6"
-                                :class="{ notAllowed: !owns(actor.globalId) }"
-                                :title="t('game.ui.initiative.add_timed_effect')"
-                                @click="createEffect(actor.globalId)"
-                            >
-                                <font-awesome-icon icon="stopwatch" />
-                                <template v-if="actor.effects">
-                                    {{ actor.effects.length }}
-                                </template>
-                                <template v-else>0</template>
-                            </div>
-                        </div>
-                        <div
-                            v-if="actor.effects.length > 0"
-                            class="initiative-effect"
-                            :class="{ 'effect-visible': alwaysShowEffects }"
-                        >
-                            <div v-for="(effect, e) of actor.effects" :key="`${actor.globalId}-${e}`">
-                                <input
-                                    v-model="effect.name"
-                                    type="text"
-                                    :style="{ width: '100px' }"
-                                    :class="{ notAllowed: !owns(actor.globalId) }"
-                                    :disabled="!owns(actor.globalId)"
-                                    @change="setEffectName(actor.globalId, n(e), getValue($event))"
-                                />
-                                <input
-                                    v-model="effect.turns"
-                                    type="text"
-                                    :style="{ width: '25px' }"
-                                    :class="{ notAllowed: !owns(actor.globalId) }"
-                                    :disabled="!owns(actor.globalId)"
-                                    @change="setEffectTurns(actor.globalId, n(e), getValue($event))"
-                                />
                                 <div
-                                    :style="{ opacity: owns(actor.globalId) ? '1.0' : '0.3' }"
-                                    :class="{ notAllowed: !owns(actor.globalId) }"
-                                    :title="t('game.ui.initiative.delete_effect')"
-                                    @click="removeEffect(actor.globalId, n(e))"
+                                    class="initiative-actor"
+                                    :class="{
+                                        'initiative-selected': initiativeStore.state.turnCounter === index,
+                                        blurred:
+                                            initiativeStore.state.editLock !== undefined &&
+                                            initiativeStore.state.editLock !== actor.globalId,
+                                    }"
+                                    @mouseenter="toggleHighlight(actor.localId, true)"
+                                    @mouseleave="toggleHighlight(actor.localId, false)"
                                 >
-                                    <font-awesome-icon icon="trash-alt" />
+                                    <div
+                                        v-if="owns(actor.globalId)"
+                                        class="remove"
+                                        :class="{ notAllowed: !owns(actor.globalId) }"
+                                        @click="removeInitiative(actor)"
+                                    >
+                                        &#215;
+                                    </div>
+                                    <div v-if="gameState.reactive.isDm" class="drag-handle">
+                                        <font-awesome-icon icon="grip-vertical" style="cursor: grab" />
+                                    </div>
+                                    <div v-else style="margin-right: 0.5rem"></div>
+                                    <template v-if="hasImage(actor)">
+                                        <img
+                                            :src="getImage(actor)"
+                                            :title="getName(actor)"
+                                            class="initiative-portrait"
+                                            alt=""
+                                        />
+                                    </template>
+                                    <div
+                                        v-else
+                                        :title="getName(actor)"
+                                        class="initiative-portrait empty-portrait"
+                                    ></div>
+                                    <div class="actor-info-cluster">
+                                        <span class="actor-name" :title="getName(actor)">
+                                            {{ getName(actor) }}
+                                        </span>
+                                        <div class="actor-buttons">
+                                            <div
+                                                class="actor-icon-button"
+                                                :class="{ disabled: !owns(actor.globalId) }"
+                                                :title="t('common.toggle_public_private')"
+                                                @click="toggleOption(index, 'isVisible')"
+                                            >
+                                                <font-awesome-icon
+                                                    icon="eye"
+                                                    :style="{
+                                                        cursor: !owns(actor.globalId) ? 'default' : 'pointer',
+                                                        opacity: actor.isVisible ? '1.0' : '0.3',
+                                                    }"
+                                                />
+                                            </div>
+                                            <div
+                                                class="actor-icon-button"
+                                                :class="{ disabled: !owns(actor.globalId) }"
+                                                :title="t('game.ui.initiative.toggle_group')"
+                                                @click="toggleOption(index, 'isGroup')"
+                                            >
+                                                <font-awesome-icon
+                                                    icon="users"
+                                                    :style="{
+                                                        cursor: !owns(actor.globalId) ? 'default' : 'pointer',
+                                                        opacity: actor.isGroup ? '1.0' : '0.3',
+                                                    }"
+                                                />
+                                            </div>
+                                            <div class="actor-effect-button-group">
+                                                <div
+                                                    class="actor-icon-button no-select"
+                                                    :class="{ disabled: !owns(actor.globalId) }"
+                                                    :title="t('game.ui.initiative.add_timed_effect')"
+                                                    @click="createEffect(actor.globalId)"
+                                                >
+                                                    <font-awesome-icon
+                                                        icon="stopwatch"
+                                                        style="opacity: 0.6"
+                                                        :style="{
+                                                            cursor: !owns(actor.globalId) ? 'default' : 'pointer',
+                                                        }"
+                                                    />
+                                                </div>
+                                                <div
+                                                    v-if="actor.effects"
+                                                    class="no-select"
+                                                    style="opacity: 65%; margin: 0 3px"
+                                                >
+                                                    {{ actor.effects.length }}
+                                                </div>
+                                                <div v-else class="no-select" style="opacity: 65%; margin: 0 3px">
+                                                    0
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input
+                                        class="initiative-value"
+                                        type="text"
+                                        :placeholder="t('common.value')"
+                                        :value="actor.initiative"
+                                        :disabled="!owns(actor.globalId)"
+                                        :class="{ disabled: !owns(actor.globalId) }"
+                                        @focus="lock(actor.globalId)"
+                                        @blur="unlock"
+                                        @change="setInitiative(actor.globalId, getValue($event))"
+                                        @keyup.enter="getTarget($event).blur()"
+                                    />
+                                </div>
+                                <div
+                                    v-if="actor.effects.length > 0"
+                                    class="initiative-effect"
+                                    :class="{
+                                        'effect-visible': alwaysShowEffects,
+                                        'initiative-selected': initiativeStore.state.turnCounter === index,
+                                    }"
+                                >
+                                    <div
+                                        v-for="(effect, e) of actor.effects"
+                                        :key="`${actor.globalId}-${e}`"
+                                        class="initiative-effect-info"
+                                    >
+                                        <input
+                                            v-model="effect.name"
+                                            type="text"
+                                            style="width: 100px"
+                                            :class="{ disabled: !owns(actor.globalId) }"
+                                            :disabled="!owns(actor.globalId)"
+                                            @change="setEffectName(actor.globalId, n(e), getValue($event))"
+                                            @keyup.enter="getTarget($event).blur()"
+                                        />
+                                        <input
+                                            v-model="effect.turns"
+                                            type="text"
+                                            style="width: 25px"
+                                            :class="{ disabled: !owns(actor.globalId) }"
+                                            :disabled="!owns(actor.globalId)"
+                                            @change="setEffectTurns(actor.globalId, n(e), getValue($event))"
+                                            @keyup.enter="getTarget($event).blur()"
+                                        />
+                                        <div
+                                            v-if="owns(actor.globalId)"
+                                            class="actor-icon-button"
+                                            :title="t('game.ui.initiative.delete_effect')"
+                                            @click="removeEffect(actor.globalId, n(e))"
+                                        >
+                                            <font-awesome-icon icon="trash-alt" />
+                                        </div>
+                                        <div v-else style="margin-right: 4px"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </template>
-            </draggable>
-            <div v-if="gameState.reactive.isDm" id="initiative-bar-dm">
-                <div class="initiative-bar-button" :title="t('game.ui.initiative.reset_round')" @click="reset">
-                    <font-awesome-icon icon="angle-double-left" />
-                </div>
-                <div class="initiative-bar-button" :title="t('game.ui.initiative.previous')" @click="previousTurn">
-                    <font-awesome-icon icon="chevron-left" />
-                </div>
-                <div
-                    class="initiative-bar-button"
-                    :title="t('game.ui.initiative.clear')"
-                    @click="clearInitiativeValues"
-                >
-                    <font-awesome-icon icon="sync-alt" />
-                </div>
-                <div class="initiative-bar-button" :title="t('game.ui.initiative.change_sort')" @click="changeSort">
-                    <font-awesome-icon
-                        :key="initiativeStore.state.sort"
-                        :icon="translateSort(initiativeStore.state.sort)"
-                    />
-                </div>
-                <div
-                    class="initiative-bar-button"
-                    :class="{ notAllowed: !gameState.reactive.isDm }"
-                    :title="t('game.ui.initiative.next')"
-                    @click="nextTurn"
-                >
-                    <font-awesome-icon icon="chevron-right" />
+                        </template>
+                    </draggable>
                 </div>
             </div>
-            <div id="initiative-round">
-                {{ t("game.ui.initiative.round_N", initiativeStore.state.roundCounter) }}
-
-                <div
-                    id="initiative-settings"
-                    class="initiative-bar-button"
-                    :title="t('game.ui.initiative.settings')"
-                    @click="openSettings"
-                >
-                    <font-awesome-icon icon="cog" />
+            <div v-if="gameState.reactive.isDm" id="initiative-bar-dm">
+                <div id="round-bar-dm">
+                    <div class="initiative-bar-button" :title="t('game.ui.initiative.previous')" @click="previousTurn">
+                        <font-awesome-icon icon="chevron-left" />
+                    </div>
+                    <div class="initiative-round-display">
+                        {{ t("game.ui.initiative.round_N", initiativeStore.state.roundCounter) }}
+                    </div>
+                    <div class="initiative-bar-button" :title="t('game.ui.initiative.next')" @click="nextTurn">
+                        <font-awesome-icon icon="chevron-right" />
+                    </div>
                 </div>
-                <div
-                    v-if="!gameState.reactive.isDm"
-                    id="initiative-next-round"
-                    class="initiative-bar-button"
-                    :class="{ notAllowed: !owns() }"
-                    :style="{ opacity: owns() ? 1.0 : 0.3 }"
-                    :title="t('game.ui.initiative.next')"
-                    @click="nextTurn"
-                >
-                    <font-awesome-icon icon="chevron-right" />
+                <div id="meta-bar-dm">
+                    <div class="initiative-bar-button" :title="t('game.ui.initiative.reset_round')" @click="reset">
+                        <font-awesome-icon icon="angle-double-left" />
+                    </div>
+                    <div
+                        class="initiative-bar-button"
+                        :title="t('game.ui.initiative.clear')"
+                        @click="clearInitiativeValues"
+                    >
+                        <font-awesome-icon icon="sync-alt" />
+                    </div>
+                    <div class="initiative-bar-button" :title="t('game.ui.initiative.change_sort')" @click="changeSort">
+                        <font-awesome-icon
+                            :key="initiativeStore.state.sort"
+                            :icon="translateSort(initiativeStore.state.sort)"
+                        />
+                    </div>
                 </div>
+            </div>
+            <div v-else>
+                <div class="initiative-round-display">
+                    <div>
+                        {{ t("game.ui.initiative.round_N", initiativeStore.state.roundCounter) }}
+                    </div>
+                </div>
+            </div>
+            <div id="initiative-settings" :title="t('game.ui.initiative.settings')" @click="openSettings">
+                <font-awesome-icon icon="cog" />
             </div>
             <Transition name="zoom">
                 <div v-if="confirmationDialog" class="initiative-confirm-dialog">
@@ -426,30 +505,108 @@ function n(e: any): number {
     padding: 10px;
 }
 
+#initiative-border-container {
+    position: relative;
+    border-radius: 0.35rem;
+    overflow: hidden;
+    &:before {
+        pointer-events: none;
+        content: "";
+        border-radius: inherit;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        box-shadow:
+            inset 0 6px 10px -10px black,
+            inset 0 -5px 13px -13px black,
+            inset 4px 0 13px -13px black,
+            inset -4px 0 13px -13px black;
+    }
+}
+
+#initiative-container {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    min-width: 300px;
+    min-height: 100px;
+    height: 200px;
+    resize: vertical;
+    scrollbar-width: thin;
+    padding: 5px 0;
+}
+
+#empty-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-style: italic;
+    user-select: none;
+    min-width: 275px;
+    margin: 0 10px;
+}
+
 #initiative-list {
+    position: relative;
     padding: 0;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    min-width: 275px;
+    margin: 2px 0;
+    scrollbar-color: #82c8a0 white;
+
+    > div:nth-child(odd) {
+        background-color: #e1eae5;
+        scrollbar-color: #82c8a0 #e1eae5;
+    }
+}
+
+.initiative-entry {
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
     align-items: flex-end;
+    margin: 2px 10px;
+    outline: solid 2px rgba(130, 200, 160, 0.4);
+    transition: box-shadow 0.2s ease;
+
+    &.owned-actor {
+        box-shadow:
+            15px 0px 8px -10px #82c8a0,
+            -15px 0px 8px -10px #82c8a0;
+    }
 }
 
 .initiative-actor {
     display: flex;
     flex-direction: row;
-    justify-content: flex-end;
+    justify-content: flex-start;
     align-items: center;
     padding: 2px 5px;
+    padding-left: 0px;
     margin-bottom: 2px;
     border-radius: 5px;
-    border: solid 2px rgba(0, 0, 0, 0);
     position: relative;
+    box-shadow: 0px 12px 5px -14px rgba(0, 0, 0, 0.75);
+    margin: 0;
 
-    min-width: 155px;
+    min-width: 275px;
+    max-width: 275px;
+
+    transition:
+        background-color 0.15s linear,
+        box-shadow 0.15s ease,
+        border 0.15s ease,
+        scale 0.15s ease;
 
     .remove {
         display: none;
 
         position: absolute;
+        user-select: none;
         color: red;
         font-size: 25px;
         font-weight: bold;
@@ -459,15 +616,11 @@ function n(e: any): number {
     }
 
     &:hover {
-        border: solid 2px #82c8a0;
+        outline: solid 2px #82c8a0;
 
         > .remove {
             display: block;
         }
-    }
-
-    img {
-        width: 30px;
     }
 
     svg {
@@ -475,21 +628,110 @@ function n(e: any): number {
         margin: 0 1px;
     }
 
-    > * {
-        display: flex;
-        justify-content: center;
+    .initiative-portrait {
+        min-height: 50px;
+        max-height: 50px;
+        min-width: 50px;
+        max-width: 50px;
+        user-select: none;
+        border-radius: 0.3rem;
+    }
+    .empty-portrait {
+        border: black 1px solid;
     }
 
     .initiative-value {
         font-weight: 800;
-        width: 60px;
-        margin: 0 10px;
+        max-width: 2.55rem;
         padding: 2px;
-        text-align: center;
+        text-align: end;
         background-color: inherit;
-        border: 0;
+        outline: none;
+        border: solid 1px #687d71;
+        border-radius: 5px;
+        transition: border-color 0.2s ease;
+        flex: 0.25 1 0;
 
+        &:not(.disabled) {
+            cursor: pointer;
+        }
+        &.disabled {
+            border-color: transparent;
+        }
+    }
+    .drag-handle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        align-self: stretch;
+        cursor: grab;
+        padding: 0 2px;
+    }
+    &.initiative-selected {
+        background-color: #82c8a0;
+        box-shadow: 0px 8px 10px -10px rgba(0, 0, 0, 0.75);
+        scale: 102%;
+    }
+}
+
+.actor-info-cluster {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: start;
+    padding: 0 2px;
+    flex: 1 0 0;
+    max-width: 60%;
+    overflow: hidden;
+    user-select: none;
+
+    mask-image: linear-gradient(to right, #000000ff 85%, transparent 95%);
+
+    > .actor-name {
+        margin: 2px 0;
+        margin-left: 2px;
+        text-wrap: nowrap;
+    }
+
+    > .actor-buttons {
+        display: flex;
+        flex-direction: row;
+        justify-content: left;
+        align-items: center;
+        width: 100%;
+    }
+}
+
+.actor-effect-button-group {
+    display: flex;
+    border: solid 1px rgba(104, 125, 113, 0.6);
+    border-radius: 0.25rem;
+    padding: 1px;
+    margin: 0 2px;
+}
+
+.actor-icon-button {
+    user-select: none;
+    border-radius: 0.25rem;
+    transition: all 0.1s ease;
+    svg {
+        transition: all 0.1s ease;
+    }
+    &:hover:not(.disabled) {
+        transform: scale(105%);
         cursor: pointer;
+        background-color: rgba(104, 125, 113, 0.5);
+    }
+    &:hover.disabled {
+        cursor: auto;
+    }
+    &:active:not(.disabled) {
+        transform: scale(100%);
+    }
+    &.disabled {
+        opacity: 50%;
     }
 }
 
@@ -497,39 +739,50 @@ function n(e: any): number {
     filter: blur(5px);
 }
 
-.initiative-selected {
-    border: solid 2px #82c8a0;
-    background-color: #82c8a0;
-}
-
 .initiative-effect {
-    display: none;
     flex-direction: column;
     width: -moz-fit-content;
     width: fit-content;
     margin-right: 5px;
-    margin-top: -2px;
-    margin-bottom: 5px;
     padding: 2px;
     border: solid 2px rgba(0, 0, 0, 0);
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
     border-top: none;
+    max-height: 6.5rem;
+    overflow-y: scroll;
+    scrollbar-width: thin;
+
+    transition:
+        all 0.3s ease,
+        box-shadow 0.1s linear,
+        opacity 0.2s ease,
+        max-height 0.3s ease;
+
+    &.initiative-selected {
+        background-color: #82c8a0;
+        box-shadow: -2px 5px 6px -6px rgba(0, 0, 0, 0.75);
+        scrollbar-color: #e1eae5 #82c8a0;
+    }
+}
+
+.initiative-effect-info {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
 
     > * {
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-end;
+        border: none;
+        background-color: inherit;
+        text-align: right;
+        margin: 0 3px;
 
-        > * {
-            border: none;
-            background-color: inherit;
-            text-align: right;
-            min-width: 10px;
-
-            &:first-child {
-                margin-left: 0;
-            }
+        &:first-child {
+            margin-left: 0;
+        }
+        &:last-child {
+            margin-right: 0;
         }
     }
 }
@@ -540,31 +793,63 @@ function n(e: any): number {
 .effect-visible {
     display: flex;
     border-color: rgba(130, 200, 160, 0.6);
-    background-color: rgba(130, 200, 160, 0.6);
 }
 
 #initiative-bar-dm {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     margin-top: 10px;
+
+    #round-bar-dm {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        div {
+            margin: 5px 2px;
+        }
+    }
+    #meta-bar-dm {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 85%;
+        div {
+            margin: 0 2px;
+        }
+    }
 }
 
-#initiative-round {
+.initiative-round-display {
     text-align: center;
     margin: 10px 0;
     position: relative;
+    user-select: none;
+    font-weight: bold;
+}
 
-    #initiative-settings {
-        position: absolute;
-        right: 30px;
-        top: -6px;
+#initiative-settings {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 90%;
+
+    svg {
+        transition:
+            rotate 0.8s ease-in-out,
+            scale 0.2s ease,
+            filter 0.2s linear;
     }
 
-    #initiative-next-round {
-        position: absolute;
-        right: 5px;
-        top: -6px;
+    &:hover svg {
+        rotate: 180deg;
+        scale: 105%;
+        transform-origin: center center;
+        filter: drop-shadow(0px 0px 3px #82c8a0);
+    }
+    &:active svg {
+        scale: 95%;
     }
 }
 
@@ -572,12 +857,30 @@ function n(e: any): number {
     border: solid 2px #82c8a0;
     border-radius: 5px;
     padding: 5px;
-}
 
-.initiative-bar-button:hover {
-    color: white;
-    background-color: #82c8a0;
-    cursor: pointer;
+    transition:
+        transform 0.1s linear,
+        background-color 0.05s linear,
+        color 0.05s linear,
+        opacity 0.3s linear,
+        border-color 0.1s linear;
+
+    &:hover:not(.disabled) {
+        transform: scale(110%);
+        color: white;
+        background-color: #82c8a0;
+        cursor: pointer;
+    }
+    &:hover.disabled {
+        cursor: auto;
+    }
+    &:active:not(.disabled) {
+        transform: scale(100%);
+    }
+    &.disabled {
+        border-color: #aaa;
+        opacity: 50%;
+    }
 }
 
 .initiative-confirm-dialog {

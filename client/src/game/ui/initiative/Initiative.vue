@@ -67,18 +67,22 @@ watch(
     },
 );
 
-watch(() => initiativeStore.state.locationData, (newList, oldList) => {
-    for (const item of oldList ?? []) {
-        if (item.localId !== undefined) {
-            propertiesSystem.dropState(item.localId, "initiative-ui");
+watch(
+    () => initiativeStore.state.locationData,
+    (newList, oldList) => {
+        for (const item of oldList ?? []) {
+            if (item.localId !== undefined) {
+                propertiesSystem.dropState(item.localId, "initiative-ui");
+            }
         }
-    }
-    for (const item of newList) {
-        if (item.localId !== undefined) {
-            propertiesSystem.loadState(item.localId, "initiative-ui");
+        for (const item of newList) {
+            if (item.localId !== undefined) {
+                propertiesSystem.loadState(item.localId, "initiative-ui");
+            }
         }
-    }
-}, { immediate: true },);
+    },
+    { immediate: true },
+);
 
 const alwaysShowEffects = computed(
     () => playerSettingsState.reactive.initiativeEffectVisibility.value === InitiativeEffectMode.Always,

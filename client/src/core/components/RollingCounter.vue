@@ -25,7 +25,6 @@ const width = ref("1.25em");
 
 function handleResize(entries: ResizeObserverEntry[]): void {
     for (const entry of entries) {
-        console.log('Element size changed: ', entry.contentRect.width, ', ', entry.contentRect.height);
         width.value = entry.contentRect.width + "px";
     }
 }

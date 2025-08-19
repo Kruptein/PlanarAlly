@@ -262,7 +262,7 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     previousRound(): void {
-        this.setRoundCounter(this._state.roundCounter + 1, InitiativeTurnDirection.Backward, {
+        this.setRoundCounter(this._state.roundCounter - 1, InitiativeTurnDirection.Backward, {
             sync: true,
             updateEffects: true,
         });

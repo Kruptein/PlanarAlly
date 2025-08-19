@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import draggable from "vuedraggable";
 
 import Modal from "../../../core/components/modals/Modal.vue";
+import RollingCounter from "../../../core/components/RollingCounter.vue";
 import { baseAdjust } from "../../../core/http";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
@@ -452,7 +453,8 @@ function n(e: any): number {
                         <font-awesome-icon icon="chevron-left" />
                     </div>
                     <div class="initiative-round-display">
-                        {{ t("game.ui.initiative.round_N", initiativeStore.state.roundCounter) }}
+                        <div>{{ t("game.ui.initiative.round_N") }}</div>
+                        <RollingCounter :value="initiativeStore.state.roundCounter" :fixed-width="2" />
                     </div>
                     <div class="initiative-bar-button" :title="t('game.ui.initiative.next')" @click="nextTurn">
                         <font-awesome-icon icon="chevron-right" />
@@ -862,6 +864,14 @@ function n(e: any): number {
     position: relative;
     user-select: none;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 115%;
+
+    div {
+        margin: 0 2px;
+    }
 }
 
 #initiative-settings {

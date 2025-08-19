@@ -78,6 +78,7 @@ const transitionName = computed(() => {
     position: relative;
     transition: width 0.3s ease 0.05s;
     width: v-bind("width");
+    min-width: 1.25em;
     height: calc(1.25em - 1px);
 }
 .rolling-counter {

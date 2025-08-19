@@ -42,6 +42,8 @@ interface ConfirmationDialog {
 const confirmationDialog = ref<ConfirmationDialog | null>(null);
 const listElement = ref<HTMLElement | null>(null);
 
+const hasVisibleActor = computed(() => initiativeStore.state.locationData.some((actor) => canSee(actor)));
+
 const owns = (actorId?: GlobalId): boolean => initiativeStore.owns(actorId);
 const toggleOption = (index: number, option: "isVisible" | "isGroup"): void =>
     initiativeStore.toggleOption(index, option);
@@ -262,7 +264,7 @@ function n(e: any): number {
         <div class="modal-body">
             <div id="initiative-border-container">
                 <div id="initiative-container" ref="listElement">
-                    <div v-if="initiativeStore.state.locationData.length === 0" id="empty-placeholder">
+                    <div v-if="!hasVisibleActor" id="empty-placeholder">
                         {{ t("game.ui.initiative.empty_initiative") }}
                     </div>
                     <draggable

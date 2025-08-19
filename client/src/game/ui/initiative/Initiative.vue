@@ -845,9 +845,6 @@ function n(e: any): number {
         display: flex;
         align-items: center;
         justify-content: center;
-        div {
-            margin: 5px 2px;
-        }
     }
     #meta-bar-dm {
         display: flex;
@@ -862,7 +859,7 @@ function n(e: any): number {
 
 .initiative-round-display {
     text-align: center;
-    margin: 10px 0;
+    margin: 10px;
     position: relative;
     user-select: none;
     font-weight: bold;
@@ -871,7 +868,7 @@ function n(e: any): number {
     justify-content: center;
     font-size: 115%;
 
-    div {
+    > * {
         margin: 0 2px;
     }
 }

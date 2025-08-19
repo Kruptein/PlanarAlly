@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 
 const props = withDefaults(
     defineProps<{
@@ -19,6 +19,32 @@ const props = withDefaults(
 
 const increased = ref(false);
 
+const counterElement = ref<HTMLElement | null>(null);
+const resizeObserver = ref<ResizeObserver | null>(null);
+const width = ref("1.25em");
+
+function handleResize(entries: ResizeObserverEntry[]): void {
+    for (const entry of entries) {
+        console.log('Element size changed: ', entry.contentRect.width, ', ', entry.contentRect.height);
+        width.value = entry.contentRect.width + "px";
+    }
+}
+
+onMounted(() => {
+    setTimeout(() => {
+        if (counterElement.value !== null) {
+            resizeObserver.value = new ResizeObserver(handleResize);
+            resizeObserver.value.observe(counterElement.value);
+        }
+    }, 100);
+});
+
+onBeforeUnmount(() => {
+    if (resizeObserver.value && counterElement.value) {
+        resizeObserver.value.unobserve(counterElement.value);
+    }
+});
+
 watch(
     () => props.value,
     (oldVal, newVal) => {
@@ -37,20 +63,29 @@ const transitionName = computed(() => {
 </script>
 
 <template>
-    <div class="rolling-counter">
-        <Transition :name="transitionName">
-            <div :key="value">
-                {{ (Math.sign(value) == -1 ? "-" : "") + Math.abs(value).toString().padStart(fixedWidth, "0") }}
-            </div>
-        </Transition>
+    <div class="counter-wrapper">
+        <div ref="counterElement" class="rolling-counter">
+            <Transition :name="transitionName">
+                <div :key="value">
+                    {{ (Math.sign(value) == -1 ? "-" : "") + Math.abs(value).toString().padStart(fixedWidth, "0") }}
+                </div>
+            </Transition>
+        </div>
     </div>
 </template>
 
 <style scoped lang="scss">
-.rolling-counter {
+.counter-wrapper {
     position: relative;
+    transition: width 0.3s ease 0.05s;
+    width: v-bind("width");
+    height: calc(1.25em - 1px);
+}
+.rolling-counter {
+    position: absolute;
+    bottom: 0;
+    left: 0;
     display: flex;
-    width: 1.25em;
     color: v-bind("color");
 }
 

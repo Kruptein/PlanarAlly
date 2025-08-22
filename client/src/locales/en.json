@@ -157,6 +157,7 @@
             },
             "initiative": {
                 "new_effect": "New effect",
+                "add_effect": "Add effect",
                 "add_timed_effect": "Add timed effect",
                 "toggle_group": "Toggle individual / group initiative",
                 "delete_init": "Delete initiative",

@@ -33,7 +33,24 @@ let activeTokensBackup: Set<LocalId> | undefined = undefined;
 
 function getDefaultEffect(): InitiativeEffect {
     const name = i18n.global.t("game.ui.initiative.new_effect");
+    return { name, turns: null, highlightsActor: false };
+}
+
+function getDefaultTimedEffect(): InitiativeEffect {
+    const name = i18n.global.t("game.ui.initiative.new_effect");
     return { name, turns: "10", highlightsActor: false };
+}
+
+function updateActorEffects(turnDelta: number, actor: InitiativeData): void {
+    if (actor === undefined) return;
+
+    for (let e = actor.effects.length - 1; e >= 0; e--) {
+        if (actor.effects[e]!.turns === null) continue;
+        const turns = +actor.effects[e]!.turns;
+        if (isNaN(turns)) continue;
+        if (turns <= 0) actor.effects.splice(e, 1);
+        else actor.effects[e]!.turns = (turns - turnDelta).toString();
+    }
 }
 
 interface InitiativeState {
@@ -212,17 +229,7 @@ class InitiativeStore extends Store<InitiativeState> {
             const entry = direction === InitiativeTurnDirection.Forward ? this._state.turnCounter : turn;
 
             const actor = this.getDataSet()[entry];
-            if (actor !== undefined) {
-                if (actor.effects.length > 0) {
-                    for (let e = actor.effects.length - 1; e >= 0; e--) {
-                        const turns = +actor.effects[e]!.turns;
-                        if (!isNaN(turns)) {
-                            if (turns <= 0) actor.effects.splice(e, 1);
-                            else actor.effects[e]!.turns = (turns - direction).toString();
-                        }
-                    }
-                }
-            }
+            updateActorEffects(direction, actor);
         }
         this._state.turnCounter = turn;
 
@@ -240,13 +247,7 @@ class InitiativeStore extends Store<InitiativeState> {
         this._state.roundCounter = round;
         if (options.updateEffects) {
             for (const actor of this.getDataSet()) {
-                if (actor === undefined) continue;
-                for (let e = actor.effects.length - 1; e >= 0; e--) {
-                    const turns = +actor.effects[e]!.turns;
-                    if (isNaN(turns)) continue;
-                    if (turns <= 0) actor.effects.splice(e, 1);
-                    else actor.effects[e]!.turns = (turns - direction).toString();
-                }
+                updateActorEffects(direction, actor);
             }
         }
         if (options.sync) {
@@ -319,6 +320,10 @@ class InitiativeStore extends Store<InitiativeState> {
         actor.effects.push(effect);
 
         if (sync) sendInitiativeNewEffect({ actor: globalId, effect });
+    }
+
+    createTimedEffect(globalId: GlobalId, effect: InitiativeEffect | undefined, sync: boolean): void {
+        this.createEffect(globalId, effect ?? getDefaultTimedEffect(), sync);
     }
 
     setEffectName(globalId: GlobalId, index: number, name: string, sync: boolean): void {

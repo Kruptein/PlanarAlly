@@ -81,6 +81,7 @@ import {
     faUserTag,
     faUsers,
     faVideo,
+    faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
 
 export function loadFontAwesome(): void {
@@ -165,6 +166,7 @@ export function loadFontAwesome(): void {
         faUserCircle,
         faUsers,
         faVideo,
+        faWandMagicSparkles,
         faWindowClose,
         faWindowRestore,
     );

@@ -175,6 +175,10 @@ function setEffectTurns(shape: GlobalId, index: number, turns: string): void {
     if (initiativeStore.owns(shape)) initiativeStore.setEffectTurns(shape, index, turns, true);
 }
 
+function createTimedEffect(shape: GlobalId): void {
+    if (initiativeStore.owns(shape)) initiativeStore.createTimedEffect(shape, undefined, true);
+}
+
 function createEffect(shape: GlobalId): void {
     if (initiativeStore.owns(shape)) initiativeStore.createEffect(shape, undefined, true);
 }
@@ -377,10 +381,24 @@ function n(e: any): number {
                                                     class="actor-icon-button no-select"
                                                     :class="{ disabled: !owns(actor.globalId) }"
                                                     :title="t('game.ui.initiative.add_timed_effect')"
-                                                    @click="createEffect(actor.globalId)"
+                                                    @click="createTimedEffect(actor.globalId)"
                                                 >
                                                     <font-awesome-icon
                                                         icon="stopwatch"
+                                                        style="opacity: 0.6"
+                                                        :style="{
+                                                            cursor: !owns(actor.globalId) ? 'default' : 'pointer',
+                                                        }"
+                                                    />
+                                                </div>
+                                                <div
+                                                    class="actor-icon-button no-select"
+                                                    :class="{ disabled: !owns(actor.globalId) }"
+                                                    :title="t('game.ui.initiative.add_effect')"
+                                                    @click="createEffect(actor.globalId)"
+                                                >
+                                                    <font-awesome-icon
+                                                        icon="wand-magic-sparkles"
                                                         style="opacity: 0.6"
                                                         :style="{
                                                             cursor: !owns(actor.globalId) ? 'default' : 'pointer',
@@ -436,14 +454,18 @@ function n(e: any): number {
                                             @keyup.enter="getTarget($event).blur()"
                                         />
                                         <input
+                                            v-if="effect.turns !== null"
                                             v-model="effect.turns"
                                             type="text"
-                                            style="width: 25px"
+                                            class="effect-turn-counter"
                                             :class="{ disabled: !owns(actor.globalId) }"
                                             :disabled="!owns(actor.globalId)"
                                             @change="setEffectTurns(actor.globalId, n(e), getValue($event))"
                                             @keyup.enter="getTarget($event).blur()"
                                         />
+                                        <div v-else class="effect-turn-counter infinite-placeholder">
+                                            &infin;
+                                        </div>
                                         <div
                                             v-if="owns(actor.globalId)"
                                             class="actor-icon-button"
@@ -840,6 +862,13 @@ function n(e: any): number {
         &:last-child {
             margin-right: 0;
         }
+    }
+    .effect-turn-counter {
+        width: 25px;
+        padding: 0 2px;
+    }
+    .infinite-placeholder {
+        user-select: none;
     }
 }
 

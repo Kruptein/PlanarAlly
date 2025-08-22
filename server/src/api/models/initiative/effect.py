@@ -5,7 +5,7 @@ from ..helpers import TypeIdModel
 
 class ApiInitiativeEffect(BaseModel):
     name: str
-    turns: str
+    turns: str | None
     highlightsActor: bool
 
 

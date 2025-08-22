@@ -269,7 +269,7 @@ export interface ApiInitiativeData {
 }
 export interface ApiInitiativeEffect {
   name: string;
-  turns: string;
+  turns: string | null;
   highlightsActor: boolean;
 }
 export interface ApiLocationUserOption {

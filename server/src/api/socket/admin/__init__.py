@@ -9,6 +9,7 @@ from ....config import cfg
 from ....db.models.notification import Notification
 from ....db.models.room import Room
 from ....db.models.user import User
+from ....logs import logger
 from ....state.admin import admin_state
 
 
@@ -98,6 +99,25 @@ async def remove_user(sid: str, name: str):
     except:
         return False
     return True
+
+
+@sio.on("Users.Add", namespace=ADMIN_NS)
+async def add_user(sid: str, name: str):
+    user = admin_state.get_user(sid)
+    if not is_admin(user):
+        return
+
+    target_user = User.by_name(name)
+    if target_user is not None:
+        return False
+
+    try:
+        pw = secrets.token_urlsafe(20)
+        User.create_new(name, pw)
+        return pw
+    except:
+        logger.exception("Error creating user")
+        return False
 
 
 @sio.on("Campaigns.List", namespace=ADMIN_NS)

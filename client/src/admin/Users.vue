@@ -50,6 +50,25 @@ async function remove(name: string): Promise<void> {
         }
     }
 }
+
+async function addUser(): Promise<void> {
+    const name = window.prompt("Enter the username of the new user:");
+    if (name === null || name.length === 0) {
+        window.alert("Username cannot be empty");
+    } else if (users.value.some((u) => u.name.toLowerCase() === name.toLowerCase())) {
+        window.alert("A user with this name already exists");
+    } else {
+        const newPw = (await socket.emitWithAck("Users.Add", name)) as string | false;
+        if (newPw !== false) {
+            await navigator.clipboard.writeText(newPw);
+            window.alert(
+                `New password is: ${newPw}\nMake sure that the user changes it manually\nIt has been copied to your clipboard`,
+            );
+        } else {
+            window.alert("User creation failed");
+        }
+    }
+}
 </script>
 
 <template>
@@ -80,6 +99,11 @@ async function remove(name: string): Promise<void> {
                 <template v-if="filteredUsers.length === 0">
                     <div class="fullWidth">No users match the current filter.</div>
                 </template>
+            </div>
+
+            <div id="action-bar">
+                <div>Total: {{ users.length }}</div>
+                <button @click="addUser">Add User</button>
             </div>
         </div>
     </section>
@@ -118,13 +142,38 @@ async function remove(name: string): Promise<void> {
     }
 }
 
+#action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-top: 1rem;
+    border-top: solid 2px;
+
+    font-size: 1.2rem;
+
+    button {
+        padding: 0.75rem 1rem;
+        background-color: rgba(77, 0, 21);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: inherit;
+
+        &:hover {
+            background-color: rgba(219, 0, 59);
+            cursor: pointer;
+        }
+    }
+}
+
 #users-header {
     font-weight: bold;
     border-bottom: solid 2px;
 }
 
 #users-list {
-    max-height: calc(100vh - 18rem);
+    max-height: calc(100vh - 23rem);
     overflow-y: auto;
 }
 </style>

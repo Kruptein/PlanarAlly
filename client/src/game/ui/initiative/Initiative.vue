@@ -405,16 +405,7 @@ function n(e: any): number {
                                                         }"
                                                     />
                                                 </div>
-                                                <div
-                                                    v-if="actor.effects"
-                                                    class="no-select"
-                                                    style="opacity: 65%; margin: 0 3px"
-                                                >
-                                                    {{ actor.effects.length }}
-                                                </div>
-                                                <div v-else class="no-select" style="opacity: 65%; margin: 0 3px">
-                                                    0
-                                                </div>
+                                                <RollingCounter :value="actor.effects.length" :fixed-width="1" />
                                             </div>
                                         </div>
                                     </div>
@@ -779,15 +770,20 @@ function n(e: any): number {
         justify-content: left;
         align-items: center;
         width: 100%;
-    }
-}
 
-.actor-effect-button-group {
-    display: flex;
-    border: solid 1px rgba(104, 125, 113, 0.6);
-    border-radius: 0.25rem;
-    padding: 1px;
-    margin: 0 2px;
+        > .actor-effect-button-group {
+            display: flex;
+            border: solid 1px rgba(104, 125, 113, 0.6);
+            border-radius: 0.25rem;
+            padding: 1px;
+            margin: 0 2px;
+        }
+    }
+
+    :deep(.rolling-counter) {
+        opacity: 65%;
+        margin: 0 3px;
+    }
 }
 
 .actor-icon-button {

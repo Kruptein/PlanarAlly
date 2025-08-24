@@ -80,6 +80,7 @@ const transitionName = computed(() => {
     width: v-bind("width");
     min-width: 1.25em;
     height: calc(1.25em - 1px);
+    background-color: inherit;
 }
 .rolling-counter {
     position: absolute;
@@ -87,6 +88,7 @@ const transitionName = computed(() => {
     left: 0;
     display: flex;
     color: v-bind("color");
+    background-color: inherit;
 }
 
 .counter-roll-enter-from {

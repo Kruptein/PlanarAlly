@@ -37,6 +37,7 @@ tech changes will usually be stripped from release notes for the public
 -   Going to previous initiative would decrement effect timers
 -   Going to previous initiative could enter negative rounds
 -   Render bug in vision mode "behind" showing the entire shape under certain circumstances
+-   Asset search server query had a missing () causing assets from other users to show up
 
 ## [2025.2.2]
 

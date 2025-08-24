@@ -9,6 +9,10 @@ const toast = useToast();
 
 export const socket = socketManager.socket("/dashboard");
 
+socket.on("disconnect", () => {
+    dashboardState.adminEnabled = false;
+});
+
 socket.on("Campaign.Export.Done", (filename: string) => {
     window.open(baseAdjust(`/static/temp/${filename}.pac`));
 });

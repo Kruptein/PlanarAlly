@@ -370,7 +370,7 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
 async def assetmgmt_search(sid: str, query: str):
     user = asset_state.get_user(sid)
 
-    assets = Asset.select().where(Asset.owner == user & Asset.name.contains(query)).order_by(Asset.name)  # type: ignore
+    assets = Asset.select().where((Asset.owner == user) & Asset.name.contains(query)).order_by(Asset.name)  # type: ignore
 
     return [transform_asset(asset, user) for asset in assets]
 

@@ -24,11 +24,11 @@ jobs:
                       client/**
                       .github/workflows/pull_request.yaml
 
-            - name: Use Node.js 22.x
+            - name: Use Node.js 24.x
               if: steps.changed-files.outputs.any_changed == 'true'
               uses: actions/setup-node@v4
               with:
-                  node-version: 22.x
+                  node-version: 24.x
                   cache: "npm"
                   cache-dependency-path: client/package-lock.json
 
@@ -62,10 +62,10 @@ jobs:
                   path: client/node_modules
                   key: client-${{ runner.os }}-${{ hashFiles('client/package-lock.json') }}
 
-            - name: Use Node.js 22.x
+            - name: Use Node.js 24.x
               uses: actions/setup-node@v4
               with:
-                  node-version: 22.x
+                  node-version: 24.x
 
             - name: Run ${{ matrix.check }}
               working-directory: client

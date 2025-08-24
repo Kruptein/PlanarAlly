@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 import type { NotificationShow } from "../apiTypes";
@@ -16,6 +16,10 @@ socket.on("Notifications.List", (data: NotificationShow[]) => (notifications.val
 
 onMounted(() => {
     socket.connect();
+});
+
+onUnmounted(() => {
+    socket.disconnect();
 });
 
 // function add(): void {

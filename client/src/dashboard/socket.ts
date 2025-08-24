@@ -9,6 +9,10 @@ const toast = useToast();
 
 export const socket = socketManager.socket("/dashboard");
 
+socket.on("disconnect", () => {
+    dashboardState.adminEnabled = false;
+});
+
 socket.on("Campaign.Export.Done", (filename: string) => {
     window.open(baseAdjust(`/static/temp/${filename}.pac`));
 });
@@ -21,4 +25,8 @@ socket.on("Campaign.Import.Done", (data: { success: true } | { success: false; r
     } else {
         toast.error(`Something went wrong with the campaign import :( (${data.reason})`, { timeout: false });
     }
+});
+
+socket.on("Admin.Enabled", (enabled: boolean) => {
+    dashboardState.adminEnabled = enabled;
 });

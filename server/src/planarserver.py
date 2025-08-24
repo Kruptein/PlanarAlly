@@ -37,13 +37,8 @@ from .api import http  # noqa: F401, E402
 
 # Force loading of socketio routes
 from .api.socket import load_socket_commands  # noqa: E402
-from .app import (  # noqa: E402
-    admin_app,  # noqa: E402
-    runners,
-    setup_runner,
-    sio,
-)
 from .app import app as main_app  # noqa: E402
+from .app import runners, setup_runner, sio  # noqa: E402
 from .logs import logger  # noqa: E402
 from .state.asset import asset_state  # noqa: E402
 from .state.dashboard import dashboard_state  # noqa: E402
@@ -112,14 +107,11 @@ async def start_socket(app: web.Application, sock):
     await setup_runner(app, web.UnixSite, path=sock)
 
 
-async def start_server(server_section: Literal["Webserver", "APIserver"], cfg: WebserverConfig):
+async def start_server(server_section: Literal["Webserver"], cfg: WebserverConfig):
     app = main_app
     method = "unknown"
 
     connection = cfg.connection
-
-    if server_section == "APIserver":
-        app = admin_app
 
     if connection.type == "socket":
         await start_socket(app, connection.socket)
@@ -151,11 +143,6 @@ async def start_servers():
     cfg = config.cfg()
     print()
     await start_server("Webserver", cfg.webserver)
-    print()
-    if cfg.apiserver:
-        await start_server("APIserver", cfg.apiserver)
-    else:
-        print("API Server disabled")
     print()
     print("(Press CTRL+C to quit)")
     print()

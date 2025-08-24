@@ -367,10 +367,22 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
 
 @sio.on("Asset.Search", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
-async def assetmgmt_search(sid: str, query: str):
+async def assetmgmt_search(sid: str, query: str, include_shared_assets: bool):
     user = asset_state.get_user(sid)
 
-    assets = Asset.select().where((Asset.owner == user) & Asset.name.contains(query)).order_by(Asset.name)  # type: ignore
+    # Expensive path
+    if include_shared_assets:
+        assets = []
+        for asset in Asset.get_all_assets(user):
+            print(asset.name)
+            if query in asset.name.lower():
+                assets.append(asset)
+    else:
+        assets = (
+            Asset.select()
+            .where((Asset.owner == user) & Asset.name.contains(query))  # type: ignore
+            .order_by(Asset.name)
+        )
 
     return [transform_asset(asset, user) for asset in assets]
 

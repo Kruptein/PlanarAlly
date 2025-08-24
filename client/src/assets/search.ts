@@ -11,12 +11,15 @@ interface AssetSearch {
     filter: Ref<string>;
     results: Ref<ApiAsset[]>;
     loading: Ref<boolean>;
+    includeSharedAssets: Ref<boolean>;
 }
 
 export function useAssetSearch(searchBar: Ref<HTMLInputElement | null>): AssetSearch {
     const filter = ref("");
     const results = ref<ApiAsset[]>([]);
     const loading = ref(false);
+    const includeSharedAssets = ref(false);
+
     watch(assetState.currentFolder, () => {
         filter.value = "";
     });
@@ -28,7 +31,7 @@ export function useAssetSearch(searchBar: Ref<HTMLInputElement | null>): AssetSe
 
     async function search(query: string): Promise<void> {
         loading.value = true;
-        const data = (await socket.emitWithAck("Asset.Search", query)) as ApiAsset[];
+        const data = (await socket.emitWithAck("Asset.Search", query, includeSharedAssets.value)) as ApiAsset[];
         for (const asset of data) {
             assetState.mutableReactive.idMap.set(asset.id, asset);
         }
@@ -38,7 +41,7 @@ export function useAssetSearch(searchBar: Ref<HTMLInputElement | null>): AssetSe
 
     const debouncedSearch = debounce(search, 300);
 
-    watch(filter, async (filter) => {
+    watch([filter, includeSharedAssets], async ([filter]) => {
         if (filter.length < 3) {
             results.value = [];
             return;
@@ -47,5 +50,5 @@ export function useAssetSearch(searchBar: Ref<HTMLInputElement | null>): AssetSe
         await debouncedSearch(filter);
     });
 
-    return { clear, filter, results, loading };
+    return { clear, filter, results, loading, includeSharedAssets };
 }

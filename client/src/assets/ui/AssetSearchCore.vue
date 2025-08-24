@@ -29,6 +29,10 @@ defineExpose({ search });
                 />
             </div>
         </div>
+        <div v-if="search.filter.value.length >= 3" id="search-options">
+            <input id="include-shared-assets" v-model="search.includeSharedAssets.value" type="checkbox" />
+            <label for="include-shared-assets">Include shared assets</label>
+        </div>
     </div>
 </template>
 
@@ -37,7 +41,7 @@ defineExpose({ search });
     margin: 1rem 0;
     position: relative;
 
-    > div {
+    > div:first-of-type {
         position: relative;
         display: flex;
         align-items: center;
@@ -136,6 +140,15 @@ defineExpose({ search });
                 display: inline-block;
             }
         }
+    }
+
+    > #search-options {
+        position: absolute;
+        right: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: 1rem;
     }
 }
 </style>

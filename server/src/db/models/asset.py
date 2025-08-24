@@ -102,3 +102,15 @@ class Asset(BaseDbModel):
             else:
                 data[asset.name] = cls.get_user_structure(user, asset)
         return data
+
+    @classmethod
+    def get_all_assets(cls, user: User, parent=None):
+        if parent is None:
+            parent = cls.get_root_folder(user)
+
+        assets = [*Asset.select().where((Asset.parent == parent))]
+        for asset_share in AssetShare().select().where((AssetShare.parent == parent)):
+            assets.append(asset_share.asset)
+        for asset in assets:
+            yield asset
+            yield from cls.get_all_assets(user, asset)

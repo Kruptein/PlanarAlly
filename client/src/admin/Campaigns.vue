@@ -43,6 +43,10 @@ const filteredCampaigns = computed(() => {
                     <div class="fullWidth">No campaigns match the current filter.</div>
                 </template>
             </div>
+
+            <div id="action-bar">
+                <div>Total: {{ campaigns.length }}</div>
+            </div>
         </div>
     </section>
 </template>
@@ -80,13 +84,24 @@ const filteredCampaigns = computed(() => {
     }
 }
 
+#action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-top: 1rem;
+    border-top: solid 2px;
+
+    font-size: 1.2rem;
+}
+
 #campaigns-header {
     font-weight: bold;
     border-bottom: solid 2px;
 }
 
 #campaigns-list {
-    max-height: calc(100vh - 18rem);
+    max-height: calc(100vh - 22rem);
     overflow-y: auto;
 }
 </style>

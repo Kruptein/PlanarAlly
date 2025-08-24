@@ -1,3 +1,4 @@
+import debounce from "lodash/debounce";
 import { ref, watch, type Ref } from "vue";
 
 import type { ApiAsset } from "../apiTypes";
@@ -25,19 +26,25 @@ export function useAssetSearch(searchBar: Ref<HTMLInputElement | null>): AssetSe
         searchBar.value?.focus();
     }
 
+    async function search(query: string): Promise<void> {
+        loading.value = true;
+        const data = (await socket.emitWithAck("Asset.Search", query)) as ApiAsset[];
+        for (const asset of data) {
+            assetState.mutableReactive.idMap.set(asset.id, asset);
+        }
+        results.value = data;
+        loading.value = false;
+    }
+
+    const debouncedSearch = debounce(search, 300);
+
     watch(filter, async (filter) => {
         if (filter.length < 3) {
             results.value = [];
             return;
         }
 
-        loading.value = true;
-        const data = (await socket.emitWithAck("Asset.Search", filter)) as ApiAsset[];
-        for (const asset of data) {
-            assetState.mutableReactive.idMap.set(asset.id, asset);
-        }
-        results.value = data;
-        loading.value = false;
+        await debouncedSearch(filter);
     });
 
     return { clear, filter, results, loading };

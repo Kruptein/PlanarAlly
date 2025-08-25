@@ -422,52 +422,56 @@ function n(e: any): number {
                                         @keyup.enter="getTarget($event).blur()"
                                     />
                                 </div>
-                                <div
-                                    v-if="actor.effects.length > 0"
-                                    class="initiative-effect"
-                                    :class="{
-                                        'effect-visible': alwaysShowEffects,
-                                        'initiative-selected': initiativeStore.state.turnCounter === index,
-                                    }"
-                                >
+                                <Transition name="effects-expand">
                                     <div
-                                        v-for="(effect, e) of actor.effects"
-                                        :key="`${actor.globalId}-${e}`"
-                                        class="initiative-effect-info"
+                                        v-if="actor.effects.length > 0"
+                                        class="initiative-effect"
+                                        :class="{
+                                            'effect-visible': alwaysShowEffects,
+                                            'initiative-selected': initiativeStore.state.turnCounter === index,
+                                        }"
                                     >
-                                        <input
-                                            v-model="effect.name"
-                                            type="text"
-                                            style="width: 100px"
-                                            :class="{ disabled: !owns(actor.globalId) }"
-                                            :disabled="!owns(actor.globalId)"
-                                            @change="setEffectName(actor.globalId, n(e), getValue($event))"
-                                            @keyup.enter="getTarget($event).blur()"
-                                        />
-                                        <input
-                                            v-if="effect.turns !== null"
-                                            v-model="effect.turns"
-                                            type="text"
-                                            class="effect-turn-counter"
-                                            :class="{ disabled: !owns(actor.globalId) }"
-                                            :disabled="!owns(actor.globalId)"
-                                            @change="setEffectTurns(actor.globalId, n(e), getValue($event))"
-                                            @keyup.enter="getTarget($event).blur()"
-                                        />
-                                        <div v-else class="effect-turn-counter infinite-placeholder">
-                                            &infin;
-                                        </div>
-                                        <div
-                                            v-if="owns(actor.globalId)"
-                                            class="actor-icon-button"
-                                            :title="t('game.ui.initiative.delete_effect')"
-                                            @click="removeEffect(actor.globalId, n(e))"
-                                        >
-                                            <font-awesome-icon icon="trash-alt" />
-                                        </div>
-                                        <div v-else style="margin-right: 4px"></div>
+                                        <TransitionGroup name="effect-expand">
+                                            <div
+                                                v-for="(effect, e) of actor.effects"
+                                                :key="`${actor.globalId}-${e}`"
+                                                class="initiative-effect-info"
+                                            >
+                                                <input
+                                                    v-model="effect.name"
+                                                    type="text"
+                                                    style="width: 100px"
+                                                    :class="{ disabled: !owns(actor.globalId) }"
+                                                    :disabled="!owns(actor.globalId)"
+                                                    @change="setEffectName(actor.globalId, n(e), getValue($event))"
+                                                    @keyup.enter="getTarget($event).blur()"
+                                                />
+                                                <input
+                                                    v-if="effect.turns !== null"
+                                                    v-model="effect.turns"
+                                                    type="text"
+                                                    class="effect-turn-counter"
+                                                    :class="{ disabled: !owns(actor.globalId) }"
+                                                    :disabled="!owns(actor.globalId)"
+                                                    @change="setEffectTurns(actor.globalId, n(e), getValue($event))"
+                                                    @keyup.enter="getTarget($event).blur()"
+                                                />
+                                                <div v-else class="effect-turn-counter infinite-placeholder">
+                                                    &infin;
+                                                </div>
+                                                <div
+                                                    v-if="owns(actor.globalId)"
+                                                    class="actor-icon-button"
+                                                    :title="t('game.ui.initiative.delete_effect')"
+                                                    @click="removeEffect(actor.globalId, n(e))"
+                                                >
+                                                    <font-awesome-icon icon="trash-alt" />
+                                                </div>
+                                                <div v-else style="margin-right: 4px"></div>
+                                            </div>
+                                        </TransitionGroup>
                                     </div>
-                                </div>
+                                </Transition>
                             </div>
                         </template>
                     </draggable>
@@ -650,6 +654,7 @@ function n(e: any): number {
 }
 
 .initiative-actor {
+    z-index: 1;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -970,6 +975,7 @@ function n(e: any): number {
 }
 
 .initiative-confirm-dialog {
+    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1023,4 +1029,37 @@ function n(e: any): number {
 .zoom-enter-active {
     transition: all 0.15s ease;
 }
+
+.effects-expand-ente-active,
+.effects-expand-leave-active {
+    max-height: 2rem;
+}
+.effects-expand-enter-from,
+.effects-expand-leave-to {
+    opacity: 0;
+    max-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.effect-expand-enter-active {
+    transition:
+        all 0.3s ease,
+        opacity 0.3s ease 0.05s;
+    max-height: 1.5rem;
+}
+.effect-expand-leave-active {
+    transition:
+        all 0.3s ease,
+        opacity 0.2s ease;
+    max-height: 1.5rem;
+}
+.effect-expand-enter-from,
+.effect-expand-leave-to {
+    opacity: 0;
+    max-height: 0;
+}
+
 </style>

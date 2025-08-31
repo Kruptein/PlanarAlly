@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { SortableEvent } from "sortablejs";
 import { computed, onMounted, nextTick, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
 import { VueDraggable } from "vue-draggable-plus";
-import draggable from "vuedraggable";
+import { useI18n } from "vue-i18n";
 
 import Modal from "../../../core/components/modals/Modal.vue";
 import RollingCounter from "../../../core/components/RollingCounter.vue";
@@ -243,9 +243,10 @@ function setInitiative(shape: GlobalId, value: string): void {
     if (initiativeStore.owns(shape)) initiativeStore.setInitiative(shape, numValue, true);
 }
 
-function changeOrder(event: Event & { data: InitiativeData; newIndex: number; oldIndex: number }): void {
-    if (gameState.raw.isDm && event.newIndex !== event.oldIndex)
-        initiativeStore.changeOrder(event.data.globalId, event.oldIndex, event.newIndex);
+function changeOrder(event: SortableEvent): void {
+    const realEvent = event as SortableEvent & { data: InitiativeData };
+    if (gameState.raw.isDm && realEvent.newIndex !== realEvent.oldIndex)
+        initiativeStore.changeOrder(realEvent.data.globalId, realEvent.oldIndex!, realEvent.newIndex!);
 }
 
 function changeSort(): void {
@@ -294,13 +295,13 @@ function n(e: any): number {
                         <VueDraggable
                             v-if="hasVisibleActor"
                             id="initiative-list"
-                            :model-value="initiativeStore.state.locationData"
+                            :model-value="initiativeStore.getDataSet()"
                             handle=".drag-handle"
                             ghost-class="moving-entry"
                             @end="changeOrder"
                         >
                             <TransitionGroup name="initiative-slide">
-                                <template v-for="(actor, index) of initiativeStore.state.locationData" :key="actor.globalId">
+                                <template v-for="(actor, index) of initiativeStore.getDataSet()" :key="actor.globalId">
                                     <div
                                         v-if="canSee(actor)"
                                         class="initiative-entry"
@@ -386,7 +387,9 @@ function n(e: any): number {
                                                                 icon="stopwatch"
                                                                 style="opacity: 0.6"
                                                                 :style="{
-                                                                    cursor: !owns(actor.globalId) ? 'default' : 'pointer',
+                                                                    cursor: !owns(actor.globalId)
+                                                                        ? 'default'
+                                                                        : 'pointer',
                                                                 }"
                                                             />
                                                         </div>
@@ -400,11 +403,16 @@ function n(e: any): number {
                                                                 icon="wand-magic-sparkles"
                                                                 style="opacity: 0.6"
                                                                 :style="{
-                                                                    cursor: !owns(actor.globalId) ? 'default' : 'pointer',
+                                                                    cursor: !owns(actor.globalId)
+                                                                        ? 'default'
+                                                                        : 'pointer',
                                                                 }"
                                                             />
                                                         </div>
-                                                        <RollingCounter :value="actor.effects.length" :fixed-width="1" />
+                                                        <RollingCounter
+                                                            :value="actor.effects.length"
+                                                            :fixed-width="1"
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
@@ -442,7 +450,9 @@ function n(e: any): number {
                                                             style="width: 100px"
                                                             :class="{ disabled: !owns(actor.globalId) }"
                                                             :disabled="!owns(actor.globalId)"
-                                                            @change="setEffectName(actor.globalId, n(e), getValue($event))"
+                                                            @change="
+                                                                setEffectName(actor.globalId, n(e), getValue($event))
+                                                            "
                                                             @keyup.enter="getTarget($event).blur()"
                                                         />
                                                         <input
@@ -452,7 +462,9 @@ function n(e: any): number {
                                                             class="effect-turn-counter"
                                                             :class="{ disabled: !owns(actor.globalId) }"
                                                             :disabled="!owns(actor.globalId)"
-                                                            @change="setEffectTurns(actor.globalId, n(e), getValue($event))"
+                                                            @change="
+                                                                setEffectTurns(actor.globalId, n(e), getValue($event))
+                                                            "
                                                             @keyup.enter="getTarget($event).blur()"
                                                         />
                                                         <div v-else class="effect-turn-counter infinite-placeholder">
@@ -1094,6 +1106,4 @@ function n(e: any): number {
 .fade-leave-active {
     transition: all 0.15s ease;
 }
-
-
 </style>

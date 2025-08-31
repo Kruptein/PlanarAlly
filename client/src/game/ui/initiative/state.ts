@@ -46,7 +46,7 @@ function updateActorEffects(turnDelta: number, actor: InitiativeData): void {
 
     for (let e = actor.effects.length - 1; e >= 0; e--) {
         if (actor.effects[e]!.turns === null) continue;
-        const turns = +actor.effects[e]!.turns;
+        const turns = +actor.effects[e]!.turns!;
         if (isNaN(turns)) continue;
         if (turns <= 0) actor.effects.splice(e, 1);
         else actor.effects[e]!.turns = (turns - turnDelta).toString();
@@ -229,7 +229,7 @@ class InitiativeStore extends Store<InitiativeState> {
             const entry = direction === InitiativeTurnDirection.Forward ? this._state.turnCounter : turn;
 
             const actor = this.getDataSet()[entry];
-            updateActorEffects(direction, actor);
+            if (actor !== undefined) updateActorEffects(direction, actor);
         }
         this._state.turnCounter = turn;
 

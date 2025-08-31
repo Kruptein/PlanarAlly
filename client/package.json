@@ -38,8 +38,7 @@
         "vue-i18n": "11.1.11",
         "vue-markdown-render": "^2.2.1",
         "vue-router": "^4.5.1",
-        "vue-toastification": "^2.0.0-rc.5",
-        "vuedraggable": "4.0.3"
+        "vue-toastification": "^2.0.0-rc.5"
     },
     "devDependencies": {
         "@esbuild-plugins/esm-externals": "^0.1.2",

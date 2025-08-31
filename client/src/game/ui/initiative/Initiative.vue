@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { VueDraggable } from "vue-draggable-plus";
 import draggable from "vuedraggable";
 
 import Modal from "../../../core/components/modals/Modal.vue";
@@ -56,7 +57,7 @@ onMounted(() => {
     initiativeStore.show(false, false);
     setTimeout(() => {
         scrollToInitiative();
-    }, 100);
+    }, 300);
 });
 
 watch(
@@ -242,9 +243,9 @@ function setInitiative(shape: GlobalId, value: string): void {
     if (initiativeStore.owns(shape)) initiativeStore.setInitiative(shape, numValue, true);
 }
 
-function changeOrder(data: Event & { moved?: { element: InitiativeData; newIndex: number; oldIndex: number } }): void {
-    if (gameState.raw.isDm && data.moved)
-        initiativeStore.changeOrder(data.moved.element.globalId, data.moved.oldIndex, data.moved.newIndex);
+function changeOrder(event: Event & { data: InitiativeData; newIndex: number; oldIndex: number }): void {
+    if (gameState.raw.isDm && event.newIndex !== event.oldIndex)
+        initiativeStore.changeOrder(event.data.globalId, event.oldIndex, event.newIndex);
 }
 
 function changeSort(): void {
@@ -289,192 +290,195 @@ function n(e: any): number {
         <div class="modal-body">
             <div id="initiative-border-container">
                 <div id="initiative-container" ref="listElement">
-                    <div v-if="!hasVisibleActor" id="empty-placeholder">
-                        {{ t("game.ui.initiative.empty_initiative") }}
-                    </div>
-                    <draggable
-                        v-else
-                        id="initiative-list"
-                        :model-value="initiativeStore.state.locationData"
-                        :disabled="!gameState.reactive.isDm"
-                        handle=".drag-handle"
-                        item-key="uuid"
-                        @change="changeOrder"
-                    >
-                        <template #item="{ element: actor, index }: { element: InitiativeData; index: number }">
-                            <div
-                                v-if="canSee(actor)"
-                                class="initiative-entry"
-                                :class="{ 'owned-actor': owns(actor.globalId) && !gameState.reactive.isDm }"
-                            >
-                                <div
-                                    class="initiative-actor"
-                                    :class="{
-                                        'initiative-selected': initiativeStore.state.turnCounter === index,
-                                        blurred:
-                                            initiativeStore.state.editLock !== undefined &&
-                                            initiativeStore.state.editLock !== actor.globalId,
-                                    }"
-                                    @mouseenter="toggleHighlight(actor.localId, true)"
-                                    @mouseleave="toggleHighlight(actor.localId, false)"
-                                >
+                    <Transition name="fade" mode="out-in">
+                        <VueDraggable
+                            v-if="hasVisibleActor"
+                            id="initiative-list"
+                            :model-value="initiativeStore.state.locationData"
+                            handle=".drag-handle"
+                            ghost-class="moving-entry"
+                            @end="changeOrder"
+                        >
+                            <TransitionGroup name="initiative-slide">
+                                <template v-for="(actor, index) of initiativeStore.state.locationData" :key="actor.globalId">
                                     <div
-                                        v-if="owns(actor.globalId)"
-                                        class="remove"
-                                        :class="{ notAllowed: !owns(actor.globalId) }"
-                                        @click="removeInitiative(actor)"
+                                        v-if="canSee(actor)"
+                                        class="initiative-entry"
+                                        :class="{ 'owned-actor': owns(actor.globalId) && !gameState.reactive.isDm }"
                                     >
-                                        &#215;
-                                    </div>
-                                    <div v-if="gameState.reactive.isDm" class="drag-handle">
-                                        <font-awesome-icon icon="grip-vertical" style="cursor: grab" />
-                                    </div>
-                                    <div v-else style="margin-right: 0.5rem"></div>
-                                    <template v-if="hasImage(actor)">
-                                        <img
-                                            :src="getImage(actor)"
-                                            :title="getName(actor)"
-                                            class="initiative-portrait"
-                                            alt=""
-                                        />
-                                    </template>
-                                    <div
-                                        v-else
-                                        :title="getName(actor)"
-                                        class="initiative-portrait empty-portrait"
-                                    ></div>
-                                    <div class="actor-info-cluster">
-                                        <span class="actor-name" :title="getName(actor)">
-                                            {{ getName(actor) }}
-                                        </span>
-                                        <div class="actor-buttons">
+                                        <div
+                                            class="initiative-actor"
+                                            :class="{
+                                                'initiative-selected': initiativeStore.state.turnCounter === index,
+                                                blurred:
+                                                    initiativeStore.state.editLock !== undefined &&
+                                                    initiativeStore.state.editLock !== actor.globalId,
+                                            }"
+                                            @mouseenter="toggleHighlight(actor.localId, true)"
+                                            @mouseleave="toggleHighlight(actor.localId, false)"
+                                        >
                                             <div
-                                                class="actor-icon-button"
-                                                :class="{ disabled: !owns(actor.globalId) }"
-                                                :title="t('common.toggle_public_private')"
-                                                @click="toggleOption(index, 'isVisible')"
+                                                v-if="owns(actor.globalId)"
+                                                class="remove"
+                                                :class="{ notAllowed: !owns(actor.globalId) }"
+                                                @click="removeInitiative(actor)"
                                             >
-                                                <font-awesome-icon
-                                                    icon="eye"
-                                                    :style="{
-                                                        cursor: !owns(actor.globalId) ? 'default' : 'pointer',
-                                                        opacity: actor.isVisible ? '1.0' : '0.3',
-                                                    }"
-                                                />
+                                                &#215;
                                             </div>
+                                            <div v-if="gameState.reactive.isDm" class="drag-handle">
+                                                <font-awesome-icon icon="grip-vertical" style="cursor: grab" />
+                                            </div>
+                                            <div v-else style="margin-right: 0.5rem"></div>
+                                            <template v-if="hasImage(actor)">
+                                                <img
+                                                    :src="getImage(actor)"
+                                                    :title="getName(actor)"
+                                                    class="initiative-portrait"
+                                                    alt=""
+                                                />
+                                            </template>
                                             <div
-                                                class="actor-icon-button"
+                                                v-else
+                                                :title="getName(actor)"
+                                                class="initiative-portrait empty-portrait"
+                                            ></div>
+                                            <div class="actor-info-cluster">
+                                                <span class="actor-name" :title="getName(actor)">
+                                                    {{ getName(actor) }}
+                                                </span>
+                                                <div class="actor-buttons">
+                                                    <div
+                                                        class="actor-icon-button"
+                                                        :class="{ disabled: !owns(actor.globalId) }"
+                                                        :title="t('common.toggle_public_private')"
+                                                        @click="toggleOption(index, 'isVisible')"
+                                                    >
+                                                        <font-awesome-icon
+                                                            icon="eye"
+                                                            :style="{
+                                                                cursor: !owns(actor.globalId) ? 'default' : 'pointer',
+                                                                opacity: actor.isVisible ? '1.0' : '0.3',
+                                                            }"
+                                                        />
+                                                    </div>
+                                                    <div
+                                                        class="actor-icon-button"
+                                                        :class="{ disabled: !owns(actor.globalId) }"
+                                                        :title="t('game.ui.initiative.toggle_group')"
+                                                        @click="toggleOption(index, 'isGroup')"
+                                                    >
+                                                        <font-awesome-icon
+                                                            icon="users"
+                                                            :style="{
+                                                                cursor: !owns(actor.globalId) ? 'default' : 'pointer',
+                                                                opacity: actor.isGroup ? '1.0' : '0.3',
+                                                            }"
+                                                        />
+                                                    </div>
+                                                    <div class="actor-effect-button-group">
+                                                        <div
+                                                            class="actor-icon-button no-select"
+                                                            :class="{ disabled: !owns(actor.globalId) }"
+                                                            :title="t('game.ui.initiative.add_timed_effect')"
+                                                            @click="createTimedEffect(actor.globalId)"
+                                                        >
+                                                            <font-awesome-icon
+                                                                icon="stopwatch"
+                                                                style="opacity: 0.6"
+                                                                :style="{
+                                                                    cursor: !owns(actor.globalId) ? 'default' : 'pointer',
+                                                                }"
+                                                            />
+                                                        </div>
+                                                        <div
+                                                            class="actor-icon-button no-select"
+                                                            :class="{ disabled: !owns(actor.globalId) }"
+                                                            :title="t('game.ui.initiative.add_effect')"
+                                                            @click="createEffect(actor.globalId)"
+                                                        >
+                                                            <font-awesome-icon
+                                                                icon="wand-magic-sparkles"
+                                                                style="opacity: 0.6"
+                                                                :style="{
+                                                                    cursor: !owns(actor.globalId) ? 'default' : 'pointer',
+                                                                }"
+                                                            />
+                                                        </div>
+                                                        <RollingCounter :value="actor.effects.length" :fixed-width="1" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <input
+                                                class="initiative-value"
+                                                type="text"
+                                                :placeholder="t('common.value')"
+                                                :value="actor.initiative"
+                                                :disabled="!owns(actor.globalId)"
                                                 :class="{ disabled: !owns(actor.globalId) }"
-                                                :title="t('game.ui.initiative.toggle_group')"
-                                                @click="toggleOption(index, 'isGroup')"
-                                            >
-                                                <font-awesome-icon
-                                                    icon="users"
-                                                    :style="{
-                                                        cursor: !owns(actor.globalId) ? 'default' : 'pointer',
-                                                        opacity: actor.isGroup ? '1.0' : '0.3',
-                                                    }"
-                                                />
-                                            </div>
-                                            <div class="actor-effect-button-group">
-                                                <div
-                                                    class="actor-icon-button no-select"
-                                                    :class="{ disabled: !owns(actor.globalId) }"
-                                                    :title="t('game.ui.initiative.add_timed_effect')"
-                                                    @click="createTimedEffect(actor.globalId)"
-                                                >
-                                                    <font-awesome-icon
-                                                        icon="stopwatch"
-                                                        style="opacity: 0.6"
-                                                        :style="{
-                                                            cursor: !owns(actor.globalId) ? 'default' : 'pointer',
-                                                        }"
-                                                    />
-                                                </div>
-                                                <div
-                                                    class="actor-icon-button no-select"
-                                                    :class="{ disabled: !owns(actor.globalId) }"
-                                                    :title="t('game.ui.initiative.add_effect')"
-                                                    @click="createEffect(actor.globalId)"
-                                                >
-                                                    <font-awesome-icon
-                                                        icon="wand-magic-sparkles"
-                                                        style="opacity: 0.6"
-                                                        :style="{
-                                                            cursor: !owns(actor.globalId) ? 'default' : 'pointer',
-                                                        }"
-                                                    />
-                                                </div>
-                                                <RollingCounter :value="actor.effects.length" :fixed-width="1" />
-                                            </div>
+                                                @focus="lock(actor.globalId)"
+                                                @blur="unlock"
+                                                @change="setInitiative(actor.globalId, getValue($event))"
+                                                @keyup.enter="getTarget($event).blur()"
+                                            />
                                         </div>
-                                    </div>
-                                    <input
-                                        class="initiative-value"
-                                        type="text"
-                                        :placeholder="t('common.value')"
-                                        :value="actor.initiative"
-                                        :disabled="!owns(actor.globalId)"
-                                        :class="{ disabled: !owns(actor.globalId) }"
-                                        @focus="lock(actor.globalId)"
-                                        @blur="unlock"
-                                        @change="setInitiative(actor.globalId, getValue($event))"
-                                        @keyup.enter="getTarget($event).blur()"
-                                    />
-                                </div>
-                                <Transition name="effects-expand">
-                                    <div
-                                        v-if="actor.effects.length > 0"
-                                        class="initiative-effect"
-                                        :class="{
-                                            'effect-visible': alwaysShowEffects,
-                                            'initiative-selected': initiativeStore.state.turnCounter === index,
-                                        }"
-                                    >
-                                        <TransitionGroup name="effect-expand">
+                                        <Transition name="effects-expand">
                                             <div
-                                                v-for="(effect, e) of actor.effects"
-                                                :key="`${actor.globalId}-${e}`"
-                                                class="initiative-effect-info"
+                                                v-if="actor.effects.length > 0"
+                                                class="initiative-effect"
+                                                :class="{
+                                                    'effect-visible': alwaysShowEffects,
+                                                    'initiative-selected': initiativeStore.state.turnCounter === index,
+                                                }"
                                             >
-                                                <input
-                                                    v-model="effect.name"
-                                                    type="text"
-                                                    style="width: 100px"
-                                                    :class="{ disabled: !owns(actor.globalId) }"
-                                                    :disabled="!owns(actor.globalId)"
-                                                    @change="setEffectName(actor.globalId, n(e), getValue($event))"
-                                                    @keyup.enter="getTarget($event).blur()"
-                                                />
-                                                <input
-                                                    v-if="effect.turns !== null"
-                                                    v-model="effect.turns"
-                                                    type="text"
-                                                    class="effect-turn-counter"
-                                                    :class="{ disabled: !owns(actor.globalId) }"
-                                                    :disabled="!owns(actor.globalId)"
-                                                    @change="setEffectTurns(actor.globalId, n(e), getValue($event))"
-                                                    @keyup.enter="getTarget($event).blur()"
-                                                />
-                                                <div v-else class="effect-turn-counter infinite-placeholder">
-                                                    &infin;
-                                                </div>
-                                                <div
-                                                    v-if="owns(actor.globalId)"
-                                                    class="actor-icon-button"
-                                                    :title="t('game.ui.initiative.delete_effect')"
-                                                    @click="removeEffect(actor.globalId, n(e))"
-                                                >
-                                                    <font-awesome-icon icon="trash-alt" />
-                                                </div>
-                                                <div v-else style="margin-right: 4px"></div>
+                                                <TransitionGroup name="effect-expand">
+                                                    <div
+                                                        v-for="(effect, e) of actor.effects"
+                                                        :key="`${actor.globalId}-${e}`"
+                                                        class="initiative-effect-info"
+                                                    >
+                                                        <input
+                                                            v-model="effect.name"
+                                                            type="text"
+                                                            style="width: 100px"
+                                                            :class="{ disabled: !owns(actor.globalId) }"
+                                                            :disabled="!owns(actor.globalId)"
+                                                            @change="setEffectName(actor.globalId, n(e), getValue($event))"
+                                                            @keyup.enter="getTarget($event).blur()"
+                                                        />
+                                                        <input
+                                                            v-if="effect.turns !== null"
+                                                            v-model="effect.turns"
+                                                            type="text"
+                                                            class="effect-turn-counter"
+                                                            :class="{ disabled: !owns(actor.globalId) }"
+                                                            :disabled="!owns(actor.globalId)"
+                                                            @change="setEffectTurns(actor.globalId, n(e), getValue($event))"
+                                                            @keyup.enter="getTarget($event).blur()"
+                                                        />
+                                                        <div v-else class="effect-turn-counter infinite-placeholder">
+                                                            &infin;
+                                                        </div>
+                                                        <div
+                                                            v-if="owns(actor.globalId)"
+                                                            class="actor-icon-button"
+                                                            :title="t('game.ui.initiative.delete_effect')"
+                                                            @click="removeEffect(actor.globalId, n(e))"
+                                                        >
+                                                            <font-awesome-icon icon="trash-alt" />
+                                                        </div>
+                                                        <div v-else style="margin-right: 4px"></div>
+                                                    </div>
+                                                </TransitionGroup>
                                             </div>
-                                        </TransitionGroup>
+                                        </Transition>
                                     </div>
-                                </Transition>
-                            </div>
-                        </template>
-                    </draggable>
+                                </template>
+                            </TransitionGroup>
+                        </VueDraggable>
+                        <div v-else id="empty-placeholder">
+                            {{ t("game.ui.initiative.empty_initiative") }}
+                        </div>
+                    </Transition>
                 </div>
             </div>
             <div v-if="gameState.reactive.isDm" id="initiative-bar-dm">
@@ -1017,6 +1021,10 @@ function n(e: any): number {
     }
 }
 
+.moving-entry {
+    opacity: 0;
+}
+
 // Transitions
 
 .zoom-enter-from,
@@ -1061,5 +1069,31 @@ function n(e: any): number {
     opacity: 0;
     max-height: 0;
 }
+
+.initiative-slide-enter-from,
+.initiative-slide-leave-to {
+    opacity: 0;
+    transform: translateX(100%);
+}
+.initiative-slide-leave-active {
+    transition:
+        all 0.3s ease,
+        opacity 0.2s ease;
+}
+.initiative-slide-enter-active {
+    transition:
+        all 0.3s ease,
+        opacity 0.25s ease 0.05s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+.fade-enter-active,
+.fade-leave-active {
+    transition: all 0.15s ease;
+}
+
 
 </style>

@@ -63,41 +63,40 @@ const transitionName = computed(() => {
 
 <template>
     <div class="counter-wrapper">
-        <div ref="counterElement" class="rolling-counter">
-            <Transition :name="transitionName">
-                <div :key="value">
-                    {{ (Math.sign(value) == -1 ? "-" : "") + Math.abs(value).toString().padStart(fixedWidth, "0") }}
-                </div>
-            </Transition>
-        </div>
+        <Transition :name="transitionName">
+            <div ref="counterElement" :key="value" class="rolling-counter">
+                {{ (Math.sign(value) == -1 ? "-" : "") + Math.abs(value).toString().padStart(fixedWidth, "0") }}
+            </div>
+        </Transition>
     </div>
 </template>
 
 <style scoped lang="scss">
 .counter-wrapper {
     position: relative;
+    overflow: hidden;
     transition: width 0.3s ease 0.05s;
     width: v-bind("width");
     min-width: 1.25em;
     height: calc(1.25em - 1px);
     background-color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .rolling-counter {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    display: flex;
     color: v-bind("color");
     background-color: inherit;
 }
 
 .counter-roll-enter-from {
-    transform: translateY(-60%) rotateX(90deg);
+    transform: translateY(-50%) rotateX(90deg);
     opacity: 0;
 }
 .counter-roll-leave-to {
     position: absolute;
-    transform: translateY(60%) rotateX(-90deg);
+    transform: translateY(50%) rotateX(-90deg);
     opacity: 0;
 }
 .reverse-counter-roll-enter-active,
@@ -108,12 +107,12 @@ const transitionName = computed(() => {
 }
 
 .reverse-counter-roll-enter-from {
-    transform: translateY(60%) rotateX(-90deg);
+    transform: translateY(50%) rotateX(-90deg);
     opacity: 0;
 }
 .reverse-counter-roll-leave-to {
     position: absolute;
-    transform: translateY(-60%) rotateX(90deg);
+    transform: translateY(-50%) rotateX(90deg);
     opacity: 0;
 }
 </style>

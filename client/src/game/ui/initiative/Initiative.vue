@@ -741,6 +741,7 @@ function n(e: any): number {
         border-radius: 5px;
         transition: border-color 0.2s ease;
         flex: 0.25 1 0;
+        font-family: Arial;
 
         &:not(.disabled) {
             cursor: pointer;
@@ -762,7 +763,7 @@ function n(e: any): number {
     &.initiative-selected {
         background-color: #82c8a0;
         box-shadow: 0px 8px 10px -10px rgba(0, 0, 0, 0.75);
-        scale: 102%;
+        scale: 103%;
     }
 }
 
@@ -794,6 +795,7 @@ function n(e: any): number {
 
         > .actor-effect-button-group {
             display: flex;
+            align-items: center;
             border: solid 1px rgba(104, 125, 113, 0.6);
             border-radius: 0.25rem;
             padding: 1px;
@@ -802,12 +804,23 @@ function n(e: any): number {
     }
 
     :deep(.rolling-counter) {
+        font-size: 14pt;
         opacity: 65%;
         margin: 0 3px;
     }
 }
+@-moz-document url-prefix() {
+    .actor-info-cluster {
+        :deep(.rolling-counter) {
+            padding-bottom: 0.2em;
+        }
+    }
+}
 
 .actor-icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     user-select: none;
     border-radius: 0.25rem;
     transition: all 0.1s ease;
@@ -930,6 +943,7 @@ function n(e: any): number {
     align-items: center;
     justify-content: center;
     font-size: 115%;
+    height: fit-content;
 
     > * {
         margin: 0 2px;
@@ -961,6 +975,9 @@ function n(e: any): number {
 }
 
 .initiative-bar-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: solid 2px #82c8a0;
     border-radius: 5px;
     padding: 5px;

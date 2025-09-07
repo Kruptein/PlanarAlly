@@ -1,7 +1,8 @@
+from datetime import date
 from typing import TYPE_CHECKING, Optional, cast
 
 import bcrypt
-from peewee import ForeignKeyField, TextField, fn
+from peewee import DateField, ForeignKeyField, TextField, fn
 from playhouse.shortcuts import model_to_dict
 from typing_extensions import Self
 
@@ -29,6 +30,8 @@ class User(BaseDbModel):
 
     colour_history = cast(Optional[str], TextField(null=True))
 
+    last_login = cast(date, DateField(null=True))
+
     def __repr__(self):
         return f"<User {self.name}>"
 
@@ -55,6 +58,12 @@ class User(BaseDbModel):
             for asset in self.assets
             if asset.file_hash and (ASSETS_DIR / get_asset_hash_subpath(asset.file_hash)).exists()
         )
+
+    def update_last_login(self):
+        today = date.today()
+        if self.last_login != today:
+            self.last_login = today
+            self.save()
 
     @classmethod
     def by_name(cls, name: str) -> Self | None:

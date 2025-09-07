@@ -6,6 +6,7 @@ import { socket } from "./socket";
 interface User {
     name: string;
     email: string;
+    lastLogin: string;
 }
 
 const users = ref<User[]>([]);
@@ -77,6 +78,7 @@ async function addUser(): Promise<void> {
             <div id="users-header">
                 <div class="username">Name</div>
                 <div>Email</div>
+                <div>Last login</div>
                 <div>Reset password</div>
                 <div>Remove user</div>
 
@@ -93,6 +95,7 @@ async function addUser(): Promise<void> {
                 <template v-for="user in filteredUsers" :key="user.name">
                     <div class="username">{{ user.name }}</div>
                     <div>{{ user.email }}</div>
+                    <div>{{ user.lastLogin }}</div>
                     <div class="pointer" @click="reset(user.name)">reset</div>
                     <div class="pointer" @click="remove(user.name)">remove</div>
                 </template>
@@ -117,7 +120,7 @@ async function addUser(): Promise<void> {
 #users-header,
 #users-list {
     display: grid;
-    grid-template-columns: 1fr 1fr 150px 150px;
+    grid-template-columns: 1fr 1fr 150px 150px 150px;
     flex-direction: column;
 
     > div {
@@ -138,7 +141,7 @@ async function addUser(): Promise<void> {
     }
 
     .fullWidth {
-        grid-column: 1 / 5;
+        grid-column: 1 / 6;
     }
 }
 

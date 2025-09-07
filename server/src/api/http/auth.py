@@ -20,6 +20,7 @@ async def is_authed(request):
         data = {"auth": False, "username": ""}
     else:
         data = {"auth": True, "username": user.name, "email": user.email}
+        user.update_last_login()
     return web.json_response(data)
 
 
@@ -38,6 +39,7 @@ async def login(request):
     if u is None or not u.check_password(password):
         return web.HTTPUnauthorized(reason="Username and/or Password do not match")
     response = web.json_response({"email": u.email})
+    u.update_last_login()
     await remember(request, response, username)
     return response
 
@@ -69,6 +71,7 @@ async def register(request):
                 reason="An unexpected error occured on the server during account creation.  Operation reverted."
             )
         response = web.HTTPOk()
+        user.update_last_login()
         await remember(request, response, username)
         return response
 

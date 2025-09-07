@@ -65,7 +65,10 @@ async def list_users(sid: str):
     if not is_admin(user):
         return
 
-    users = [{"name": u.name, "email": u.email} for u in User.select()]
+    users = [
+        {"name": u.name, "email": u.email, "lastLogin": u.last_login.isoformat() if u.last_login else None}
+        for u in User.select()
+    ]
 
     return users
 

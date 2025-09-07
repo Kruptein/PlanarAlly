@@ -16,6 +16,7 @@ tech changes will usually be stripped from release notes for the public
     -   Currently limited to the main admin_user as configured in the server's config
     -   Shows roughly same content as the original separate admin client
     -   Also shows total number of users/campaigns and a quick user create button
+    -   Last login day for users
 -   Toggle to search through shared assets
     -   This is heavier for the server and niche so not enabled by default
 

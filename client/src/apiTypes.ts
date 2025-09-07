@@ -1,6 +1,6 @@
 import type { AssetId } from "./assets/models";
 import type { GlobalId } from "./core/id";
-import type { LayerName } from "./game/models/floor";
+import type { FloorIndex, LayerName } from "./game/models/floor";
 import type { Role } from "./game/models/role";
 import type { AuraId } from "./game/systems/auras/models";
 import type { CharacterId } from "./game/systems/characters/models";
@@ -496,7 +496,7 @@ export interface FloorCreate {
   creator: string;
 }
 export interface FloorRename {
-  index: number;
+  index: FloorIndex;
   name: string;
 }
 export interface FloorTypeSet {

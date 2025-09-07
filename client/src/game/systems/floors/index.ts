@@ -118,7 +118,7 @@ class FloorSystem implements System {
         this.invalidateAllFloors();
     }
 
-    renameFloor(index: number, name: string, sync: boolean): void {
+    renameFloor(index: FloorIndex, name: string, sync: boolean): void {
         if (raw.floors[index] === undefined) return;
 
         $.floors[index]!.name = name;

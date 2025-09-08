@@ -1,6 +1,6 @@
 [project]
 name = "planarally-server"
-version = "2025.2.2"
+version = "2025.3.0"
 description = "Planarally server"
 readme = "README.md"
 requires-python = ">=3.13.2"

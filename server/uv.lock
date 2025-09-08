@@ -397,7 +397,7 @@ wheels = [
 
 [[package]]
 name = "planarally-server"
-version = "2025.2.2"
+version = "2025.3.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },

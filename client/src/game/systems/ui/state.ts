@@ -3,6 +3,7 @@ import type { MaybeRef, Raw } from "vue";
 import type { Section } from "../../../core/components/contextMenu/types";
 import type { LocalId } from "../../../core/id";
 import { buildState } from "../../../core/systems/state";
+import type { FloorId } from "../../models/floor";
 import { ClientSettingCategory } from "../../ui/settings/client/categories";
 
 import type { PanelTab } from "./types";
@@ -20,7 +21,7 @@ interface UiState {
     openedLocationSettings: number;
 
     showFloorSettings: boolean;
-    selectedFloor: number;
+    selectedFloor: FloorId;
 
     preventContextMenu: boolean;
 
@@ -45,7 +46,7 @@ const state = buildState<UiState>({
     openedLocationSettings: -1,
 
     showFloorSettings: false,
-    selectedFloor: 0,
+    selectedFloor: 0 as FloorId,
 
     preventContextMenu: false,
 

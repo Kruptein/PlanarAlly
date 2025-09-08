@@ -1,20 +1,25 @@
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Extra
 
 
-class HostPortConnection(BaseModel):
+class ConfigModel(BaseModel):
+    class Config:
+        extra = Extra.forbid
+
+
+class HostPortConnection(ConfigModel):
     type: Literal["hostport"] = "hostport"
     host: str = "0.0.0.0"
     port: int = 8000
 
 
-class SocketConnection(BaseModel):
+class SocketConnection(ConfigModel):
     type: Literal["socket"] = "socket"
     socket: str
 
 
-class SslConfig(BaseModel):
+class SslConfig(ConfigModel):
     # Can be used to disable SSL,
     # without having to remove the ssl section entirely
     enabled: bool = False
@@ -22,7 +27,7 @@ class SslConfig(BaseModel):
     privkey: str
 
 
-class WebserverConfig(BaseModel):
+class WebserverConfig(ConfigModel):
     # Core connection string
     # This is either a HOST:PORT combination
     # or a UNIX socket path
@@ -47,7 +52,7 @@ class WebserverConfig(BaseModel):
     max_upload_size_in_bytes: int = 10_485_760
 
 
-class AssetsConfig(BaseModel):
+class AssetsConfig(ConfigModel):
     # Can be used to signal that assets are stored in a different directory
     directory: Optional[str] = None
 
@@ -62,7 +67,7 @@ class AssetsConfig(BaseModel):
     max_total_asset_size_in_bytes: int = 0
 
 
-class GeneralConfig(BaseModel):
+class GeneralConfig(ConfigModel):
     # Location of the save file
     # This is relative to the server root
     save_file: str = "data/planar.sqlite"
@@ -88,8 +93,10 @@ class GeneralConfig(BaseModel):
     max_log_size_in_bytes: int = 200_000
     max_log_backups: int = 5
 
+    admin_user: Optional[str] = None
 
-class MailConfig(BaseModel):
+
+class MailConfig(ConfigModel):
     # Can be used to disable email functionality
     # without having to remove the mail section entirely
     enabled: bool = True
@@ -104,7 +111,7 @@ class MailConfig(BaseModel):
     ssl_mode: Literal["ssl", "tls", "starttls", "lmtp"] = "starttls"
 
 
-class StatsConfig(BaseModel):
+class StatsConfig(ConfigModel):
     # Enable collection of stats
     enabled: bool = True
 
@@ -120,13 +127,9 @@ class StatsConfig(BaseModel):
     stats_url: str = "https://stats.planarally.io"
 
 
-class ServerConfig(BaseModel):
+class ServerConfig(ConfigModel):
     general: GeneralConfig = GeneralConfig()
     assets: AssetsConfig = AssetsConfig()
     webserver: WebserverConfig = WebserverConfig()
     stats: StatsConfig = StatsConfig()
     mail: Optional[MailConfig] = None
-    # Optional API server configuration
-    # If not specified, the API server will not be started
-    # Note: ensure that a different connection string is used
-    apiserver: Optional[WebserverConfig] = None

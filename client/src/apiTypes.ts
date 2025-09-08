@@ -1,6 +1,6 @@
 import type { AssetId } from "./assets/models";
 import type { GlobalId } from "./core/id";
-import type { LayerName } from "./game/models/floor";
+import type { FloorIndex, LayerName } from "./game/models/floor";
 import type { Role } from "./game/models/role";
 import type { AuraId } from "./game/systems/auras/models";
 import type { CharacterId } from "./game/systems/characters/models";
@@ -18,6 +18,8 @@ export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlo
 /* This file was automatically generated from pydantic models by running pydantic2ts.
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
+
+export type InitiativeDirection = -1 | 0 | 1;
 
 export interface ApiAsset {
   id: AssetId;
@@ -494,7 +496,7 @@ export interface FloorCreate {
   creator: string;
 }
 export interface FloorRename {
-  index: number;
+  index: FloorIndex;
   name: string;
 }
 export interface FloorTypeSet {
@@ -536,6 +538,11 @@ export interface InitiativeEffectRename {
   shape: GlobalId;
   index: number;
   name: string;
+}
+export interface InitiativeTurnUpdate {
+  turn: number;
+  direction: InitiativeDirection;
+  processEffects: boolean;
 }
 export interface InitiativeEffectTurns {
   shape: GlobalId;

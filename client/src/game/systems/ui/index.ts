@@ -1,5 +1,6 @@
 import { registerSystem } from "../../../core/systems";
 import type { System } from "../../../core/systems";
+import type { FloorId } from "../../models/floor";
 import type { ClientSettingCategory } from "../../ui/settings/client/categories";
 
 import { uiState } from "./state";
@@ -33,7 +34,7 @@ class UiSystem implements System {
         $.annotationText = text;
     }
 
-    showFloorSettings(floorId: number): void {
+    showFloorSettings(floorId: FloorId): void {
         $.selectedFloor = floorId;
         $.showFloorSettings = true;
     }

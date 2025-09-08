@@ -2,6 +2,7 @@
 # editors
 .idea/**
 .vscode/**
+*.sw?
 
 # Python
 server/data/**
@@ -23,7 +24,6 @@ server/build/**
 # JS
 client/coverage/**
 client/node_modules/**
-admin-client/node_modules/**
 
 # PlanarAlly
 server/planarallyserver.log*

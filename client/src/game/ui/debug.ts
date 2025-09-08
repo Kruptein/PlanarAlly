@@ -19,7 +19,7 @@ const layers: Record<string, string[]> = {};
 
 // eslint-disable-next-line import/no-unused-modules
 export const debugInfo = {
-    addSocketLatency(latency: number): void {
+    addSocketLatency(_latency: number): void {
         // debugState.socketLatencies.push(latency);
         // if (debugState.socketLatencies.length > 10) debugState.socketLatencies.shift();
     },

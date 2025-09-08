@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { computed, type ComputedRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { getStaticImg } from "../core/http";
+
+import { dashboardState } from "./state";
 
 const route = useRoute();
 const router = useRouter();
@@ -10,6 +13,7 @@ interface Section {
     nav: string;
     routerPath: string;
     routerName?: string;
+    visible?: ComputedRef<boolean>;
 }
 const sections: Section[] = [
     {
@@ -25,7 +29,15 @@ const sections: Section[] = [
         routerPath: "settings",
         routerName: "dashboard-settings",
     },
+    {
+        nav: "ADMIN",
+        routerPath: "admin",
+        routerName: "admin-users",
+        visible: computed(() => dashboardState.adminEnabled),
+    },
 ];
+
+const visibleSections = computed(() => sections.filter((section) => section.visible?.value ?? true));
 
 function isActiveSection(section: Section): boolean {
     const path = route.path;
@@ -51,10 +63,13 @@ async function logout(): Promise<void> {
             <section id="sidebar">
                 <img id="icon" :src="getStaticImg('pa_game_icon.png')" alt="PlanarAlly logo" />
                 <nav>
-                    <template v-for="section of sections" :key="section.nav">
+                    <template v-for="section of visibleSections" :key="section.nav">
                         <div
                             class="nav-item"
-                            :class="{ 'nav-active': isActiveSection(section) }"
+                            :class="{
+                                'nav-active': isActiveSection(section),
+                                [`nav-${section.nav.toLowerCase()}`]: true,
+                            }"
                             @click="activate(section)"
                         >
                             {{ section.nav }}
@@ -141,6 +156,10 @@ main {
                     color: #ffa8bf;
                     margin-right: 0.3rem;
                 }
+            }
+
+            .nav-admin {
+                margin-top: 2rem;
             }
 
             button {

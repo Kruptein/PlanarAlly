@@ -223,6 +223,6 @@ class PositionSystem implements System {
 export const positionSystem = new PositionSystem();
 registerSystem("position", positionSystem, false, positionState);
 
-watch(playerSettingsState.gridSize, (gs) => {
+watch(playerSettingsState.gridSize, () => {
     positionSystem.recalculateZoom();
 });

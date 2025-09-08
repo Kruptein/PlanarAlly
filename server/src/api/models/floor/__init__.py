@@ -37,6 +37,6 @@ class FloorCreate(BaseModel):
     creator: str
 
 
-class FloorRename(BaseModel):
-    index: int
+class FloorRename(TypeIdModel):
+    index: int = Field(typeId="FloorIndex")
     name: str

@@ -37,7 +37,7 @@ function updateName(event: Event): void {
     const name = (event.target as HTMLInputElement).value;
     if (floorSystem.getFloor({ name }) !== undefined) return;
 
-    floorSystem.renameFloor(uiState.reactive.selectedFloor, name, true);
+    floorSystem.renameFloor(floorSystem.getFloorIndex({ id: floor.value!.id })!, name, true);
 }
 
 function setFloorType(event: Event): void {

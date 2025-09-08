@@ -1,16 +1,10 @@
 ################################
 # Build stage for the frontend #
 ################################
-FROM node:22-alpine as BUILDER
+FROM node:24-alpine as BUILDER
 
 # Install additional dependencies
 RUN apk add --no-cache python3 make g++
-
-WORKDIR /usr/src/admin-client
-
-# Copy first package.json so changes in code dont require to reinstall all npm modules
-COPY admin-client/package.json admin-client/package-lock.json ./
-RUN npm ci && npm cache clean --force;
 
 WORKDIR /usr/src/client
 
@@ -21,12 +15,6 @@ RUN npm ci && npm cache clean --force;
 ARG PA_BASEPATH="/"
 
 COPY . /usr/src
-
-WORKDIR /usr/src/admin-client
-
-RUN npm run build
-
-WORKDIR /usr/src/client
 
 RUN npm run build
 

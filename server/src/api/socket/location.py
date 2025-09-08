@@ -240,8 +240,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
                     (Note.room >> None)  # type: ignore
                     & (
                         # Note owner or specific access (w/o default access)
-                        (Note.creator == pr.player)
-                        | ((NoteAccess.user == pr.player) & NoteAccess.can_view)
+                        (Note.creator == pr.player) | ((NoteAccess.user == pr.player) & NoteAccess.can_view)
                     )
                 )
                 | (

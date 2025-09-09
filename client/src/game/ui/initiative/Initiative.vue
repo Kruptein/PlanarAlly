@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SortableEvent } from "sortablejs";
-import { computed, onMounted, nextTick, ref, watch } from "vue";
+import { computed, type DeepReadonly, onMounted, nextTick, ref, watch } from "vue";
 import { VueDraggable } from "vue-draggable-plus";
 import { useI18n } from "vue-i18n";
 
@@ -46,7 +46,7 @@ const confirmationDialog = ref<ConfirmationDialog | null>(null);
 const listElement = ref<HTMLElement | null>(null);
 
 const hasVisibleActor = computed(() =>
-    initiativeStore.state.locationData.some((actor) => canSee(actor as InitiativeData)),
+    initiativeStore.state.locationData.some((actor) => canSee(actor)),
 );
 
 const owns = (actorId?: GlobalId): boolean => initiativeStore.owns(actorId);
@@ -215,7 +215,7 @@ function getImage(actor: InitiativeData): string {
     return baseAdjust((getShape(actor.localId) as IAsset).src);
 }
 
-function canSee(actor: InitiativeData): boolean {
+function canSee(actor: DeepReadonly<InitiativeData>): boolean {
     if (gameState.raw.isDm || actor.isVisible) return true;
     if (actor.localId === undefined) return false;
     return accessSystem.hasAccessTo(actor.localId, "edit");

@@ -93,6 +93,8 @@ class GeneralConfig(ConfigModel):
     max_log_size_in_bytes: int = 200_000
     max_log_backups: int = 5
 
+    admin_user: Optional[str] = None
+
 
 class MailConfig(ConfigModel):
     # Can be used to disable email functionality
@@ -131,7 +133,3 @@ class ServerConfig(ConfigModel):
     webserver: WebserverConfig = WebserverConfig()
     stats: StatsConfig = StatsConfig()
     mail: Optional[MailConfig] = None
-    # Optional API server configuration
-    # If not specified, the API server will not be started
-    # Note: ensure that a different connection string is used
-    apiserver: Optional[WebserverConfig] = None

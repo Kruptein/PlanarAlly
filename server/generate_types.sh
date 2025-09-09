@@ -12,10 +12,11 @@ sed -i 's/"AssetId"/AssetId/g' ../client/src/apiTypes.ts
 sed -i 's/"Role"/Role/g' ../client/src/apiTypes.ts
 sed -i 's/"VisionBlock"/VisionBlock/g' ../client/src/apiTypes.ts
 sed -i 's/"GridModeLabelFormat"/GridModeLabelFormat/g' ../client/src/apiTypes.ts
+sed -i 's/"FloorIndex"/FloorIndex/g' ../client/src/apiTypes.ts
 sed -i '1s/^/'\
 'import type { AssetId } from ".\/assets\/models";\n'\
 'import type { GlobalId } from ".\/core\/id";\n'\
-'import type { LayerName } from ".\/game\/models\/floor";\n'\
+'import type { FloorIndex, LayerName } from ".\/game\/models\/floor";\n'\
 'import type { Role } from ".\/game\/models\/role";\n'\
 'import type { AuraId } from ".\/game\/systems\/auras\/models";\n'\
 'import type { CharacterId } from ".\/game\/systems\/characters\/models";\n'\

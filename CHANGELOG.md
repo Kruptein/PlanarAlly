@@ -10,14 +10,26 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   Admin panel that can be accessed from the dashboard
+    -   Currently limited to the main admin_user as configured in the server's config
+    -   Shows roughly same content as the original separate admin client
+    -   Also shows total number of users/campaigns and a quick user create button
+    -   Last login day for users
+-   Toggle to search through shared assets
+    -   This is heavier for the server and niche so not enabled by default
+
 ### Changed
 
 -   Smoothed out the scroll zoom behaviour when zoomed in furthest
 -   [server] Config values that are not known will now error and stop the server from starting
+-   [tech] Add debounce to asset search
 
 ### Removed
 
 -   [server] Legacy server configs
+-   [server] Admin server - this is replaced with a new in-client admin dashboard
 
 ### Fixed
 
@@ -29,6 +41,8 @@ tech changes will usually be stripped from release notes for the public
 -   Going to previous initiative would decrement effect timers
 -   Going to previous initiative could enter negative rounds
 -   Render bug in vision mode "behind" showing the entire shape under certain circumstances
+-   Asset search server query had a missing () causing assets from other users to show up
+-   Floor renaming the wrong entry
 
 ## [2025.2.2]
 

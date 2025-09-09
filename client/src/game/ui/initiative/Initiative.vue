@@ -298,6 +298,7 @@ function n(e: any): number {
                             :model-value="initiativeStore.getDataSet()"
                             handle=".drag-handle"
                             ghost-class="moving-entry"
+                            :animation="200"
                             @end="changeOrder"
                         >
                             <TransitionGroup name="initiative-slide">

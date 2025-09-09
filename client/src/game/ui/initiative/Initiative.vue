@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SortableEvent } from "sortablejs";
 import { computed, type DeepReadonly, onMounted, nextTick, ref, useTemplateRef, watch } from "vue";
-import { VueDraggable } from "vue-draggable-plus";
+import { type DraggableEvent, VueDraggable } from "vue-draggable-plus";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../../core/components/modals/Modal.vue";
@@ -248,7 +248,7 @@ function setInitiative(shape: GlobalId, value: string): void {
 }
 
 function changeOrder(event: SortableEvent): void {
-    const realEvent = event as SortableEvent & { data: InitiativeData };
+    const realEvent = event as DraggableEvent<InitiativeData>;
     if (gameState.raw.isDm && realEvent.newIndex !== realEvent.oldIndex)
         initiativeStore.changeOrder(realEvent.data.globalId, realEvent.oldIndex!, realEvent.newIndex!);
 }

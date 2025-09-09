@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SortableEvent } from "sortablejs";
-import { computed, type DeepReadonly, onMounted, nextTick, ref, watch } from "vue";
+import { computed, type DeepReadonly, onMounted, nextTick, ref, useTemplateRef, watch } from "vue";
 import { VueDraggable } from "vue-draggable-plus";
 import { useI18n } from "vue-i18n";
 
@@ -43,7 +43,7 @@ interface ConfirmationDialog {
 }
 
 const confirmationDialog = ref<ConfirmationDialog | null>(null);
-const listElement = ref<HTMLElement | null>(null);
+const listElement = useTemplateRef('list-element');
 
 const hasVisibleActor = computed(() =>
     initiativeStore.state.locationData.some((actor) => canSee(actor)),
@@ -129,9 +129,13 @@ function clearInitiativeValues(): void {
 }
 
 function scrollToInitiative(): void {
-    if (listElement.value === null || listElement.value.children.length <= 0) return;
+    if (listElement.value === null) return;
 
-    const entryElement = listElement.value.children[0]!.querySelector(".initiative-selected");
+    const childElements = listElement.value.children as HTMLCollection;
+
+    if (childElements.length <= 0) return;
+
+    const entryElement = childElements[0]!.querySelector(".initiative-selected");
     if (!entryElement) return;
 
     entryElement.parentElement!.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -290,7 +294,7 @@ function n(e: any): number {
         </template>
         <div class="modal-body">
             <div id="initiative-border-container">
-                <div id="initiative-container" ref="listElement">
+                <div id="initiative-container" ref="list-element">
                     <Transition name="fade" mode="out-in">
                         <VueDraggable
                             v-if="hasVisibleActor"

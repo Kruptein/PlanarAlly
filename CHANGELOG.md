@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Changed
+
 - Initiative
     - UI rework
         - Asset images appear in initiative list
@@ -20,6 +22,8 @@ tech changes will usually be stripped from release notes for the public
         - (DM) Add previous/next round buttons
     - Add effects with infinite timespan
     - Fix names in initiative list not being reactive
+
+## [2025.3]
 
 ### Added
 

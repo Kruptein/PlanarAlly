@@ -39,15 +39,13 @@ defineExpose({ close });
 
 interface ConfirmationDialog {
     message: string;
-    callback: (confirm: boolean) => boolean;
+    resolve: (confirm: boolean) => void;
 }
 
 const confirmationDialog = ref<ConfirmationDialog | null>(null);
-const listElement = useTemplateRef('list-element');
+const listElement = useTemplateRef("list-element");
 
-const hasVisibleActor = computed(() =>
-    initiativeStore.state.locationData.some((actor) => canSee(actor)),
-);
+const hasVisibleActor = computed(() => initiativeStore.state.locationData.some((actor) => canSee(actor)));
 
 const owns = (actorId?: GlobalId): boolean => initiativeStore.owns(actorId);
 const toggleOption = (index: number, option: "isVisible" | "isGroup"): void =>
@@ -89,43 +87,30 @@ const alwaysShowEffects = computed(
     () => playerSettingsState.reactive.initiativeEffectVisibility.value === InitiativeEffectMode.Always,
 );
 
+async function loadConfirmationDialog(message: string): Promise<boolean> {
+    const { promise, resolve } = Promise.withResolvers<boolean>();
+    confirmationDialog.value = { message, resolve };
+    return promise;
+}
+
 function confirmation(confirm: boolean): void {
     if (confirmationDialog.value === null) return;
-    if (confirmationDialog.value.callback(confirm)) {
-        confirmationDialog.value = null;
-    }
+    confirmationDialog.value.resolve(confirm);
+    confirmationDialog.value = null;
 }
 
-function clearInitiativeEntriesCallback(confirm: boolean): boolean {
-    if (confirm) {
+async function clearInitiativeEntries(): Promise<void> {
+    const result = await loadConfirmationDialog(t("game.ui.initiative.clear_entries_msg"));
+    if (result) {
         initiativeStore.clearEntries(true);
     }
-    return true;
 }
 
-function clearInitiativesCallback(confirm: boolean): boolean {
-    if (confirm) {
+async function clearInitiativeValues(): Promise<void> {
+    const result = await loadConfirmationDialog(t("game.ui.initiative.clear_initiatives_msg"));
+    if (result) {
         initiativeStore.clearValues(true);
     }
-    return true;
-}
-
-function loadConfirmationDialog(cd: ConfirmationDialog): void {
-    confirmationDialog.value = cd;
-}
-
-function clearInitiativeEntries(): void {
-    loadConfirmationDialog({
-        callback: clearInitiativeEntriesCallback,
-        message: t("game.ui.initiative.clear_entries_msg"),
-    });
-}
-
-function clearInitiativeValues(): void {
-    loadConfirmationDialog({
-        callback: clearInitiativesCallback,
-        message: t("game.ui.initiative.clear_initiatives_msg"),
-    });
 }
 
 function scrollToInitiative(): void {
@@ -156,17 +141,12 @@ function getName(actor: InitiativeData): string {
     return "?";
 }
 
-function removeInitiative(actor: InitiativeData): void {
+async function removeInitiative(actor: InitiativeData): Promise<void> {
     if (actor.isGroup) {
-        loadConfirmationDialog({
-            callback: (confirm: boolean): boolean => {
-                if (confirm) {
-                    initiativeStore.removeInitiative(actor.globalId, true);
-                }
-                return true;
-            },
-            message: t("game.ui.initiative.remove_group_msg"),
-        });
+        const result = await loadConfirmationDialog(t("game.ui.initiative.remove_group_msg"));
+        if (result) {
+            initiativeStore.removeInitiative(actor.globalId, true);
+        }
     } else {
         initiativeStore.removeInitiative(actor.globalId, true);
     }

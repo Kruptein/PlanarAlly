@@ -678,11 +678,11 @@ function n(e: any): number {
     align-items: center;
     padding: 2px 5px;
     padding-left: 0px;
-    margin-bottom: 2px;
     border-radius: 5px;
     position: relative;
     box-shadow: 0px 12px 5px -14px rgba(0, 0, 0, 0.75);
     margin: 0;
+    margin-bottom: 2px;
 
     min-width: 275px;
     max-width: 275px;
@@ -742,7 +742,7 @@ function n(e: any): number {
         border-radius: 5px;
         transition: border-color 0.2s ease;
         flex: 0.25 1 0;
-        font-family: Arial;
+        font-family: Arial, sans-serif;
 
         &:not(.disabled) {
             cursor: pointer;

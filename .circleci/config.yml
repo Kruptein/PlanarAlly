@@ -104,7 +104,7 @@ jobs:
 
             - run: uv add ordered-set nuitka
 
-            - run: uv run -m nuitka --standalone --assume-yes-for-downloads --include-data-files=VERSION=VERSION --include-data-files=server_config.cfg=server_config.cfg --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico ./planarally.py
+            - run: uv run -m nuitka --standalone --assume-yes-for-downloads --include-data-files=VERSION=VERSION --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico ./planarally.py
 
             - run:
                   name: Zip artifacts

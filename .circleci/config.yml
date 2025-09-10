@@ -6,7 +6,7 @@ orbs:
 jobs:
     build-client:
         docker:
-            - image: cimg/node:20.11.0
+            - image: cimg/node:24.7.0
 
         working_directory: ~/PlanarAlly/client
         resource_class: large

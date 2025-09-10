@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2025.3]
+
 ### Added
 
 -   Admin panel that can be accessed from the dashboard

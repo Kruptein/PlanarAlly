@@ -888,12 +888,16 @@ function n(e: any): number {
             margin-right: 0;
         }
     }
+    > input {
+        font-size: 11pt;
+    }
     .effect-turn-counter {
         width: 25px;
         padding: 0 2px;
     }
     .infinite-placeholder {
         user-select: none;
+        font-size: 12pt;
     }
 }
 

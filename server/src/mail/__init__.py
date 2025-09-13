@@ -24,7 +24,7 @@ def get_email() -> EmailSender:
     if _email is None:
         config = cfg()
 
-        if not config.mail or not config.mail.enabled:
+        if not config.mail.enabled:
             raise ValueError("Mail is not enabled")
 
         if not config.mail.host:

@@ -77,7 +77,8 @@
     "auth": {
         "login": {
             "register": "Registrieren",
-            "login": "Anmelden"
+            "login": "Anmelden",
+            "loginWith": "Anmeldung über OIDC"
         }
     },
     "core": {

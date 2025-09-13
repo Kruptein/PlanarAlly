@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  planarally:
+    image: kruptein/planarally:v2025.2.2
+    container_name: planarally
+    ports:
+      - "8000:8000"
+    volumes:
+      - planarally_data:/planarally/data
+      - planarally_assets:/planarally/static/assets
+    env_file:
+      - .env
+    environment:
+      # Authentication control
+      - PA_USERNAME_PASS=${PA_USERNAME_PASS}
+      - PA_ALLOW_SIGNUPS=${PA_ALLOW_SIGNUPS}
+      # Ensure these critical OIDC variables are set
+      - PA_OIDC_ENABLED=${PA_OIDC_ENABLED:-false}
+      - PA_OIDC_DOMAIN=${PA_OIDC_DOMAIN}
+      - PA_OIDC_CLIENT_ID=${PA_OIDC_CLIENT_ID}
+      - PA_OIDC_CLIENT_SECRET=${PA_OIDC_CLIENT_SECRET}
+      - PA_OIDC_AUTHORIZE_URL=${PA_OIDC_AUTHORIZE_URL}
+      - PA_OIDC_TOKEN_URL=${PA_OIDC_TOKEN_URL}
+      - PA_OIDC_USERINFO_URL=${PA_OIDC_USERINFO_URL}
+      - PA_OIDC_PROVIDER_NAME=${PA_OIDC_PROVIDER_NAME:-OIDC}
+      - PA_OIDC_USERNAME_FIELD=${PA_OIDC_USERNAME_FIELD}
+      - PA_OIDC_SCOPE=${PA_OIDC_SCOPE}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  planarally_data:
+  planarally_assets:

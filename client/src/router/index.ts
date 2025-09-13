@@ -32,12 +32,21 @@ router.beforeEach(async (to, _from, next) => {
 
         // Handle core requests
         const [authResponse, versionResponse] = await Promise.all(promiseArray);
-        if (authResponse!.ok && versionResponse!.ok) {
+        
+        // Check version response first (this should always succeed)
+        if (!versionResponse!.ok) {
+            console.error("Version check failed.");
+            checkLogin(next, to);
+            return;
+        }
+        
+        const versionData = (await versionResponse!.json()) as { release: string; env: string };
+        coreStore.setVersion(versionData);
+        
+        // Handle auth response (401 is expected for non-authenticated users)
+        if (authResponse!.ok) {
             const authData = (await authResponse!.json()) as { auth: boolean; username: string; email: string };
-            const versionData = (await versionResponse!.json()) as { release: string; env: string };
-
             coreStore.setAuthenticated(authData.auth);
-            coreStore.setVersion(versionData);
             coreStore.setInitialized(true);
 
             if (authData.auth) {
@@ -47,8 +56,15 @@ router.beforeEach(async (to, _from, next) => {
             } else {
                 checkLogin(next, to);
             }
+        } else if (authResponse!.status === 401) {
+            // 401 is expected for non-authenticated users - not an error
+            coreStore.setAuthenticated(false);
+            coreStore.setInitialized(true);
+            checkLogin(next, to);
         } else {
-            console.error("Authentication check could not be fulfilled.");
+            // Other auth errors (500, network issues, etc.)
+            console.error("Authentication check failed with status:", authResponse!.status);
+            coreStore.setInitialized(true);
             checkLogin(next, to);
         }
     } else {

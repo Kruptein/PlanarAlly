@@ -1,25 +1,20 @@
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr, Extra
+from pydantic import BaseModel, EmailStr
 
 
-class ConfigModel(BaseModel):
-    class Config:
-        extra = Extra.forbid
-
-
-class HostPortConnection(ConfigModel):
+class HostPortConnection(BaseModel):
     type: Literal["hostport"] = "hostport"
     host: str = "0.0.0.0"
     port: int = 8000
 
 
-class SocketConnection(ConfigModel):
+class SocketConnection(BaseModel):
     type: Literal["socket"] = "socket"
     socket: str
 
 
-class SslConfig(ConfigModel):
+class SslConfig(BaseModel):
     # Can be used to disable SSL,
     # without having to remove the ssl section entirely
     enabled: bool = False
@@ -27,7 +22,7 @@ class SslConfig(ConfigModel):
     privkey: str
 
 
-class WebserverConfig(ConfigModel):
+class WebserverConfig(BaseModel):
     # Core connection string
     # This is either a HOST:PORT combination
     # or a UNIX socket path
@@ -52,7 +47,7 @@ class WebserverConfig(ConfigModel):
     max_upload_size_in_bytes: int = 10_485_760
 
 
-class AssetsConfig(ConfigModel):
+class AssetsConfig(BaseModel):
     # Can be used to signal that assets are stored in a different directory
     directory: Optional[str] = None
 
@@ -67,7 +62,7 @@ class AssetsConfig(ConfigModel):
     max_total_asset_size_in_bytes: int = 0
 
 
-class GeneralConfig(ConfigModel):
+class GeneralConfig(BaseModel):
     # Location of the save file
     # This is relative to the server root
     save_file: str = "data/planar.sqlite"
@@ -84,6 +79,11 @@ class GeneralConfig(ConfigModel):
     # Accounts can be created manually using the CLI by the admin
     allow_signups: bool = True
 
+    # Enable username/password login
+    # If disabled, users can only login via OIDC
+    # This hides the traditional login form and register button
+    username_password_enabled: bool = True
+
     # Enable exporting of campaigns
     # If disabled, users will not be able to export campaigns
     enable_export: bool = True
@@ -95,11 +95,10 @@ class GeneralConfig(ConfigModel):
 
     admin_user: Optional[str] = None
 
-
-class MailConfig(ConfigModel):
+class MailConfig(BaseModel):
     # Can be used to disable email functionality
     # without having to remove the mail section entirely
-    enabled: bool = True
+    enabled: bool = False
     # HOST:PORT combination for the SMTP server
     host: str
     port: int
@@ -110,8 +109,32 @@ class MailConfig(ConfigModel):
     default_from_address: EmailStr
     ssl_mode: Literal["ssl", "tls", "starttls", "lmtp"] = "starttls"
 
+class OidcConfig(BaseModel):
+    # Enable OIDC authentication
+    enabled: bool = False
+    
+    # OIDC provider configuration
+    domain: Optional[str] = None
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    audience: Optional[str] = None
+    
+    # OIDC provider name for display
+    provider_name: str = "OIDC"
+    
+    # Username field mapping from OIDC user info
+    username_field: str = "preferred_username"
+    
+    # OIDC scopes to request (space-separated)
+    scope: str = "openid profile email"
+    
+    # Direct URL overrides (bypass discovery)
+    authorize_url: Optional[str] = None
+    token_url: Optional[str] = None
+    userinfo_url: Optional[str] = None
 
-class StatsConfig(ConfigModel):
+
+class StatsConfig(BaseModel):
     # Enable collection of stats
     enabled: bool = True
 
@@ -127,9 +150,14 @@ class StatsConfig(ConfigModel):
     stats_url: str = "https://stats.planarally.io"
 
 
-class ServerConfig(ConfigModel):
+class ServerConfig(BaseModel):
     general: GeneralConfig = GeneralConfig()
     assets: AssetsConfig = AssetsConfig()
     webserver: WebserverConfig = WebserverConfig()
     stats: StatsConfig = StatsConfig()
     mail: Optional[MailConfig] = None
+    # Optional API server configuration
+    # If not specified, the API server will not be started
+    # Note: ensure that a different connection string is used
+    apiserver: Optional[WebserverConfig] = None
+    oidc: OidcConfig = OidcConfig()

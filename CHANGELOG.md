@@ -10,6 +10,21 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   **OIDC (OpenID Connect) Authentication Support**
+    -   Full OIDC authentication flow implementation with OAuth2 authorization code flow
+    -   Support for OIDC discovery endpoints for automatic provider configuration
+    -   Configurable OIDC provider settings including domain, client credentials, and scopes
+    -   Option for direct URL configuration to bypass discovery for custom providers
+    -   Automatic user creation and management with configurable username field mapping
+    -   Secure state parameter validation to prevent CSRF attacks
+    -   Server-side token exchange and user information retrieval
+    -   Client-side OIDC login UI with provider-specific branding support
+    -   Seamless integration with existing user management system
+    -   [server] Fallback safety mechanism to prevent user lockout when OIDC is misconfigured
+    -   [server] Comprehensive logging for troubleshooting OIDC authentication flows
+    -   [server] Support for custom audience parameters for provider-specific requirements
 ## [2025.3]
 
 ### Added

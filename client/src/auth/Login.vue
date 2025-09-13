@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
@@ -30,7 +30,13 @@ const resetPending = ref(false);
 
 const showLanguageDropdown = ref(false);
 const allowRegister = (document.querySelector("meta[name='PA-signup']")?.getAttribute("content") ?? "true") === "true";
+const usernamePasswordEnabled = (document.querySelector("meta[name='PA-username-pass']")?.getAttribute("content") ?? "true") === "true";
 const hasMail = (document.querySelector("meta[name='PA-mail']")?.getAttribute("content") ?? "true") === "true";
+const oidcEnabled = (document.querySelector("meta[name='PA-oidc']")?.getAttribute("content") ?? "false") === "true";
+const oidcDomain = document.querySelector("meta[name='PA-oidc-domain']")?.getAttribute("content") ?? "";
+const oidcClientId = document.querySelector("meta[name='PA-oidc-client-id']")?.getAttribute("content") ?? "";
+const oidcProviderName = document.querySelector("meta[name='PA-oidc-provider']")?.getAttribute("content") ?? "OIDC";
+
 
 function getStaticImg(img: string): string {
     return baseAdjust(`/static/img/${img}`);
@@ -97,6 +103,139 @@ async function resetPassword(): Promise<void> {
         toast.error(t("auth.login.resetPasswordFailed"));
     }
 }
+async function loginWithOIDC(): Promise<void> {
+    // Check if OIDC is properly configured before attempting login
+    if (!oidcEnabled) {
+        toast.error("OIDC authentication is not enabled.");
+        return;
+    }
+    
+    if (!oidcDomain) {
+        toast.error("OIDC domain is not configured.");
+        return;
+    }
+    
+    if (!oidcClientId) {
+        toast.error("OIDC client ID is not configured.");
+        return;
+    }
+    
+    // Check the server-side OIDC configuration
+    try {
+        const configResponse = await http.get("/api/oidc/config");
+        
+        if (configResponse.ok) {
+            const configData = await configResponse.json();
+            
+            if (!configData.oidc_enabled) {
+                toast.error("OIDC authentication is not enabled on the server.");
+                return;
+            }
+            
+            if (!configData.oidc_domain) {
+                toast.error("OIDC domain is not configured on the server.");
+                return;
+            }
+            
+            if (!configData.oidc_client_id) {
+                toast.error("OIDC client ID is not configured on the server.");
+                return;
+            }
+        }
+    } catch (error) {
+        // Silently handle config check errors - fallback to meta tag values
+    }
+    
+    // Proceed with OIDC login attempt
+    try {
+        // Generate a random state for security
+        const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const redirectUri = window.location.origin + "/auth/callback";
+        
+        // Store state in localStorage for verification later
+        localStorage.setItem('oidc_state', state);
+        localStorage.setItem('oidc_redirect_uri', redirectUri);
+        
+        // Call our backend to get the authorization URL
+        const response = await http.postJson("/api/oidc/login", {
+            redirect_uri: redirectUri,
+            state: state
+        });
+        
+        if (response.ok) {
+            const data = (await response.json()) as { auth_url?: string };
+            if (data.auth_url) {
+                // Redirect to the authorization URL
+                window.location.href = data.auth_url;
+            } else {
+                console.error("No auth_url in response:", data);
+                toast.error("Failed to get authorization URL.");
+            }
+        } else {
+            const errorMsg = await getErrorReason(response);
+            console.error("OIDC login failed with status:", response.status, "message:", errorMsg);
+            toast.error(`OIDC login failed: ${errorMsg}`);
+        }
+    } catch (error) {
+        console.error("OIDC login failed:", error);
+        toast.error("Failed to login with OIDC.");
+    }
+}
+
+// Initialize OIDC if enabled
+onMounted(async () => {
+    // Check if we're on the callback route with OIDC data
+    if (
+        route.name === "auth-callback" &&
+        typeof route.query.code !== "undefined" &&
+        typeof route.query.state !== "undefined"
+    ) {
+        try {
+            // Verify state matches what we stored
+            const storedState = localStorage.getItem('oidc_state');
+            const storedRedirectUri = localStorage.getItem('oidc_redirect_uri');
+            
+            if (storedState !== route.query.state) {
+                toast.error("Invalid state parameter - possible CSRF attack");
+                await router.push("/auth/login");
+                return;
+            }
+            
+            // Clean up stored values
+            localStorage.removeItem('oidc_state');
+            localStorage.removeItem('oidc_redirect_uri');
+            
+            // Exchange code directly with your backend
+            const response = await http.postJson("/api/oidc/exchange", {
+                code: route.query.code,
+                redirect_uri: storedRedirectUri || (window.location.origin + "/auth/callback")
+            });
+            
+            if (response.ok) {
+                const data = (await response.json()) as { username?: string; email?: string };
+                // Set user data from server response
+                coreStore.setUsername(data.username || "OIDC User");
+                coreStore.setAuthenticated(true);
+                if (data.email) {
+                    coreStore.setEmail(data.email);
+                }
+                
+                // Redirect to intended destination
+                const redirectPath = (route.query.redirect as string) ?? "/";
+                await router.push(redirectPath);
+            } else {
+                const errorMsg = await getErrorReason(response);
+                toast.error(`OIDC authentication failed: ${errorMsg}`);
+                await router.push("/auth/login");
+            }
+        } catch (error) {
+            console.error("OIDC callback failed:", error);
+            toast.error(`OIDC authentication failed: ${error}`);
+            // Redirect to login on error
+            await router.push("/auth/login");
+        }
+    }
+});
 </script>
 
 <template>
@@ -125,51 +264,60 @@ async function resetPassword(): Promise<void> {
                             <LanguageDropdown v-if="showLanguageDropdown" id="language-dropdown" />
                         </div>
                     </div>
-                    <div class="form-row">
-                        <label for="username">{{ t("common.username") }}</label>
-                        <input
-                            id="username"
-                            v-model="username"
-                            type="text"
-                            autocomplete="username"
-                            required
-                            autofocus
-                        />
-                    </div>
-                    <div class="form-row">
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem">
-                            <label for="password">{{ t("common.password") }}</label>
-                            <span v-if="hasMail" class="forgot-password note" @click="mode = Mode.ForgotPassword">
-                                {{ t("auth.login.forgotPassword") }}
-                            </span>
+                    <template v-if="usernamePasswordEnabled">
+                        <div class="form-row">
+                            <label for="username">{{ t("common.username") }}</label>
+                            <input
+                                id="username"
+                                v-model="username"
+                                type="text"
+                                autocomplete="username"
+                                required
+                                autofocus
+                            />
                         </div>
-                        <input
-                            id="password"
-                            v-model="password"
-                            type="password"
-                            autocomplete="current-password"
-                            required
-                        />
+                        <div class="form-row">
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem">
+                                <label for="password">{{ t("common.password") }}</label>
+                                <span v-if="hasMail" class="forgot-password note" @click="mode = Mode.ForgotPassword">
+                                    {{ t("auth.login.forgotPassword") }}
+                                </span>
+                            </div>
+                            <input
+                                id="password"
+                                v-model="password"
+                                type="password"
+                                autocomplete="current-password"
+                                required
+                            />
+                        </div>
+                        <button type="submit" @click="login">
+                            <img :src="getStaticImg('check_small.svg')" />
+                            {{ t("auth.login.login") }}
+                        </button>
+                        <button v-if="allowRegister && usernamePasswordEnabled" type="button" @click="mode = Mode.Register">
+                            <img :src="getStaticImg('plus.svg')" />
+                            {{ t("auth.login.register") }}
+                        </button>
+                    </template>
+                    <!-- Separator between username/password and OIDC authentication -->
+                    <div v-if="usernamePasswordEnabled && oidcEnabled && oidcDomain && oidcClientId" class="auth-separator">
+                        <span class="separator-text">{{ t("auth.login.or") }}</span>
                     </div>
-                    <button type="submit" @click="login">
+                    <!-- Show OIDC button only if OIDC is enabled and properly configured -->
+                    <button v-if="oidcEnabled && oidcDomain && oidcClientId" type="button" class="oidc-button" @click="loginWithOIDC">
                         <img :src="getStaticImg('check_small.svg')" />
-                        {{ t("auth.login.login") }}
-                    </button>
-                    <button v-if="allowRegister" type="button" @click="mode = Mode.Register">
-                        <img :src="getStaticImg('plus.svg')" />
-                        {{ t("auth.login.register") }}
+                        {{ t("auth.login.loginWith", { provider: oidcProviderName || 'OIDC' }) }}
                     </button>
                 </template>
-                <template v-else-if="mode === Mode.Register">
+                <template v-else-if="mode === Mode.Register && usernamePasswordEnabled">
                     <div id="title">
                         {{ t("auth.login.register") }}
                         <span style="flex-grow: 1"></span>
                         <a href="https://planarally.io" target="blank">
                             <font-awesome-icon icon="book" title="Show documentation" />
                         </a>
-                        <a href="https://discord.gg/mubGnTe" target="blank">
-                            <font-awesome-icon :icon="['fab', 'discord']" title="Join the discord server!" />
-                        </a>
+                       
                         <div style="position: relative">
                             <font-awesome-icon
                                 icon="language"
@@ -380,6 +528,32 @@ main {
                     cursor: not-allowed;
                 }
             }
+            &.oidc-button {
+                background-color: rgba(219, 0, 59, 1);
+                margin-top: 1rem;
+        }
+    }
+
+    .auth-separator {
+        display: flex;
+        align-items: center;
+        margin: 2rem 0;
+        text-align: center;
+        
+        &::before,
+        &::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .separator-text {
+            padding: 0 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
     }
 }
@@ -403,5 +577,6 @@ main {
 #forgot-password-note {
     margin-top: -1rem;
     margin-bottom: 1rem;
+}
 }
 </style>

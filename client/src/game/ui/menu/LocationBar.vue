@@ -235,10 +235,7 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
                         :data-loc="location.id"
                         @add="onDragAdd"
                     >
-                        <div :key="location.id">
-                            <!-- without the {{}} it throws an error because it becomes a null element? -->
-                            {{}}
-                        </div>
+                        <div :key="location.id"></div>
                     </VueDraggable>
                 </div>
             </template>

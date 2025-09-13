@@ -717,22 +717,32 @@ function n(e: any): number {
 
     .initiative-value {
         font-weight: 800;
-        max-width: 2.55rem;
+        max-width: 2.75rem;
+        height: 22px;
         padding: 2px;
         text-align: end;
         background-color: inherit;
         outline: none;
-        border: solid 1px #687d71;
+        border: solid 1px transparent;
         border-radius: 5px;
         transition: border-color 0.2s ease;
         flex: 0.25 1 0;
         font-family: Arial, sans-serif;
+        font-size: 14pt;
+
+        &:placeholder-shown {
+            font-size: 11pt;
+        }
 
         &:not(.disabled) {
             cursor: pointer;
         }
         &.disabled {
             border-color: transparent;
+        }
+        &:focus {
+            border: solid 1px gray;
+            box-shadow: 0px 0px 5px 2px lightblue;
         }
     }
     .drag-handle {

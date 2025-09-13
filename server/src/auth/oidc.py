@@ -45,11 +45,11 @@ class OIDCAuth:
             return None
 
         try:
-            # Enforce HTTPS for security - reject HTTP completely
+            # Enforce HTTPS for security - only allow secure protocols
             domain = self.config.domain
-            if domain.startswith('http://'):
-                # Reject insecure HTTP protocol completely
-                logger.error(f"Insecure HTTP protocol rejected for OIDC domain: {domain}. Only HTTPS is allowed.")
+            if '://' in domain and not domain.startswith('https://'):
+                # Reject any non-HTTPS protocol
+                logger.error(f"Insecure protocol rejected for OIDC domain: {domain}. Only HTTPS is allowed.")
                 return None
             elif not domain.startswith('https://'):
                 # Add HTTPS if no protocol specified

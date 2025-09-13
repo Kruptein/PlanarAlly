@@ -843,6 +843,7 @@ function n(e: any): number {
 }
 
 .initiative-effect {
+    display: none;
     flex-direction: column;
     width: -moz-fit-content;
     width: fit-content;

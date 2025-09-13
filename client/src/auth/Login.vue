@@ -148,8 +148,10 @@ async function loginWithOIDC(): Promise<void> {
     
     // Proceed with OIDC login attempt
     try {
-        // Generate a random state for security
-        const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        // Generate a cryptographically secure random state for security
+        const array = new Uint8Array(32);
+        crypto.getRandomValues(array);
+        const state = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
         const redirectUri = window.location.origin + "/auth/callback";
         
         // Store state in localStorage for verification later

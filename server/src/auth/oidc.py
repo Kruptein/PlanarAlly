@@ -45,14 +45,15 @@ class OIDCAuth:
             return None
 
         try:
-            # Handle both with and without protocol, but enforce HTTPS for security
+            # Enforce HTTPS for security - reject HTTP completely
             domain = self.config.domain
-            if not domain.startswith(('http://', 'https://')):
+            if domain.startswith('http://'):
+                # Reject insecure HTTP protocol completely
+                logger.error(f"Insecure HTTP protocol rejected for OIDC domain: {domain}. Only HTTPS is allowed.")
+                return None
+            elif not domain.startswith('https://'):
+                # Add HTTPS if no protocol specified
                 domain = f"https://{domain}"
-            elif domain.startswith('http://'):
-                logger.warning(f"Using insecure HTTP protocol for OIDC domain: {domain}")
-                # For security, we should strongly discourage HTTP, but allow it for development
-                # In production, consider raising an exception here instead
             
             discovery_url = f"{domain}/.well-known/openid-configuration"
             

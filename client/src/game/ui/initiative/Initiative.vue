@@ -721,7 +721,7 @@ function n(e: any): number {
         height: 22px;
         padding: 2px;
         text-align: end;
-        background-color: inherit;
+        background-color: transparent;
         outline: none;
         border: solid 1px transparent;
         border-radius: 5px;

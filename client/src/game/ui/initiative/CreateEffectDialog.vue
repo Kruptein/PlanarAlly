@@ -152,6 +152,8 @@ function submitNewEffect(): void {
 .infinite-checkbox-label:hover + div > .infinite-checkbox,
 .infinite-checkbox:focus,
 .infinite-checkbox:hover {
+    cursor: pointer;
+
     &::before {
         box-shadow: 0 0 0.5em #333;
     }
@@ -162,6 +164,10 @@ function submitNewEffect(): void {
         background-repeat: no-repeat;
         background-position: center center;
     }
+}
+
+.infinite-checkbox-label:hover {
+    cursor: pointer;
 }
 
 .infinite-checkbox {

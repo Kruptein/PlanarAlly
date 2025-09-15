@@ -359,7 +359,11 @@ function n(e: any): number {
                                             <div v-else :title="getName(actor)" class="initiative-portrait">
                                                 <div class="initiative-portrait-border"></div>
                                                 <div class="initiative-portrait-content empty-portrait">
-                                                    <font-awesome-icon icon="user" class="large-icon" />
+                                                    <font-awesome-icon
+                                                        icon="user"
+                                                        style="cursor: auto"
+                                                        class="large-icon"
+                                                    />
                                                 </div>
                                             </div>
                                             <div class="actor-info-cluster">

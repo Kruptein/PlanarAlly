@@ -49,7 +49,7 @@ interface ConfirmationDialog {
 }
 
 const confirmationDialog = ref<ConfirmationDialog | null>(null);
-const listElement = useTemplateRef("list-element");
+const listElement = useTemplateRef<HTMLElement>("list-element");
 const addEffect = ref<GlobalId | null>(null);
 
 const hasVisibleActor = computed(() => initiativeStore.state.locationData.some((actor) => canSee(actor)));
@@ -121,28 +121,20 @@ async function clearInitiativeValues(): Promise<void> {
 }
 
 function scrollToInitiative(): void {
-    if (listElement.value === null) return;
+    if (listElement.value === null || listElement.value.children.length <= 0) return;
 
-    const childElements = listElement.value.children as HTMLCollection;
-
-    if (childElements.length <= 0) return;
-
-    const entryElement = childElements[0]!.querySelector(".initiative-selected");
+    const entryElement = listElement.value.children[0]!.querySelector(".initiative-selected");
     if (!entryElement) return;
 
     entryElement.parentElement!.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function getListEntry(id: GlobalId): Element | undefined {
-    if (listElement.value === null) return undefined;
-
-    const childElements = listElement.value.children as HTMLCollection;
-
-    if (childElements.length <= 0) return undefined;
+    if (listElement.value === null || listElement.value.children.length <= 0) return undefined;
 
     const entries = initiativeStore.getDataSet();
     const index = entries.findIndex((actor) => actor.globalId === id);
-    return childElements[0]!.children[index];
+    return listElement.value.children[0]!.children[index];
 }
 
 function scrollToEntry(entry: Element): void {

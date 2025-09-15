@@ -364,11 +364,7 @@ function n(e: any): number {
                                                     alt=""
                                                 />
                                             </div>
-                                            <div
-                                                v-else
-                                                :title="getName(actor)"
-                                                class="initiative-portrait"
-                                            >
+                                            <div v-else :title="getName(actor)" class="initiative-portrait">
                                                 <div class="initiative-portrait-border"></div>
                                                 <div class="initiative-portrait-content empty-portrait">
                                                     <font-awesome-icon icon="user" class="large-icon" />

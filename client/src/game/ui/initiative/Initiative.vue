@@ -14,8 +14,13 @@ import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IAsset } from "../../interfaces/shapes/asset";
-import { InitiativeTurnDirection, type InitiativeData } from "../../models/initiative";
-import { InitiativeEffectMode, InitiativeSort } from "../../models/initiative";
+import {
+    type InitiativeData,
+    type InitiativeEffect,
+    InitiativeEffectMode,
+    InitiativeSort,
+    InitiativeTurnDirection,
+} from "../../models/initiative";
 import { accessSystem } from "../../systems/access";
 import { gameState } from "../../systems/game/state";
 import { groupSystem } from "../../systems/groups";
@@ -25,6 +30,7 @@ import { playerSettingsState } from "../../systems/settings/players/state";
 import { uiSystem } from "../../systems/ui";
 import { ClientSettingCategory } from "../settings/client/categories";
 
+import CreateEffectDialog from "./CreateEffectDialog.vue";
 import { initiativeStore } from "./state";
 
 const { t } = useI18n();
@@ -44,6 +50,7 @@ interface ConfirmationDialog {
 
 const confirmationDialog = ref<ConfirmationDialog | null>(null);
 const listElement = useTemplateRef("list-element");
+const addEffect = ref<GlobalId | null>(null);
 
 const hasVisibleActor = computed(() => initiativeStore.state.locationData.some((actor) => canSee(actor)));
 
@@ -126,6 +133,22 @@ function scrollToInitiative(): void {
     entryElement.parentElement!.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
+function getListEntry(id: GlobalId): Element | undefined {
+    if (listElement.value === null) return undefined;
+
+    const childElements = listElement.value.children as HTMLCollection;
+
+    if (childElements.length <= 0) return undefined;
+
+    const entries = initiativeStore.getDataSet();
+    const index = entries.findIndex((actor) => actor.globalId === id);
+    return childElements[0]!.children[index];
+}
+
+function scrollToEntry(entry: Element): void {
+    entry.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
 const nextRound = (): void => initiativeStore.nextRound();
 const previousRound = (): void => initiativeStore.previousRound();
 const nextTurn = (): void => initiativeStore.nextTurn();
@@ -144,12 +167,10 @@ function getName(actor: InitiativeData): string {
 async function removeInitiative(actor: InitiativeData): Promise<void> {
     if (actor.isGroup) {
         const result = await loadConfirmationDialog(t("game.ui.initiative.remove_group_msg"));
-        if (result) {
-            initiativeStore.removeInitiative(actor.globalId, true);
-        }
-    } else {
-        initiativeStore.removeInitiative(actor.globalId, true);
+        if (!result) return;
     }
+    if (addEffect.value == actor.globalId) addEffect.value = null;
+    initiativeStore.removeInitiative(actor.globalId, true);
 }
 
 function setEffectName(shape: GlobalId, index: number, name: string): void {
@@ -160,12 +181,31 @@ function setEffectTurns(shape: GlobalId, index: number, turns: string): void {
     if (initiativeStore.owns(shape)) initiativeStore.setEffectTurns(shape, index, turns, true);
 }
 
-function createTimedEffect(shape: GlobalId): void {
-    if (initiativeStore.owns(shape)) initiativeStore.createTimedEffect(shape, undefined, true);
+async function openEffectDialog(shape: GlobalId): Promise<void> {
+    if (addEffect.value === shape) {
+        addEffect.value = null;
+        return;
+    }
+    addEffect.value = shape;
+    const entry = getListEntry(shape);
+    if (entry) {
+        setTimeout(() => {
+            scrollToEntry(entry);
+        }, 300);
+        await nextTick(() => {
+            const inputElement = entry.querySelector<HTMLElement>(".add-effect-name");
+            if (inputElement) inputElement.focus();
+        });
+    }
 }
 
-function createEffect(shape: GlobalId): void {
-    if (initiativeStore.owns(shape)) initiativeStore.createEffect(shape, undefined, true);
+function closeEffectDialog(): void {
+    addEffect.value = null;
+}
+
+function createEffect(shape: GlobalId, effect: InitiativeEffect): void {
+    if (initiativeStore.owns(shape)) initiativeStore.createEffect(shape, effect, true);
+    closeEffectDialog();
 }
 
 function removeEffect(shape: GlobalId, index: number): void {
@@ -361,44 +401,27 @@ function n(e: any): number {
                                                             }"
                                                         />
                                                     </div>
-                                                    <div class="actor-effect-button-group">
-                                                        <div
-                                                            class="actor-icon-button no-select"
-                                                            :class="{ disabled: !owns(actor.globalId) }"
-                                                            :title="t('game.ui.initiative.add_timed_effect')"
-                                                            @click="createTimedEffect(actor.globalId)"
-                                                        >
-                                                            <font-awesome-icon
-                                                                icon="stopwatch"
-                                                                style="opacity: 0.6"
-                                                                :style="{
-                                                                    cursor: !owns(actor.globalId)
-                                                                        ? 'default'
-                                                                        : 'pointer',
-                                                                }"
-                                                            />
-                                                        </div>
-                                                        <div
-                                                            class="actor-icon-button no-select"
-                                                            :class="{ disabled: !owns(actor.globalId) }"
-                                                            :title="t('game.ui.initiative.add_effect')"
-                                                            @click="createEffect(actor.globalId)"
-                                                        >
-                                                            <font-awesome-icon
-                                                                icon="wand-magic-sparkles"
-                                                                style="opacity: 0.6"
-                                                                :style="{
-                                                                    cursor: !owns(actor.globalId)
-                                                                        ? 'default'
-                                                                        : 'pointer',
-                                                                }"
-                                                            />
-                                                        </div>
+                                                    <div
+                                                        class="actor-icon-button no-select"
+                                                        :class="{ disabled: !owns(actor.globalId) }"
+                                                        :title="t('game.ui.initiative.add_effect')"
+                                                        @click="openEffectDialog(actor.globalId)"
+                                                    >
+                                                        <font-awesome-icon
+                                                            icon="wand-magic-sparkles"
+                                                            style="opacity: 0.6"
+                                                            :style="{
+                                                                cursor: !owns(actor.globalId) ? 'default' : 'pointer',
+                                                            }"
+                                                        />
+                                                    </div>
+                                                    <Transition name="fade">
                                                         <RollingCounter
+                                                            v-if="actor.effects.length > 0"
                                                             :value="actor.effects.length"
                                                             :fixed-width="1"
                                                         />
-                                                    </div>
+                                                    </Transition>
                                                 </div>
                                             </div>
                                             <input
@@ -414,6 +437,13 @@ function n(e: any): number {
                                                 @keyup.enter="getTarget($event).blur()"
                                             />
                                         </div>
+                                        <Transition name="effects-expand">
+                                            <CreateEffectDialog
+                                                v-if="addEffect === actor.globalId"
+                                                @submit="(e) => createEffect(actor.globalId, e)"
+                                                @cancel="closeEffectDialog()"
+                                            />
+                                        </Transition>
                                         <Transition name="effects-expand">
                                             <div
                                                 v-if="actor.effects.length > 0"
@@ -787,15 +817,6 @@ function n(e: any): number {
         justify-content: left;
         align-items: center;
         width: 100%;
-
-        > .actor-effect-button-group {
-            display: flex;
-            align-items: center;
-            border: solid 1px rgba(104, 125, 113, 0.6);
-            border-radius: 0.25rem;
-            padding: 1px;
-            margin: 0 2px;
-        }
     }
 
     :deep(.rolling-counter) {
@@ -1067,9 +1088,8 @@ function n(e: any): number {
     transition: all 0.15s ease;
 }
 
-.effects-expand-ente-active,
+.effects-expand-enter-active,
 .effects-expand-leave-active {
-    max-height: 2rem;
 }
 .effects-expand-enter-from,
 .effects-expand-leave-to {
@@ -1079,6 +1099,8 @@ function n(e: any): number {
     margin-bottom: 0;
     padding-top: 0;
     padding-bottom: 0;
+    border-bottom: 0;
+    border-top: 0;
 }
 
 .effect-expand-enter-active {

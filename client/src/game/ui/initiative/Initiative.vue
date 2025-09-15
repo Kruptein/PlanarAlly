@@ -355,19 +355,25 @@ function n(e: any): number {
                                                 <font-awesome-icon icon="grip-vertical" style="cursor: grab" />
                                             </div>
                                             <div v-else style="margin-right: 0.5rem"></div>
-                                            <template v-if="hasImage(actor)">
+                                            <div v-if="hasImage(actor)" class="initiative-portrait">
+                                                <div class="initiative-portrait-border"></div>
                                                 <img
                                                     :src="getImage(actor)"
                                                     :title="getName(actor)"
-                                                    class="initiative-portrait"
+                                                    class="initiative-portrait-content"
                                                     alt=""
                                                 />
-                                            </template>
+                                            </div>
                                             <div
                                                 v-else
                                                 :title="getName(actor)"
-                                                class="initiative-portrait empty-portrait"
-                                            ></div>
+                                                class="initiative-portrait"
+                                            >
+                                                <div class="initiative-portrait-border"></div>
+                                                <div class="initiative-portrait-content empty-portrait">
+                                                    <font-awesome-icon icon="user" class="large-icon" />
+                                                </div>
+                                            </div>
                                             <div class="actor-info-cluster">
                                                 <span class="actor-name" :title="getName(actor)">
                                                     {{ getName(actor) }}
@@ -676,6 +682,7 @@ function n(e: any): number {
     margin: 2px 10px;
     outline: solid 2px rgba(130, 200, 160, 0.4);
     transition: box-shadow 0.2s ease;
+    margin-bottom: 4px;
 
     &.owned-actor {
         box-shadow:
@@ -696,7 +703,6 @@ function n(e: any): number {
     position: relative;
     box-shadow: 0px 12px 5px -14px rgba(0, 0, 0, 0.75);
     margin: 0;
-    margin-bottom: 2px;
 
     min-width: 275px;
     max-width: 275px;
@@ -734,6 +740,21 @@ function n(e: any): number {
     }
 
     .initiative-portrait {
+        height: 50px;
+        weidth: 50px;
+        position: relative;
+        .initiative-portrait-border {
+            position: absolute;
+            border: solid 2px rgb(0, 0, 0, 0.35);
+            width: 50px;
+            height: 50px;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            border-radius: 0.3rem;
+        }
+    }
+    .initiative-portrait-content {
         min-height: 50px;
         max-height: 50px;
         min-width: 50px;
@@ -742,7 +763,15 @@ function n(e: any): number {
         border-radius: 0.3rem;
     }
     .empty-portrait {
-        border: black 1px solid;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 50px;
+        > .large-icon {
+            width: 40px;
+            height: 40px;
+            opacity: 50%;
+        }
     }
 
     .initiative-value {

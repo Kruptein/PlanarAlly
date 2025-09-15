@@ -737,7 +737,7 @@ function n(e: any): number {
 
     .initiative-portrait {
         height: 50px;
-        weidth: 50px;
+        width: 50px;
         position: relative;
         .initiative-portrait-border {
             position: absolute;

@@ -7,6 +7,7 @@ import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem } from "../../../core/systems";
 import { coreStore } from "../../../store/core";
 import { getGlobalId, getShape } from "../../id";
+import { compositeState } from "../../layers/state";
 import { initiativeStore } from "../../ui/initiative/state";
 import { floorSystem } from "../floors";
 import { gameState } from "../game/state";
@@ -106,6 +107,8 @@ class AccessSystem implements ShapeSystem {
     // High-level access check based on owned/active state
     // Should be used by external systems
     hasAccessTo(id: LocalId, access: AccessLevel | AccessLevel[], limitToActiveTokens = false): boolean {
+        const parent = compositeState.getCompositeParent(id);
+        if (parent !== undefined) id = parent.id;
         // 1. DMs always have access when not limiting to active tokens
         if (gameState.raw.isDm && !limitToActiveTokens) return true;
 

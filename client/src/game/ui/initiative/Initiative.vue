@@ -415,7 +415,13 @@ function n(e: any): number {
                                                             }"
                                                         />
                                                     </div>
-                                                    <RollingCounter :value="actor.effects.length" :fixed-width="1" />
+                                                    <Transition name="fade">
+                                                        <RollingCounter
+                                                            v-if="actor.effects.length > 0"
+                                                            :value="actor.effects.length"
+                                                            :fixed-width="1"
+                                                        />
+                                                    </Transition>
                                                 </div>
                                             </div>
                                             <input

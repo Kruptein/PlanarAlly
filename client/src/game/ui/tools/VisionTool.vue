@@ -3,7 +3,7 @@ import { computed } from "vue";
 
 import type { LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
-import { getShape } from "../../id";
+import { getVisualShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { accessSystem } from "../../systems/access";
@@ -14,7 +14,7 @@ import { visionTool } from "../../tools/variants/vision";
 const selected = visionTool.isActiveTool;
 
 const tokens = computed(() =>
-    [...map(accessState.reactive.ownedTokens.get("vision")!, (t) => getShape(t)!)].filter(
+    [...map(accessState.reactive.ownedTokens.get("vision")!, (t) => getVisualShape(t)!)].filter(
         (sh) => !(sh.options.skipDraw ?? false),
     ),
 );

@@ -8,7 +8,7 @@ import type { LocalId } from "../../../core/id";
 import { registerSystem } from "../../../core/systems";
 import type { System } from "../../../core/systems";
 import { sendClientLocationOptions } from "../../api/emits/client";
-import { getAllShapes, getShape, getShapeCount } from "../../id";
+import { getAllShapes, getVisualShape, getShapeCount } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { FowLayer } from "../../layers/variants/fow";
 import { LayerName } from "../../models/floor";
@@ -176,12 +176,12 @@ class PositionSystem implements System {
         if (!gameState.raw.isDm && locationSettingsState.raw.fullFow.value) {
             if (locationSettingsSystem.isLosActive()) {
                 // find nearest token
-                nearest = this.findNearest(accessState.activeTokens.value.get("vision")!, (i) => getShape(i));
+                nearest = this.findNearest(accessState.activeTokens.value.get("vision")!, (i) => getVisualShape(i));
             }
 
             if (nearest === undefined) {
                 // find nearest lightsource
-                nearest = this.findNearest(visionState.getAllVisionSources(), (s) => getShape(s.shape));
+                nearest = this.findNearest(visionState.getAllVisionSources(), (s) => getVisualShape(s.shape));
             }
         }
         if (nearest === undefined) {

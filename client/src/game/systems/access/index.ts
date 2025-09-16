@@ -126,6 +126,8 @@ class AccessSystem implements ShapeSystem {
     // Low-level internal access check
     // This decides whether a shape is regarded as owned for a certain access level
     private _hasAccessTo(id: LocalId, access: AccessLevel): boolean {
+        const parent = compositeState.getCompositeParent(id);
+        if (parent !== undefined) id = parent.id;
         const accessMap = mutable.access.get(id);
         if (accessMap === undefined) return false;
 

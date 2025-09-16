@@ -7,7 +7,7 @@ import type { LocalId } from "../../../core/id";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
-import { getShape } from "../../id";
+import { getVisualShape } from "../../id";
 import { setCenterPosition } from "../../position";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
@@ -216,7 +216,7 @@ async function addAccess(): Promise<void> {
 }
 
 function navigateToShape(id: LocalId): void {
-    const shape = getShape(id);
+    const shape = getVisualShape(id);
     if (shape !== undefined) {
         setCenterPosition(shape.center);
     }

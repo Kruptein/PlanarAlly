@@ -11,8 +11,7 @@ import { i18n } from "../i18n";
 
 import { requestAssetOptions } from "./api/emits/asset";
 import { sendShapesMove } from "./api/emits/shape/core";
-import { getLocalId, getShape } from "./id";
-import { compositeState } from "./layers/state";
+import { getLocalId, getVisualShape } from "./id";
 import type { BaseTemplate } from "./models/templates";
 import { moveShapes } from "./operations/movement";
 import { loadShapeData } from "./shapes";
@@ -66,14 +65,7 @@ async function dropHelper(
         const shapeId = getLocalId(character.shapeId, false);
 
         if (shapeId !== undefined) {
-            let shape = getShape(shapeId);
-            // bunch of fuckery to patch toggle composites
-            if (shape !== undefined) {
-                const compositeParent = compositeState.getCompositeParent(shapeId);
-                if (compositeParent !== undefined) {
-                    shape = getShape(compositeParent.activeVariant);
-                }
-            }
+            const shape = getVisualShape(shapeId);
             if (shape !== undefined && shape.options.skipDraw !== true) {
                 await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
                 return;

@@ -101,6 +101,14 @@ export function getVisualShape(local: LocalId): IShape | undefined {
     }
     return shape;
 }
+
+export function getBaseShape(local: LocalId): IShape | undefined {
+    const parent = compositeState.getCompositeParent(local);
+    if (parent !== undefined) return parent;
+
+    return idMap.get(local);
+}
+
 export function getShape(local: LocalId): IShape | undefined {
     return idMap.get(local);
 }

@@ -3,7 +3,7 @@ import { computed } from "vue";
 
 import type { LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
-import { getVisualShape } from "../../id";
+import { getVisualShape, getBaseShapeId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { accessSystem } from "../../systems/access";
@@ -20,13 +20,14 @@ const tokens = computed(() =>
 );
 const selection = computed(() => {
     const activeTokens = accessState.reactive.activeTokenFilters.get("vision");
-    if (activeTokens) return activeTokens;
-    return accessState.reactive.ownedTokens.get("vision")!;
+    if (activeTokens) return new Set([...activeTokens].map((e) => getBaseShapeId(e)));
+    return new Set([...accessState.reactive.ownedTokens.get("vision")!].map((e) => getBaseShapeId(e)));
 });
 
-function toggle(uuid: LocalId): void {
-    if (selection.value.has(uuid)) accessSystem.removeActiveToken(uuid, "vision");
-    else accessSystem.addActiveToken(uuid, "vision");
+function toggle(token: LocalId): void {
+    const id = getBaseShapeId(token);
+    if (selection.value.has(id)) accessSystem.removeActiveToken(id, "vision");
+    else accessSystem.addActiveToken(id, "vision");
 }
 
 function getImageSrc(token: IShape): string {
@@ -43,7 +44,7 @@ function getImageSrc(token: IShape): string {
             v-for="token in tokens"
             :key="token.id"
             class="token"
-            :class="{ selected: selection.has(token.id) }"
+            :class="{ selected: selection.has(getBaseShapeId(token.id)) }"
             @click="toggle(token.id)"
         >
             <img v-if="getImageSrc(token) !== ''" :src="getImageSrc(token)" width="30px" height="30px" alt="" />

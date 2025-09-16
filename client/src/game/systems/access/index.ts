@@ -6,7 +6,7 @@ import type { Sync } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem } from "../../../core/systems";
 import { coreStore } from "../../../store/core";
-import { getGlobalId, getShape } from "../../id";
+import { getGlobalId, getShape, getBaseShapeId } from "../../id";
 import { compositeState } from "../../layers/state";
 import { initiativeStore } from "../../ui/initiative/state";
 import { floorSystem } from "../floors";
@@ -313,11 +313,12 @@ class AccessSystem implements ShapeSystem {
     }
 
     removeActiveToken(token: LocalId, access: AccessLevel): void {
+        const id = getBaseShapeId(token);
         const accessActiveTokens = $.activeTokenFilters.get(access);
         if (accessActiveTokens === undefined) {
-            $.activeTokenFilters.set(access, new Set(filter(raw.ownedTokens.get(access)!, (t) => t !== token)));
+            $.activeTokenFilters.set(access, new Set(filter(raw.ownedTokens.get(access)!, (t) => t !== id)));
         } else {
-            accessActiveTokens.delete(token);
+            accessActiveTokens.delete(id);
         }
 
         // the token itself might need re-rendering (e.g. invisible)

@@ -158,8 +158,6 @@ export class ToggleComposite extends Shape implements IToggleComposite {
 
         const props = getProperties(newVariant.id)!;
 
-        accessSystem._updateOwnedState(newVariant.id);
-
         if (newVariant.floorId !== undefined) {
             if (props.blocksMovement)
                 visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.id, newVariant.floorId, true);

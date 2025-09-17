@@ -182,8 +182,6 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         this.deactivateVariants(this.active_variant);
         this.active_variant = variant;
 
-        const props = getProperties(newVariant.id)!;
-
         this.activateVariants(newVariant.id);
 
         if (sync) {

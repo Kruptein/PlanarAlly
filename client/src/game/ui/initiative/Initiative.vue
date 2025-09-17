@@ -69,12 +69,9 @@ onMounted(() => {
 watch(
     () => initiativeStore.state.turnCounter,
     async () => {
-        if (alwaysShowEffects.value) {
-            await nextTick();
-            scrollToInitiative();
-        } else {
-            await nextTick();
-            scrollToInitiative();
+        await nextTick();
+        scrollToInitiative();
+        if (!alwaysShowEffects.value) {
             // This *should* be able to be 200 to match the animation time of the effect expanding,
             // but for some reason any value less than this just doesn't work in chromium or firefox
             setTimeout(() => {

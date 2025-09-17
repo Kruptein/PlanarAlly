@@ -837,6 +837,7 @@ function n(e: any): number {
         flex-direction: row;
         justify-content: left;
         align-items: center;
+        height: 1.25em;
         width: 100%;
     }
 

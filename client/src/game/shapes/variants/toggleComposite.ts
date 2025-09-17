@@ -46,7 +46,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         for (const variant of _variants) {
             compositeState.addComposite(this.id, variant, false);
         }
-        this.resetVariants(...this._variants.map((v) => v.id));
+        this.deactivateVariants(...this._variants.map((v) => v.id));
         this.setActiveVariant(this.active_variant, false);
     }
 
@@ -89,14 +89,11 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         const shape = getGlobalId(this.id);
         const variantId = getGlobalId(id);
 
+        if (this._variants.length <= 1) return;
+
         if (shape === undefined || variantId === undefined) {
             console.error("Variant globalid mismatch");
             return;
-        }
-
-        if (syncTo.server) sendToggleCompositeRemoveVariant({ shape, variant: variantId });
-        if (syncTo.ui) {
-            if (this.id === activeShapeStore.state.id) activeShapeStore.removeVariant(id, syncTo);
         }
 
         const v = this._variants.findIndex((v) => v.id === id);
@@ -104,15 +101,44 @@ export class ToggleComposite extends Shape implements IToggleComposite {
             console.error("Variant not found during variant removal");
             return;
         }
+
         const newVariant = this._variants[(v + 1) % this._variants.length]!.id;
+        if (id === this.active_variant) {
+            this.setActiveVariant(newVariant, true);
+        }
+
         this._variants.splice(v, 1);
-        this.setActiveVariant(newVariant, true);
+
+        if (syncTo.server) sendToggleCompositeRemoveVariant({ shape, variant: variantId });
+        if (syncTo.ui) {
+            if (this.id === activeShapeStore.state.id) activeShapeStore.removeVariant(id, syncTo);
+        }
 
         const oldVariant = getShape(id)!;
         oldVariant.layer?.removeShape(oldVariant, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
     }
 
-    private resetVariants(...variants: LocalId[]): void {
+    private activateVariants(...variants: LocalId[]): void {
+        for (const variantId of variants) {
+            const variant = getShape(variantId);
+            const props = getProperties(variantId);
+            if (variant === undefined || props === undefined) continue;
+
+            if (variant.floorId !== undefined) {
+                if (props.blocksMovement)
+                    visionState.addBlocker(TriangulationTarget.MOVEMENT, variant.id, variant.floorId, true);
+                if (props.blocksVision !== VisionBlock.No)
+                    visionState.addBlocker(TriangulationTarget.VISION, variant.id, variant.floorId, true);
+
+                for (const au of auraSystem.getAll(variant.id, false)) {
+                    if (au.visionSource && au.active) {
+                        visionState.addVisionSource({ shape: variant.id, aura: au.uuid }, variant.floorId);
+                    }
+                }
+            }
+        }
+    }
+    private deactivateVariants(...variants: LocalId[]): void {
         for (const variantId of variants) {
             const variant = getShape(variantId);
             const props = getProperties(variantId);
@@ -153,23 +179,12 @@ export class ToggleComposite extends Shape implements IToggleComposite {
             return;
         }
 
-        this.resetVariants(this.active_variant);
+        this.deactivateVariants(this.active_variant);
         this.active_variant = variant;
 
         const props = getProperties(newVariant.id)!;
 
-        if (newVariant.floorId !== undefined) {
-            if (props.blocksMovement)
-                visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.id, newVariant.floorId, true);
-            if (props.blocksVision !== VisionBlock.No)
-                visionState.addBlocker(TriangulationTarget.VISION, newVariant.id, newVariant.floorId, true);
-
-            for (const au of auraSystem.getAll(newVariant.id, false)) {
-                if (au.visionSource && au.active) {
-                    visionState.addVisionSource({ shape: newVariant.id, aura: au.uuid }, newVariant.floorId);
-                }
-            }
-        }
+        this.activateVariants(newVariant.id);
 
         if (sync) {
             oldVariant.options.skipDraw = true;

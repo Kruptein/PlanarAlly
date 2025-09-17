@@ -6,7 +6,7 @@ import { assetState } from "../../../../assets/state";
 import { getImageSrcFromHash } from "../../../../assets/utils";
 import { cloneP } from "../../../../core/geometry";
 import type { LocalId } from "../../../../core/id";
-import { InvalidationMode, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
+import { FULL_SYNC, InvalidationMode, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { dropAsset } from "../../../dropAsset";
@@ -112,7 +112,10 @@ async function removeVariant(): Promise<void> {
     );
     if (remove !== true) return;
 
-    activeShapeStore.removeVariant(vState.id!, SERVER_SYNC);
+    const parent = compositeParent.value;
+    if (parent === undefined) return;
+
+    parent.removeVariant(vState.id!, FULL_SYNC);
 }
 
 const variants = toRef(vState, "variants");

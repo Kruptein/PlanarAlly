@@ -881,7 +881,7 @@ class SelectTool extends Tool implements ISelectTool {
         }
 
         // Check if any other shapes are under the mouse
-        const shapes = layer.getShapes({ includeComposites: false, onlyInView: true });
+        const shapes = layer.getShapes({ includeComposites: false, onlyInView: true }).filter((sh) => !sh.options.skipDraw);
         for (let i = shapes.length - 1; i >= 0; i--) {
             const shape = shapes[i];
             if (shape?.contains(globalMouse) === true) {

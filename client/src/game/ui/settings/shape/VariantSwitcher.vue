@@ -14,6 +14,9 @@ import { getShape } from "../../../id";
 import { compositeState } from "../../../layers/state";
 import { ToggleComposite } from "../../../shapes/variants/toggleComposite";
 import { pickAsset } from "../../../systems/assets/ui";
+import { accessSystem } from "../../../systems/access";
+import { accessState } from "../../../systems/access/state";
+import { type AccessMap, DEFAULT_ACCESS_SYMBOL } from "../../../systems/access/models";
 
 const modals = useModal();
 const toast = useToast();
@@ -89,6 +92,13 @@ async function addVariant(): Promise<void> {
     if (parent === undefined) {
         parent = new ToggleComposite(cloneP(shape.refPoint), shape.id, [{ id: shape.id, name: "base variant" }]);
         shape.layer?.addShape(parent, SyncMode.FULL_SYNC, InvalidationMode.NO);
+        for (const [user, access] of accessState.readonly.access.get(vState.id)) {
+            if (user === DEFAULT_ACCESS_SYMBOL) {
+                accessSystem.updateAccess(parent.id, user, access, SERVER_SYNC);
+            } else {
+                accessSystem.addAccess(parent.id, user, access, SERVER_SYNC);
+            }
+        }
     }
     parent.addVariant(newShape.id, name, true);
     parent.setActiveVariant(newShape.id, true);

@@ -51,6 +51,7 @@ interface ConfirmationDialog {
 const confirmationDialog = ref<ConfirmationDialog | null>(null);
 const listElement = useTemplateRef<HTMLElement>("list-element");
 const addEffect = ref<GlobalId | null>(null);
+const showEffectsFor = ref<number | null>(null);
 
 const hasVisibleActor = computed(() => initiativeStore.state.locationData.some((actor) => canSee(actor)));
 
@@ -68,8 +69,18 @@ onMounted(() => {
 watch(
     () => initiativeStore.state.turnCounter,
     async () => {
-        await nextTick();
-        scrollToInitiative();
+        if (alwaysShowEffects.value) {
+            await nextTick();
+            scrollToInitiative();
+        } else {
+            await nextTick();
+            scrollToInitiative();
+            // This *should* be able to be 200 to match the animation time of the effect expanding,
+            // but for some reason any value less than this just doesn't work in chromium or firefox
+            setTimeout(() => {
+                scrollToInitiative();
+            }, 325);
+        }
     },
 );
 
@@ -323,6 +334,8 @@ function n(e: any): number {
                                         v-if="canSee(actor)"
                                         class="initiative-entry"
                                         :class="{ 'owned-actor': owns(actor.globalId) && !gameState.reactive.isDm }"
+                                        @mouseover="showEffectsFor = index"
+                                        @mouseleave="showEffectsFor = null"
                                     >
                                         <div
                                             class="initiative-actor"
@@ -444,13 +457,19 @@ function n(e: any): number {
                                         </Transition>
                                         <Transition name="effects-expand">
                                             <div
-                                                v-if="actor.effects.length > 0"
+                                                v-if="
+                                                    actor.effects.length > 0 &&
+                                                    (alwaysShowEffects ||
+                                                        initiativeStore.state.turnCounter === index ||
+                                                        showEffectsFor === index)
+                                                "
                                                 class="initiative-effect"
                                                 :class="{
-                                                    'effect-visible': alwaysShowEffects,
                                                     'initiative-selected': initiativeStore.state.turnCounter === index,
                                                 }"
                                             >
+                                                <!-- Hacky workaround for stuttering animations -->
+                                                <div style="padding-top: 4px"></div>
                                                 <TransitionGroup name="effect-expand">
                                                     <div
                                                         v-for="(effect, e) of actor.effects"
@@ -486,14 +505,17 @@ function n(e: any): number {
                                                         <div
                                                             v-if="owns(actor.globalId)"
                                                             class="actor-icon-button"
+                                                            style="margin-right: 4px"
                                                             :title="t('game.ui.initiative.delete_effect')"
                                                             @click="removeEffect(actor.globalId, n(e))"
                                                         >
                                                             <font-awesome-icon icon="trash-alt" />
                                                         </div>
-                                                        <div v-else style="margin-right: 4px"></div>
+                                                        <div v-else style="margin-right: 8px"></div>
                                                     </div>
                                                 </TransitionGroup>
+                                                <!-- Hacky workaround for stuttering animations pt2 -->
+                                                <div style="padding-top: 4px"></div>
                                             </div>
                                         </Transition>
                                     </div>
@@ -886,25 +908,29 @@ function n(e: any): number {
 }
 
 .initiative-effect {
-    display: none;
+    position: relative;
+    display: flex;
     flex-direction: column;
     width: -moz-fit-content;
-    width: fit-content;
+    width: 11.1em;
     margin-right: 5px;
-    padding: 2px;
-    border: solid 2px rgba(0, 0, 0, 0);
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
     border-top: none;
     max-height: 6.5rem;
     overflow-y: scroll;
     scrollbar-width: thin;
+    align-items: stretch;
+    box-shadow:
+        2px 0 0 0 rgba(130, 200, 160, 0.6),
+        0 2px 0 0 rgba(130, 200, 160, 0.6),
+        -2px 0 0 0 rgba(130, 200, 160, 0.6);
 
     transition:
         all 0.3s ease,
         box-shadow 0.1s linear,
         opacity 0.2s ease,
-        max-height 0.3s ease;
+        max-height 0.2s ease;
 
     &.initiative-selected {
         background-color: #82c8a0;
@@ -945,12 +971,8 @@ function n(e: any): number {
     }
 }
 
-.initiative-selected + .initiative-effect,
 .initiative-actor:hover + .initiative-effect,
-.initiative-effect:hover,
-.effect-visible {
-    display: flex;
-    border-color: rgba(130, 200, 160, 0.6);
+.initiative-effect:hover {
 }
 
 #initiative-bar-dm {
@@ -1121,8 +1143,8 @@ function n(e: any): number {
     margin-bottom: 0;
     padding-top: 0;
     padding-bottom: 0;
-    border-bottom: 0;
-    border-top: 0;
+    border-bottom-width: 0;
+    border-top-width: 0;
 }
 
 .effect-expand-enter-active {

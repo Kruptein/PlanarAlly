@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Fixed
+
+-   Images in the Token Direction indicator were overflowing
+
 ## [2025.3]
 
 ### Added

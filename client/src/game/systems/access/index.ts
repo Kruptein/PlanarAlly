@@ -107,8 +107,7 @@ class AccessSystem implements ShapeSystem {
     // High-level access check based on owned/active state
     // Should be used by external systems
     hasAccessTo(id: LocalId, access: AccessLevel | AccessLevel[], limitToActiveTokens = false): boolean {
-        const parent = compositeState.getCompositeParent(id);
-        if (parent !== undefined) id = parent.id;
+        id = getBaseShapeId(id);
         // 1. DMs always have access when not limiting to active tokens
         if (gameState.raw.isDm && !limitToActiveTokens) return true;
 
@@ -126,8 +125,7 @@ class AccessSystem implements ShapeSystem {
     // Low-level internal access check
     // This decides whether a shape is regarded as owned for a certain access level
     private _hasAccessTo(id: LocalId, access: AccessLevel): boolean {
-        const parent = compositeState.getCompositeParent(id);
-        if (parent !== undefined) id = parent.id;
+        id = getBaseShapeId(id);
         const accessMap = mutable.access.get(id);
         if (accessMap === undefined) return false;
 

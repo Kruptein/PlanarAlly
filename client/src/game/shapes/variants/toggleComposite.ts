@@ -46,7 +46,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         for (const variant of _variants) {
             compositeState.addComposite(this.id, variant, false);
         }
-        this.deactivateVariants(...this._variants.map((v) => v.id));
+        this.resetVariants(...this._variants.map((v) => v.id));
         this.setActiveVariant(this.active_variant, false);
     }
 
@@ -118,27 +118,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         oldVariant.layer?.removeShape(oldVariant, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
     }
 
-    private activateVariants(...variants: LocalId[]): void {
-        for (const variantId of variants) {
-            const variant = getShape(variantId);
-            const props = getProperties(variantId);
-            if (variant === undefined || props === undefined) continue;
-
-            if (variant.floorId !== undefined) {
-                if (props.blocksMovement)
-                    visionState.addBlocker(TriangulationTarget.MOVEMENT, variant.id, variant.floorId, true);
-                if (props.blocksVision !== VisionBlock.No)
-                    visionState.addBlocker(TriangulationTarget.VISION, variant.id, variant.floorId, true);
-
-                for (const au of auraSystem.getAll(variant.id, false)) {
-                    if (au.visionSource && au.active) {
-                        visionState.addVisionSource({ shape: variant.id, aura: au.uuid }, variant.floorId);
-                    }
-                }
-            }
-        }
-    }
-    private deactivateVariants(...variants: LocalId[]): void {
+    private resetVariants(...variants: LocalId[]): void {
         for (const variantId of variants) {
             const variant = getShape(variantId);
             const props = getProperties(variantId);
@@ -179,10 +159,23 @@ export class ToggleComposite extends Shape implements IToggleComposite {
             return;
         }
 
-        this.deactivateVariants(this.active_variant);
+        this.resetVariants(this.active_variant);
         this.active_variant = variant;
 
-        this.activateVariants(newVariant.id);
+        const props = getProperties(newVariant.id);
+
+        if (newVariant.floorId !== undefined) {
+            if (props.blocksMovement)
+                visionState.addBlocker(TriangulationTarget.MOVEMENT, newVariant.id, newVariant.floorId, true);
+            if (props.blocksVision !== VisionBlock.No)
+                visionState.addBlocker(TriangulationTarget.VISION, newVariant.id, newVariant.floorId, true);
+
+            for (const au of auraSystem.getAll(newVariant.id, false)) {
+                if (au.visionSource && au.active) {
+                    visionState.addVisionSource({ shape: newVariant.id, aura: au.uuid }, newVariant.floorId);
+                }
+            }
+        }
 
         if (sync) {
             oldVariant.options.skipDraw = true;

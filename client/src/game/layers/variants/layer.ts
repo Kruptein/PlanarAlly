@@ -460,12 +460,20 @@ export class Layer implements ILayer {
                                 const ray = Ray.fromPoints(shape.center, bboxCenter);
                                 const { hit, min } = bbox.containsRay(ray);
                                 if (hit) {
+                                    const drawSize = 60;
                                     let target = ray.get(min);
                                     const modifiedRay = new Ray(g2l(ray.get(min)), ray.direction);
                                     drawTear(modifiedRay, { fillColour: playerSettingsState.raw.rulerColour.value });
                                     target = ray.getPointAtDistance(l2gz(68), min);
-                                    shape.draw(ctx, false, { center: target, width: 60, height: 60 });
-                                    positionSystem.setTokenDirection(token, g2l(target));
+                                    const localTarget = g2l(target);
+                                    ctx.save();
+                                    ctx.beginPath();
+                                    ctx.arc(localTarget.x, localTarget.y, drawSize / 2, 0, Math.PI * 2, true);
+                                    ctx.closePath();
+                                    ctx.clip();
+                                    shape.draw(ctx, false, { center: target, width: drawSize, height: drawSize });
+                                    ctx.restore();
+                                    positionSystem.setTokenDirection(token, localTarget);
                                     found = true;
                                 }
                             }

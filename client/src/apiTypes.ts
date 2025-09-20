@@ -269,7 +269,7 @@ export interface ApiInitiativeData {
 }
 export interface ApiInitiativeEffect {
   name: string;
-  turns: string;
+  turns: string | null;
   highlightsActor: boolean;
 }
 export interface ApiLocationUserOption {
@@ -541,6 +541,11 @@ export interface InitiativeEffectRename {
 }
 export interface InitiativeTurnUpdate {
   turn: number;
+  direction: InitiativeDirection;
+  processEffects: boolean;
+}
+export interface InitiativeRoundUpdate {
+  round: number;
   direction: InitiativeDirection;
   processEffects: boolean;
 }

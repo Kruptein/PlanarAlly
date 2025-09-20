@@ -10,6 +10,20 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Changed
+
+- Initiative
+    - UI rework
+        - Asset images appear in initiative list
+        - Prevent large initiative list growing excessively tall
+        - Allow resizing of initiative list view
+        - Replace popup modal with less intrusive verification check
+        - New UI to add effects to entries
+        - [DM] Add button to clear initiative list
+        - [DM] Add previous/next round buttons
+    - Add effects with infinite timespan
+    - Fix names in initiative list not being reactive
+
 ### Fixed
 
 -   Images in the Token Direction indicator were overflowing

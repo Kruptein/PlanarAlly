@@ -14,7 +14,7 @@ export interface InitiativeData extends CommonInitiativeData {
 
 export interface InitiativeEffect {
     name: string;
-    turns: string;
+    turns: string | null;
     highlightsActor: boolean;
 }
 

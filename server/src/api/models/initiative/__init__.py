@@ -44,3 +44,9 @@ class InitiativeTurnUpdate(BaseModel):
     turn: int
     direction: InitiativeDirection
     processEffects: bool
+
+
+class InitiativeRoundUpdate(BaseModel):
+    round: int
+    direction: InitiativeDirection
+    processEffects: bool

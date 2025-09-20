@@ -157,6 +157,7 @@
             },
             "initiative": {
                 "new_effect": "New effect",
+                "add_effect": "Add effect",
                 "add_timed_effect": "Add timed effect",
                 "toggle_group": "Toggle individual / group initiative",
                 "delete_init": "Delete initiative",
@@ -167,9 +168,20 @@
                 "reset_round": "Reset rounds/turns",
                 "next": "Next",
                 "previous": "Previous",
+                "next_round": "Next round",
+                "previous_round": "Previous round",
                 "clear": "Clear initiatives",
+                "clear_entries": "Clear entries",
                 "change_sort": "Change sorting",
-                "settings": "Settings"
+                "settings": "Settings",
+                "remove_group_msg": "Are you sure you wish to remove this group from the initiative order?",
+                "clear_entries_msg": "Are you sure you wish to clear all initiative entries?",
+                "clear_initiatives_msg": "Are you sure you wish to clear all initiative numbers?",
+                "empty_initiative": "No visible entries",
+                "infinite_toggle": "Infinite?",
+                "infinite_toggle_hint": "Should the effect have infinite duration?",
+                "effect_duration_hint": "Number of rounds this effect will last",
+                "effect_name_hint": "Name of the effect"
             },
             "menu": {
                 "LocationBar": {

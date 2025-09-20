@@ -10,6 +10,7 @@ import {
 } from "@fortawesome/free-regular-svg-icons";
 import {
     faAngleDoubleLeft,
+    faAngleDoubleRight,
     faAngleRight,
     faArchive,
     faArrowDownAZ,
@@ -48,6 +49,7 @@ import {
     faFolder,
     faFolderOpen,
     faFont,
+    faGripVertical,
     faHandPaper,
     faLanguage,
     faLightbulb,
@@ -81,13 +83,16 @@ import {
     faUpload,
     faUserCircle,
     faUserTag,
+    faUser,
     faUsers,
     faVideo,
+    faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
 
 export function loadFontAwesome(): void {
     library.add(
         faAngleDoubleLeft,
+        faAngleDoubleRight,
         faAngleRight,
         faArchive,
         faArrowDownAZ,
@@ -131,6 +136,7 @@ export function loadFontAwesome(): void {
         faFolderOpen,
         faFont,
         faGithub,
+        faGripVertical,
         faHandPaper,
         faLanguage,
         faLightbulb,
@@ -167,8 +173,10 @@ export function loadFontAwesome(): void {
         faUpload,
         faUserTag,
         faUserCircle,
+        faUser,
         faUsers,
         faVideo,
+        faWandMagicSparkles,
         faWindowClose,
         faWindowRestore,
     );

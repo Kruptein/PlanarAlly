@@ -17,6 +17,7 @@ import {
     sendInitiativeReorder,
     sendInitiativeSetSort,
     sendInitiativeActive,
+    sendInitiativeWipe,
 } from "../../api/emits/initiative";
 import { getGlobalId, getLocalId, getShape } from "../../id";
 import { type InitiativeData, type InitiativeEffect, InitiativeSort } from "../../models/initiative";
@@ -32,7 +33,24 @@ let activeTokensBackup: Set<LocalId> | undefined = undefined;
 
 function getDefaultEffect(): InitiativeEffect {
     const name = i18n.global.t("game.ui.initiative.new_effect");
+    return { name, turns: null, highlightsActor: false };
+}
+
+function getDefaultTimedEffect(): InitiativeEffect {
+    const name = i18n.global.t("game.ui.initiative.new_effect");
     return { name, turns: "10", highlightsActor: false };
+}
+
+function updateActorEffects(turnDelta: number, actor: InitiativeData): void {
+    if (actor === undefined) return;
+
+    for (let e = actor.effects.length - 1; e >= 0; e--) {
+        if (actor.effects[e]!.turns === null) continue;
+        const turns = +actor.effects[e]!.turns!;
+        if (isNaN(turns)) continue;
+        if (turns <= 0) actor.effects.splice(e, 1);
+        else actor.effects[e]!.turns = (turns - turnDelta).toString();
+    }
 }
 
 interface InitiativeState {
@@ -88,7 +106,7 @@ class InitiativeStore extends Store<InitiativeState> {
         else this._state.locationData = initiativeData;
 
         if (!this._state.manuallyOpened) this.setActive(data.isActive);
-        this.setRoundCounter(data.round, false);
+        this.setRoundCounter(data.round, InitiativeTurnDirection.Null, { sync: false, updateEffects: false });
         this.setTurnCounter(data.turn, InitiativeTurnDirection.Null, { sync: false, updateEffects: false });
         this._state.sort = data.sort;
     }
@@ -173,6 +191,16 @@ class InitiativeStore extends Store<InitiativeState> {
         }
     }
 
+    clearEntries(sync: boolean): void {
+        const data = this.getDataSet();
+        const len = data.length;
+        for (let i = 0; i < len; i++) {
+            const entry = data[0];
+            if (!entry) continue;
+            this.removeInitiative(entry.globalId, false);
+        }
+        if (sync) sendInitiativeWipe();
+    }
     clearValues(sync: boolean): void {
         for (const data of this._state.locationData) {
             data.initiative = undefined;
@@ -201,17 +229,7 @@ class InitiativeStore extends Store<InitiativeState> {
             const entry = direction === InitiativeTurnDirection.Forward ? this._state.turnCounter : turn;
 
             const actor = this.getDataSet()[entry];
-            if (actor !== undefined) {
-                if (actor.effects.length > 0) {
-                    for (let e = actor.effects.length - 1; e >= 0; e--) {
-                        const turns = +actor.effects[e]!.turns;
-                        if (!isNaN(turns)) {
-                            if (turns <= 0) actor.effects.splice(e, 1);
-                            else actor.effects[e]!.turns = (turns - direction).toString();
-                        }
-                    }
-                }
-            }
+            if (actor !== undefined) updateActorEffects(direction, actor);
         }
         this._state.turnCounter = turn;
 
@@ -220,19 +238,45 @@ class InitiativeStore extends Store<InitiativeState> {
         if (options.sync) sendInitiativeTurnUpdate({ turn, direction, processEffects: options.updateEffects });
     }
 
-    setRoundCounter(round: number, sync: boolean): void {
-        if (sync && !gameState.raw.isDm && !this.owns()) return;
+    setRoundCounter(
+        round: number,
+        direction: InitiativeTurnDirection,
+        options: { sync: boolean; updateEffects: boolean },
+    ): void {
+        if (options.sync && !gameState.raw.isDm && !this.owns()) return;
         this._state.roundCounter = round;
-        if (sync) {
-            sendInitiativeRoundUpdate(round);
+        if (options.updateEffects) {
+            for (const actor of this.getDataSet()) {
+                updateActorEffects(direction, actor);
+            }
         }
+        if (options.sync) {
+            sendInitiativeRoundUpdate({ round, direction, processEffects: options.updateEffects });
+        }
+    }
+
+    nextRound(): void {
+        this.setRoundCounter(this._state.roundCounter + 1, InitiativeTurnDirection.Forward, {
+            sync: true,
+            updateEffects: true,
+        });
+    }
+
+    previousRound(): void {
+        this.setRoundCounter(this._state.roundCounter - 1, InitiativeTurnDirection.Backward, {
+            sync: true,
+            updateEffects: true,
+        });
     }
 
     nextTurn(): void {
         if (!gameState.raw.isDm && !this.owns()) return;
         if (this.getDataSet().length === 0) return;
         if (this._state.turnCounter >= this.getDataSet().length - 1) {
-            this.setRoundCounter(this._state.roundCounter + 1, true);
+            this.setRoundCounter(this._state.roundCounter + 1, InitiativeTurnDirection.Forward, {
+                sync: true,
+                updateEffects: false,
+            });
             this.setTurnCounter(0, InitiativeTurnDirection.Forward, { sync: true, updateEffects: true });
         } else {
             this.setTurnCounter(this._state.turnCounter + 1, InitiativeTurnDirection.Forward, {
@@ -245,7 +289,10 @@ class InitiativeStore extends Store<InitiativeState> {
     previousTurn(): void {
         if (!gameState.raw.isDm) return;
         if (this._state.turnCounter === 0 && this.getDataSet().length > 0) {
-            this.setRoundCounter(this._state.roundCounter - 1, true);
+            this.setRoundCounter(this._state.roundCounter - 1, InitiativeTurnDirection.Backward, {
+                sync: true,
+                updateEffects: false,
+            });
             this.setTurnCounter(this.getDataSet().length - 1, InitiativeTurnDirection.Backward, {
                 sync: true,
                 updateEffects: true,
@@ -273,6 +320,10 @@ class InitiativeStore extends Store<InitiativeState> {
         actor.effects.push(effect);
 
         if (sync) sendInitiativeNewEffect({ actor: globalId, effect });
+    }
+
+    createTimedEffect(globalId: GlobalId, effect: InitiativeEffect | undefined, sync: boolean): void {
+        this.createEffect(globalId, effect ?? getDefaultTimedEffect(), sync);
     }
 
     setEffectName(globalId: GlobalId, index: number, name: string, sync: boolean): void {

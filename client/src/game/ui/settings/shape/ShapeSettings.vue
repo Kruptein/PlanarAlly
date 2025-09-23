@@ -77,8 +77,8 @@ const ownedTabs: PanelTab[] = [
         component: GroupSettings,
     },
     {
-        id: ShapeSettingCategory.Data,
-        label: t("game.ui.selection.edit_dialog.data.data"),
+        id: ShapeSettingCategory.CustomData,
+        label: t("game.ui.selection.edit_dialog.customData.customData"),
         component: DataSettings,
     },
     {

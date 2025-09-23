@@ -298,6 +298,17 @@
                         "light_source": "Light source",
                         "angle": "Angle",
                         "display_on_token": "Display on token"
+                    },
+                    "customData": {
+                        "customData": "Custom Data",
+                        "addBranch": "Add Branch",
+                        "addElement": "Add Element",
+                        "newBranchPrompt": "What name should this branch have?",
+                        "noChildren": "Here you can add custom data for this shape.\n\nThis can be used to have a rudimentary character sheet,\nbut it can also be used by tracker, auras and the dice system!",
+                        "removeBranchTitle": "Remove Branch",
+                        "removeBranchPrompt": "Are you sure you want to remove this branch and all its children?",
+                        "removeElementTitle": "Remove Element",
+                        "removeElementPrompt": "Are you sure you want to remove this element?"
                     }
                 },
                 "SelectionInfo": {
@@ -391,8 +402,8 @@
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "ENTER {creator}/{room} TO CONFIRM CAMPAIGN REMOVAL.",
                         "deleting_session": "DELETING CAMPAIGN",
-                        "unlock_NBSP_Session_NBSP": "Unlock Campaign ",
-                        "lock_NBSP_Session_NBSP": "Lock Campaign ",
+                        "unlock_NBSP_Session_NBSP": "Unlock Campaign",
+                        "lock_NBSP_Session_NBSP": "Lock Campaign",
                         "unlock_this_session": "Unlock this campaign",
                         "lock_this_session": "Lock this campaign",
                         "kick": "Kick",
@@ -400,7 +411,7 @@
                         "invite_code": "Invite code",
                         "invitation_url": "Invitation URL:",
                         "refresh_invitation_code": "Refresh invitation code",
-                        "danger_NBSP_zone": "Danger Zone",
+                        "danger_NBSP_zone": "Danger Zone",
                         "dm_access_only": "(DM access only)",
                         "remove_session": "Remove Campaign",
                         "delete_session": "Delete this Campaign"

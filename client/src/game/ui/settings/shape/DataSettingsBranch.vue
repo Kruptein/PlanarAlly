@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { getGlobalId } from "../../../id";
@@ -9,6 +10,8 @@ import { selectedState } from "../../../systems/selected/state";
 
 import DataSettingsLeaf from "./DataSettingsLeaf.vue";
 import { type Branch } from "./types";
+
+const { t } = useI18n();
 
 const {
     children,
@@ -27,7 +30,7 @@ const visible = ref(depth < 3 || children.length === 0);
 const modals = useModal();
 
 function addBranch(): void {
-    const newName = window.prompt("What name should this branch have?");
+    const newName = window.prompt(t("game.ui.selection.edit_dialog.customData.newBranchPrompt"));
     if (newName === null || newName.trim() === "") return;
     visible.value = true;
     customDataSystem.addBranch(
@@ -55,8 +58,8 @@ function addElement(): void {
 
 async function removeBranch(): Promise<void> {
     const result = await modals.confirm(
-        "Remove Branch",
-        "Are you sure you want to remove this branch and all its children?",
+        t("game.ui.selection.edit_dialog.customData.removeBranchTitle"),
+        t("game.ui.selection.edit_dialog.customData.removeBranchPrompt"),
     );
     if (result === true) customDataSystem.removeBranch(selectedState.raw.focus!, `${prefix}${name}`);
 }
@@ -91,23 +94,18 @@ async function removeBranch(): Promise<void> {
             </template>
         </div>
         <template v-if="depth === 0">
-            <div v-if="children.length === 0">
-                Here you can add custom data for this shape.
-                <br />
-                <br />
-                This can be used to have a rudimentary character sheet,
-                <br />
-                but it can also be used by tracker, auras and the dice system!
+            <div v-if="children.length === 0" style="white-space: pre-wrap">
+                {{ t("game.ui.selection.edit_dialog.customData.noChildren") }}
             </div>
             <div style="flex: 1"></div>
             <div id="root-buttons">
                 <button @click="addBranch">
                     <font-awesome-icon icon="folder-tree" />
-                    Add Branch
+                    {{ t("game.ui.selection.edit_dialog.customData.addBranch") }}
                 </button>
                 <button @click="addElement">
                     <font-awesome-icon icon="plus" />
-                    Add Element
+                    {{ t("game.ui.selection.edit_dialog.customData.addElement") }}
                 </button>
             </div>
         </template>
@@ -176,12 +174,16 @@ async function removeBranch(): Promise<void> {
 
             button {
                 display: flex;
-                background-color: #ffa8bf;
+                background-color: rgba(255, 168, 191, 0.5);
                 border: none;
                 padding: 0.5rem;
                 margin-top: 1rem;
                 cursor: pointer;
                 border-radius: 0.5rem;
+
+                &:hover {
+                    background-color: #ffa8bf;
+                }
 
                 svg {
                     margin-right: 0.5rem;

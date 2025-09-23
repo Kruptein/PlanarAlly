@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watchEffect } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { customDataSystem } from "../../../systems/customData";
@@ -16,6 +17,7 @@ const props = defineProps<{
     depth: number;
 }>();
 
+const { t } = useI18n();
 const modals = useModal();
 
 const mode = ref<"edit" | "view">(props.data.pending !== undefined ? "edit" : "view");
@@ -75,7 +77,10 @@ function syncDescription(event: Event): void {
 }
 
 async function removeElement(): Promise<void> {
-    const result = await modals.confirm("Remove Element", "Are you sure you want to remove this element?");
+    const result = await modals.confirm(
+        t("game.ui.selection.edit_dialog.customData.removeElementTitle"),
+        t("game.ui.selection.edit_dialog.customData.removeElementPrompt"),
+    );
     if (result === true) customDataSystem.removeElement(selectedState.raw.focus!, props.data.id, true);
 }
 </script>

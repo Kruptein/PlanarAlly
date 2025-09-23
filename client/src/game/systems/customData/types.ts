@@ -65,12 +65,4 @@ export const customDataKindMap: CustomDataKindMap = {
             onSave: (target) => target.value,
         }),
     },
-    // "pending-branch": {
-    //     defaultValue: undefined,
-    //     format: (_element) => "?",
-    //     editRender: (_element) => ({
-    //         attrs: { type: "text", disabled: "disabled" },
-    //         onSave: (target) => target.value,
-    //     }),
-    // },
 };

@@ -117,12 +117,8 @@ class CustomDataSystem implements ShapeSystem {
         if (!id) return;
         return mutable.data
             .get(id)
-            ?.find(
-                (element) =>
-                    element.source === element.source &&
-                    element.prefix === element.prefix &&
-                    element.name === element.name,
-            )?.id;
+            ?.find((el) => el.source === element.source && el.prefix === element.prefix && el.name === element.name)
+            ?.id;
     }
 
     addBranch(id: LocalId, prefix: string): void {

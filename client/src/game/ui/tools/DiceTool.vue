@@ -8,6 +8,7 @@ import type { DiceRollResult } from "../../../apiTypes";
 import ClickGroup from "../../../core/components/ClickGroup.vue";
 import { arrToToggleGroup } from "../../../core/components/toggleGroup";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
+import { convertVariables } from "../../systems/customData/utils";
 import { diceSystem } from "../../systems/dice";
 import { DxHelper } from "../../systems/dice/dx";
 import { diceState } from "../../systems/dice/state";
@@ -163,7 +164,8 @@ function addLiteral(literal: (typeof literalOptions)[number]): void {
 }
 
 function updateFromString(event: Event): void {
-    diceToolInput.value = diceState.raw.systems!["2d"].parse((event.target as HTMLInputElement).value);
+    const text = (event.target as HTMLInputElement).value;
+    diceToolInput.value = diceState.raw.systems!["2d"].parse(convertVariables(text));
 }
 
 function populateInputFromHistoryRoll(roll: DeepReadonly<RollResult<Part>>): void {

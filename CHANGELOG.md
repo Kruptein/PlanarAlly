@@ -12,29 +12,30 @@ tech changes will usually be stripped from release notes for the public
 
 ### Added
 
-- Custom shape data
-    - A new tab in the Shape settings UI
-    - Can be used to freely add custom data and create a rudimentary character sheet
-    - Currently supported data types are text, number, toggle and dice expressions
-    - Dice expressions can reference other data entries and open the dice tool with the evaluated expression
+-   Custom shape data
+    -   A new tab in the Shape settings UI
+    -   Can be used to freely add custom data and create a rudimentary character sheet
+    -   Currently supported data types are text, number, toggle and dice expressions
+    -   Dice expressions can reference other data entries and open the dice tool with the evaluated expression
 
 ### Changed
 
-- Initiative
-    - UI rework
-        - Asset images appear in initiative list
-        - Prevent large initiative list growing excessively tall
-        - Allow resizing of initiative list view
-        - Replace popup modal with less intrusive verification check
-        - New UI to add effects to entries
-        - [DM] Add button to clear initiative list
-        - [DM] Add previous/next round buttons
-    - Add effects with infinite timespan
-    - Fix names in initiative list not being reactive
+-   Initiative
+    -   UI rework
+        -   Asset images appear in initiative list
+        -   Prevent large initiative list growing excessively tall
+        -   Allow resizing of initiative list view
+        -   Replace popup modal with less intrusive verification check
+        -   New UI to add effects to entries
+        -   [DM] Add button to clear initiative list
+        -   [DM] Add previous/next round buttons
+    -   Add effects with infinite timespan
+    -   Fix names in initiative list not being reactive
 
 ### Fixed
 
 -   Images in the Token Direction indicator were overflowing
+-   Prevent shortcut handling when targetting an html select element
 
 ## [2025.3]
 

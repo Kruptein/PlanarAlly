@@ -36,7 +36,7 @@ function formatName(name: string): string {
         .join(" ");
 }
 
-const types = ["number", "string", "boolean", "dice-expression"];
+const types = ["number", "text", "boolean", "dice-expression"];
 
 const floempie = computed(() => {
     return customDataKindMap[props.data.kind] as CustomDataKindInfo<UiShapeCustomData>;

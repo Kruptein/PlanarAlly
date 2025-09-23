@@ -72,7 +72,7 @@ async function removeBranch(): Promise<void> {
                 <font-awesome-icon v-if="visible" icon="chevron-down" />
                 <font-awesome-icon v-else icon="chevron-right" />
                 {{ name.toUpperCase() }}
-                <span style="flex: 1"></span>
+                <span style="flex: 1; min-width: 1rem"></span>
                 <font-awesome-icon icon="folder-tree" class="hover-only" @click.stop="addBranch" />
                 <font-awesome-icon icon="plus" class="hover-only" @click.stop="addElement" />
                 <font-awesome-icon icon="trash-alt" class="hover-only" @click.stop="removeBranch" />
@@ -136,11 +136,11 @@ async function removeBranch(): Promise<void> {
     }
 
     .hover-only {
-        display: none;
+        visibility: hidden;
     }
 
     &:hover:not(:has(.branch:hover)) > .name .hover-only {
-        display: block;
+        visibility: visible;
     }
 
     .children {

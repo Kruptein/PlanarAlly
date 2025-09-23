@@ -1,0 +1,167 @@
+<script setup lang="ts">
+import { computed, ref, useTemplateRef, watchEffect } from "vue";
+
+import { useModal } from "../../../../core/plugins/modals/plugin";
+import { customDataSystem } from "../../../systems/customData";
+import {
+    customDataKindMap,
+    type CustomDataKindInfo,
+    type CustomDataKindMap,
+    type UiShapeCustomData,
+} from "../../../systems/customData/types";
+import { selectedState } from "../../../systems/selected/state";
+
+const props = defineProps<{
+    data: UiShapeCustomData;
+    depth: number;
+}>();
+
+const modals = useModal();
+
+const mode = ref<"edit" | "view">(props.data.pending !== undefined ? "edit" : "view");
+const nameInput = useTemplateRef<HTMLInputElement>("nameInput");
+
+watchEffect(() => {
+    if (props.data.pending !== undefined && props.data.name === "") {
+        nameInput.value?.focus();
+    }
+});
+
+function formatName(name: string): string {
+    return name
+        .split("_")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+}
+
+const types = ["number", "string", "boolean", "dice-expression"];
+
+const floempie = computed(() => {
+    return customDataKindMap[props.data.kind] as CustomDataKindInfo<UiShapeCustomData>;
+});
+
+function updateType(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    customDataSystem.updateKind(selectedState.raw.focus!, props.data.id, target.value as keyof CustomDataKindMap, true);
+}
+
+function syncName(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const newName = target.value.trim();
+    if (newName === "") return;
+
+    customDataSystem.setName(selectedState.raw.focus!, props.data.id, target.value, true);
+}
+
+function syncValue(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const newName = target.value.trim();
+    if (newName === "") return;
+    if (typeof floempie.value.editRender !== "function") return;
+
+    customDataSystem.updateValue(
+        selectedState.raw.focus!,
+        props.data.id,
+        floempie.value.editRender(props.data).onSave(target),
+        true,
+    );
+}
+
+function syncDescription(event: Event): void {
+    const target = event.target as HTMLTextAreaElement;
+    const newDescription = target.value.trim();
+    if (newDescription === "") return;
+    customDataSystem.setDescription(selectedState.raw.focus!, props.data.id, target.value, true);
+}
+
+async function removeElement(): Promise<void> {
+    const result = await modals.confirm("Remove Element", "Are you sure you want to remove this element?");
+    if (result === true) customDataSystem.removeElement(selectedState.raw.focus!, props.data.id, true);
+}
+</script>
+
+<template>
+    <div class="leaf" :class="{ editing: mode === 'edit' }">
+        <div class="main" @click="mode = mode === 'view' ? 'edit' : 'view'">
+            <div class="name" :title="data.description">{{ formatName(data.name) }}</div>
+            <div style="flex: 1"></div>
+            <div v-if="typeof floempie.format === 'function'" class="value">
+                {{ floempie.format(data) }}
+            </div>
+            <component :is="floempie.format.component" v-else :element="data" class="value" />
+            <font-awesome-icon icon="trash-alt" @click.stop="removeElement" />
+        </div>
+        <div v-if="mode === 'edit'" class="edit-form">
+            <div>Name:</div>
+            <input ref="nameInput" type="text" :value="data.name" @change="syncName" />
+            <div>Type:</div>
+            <select :value="data.kind" @change="updateType">
+                <option v-for="type in types" :key="type" :value="type">{{ type }}</option>
+            </select>
+            <div>Value:</div>
+            <input
+                v-if="typeof floempie.editRender === 'function'"
+                v-bind="floempie.editRender(data).attrs"
+                @change="syncValue"
+            />
+            <component :is="floempie.editRender.component" v-else :element="data" />
+            <div>Description:</div>
+            <textarea :value="data.description" @change="syncDescription" />
+        </div>
+    </div>
+</template>
+
+<style scoped lang="scss">
+.leaf {
+    display: flex;
+    flex-direction: column;
+    padding: 0.2rem 1rem;
+    margin-left: 0.5rem;
+
+    .main {
+        display: flex;
+        align-items: center;
+
+        &:hover {
+            cursor: pointer;
+        }
+
+        svg {
+            margin-left: 0.5rem;
+            visibility: hidden;
+        }
+
+        &:hover svg {
+            visibility: visible;
+        }
+    }
+
+    &.editing .main {
+        font-weight: bold;
+        border-bottom: 1px solid black;
+        margin-top: 0.25rem;
+        padding-bottom: 0.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .edit-form {
+        display: grid;
+        grid-template-columns: [name] 1fr [value] 1fr [end];
+        grid-row-gap: 0.5rem;
+    }
+
+    &:hover,
+    &.editing {
+        background-color: rgba(235, 240, 245, 1);
+        border-radius: 0.5rem;
+    }
+
+    &.editing {
+        margin-bottom: 0.5rem;
+    }
+
+    .name {
+        width: 10rem;
+    }
+}
+</style>

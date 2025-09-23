@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 106
+SAVE_VERSION = 107
 
 import asyncio
 import json
@@ -478,6 +478,15 @@ def upgrade(
         # Add User.last_login
         with db.atomic():
             db.execute_sql("ALTER TABLE user ADD COLUMN last_login DATE DEFAULT NULL")
+    elif version == 106:
+        # Add ShapeCustomData
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TABLE IF NOT EXISTS 'shape_custom_data' ('id' INTEGER NOT NULL PRIMARY KEY, 'shape_id' TEXT NOT NULL, 'source' TEXT NOT NULL, 'prefix' TEXT NOT NULL, 'name' TEXT NOT NULL, 'kind' TEXT NOT NULL, 'value' TEXT NOT NULL, 'description' TEXT DEFAULT NULL, FOREIGN KEY ('shape_id') REFERENCES 'shape' ('uuid') ON DELETE CASCADE)"
+            )
+            db.execute_sql(
+                "CREATE UNIQUE INDEX 'shape_custom_data_keys' ON 'shape_custom_data' ('shape_id', 'source', 'prefix', 'name')"
+            )
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

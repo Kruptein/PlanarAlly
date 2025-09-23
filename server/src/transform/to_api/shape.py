@@ -22,6 +22,7 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         if not shape.name_visible:
             name = "?"
 
+    custom_data = [c.as_pydantic() for c in shape.custom_data]
     trackers = [t.as_pydantic() for t in tracker_query]
     auras = [a.as_pydantic() for a in aura_query]
     # Subtype
@@ -54,6 +55,7 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         asset=None if shape.asset is None else shape.asset.id,
         group=None if shape.group is None else shape.group.uuid,
         owners=owners,
+        custom_data=custom_data,
         trackers=trackers,
         auras=auras,
         character=shape.character_id,

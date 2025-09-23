@@ -12,6 +12,7 @@ import type { PanelTab } from "../../../systems/ui/types";
 
 import AccessSettings from "./AccessSettings.vue";
 import { ShapeSettingCategory } from "./categories";
+import DataSettings from "./DataSettings.vue";
 import ExtraSettings from "./ExtraSettings.vue";
 import GridSettings from "./GridSettings.vue";
 import GroupSettings from "./GroupSettings.vue";
@@ -74,6 +75,11 @@ const ownedTabs: PanelTab[] = [
         id: ShapeSettingCategory.Group,
         label: t("game.ui.selection.edit_dialog.groups.groups"),
         component: GroupSettings,
+    },
+    {
+        id: ShapeSettingCategory.Data,
+        label: t("game.ui.selection.edit_dialog.data.data"),
+        component: DataSettings,
     },
     {
         id: ShapeSettingCategory.Extra,

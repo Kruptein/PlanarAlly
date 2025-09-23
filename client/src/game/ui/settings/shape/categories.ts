@@ -5,6 +5,7 @@ export enum ShapeSettingCategory {
     Access = "Access",
     Logic = "Logic",
     Group = "Group",
+    Data = "Data",
     Extra = "Extra",
     Variant = "Variant",
 }

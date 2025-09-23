@@ -88,7 +88,7 @@ async function removeElement(): Promise<void> {
             <div v-if="typeof floempie.format === 'function'" class="value">
                 {{ floempie.format(data) }}
             </div>
-            <component :is="floempie.format.component" v-else :element="data" class="value" />
+            <component :is="floempie.format.component" v-else :element="data" />
             <font-awesome-icon icon="trash-alt" @click.stop="removeElement" />
         </div>
         <div v-if="mode === 'edit'" class="edit-form">
@@ -115,7 +115,7 @@ async function removeElement(): Promise<void> {
 .leaf {
     display: flex;
     flex-direction: column;
-    padding: 0.2rem 1rem;
+    padding: 0.5rem 1rem;
     margin-left: 0.5rem;
 
     .main {
@@ -130,10 +130,10 @@ async function removeElement(): Promise<void> {
             margin-left: 0.5rem;
             visibility: hidden;
         }
+    }
 
-        &:hover svg {
-            visibility: visible;
-        }
+    &:hover .main svg {
+        visibility: visible;
     }
 
     &.editing .main {
@@ -162,6 +162,10 @@ async function removeElement(): Promise<void> {
 
     .name {
         width: 10rem;
+    }
+
+    .value {
+        margin-right: 0.25rem;
     }
 }
 </style>

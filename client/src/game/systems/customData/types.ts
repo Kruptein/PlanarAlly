@@ -1,12 +1,10 @@
-import type { Component } from "vue";
+import { defineAsyncComponent, type Component } from "vue";
 
 import type { ApiShapeCustomData } from "../../../apiTypes";
 import type { NumberId } from "../../../core/id";
 
-// eslint-disable-next-line import/default
-import DiceFormat from "./components/DiceFormat.vue";
-// eslint-disable-next-line import/default
-import ToggleFormat from "./components/ToggleFormat.vue";
+const DiceFormat = defineAsyncComponent(() => import("./components/DiceFormat.vue"));
+const ToggleFormat = defineAsyncComponent(() => import("./components/ToggleFormat.vue"));
 
 export type ElementId = NumberId<"ElementId">;
 

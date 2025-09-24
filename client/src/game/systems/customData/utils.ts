@@ -26,7 +26,9 @@ export function getVariableSegments(data: string): VariableSegment[] {
             isVariable: true,
             ref: computed(() =>
                 customDataState.mutableReactive.data.find(
-                    (data) => (prefix === undefined || data.prefix === prefix) && data.name === last,
+                    (data) =>
+                        (prefix === undefined || data.prefix.toLowerCase() === prefix.toLowerCase()) &&
+                        data.name.toLowerCase() === last.toLowerCase(),
                 ),
             ),
         });

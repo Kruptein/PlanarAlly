@@ -122,6 +122,7 @@ watch(
         inputText.value = DxHelper.stringifySegments(parts);
         await nextTick();
         inputElement.value!.scrollLeft = inputElement.value!.scrollWidth;
+        inputElement.value!.focus();
     },
     { deep: true },
 );

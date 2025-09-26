@@ -90,6 +90,7 @@ async function removeElement(): Promise<void> {
     <div class="leaf" :class="{ editing: mode === 'edit' }">
         <div class="main">
             <div class="name" :title="data.description ?? ''" @click="mode = mode === 'view' ? 'edit' : 'view'">
+                {{ data.name }}
             </div>
             <div style="flex: 1"></div>
             <div v-if="typeof floempie.format === 'function'" class="value">

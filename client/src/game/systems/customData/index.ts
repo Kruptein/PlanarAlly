@@ -102,6 +102,16 @@ class CustomDataSystem implements ShapeSystem {
         }
     }
 
+    setReference(id: LocalId, elementId: ElementId, newReference: string, sync: boolean): void {
+        const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+        const element = target.find((element) => element.id === elementId);
+        if (element === undefined) return;
+        element.reference = newReference;
+        if (sync) {
+            sendShapeCustomDataUpdate(toApiShapeCustomData(element));
+        }
+    }
+
     setDescription(id: LocalId, elementId: ElementId, newDescription: string, sync: boolean): void {
         const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);

@@ -10,6 +10,7 @@ import {
     type CustomDataKindMap,
     type UiShapeCustomData,
 } from "../../../systems/customData/types";
+import { getCustomDataReference } from "../../../systems/customData/utils";
 import { selectedState } from "../../../systems/selected/state";
 
 const props = defineProps<{
@@ -69,6 +70,13 @@ function syncValue(event: Event): void {
     );
 }
 
+function syncReference(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const newReference = getCustomDataReference(target.value).trim();
+    if (newReference === "") return;
+    customDataSystem.setReference(selectedState.raw.focus!, props.data.id, target.value, true);
+}
+
 function syncDescription(event: Event): void {
     const target = event.target as HTMLTextAreaElement;
     const newDescription = target.value.trim();
@@ -112,6 +120,13 @@ async function removeElement(): Promise<void> {
                 @change="syncValue"
             />
             <component :is="floempie.editRender.component" v-else :element="data" />
+            <div>Reference:</div>
+            <input
+                type="text"
+                :placeholder="getCustomDataReference(data.name)"
+                :value="data.reference"
+                @change="syncReference"
+            />
             <div>Description:</div>
             <textarea :value="data.description" @change="syncDescription" />
         </div>

@@ -14,6 +14,7 @@ class ApiShapeCustomDataIdentifier(TypeIdModel):
 
 class ApiShapeCustomDataCore(ApiShapeCustomDataIdentifier):
     kind: str
+    reference: str | None = None
     description: str | None = None
 
 

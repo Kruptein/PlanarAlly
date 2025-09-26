@@ -482,7 +482,7 @@ def upgrade(
         # Add ShapeCustomData
         with db.atomic():
             db.execute_sql(
-                "CREATE TABLE IF NOT EXISTS 'shape_custom_data' ('id' INTEGER NOT NULL PRIMARY KEY, 'shape_id' TEXT NOT NULL, 'source' TEXT NOT NULL, 'prefix' TEXT NOT NULL, 'name' TEXT NOT NULL, 'kind' TEXT NOT NULL, 'value' TEXT NOT NULL, 'description' TEXT DEFAULT NULL, FOREIGN KEY ('shape_id') REFERENCES 'shape' ('uuid') ON DELETE CASCADE)"
+                "CREATE TABLE IF NOT EXISTS 'shape_custom_data' ('id' INTEGER NOT NULL PRIMARY KEY, 'shape_id' TEXT NOT NULL, 'source' TEXT NOT NULL, 'prefix' TEXT NOT NULL, 'name' TEXT NOT NULL, 'kind' TEXT NOT NULL, 'value' TEXT NOT NULL, 'reference' TEXT DEFAULT NULL, 'description' TEXT DEFAULT NULL, FOREIGN KEY ('shape_id') REFERENCES 'shape' ('uuid') ON DELETE CASCADE)"
             )
             db.execute_sql(
                 "CREATE UNIQUE INDEX 'shape_custom_data_keys' ON 'shape_custom_data' ('shape_id', 'source', 'prefix', 'name')"

@@ -380,6 +380,7 @@ export interface ApiShapeCustomDataBoolean extends ApiShapeCustomDataCore {
 }
 export interface ApiShapeCustomDataCore extends ApiShapeCustomDataIdentifier {
   kind: string;
+  reference?: string;
   description?: string;
 }
 export interface ApiShapeCustomDataDiceExpression extends ApiShapeCustomDataCore {

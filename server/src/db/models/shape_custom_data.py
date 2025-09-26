@@ -28,6 +28,7 @@ class ShapeCustomData(BaseDbModel):
     name = cast(str, TextField())
     kind = cast(str, TextField())  # number, string, boolean, dice-expression
     value = cast(str, TextField())  # JSON string
+    reference = cast(str, TextField(null=True))
     description = cast(str, TextField(null=True))
 
     class Meta:
@@ -43,5 +44,6 @@ class ShapeCustomData(BaseDbModel):
             name=self.name,
             kind=self.kind,
             value=json.loads(self.value),
+            reference=self.reference,
             description=self.description,
         )

@@ -144,6 +144,8 @@ class CustomDataSystem implements ShapeSystem {
             value: "",
             id: ID++ as ElementId,
             pending: ShapeCustomDataPending.Branch,
+            reference: null,
+            description: null,
         });
     }
 

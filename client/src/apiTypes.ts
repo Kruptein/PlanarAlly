@@ -62,6 +62,22 @@ export interface ApiAssetRectShape extends ApiCoreShape {
   height: number;
   src: string;
 }
+export interface ApiShapeCustomDataText extends ApiShapeCustomDataCore {
+  kind: "text";
+  value: string;
+}
+export interface ApiShapeCustomDataNumber extends ApiShapeCustomDataCore {
+  kind: "number";
+  value: number;
+}
+export interface ApiShapeCustomDataBoolean extends ApiShapeCustomDataCore {
+  kind: "boolean";
+  value: boolean;
+}
+export interface ApiShapeCustomDataDiceExpression extends ApiShapeCustomDataCore {
+  kind: "dice-expression";
+  value: string;
+}
 export interface ApiShapeOwner {
   edit_access: boolean;
   movement_access: boolean;
@@ -374,32 +390,16 @@ export interface ApiRoomDataBlock extends ApiCoreDataBlock {
   category: "room";
   data: string;
 }
-export interface ApiShapeCustomDataBoolean extends ApiShapeCustomDataCore {
-  kind: "boolean";
-  value: boolean;
-}
 export interface ApiShapeCustomDataCore extends ApiShapeCustomDataIdentifier {
   kind: string;
-  reference?: string;
-  description?: string;
-}
-export interface ApiShapeCustomDataDiceExpression extends ApiShapeCustomDataCore {
-  kind: "dice-expression";
-  value: string;
+  reference: string | null;
+  description: string | null;
 }
 export interface ApiShapeCustomDataIdentifier {
   shapeId: GlobalId;
   source: string;
   prefix: string;
   name: string;
-}
-export interface ApiShapeCustomDataNumber extends ApiShapeCustomDataCore {
-  kind: "number";
-  value: number;
-}
-export interface ApiShapeCustomDataText extends ApiShapeCustomDataCore {
-  kind: "text";
-  value: string;
 }
 export interface ApiShapeDataBlock extends ApiCoreDataBlock {
   category: "shape";

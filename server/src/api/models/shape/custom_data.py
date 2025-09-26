@@ -14,8 +14,8 @@ class ApiShapeCustomDataIdentifier(TypeIdModel):
 
 class ApiShapeCustomDataCore(ApiShapeCustomDataIdentifier):
     kind: str
-    reference: str | None = None
-    description: str | None = None
+    reference: str | None = Field(..., noneAsNull=True)
+    description: str | None = Field(..., noneAsNull=True)
 
 
 class ApiShapeCustomDataText(ApiShapeCustomDataCore):

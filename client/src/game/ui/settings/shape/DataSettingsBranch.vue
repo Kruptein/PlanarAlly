@@ -50,6 +50,8 @@ function addElement(): void {
             name: "",
             kind: "text",
             value: "",
+            reference: null,
+            description: null,
             pending: ShapeCustomDataPending.Leaf,
         },
         true,

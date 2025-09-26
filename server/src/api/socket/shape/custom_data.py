@@ -110,6 +110,7 @@ async def update_shape_custom_data(sid: str, raw_data: Any):
     scd.kind = data.kind
     scd.value = json.dumps(data.value)
     scd.description = data.description
+    scd.reference = data.reference
     scd.save()
 
     for psid in get_owner_sids(pr, shape, skip_sid=sid):

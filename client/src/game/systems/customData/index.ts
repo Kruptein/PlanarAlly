@@ -161,7 +161,7 @@ class CustomDataSystem implements ShapeSystem {
             shapeId,
             source: "planarally",
             prefix,
-            name: "",
+            name: "~~pending~branch~~", // a random name, empty strings will potentially conflict with addElement unique check
             kind: "text",
             value: "",
             id: ID++ as ElementId,

@@ -95,7 +95,8 @@
         "apply": "Apply",
         "type": "Type",
         "background": "Background",
-        "mods": "Mods"
+        "mods": "Mods",
+        "ok": "Ok"
     },
     "assets": {
         "add_shortcut": "Add shortcut",

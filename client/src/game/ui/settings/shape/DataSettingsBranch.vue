@@ -71,7 +71,7 @@ async function removeBranch(): Promise<void> {
             <div class="name" @click="visible = !visible">
                 <font-awesome-icon v-if="visible" icon="chevron-down" />
                 <font-awesome-icon v-else icon="chevron-right" />
-                {{ name.toUpperCase() }}
+                {{ name }}
                 <span style="flex: 1; min-width: 1rem"></span>
                 <font-awesome-icon icon="folder-tree" class="hover-only" @click.stop="addBranch" />
                 <font-awesome-icon icon="plus" class="hover-only" @click.stop="addElement" />

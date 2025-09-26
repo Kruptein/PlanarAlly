@@ -30,13 +30,6 @@ watchEffect(() => {
     }
 });
 
-function formatName(name: string): string {
-    return name
-        .split("_")
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(" ");
-}
-
 const types = ["number", "text", "boolean", "dice-expression"];
 
 const floempie = computed(() => {
@@ -97,7 +90,7 @@ async function removeElement(): Promise<void> {
     <div class="leaf" :class="{ editing: mode === 'edit' }">
         <div class="main">
             <div class="name" :title="data.description" @click="mode = mode === 'view' ? 'edit' : 'view'">
-                {{ formatName(data.name) }}
+                {{ data.name }}
             </div>
             <div style="flex: 1"></div>
             <div v-if="typeof floempie.format === 'function'" class="value">

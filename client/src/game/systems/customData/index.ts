@@ -2,6 +2,7 @@ import { watch } from "vue";
 
 import type { ApiShapeCustomData, ApiShapeCustomDataIdentifier } from "../../../apiTypes";
 import type { LocalId } from "../../../core/id";
+import { some } from "../../../core/iter";
 import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem } from "../../../core/systems";
 import type { DistributiveOmit } from "../../../core/types";
@@ -66,7 +67,11 @@ class CustomDataSystem implements ShapeSystem {
     setName(id: LocalId, elementId: ElementId, newName: string, sync: boolean): void {
         const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
-        if (element === undefined) return;
+
+        // Ensure the element exists AND the new name is unique
+        if (element === undefined || this.getElementId({ ...getIdentifier(element), name: newName }) !== undefined)
+            return;
+
         const ogName = element.name;
         element.name = newName;
         if (element.pending === ShapeCustomDataPending.Leaf) {
@@ -127,14 +132,31 @@ class CustomDataSystem implements ShapeSystem {
         if (!id) return;
         return mutable.data
             .get(id)
-            ?.find((el) => el.source === element.source && el.prefix === element.prefix && el.name === element.name)
-            ?.id;
+            ?.find(
+                (el) =>
+                    el.source.toLowerCase() === element.source.toLowerCase() &&
+                    el.prefix.toLowerCase() === element.prefix.toLowerCase() &&
+                    el.name.toLowerCase() === element.name.toLowerCase(),
+            )?.id;
     }
 
     addBranch(id: LocalId, prefix: string): void {
         const shapeId = getGlobalId(id);
         if (shapeId === undefined) return;
         const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+
+        if (
+            some(mutable.data.values(), (data) =>
+                data.some(
+                    (el) =>
+                        el.prefix.toLowerCase() === prefix.toLowerCase() &&
+                        el.source.toLowerCase() === "planarally" &&
+                        el.shapeId === shapeId,
+                ),
+            )
+        )
+            return;
+
         target.push({
             shapeId,
             source: "planarally",
@@ -153,8 +175,10 @@ class CustomDataSystem implements ShapeSystem {
         const id = getLocalId(element.shapeId);
         if (!id) return;
         const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
-        // todo: ensure souce-prefix-name is unique for shape
         const fullElement = { ...element, id: ID++ as ElementId };
+
+        if (this.getElementId(getIdentifier(fullElement)) !== undefined) return;
+
         target.push(fullElement);
         if (sync && element.pending === undefined) {
             sendShapeCustomDataAdd(toApiShapeCustomData(fullElement));

@@ -304,6 +304,8 @@
                         "customData": "Custom Data",
                         "addBranch": "Add Branch",
                         "addElement": "Add Element",
+                        "nameConflictTitle": "Name Conflict",
+                        "nameConflictText": "The name you entered already exists. Please enter a different name.",
                         "newBranchPrompt": "What name should this branch have?",
                         "noChildren": "Here you can add custom data for this shape.\n\nThis can be used to have a rudimentary character sheet,\nbut it can also be used by tracker, auras and the dice system!",
                         "removeBranchTitle": "Remove Branch",

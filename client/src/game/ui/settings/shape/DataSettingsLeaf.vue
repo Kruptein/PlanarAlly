@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { customDataSystem } from "../../../systems/customData";
+import { getIdentifier } from "../../../systems/customData/emits";
 import {
     customDataKindMap,
     type CustomDataKindInfo,
@@ -41,10 +42,18 @@ function updateType(event: Event): void {
     customDataSystem.updateKind(selectedState.raw.focus!, props.data.id, target.value as keyof CustomDataKindMap, true);
 }
 
-function syncName(event: Event): void {
+async function syncName(event: Event): Promise<void> {
     const target = event.target as HTMLInputElement;
     const newName = target.value.trim();
     if (newName === "") return;
+    if (customDataSystem.getElementId(getIdentifier({ ...props.data, name: newName })) !== undefined) {
+        await modals.confirm(
+            t("game.ui.selection.edit_dialog.customData.nameConflictTitle"),
+            t("game.ui.selection.edit_dialog.customData.nameConflictText"),
+            { showNo: false, yes: t("ok") },
+        );
+        return;
+    }
 
     customDataSystem.setName(selectedState.raw.focus!, props.data.id, target.value, true);
 }

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 PYTHONPATH=`pwd` pydantic2ts --module src.api.models --json2ts-cmd ../client/node_modules/.bin/json2ts --output ../client/src/apiTypes.ts
+# Replace stringified type ids with concrete types
 sed -i 's/"GlobalId"/GlobalId/g' ../client/src/apiTypes.ts
 sed -i 's/"TrackerId"/TrackerId/g' ../client/src/apiTypes.ts
 sed -i 's/"AuraId"/AuraId/g' ../client/src/apiTypes.ts
@@ -13,6 +14,7 @@ sed -i 's/"Role"/Role/g' ../client/src/apiTypes.ts
 sed -i 's/"VisionBlock"/VisionBlock/g' ../client/src/apiTypes.ts
 sed -i 's/"GridModeLabelFormat"/GridModeLabelFormat/g' ../client/src/apiTypes.ts
 sed -i 's/"FloorIndex"/FloorIndex/g' ../client/src/apiTypes.ts
+# Import the concrete types & export union types
 sed -i '1s/^/'\
 'import type { AssetId } from ".\/assets\/models";\n'\
 'import type { GlobalId } from ".\/core\/id";\n'\
@@ -28,4 +30,5 @@ sed -i '1s/^/'\
 '\n'\
 'export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape\n'\
 'export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock\n'\
+'export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumber | ApiShapeCustomDataBoolean | ApiShapeCustomDataDiceExpression\n'\
 '\n/' ../client/src/apiTypes.ts

@@ -2,6 +2,7 @@ from pydantic import Field
 
 from ..aura import ApiAura
 from ..helpers import TypeIdModel
+from ..shape.custom_data import ApiShapeCustomData
 from ..tracker import ApiTracker
 from .owner import ApiShapeOwner
 
@@ -35,6 +36,7 @@ class ApiCoreShape(TypeIdModel):
     ignore_zoom_size: bool
     is_door: bool
     is_teleport_zone: bool
+    custom_data: list[ApiShapeCustomData]
     owners: list[ApiShapeOwner]
     trackers: list[ApiTracker]
     auras: list[ApiAura]

@@ -43,7 +43,7 @@ from .. import initiative
 from ..asset_manager.core import clean_filehash
 from ..constants import GAME_NS
 from ..groups import remove_group_if_empty
-from . import access, options, toggle_composite  # noqa: F401
+from . import access, custom_data, options, toggle_composite  # noqa: F401
 
 
 @sio.on("Shape.Add", namespace=GAME_NS)

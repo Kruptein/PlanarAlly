@@ -29,7 +29,10 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // Ctrl-a with a HTMLInputElement or a HTMLTextAreaElement selected - select all the text
         if (event.key === "a" && ctrlOrCmdPressed(event)) event.target.select();
-    } else if (event.target instanceof HTMLElement && event.target.contentEditable === "true") {
+    } else if (
+        (event.target instanceof HTMLElement && event.target.contentEditable === "true") ||
+        event.target instanceof HTMLSelectElement
+    ) {
         // no-op - we're editing a contentEditable element
     } else {
         const navKeys = [

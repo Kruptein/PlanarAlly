@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { type Part, type RollResult } from "@planarally/dice/core";
-import { DxConfig, DxSegmentType, type DxSegment } from "@planarally/dice/systems/dx";
+import { DxConfig, DxSegmentType } from "@planarally/dice/systems/dx";
 import { type DeepReadonly, computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -8,10 +8,11 @@ import type { DiceRollResult } from "../../../apiTypes";
 import ClickGroup from "../../../core/components/ClickGroup.vue";
 import { arrToToggleGroup } from "../../../core/components/toggleGroup";
 import ToggleGroup from "../../../core/components/ToggleGroup.vue";
+import { convertVariables } from "../../systems/customData/utils";
 import { diceSystem } from "../../systems/dice";
 import { DxHelper } from "../../systems/dice/dx";
 import { diceState } from "../../systems/dice/state";
-import { diceTool } from "../../tools/variants/dice";
+import { diceTool, diceToolInput } from "../../tools/variants/dice";
 
 const { t } = useI18n();
 
@@ -71,8 +72,7 @@ const lastRoll = ref<RollResult<Part>>({
 
 const literalOptions = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ...DxConfig.symbolOptions] as const;
 
-const input = ref<DxSegment[]>([]);
-const lastSeg = computed(() => input.value.at(-1));
+const lastSeg = computed(() => diceToolInput.value.at(-1));
 
 watch(breakdownDetailOptionHistory, () => {
     localStorage.setItem("diceTool.breakdownDetailOptionHistory", breakdownDetailOptionHistory.value);
@@ -117,11 +117,12 @@ const showSelector = computed(() => {
 
 const inputText = ref("");
 watch(
-    input,
+    diceToolInput,
     async (parts) => {
         inputText.value = DxHelper.stringifySegments(parts);
         await nextTick();
         inputElement.value!.scrollLeft = inputElement.value!.scrollWidth;
+        inputElement.value!.focus();
     },
     { deep: true },
 );
@@ -131,11 +132,11 @@ function scrollToHistoryEntry(element: Element): void {
 }
 
 function clear(): void {
-    input.value = [];
+    diceToolInput.value = [];
 }
 
 function addDie(die: (typeof DxConfig.addOptions)[number]): void {
-    DxHelper.addDie(input, die);
+    DxHelper.addDie(diceToolInput, die);
 }
 
 function addOperator(
@@ -156,15 +157,16 @@ function addLiteral(literal: (typeof literalOptions)[number]): void {
     const literalAsOperator = literal as (typeof DxConfig.symbolOptions)[number];
 
     if (DxConfig.symbolOptions.includes(literalAsOperator)) {
-        input.value.push({ type: DxSegmentType.Operator, input: literalAsOperator });
+        diceToolInput.value.push({ type: DxSegmentType.Operator, input: literalAsOperator });
     } else {
         const value = Number.parseInt(literal);
-        DxHelper.addLiteral(input, value);
+        DxHelper.addLiteral(diceToolInput, value);
     }
 }
 
 function updateFromString(event: Event): void {
-    input.value = diceState.raw.systems!["2d"].parse((event.target as HTMLInputElement).value);
+    const text = (event.target as HTMLInputElement).value;
+    diceToolInput.value = diceState.raw.systems!["2d"].parse(convertVariables(text));
 }
 
 function populateInputFromHistoryRoll(roll: DeepReadonly<RollResult<Part>>): void {
@@ -175,7 +177,7 @@ function populateInputFromHistoryRoll(roll: DeepReadonly<RollResult<Part>>): voi
     for (const part of parts) {
         content += part.input ?? "";
     }
-    input.value = diceState.raw.systems!["2d"].parse(content);
+    diceToolInput.value = diceState.raw.systems!["2d"].parse(content);
 }
 
 function populateInputFromHistoryIndex(index: number): void {

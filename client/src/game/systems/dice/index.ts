@@ -32,6 +32,10 @@ class DiceSystem implements System {
         return rollString;
     }
 
+    get isLoaded(): boolean {
+        return $.systems !== undefined;
+    }
+
     async loadSystems(): Promise<void> {
         if ($.systems) return;
 
@@ -43,6 +47,12 @@ class DiceSystem implements System {
     async load3d(canvas?: HTMLCanvasElement): Promise<void> {
         const env = await getDiceEnvironment();
         await env.loadDiceEnv(canvas);
+    }
+
+    getSystem(
+        name: "2d" | "3d",
+    ): AsyncReturnType<typeof SYSTEMS.DX>["DX"] | AsyncReturnType<typeof SYSTEMS.DX3>["DX3"] | undefined {
+        return $.systems?.[name];
     }
 
     set3dDimensions(width: number, height: number): void {

@@ -32,7 +32,6 @@ export function* map<T, V>(iterable: Iterable<T>, mapper: (arg0: T) => V): Itera
     }
 }
 
-// eslint-disable-next-line import/no-unused-modules
 export function some<T>(iterable: Iterable<T>, mapper: (arg0: T) => boolean): boolean {
     for (const value of iterable) {
         if (mapper(value)) return true;

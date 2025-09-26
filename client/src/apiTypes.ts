@@ -12,6 +12,7 @@ import type { TrackerId } from "./game/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
 export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock
+export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumber | ApiShapeCustomDataBoolean | ApiShapeCustomDataDiceExpression
 
 /* eslint-disable */
 /**
@@ -60,6 +61,22 @@ export interface ApiAssetRectShape extends ApiCoreShape {
   width: number;
   height: number;
   src: string;
+}
+export interface ApiShapeCustomDataText extends ApiShapeCustomDataCore {
+  kind: "text";
+  value: string;
+}
+export interface ApiShapeCustomDataNumber extends ApiShapeCustomDataCore {
+  kind: "number";
+  value: number;
+}
+export interface ApiShapeCustomDataBoolean extends ApiShapeCustomDataCore {
+  kind: "boolean";
+  value: boolean;
+}
+export interface ApiShapeCustomDataDiceExpression extends ApiShapeCustomDataCore {
+  kind: "dice-expression";
+  value: string;
 }
 export interface ApiShapeOwner {
   edit_access: boolean;
@@ -174,6 +191,7 @@ export interface ApiCoreShape {
   ignore_zoom_size: boolean;
   is_door: boolean;
   is_teleport_zone: boolean;
+  custom_data: ApiShapeCustomData[];
   owners: ApiShapeOwner[];
   trackers: ApiTracker[];
   auras: ApiAura[];
@@ -371,6 +389,17 @@ export interface ApiOptionalUserOptions {
 export interface ApiRoomDataBlock extends ApiCoreDataBlock {
   category: "room";
   data: string;
+}
+export interface ApiShapeCustomDataCore extends ApiShapeCustomDataIdentifier {
+  kind: string;
+  reference: string | null;
+  description: string | null;
+}
+export interface ApiShapeCustomDataIdentifier {
+  shapeId: GlobalId;
+  source: string;
+  prefix: string;
+  name: string;
 }
 export interface ApiShapeDataBlock extends ApiCoreDataBlock {
   category: "shape";

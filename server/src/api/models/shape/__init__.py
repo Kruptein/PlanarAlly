@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 from ..common import PositionTuple
 from ..helpers import TypeIdModel
+from .custom_data import *
 from .options import *
 from .owner import *
 from .position import *

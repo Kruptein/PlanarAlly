@@ -33,6 +33,7 @@ from .models.rect import Rect
 from .models.room import Room
 from .models.room_data_block import RoomDataBlock
 from .models.shape import Shape
+from .models.shape_custom_data import ShapeCustomData
 from .models.shape_data_block import ShapeDataBlock
 from .models.shape_owner import ShapeOwner
 from .models.shape_type import ShapeType
@@ -78,6 +79,7 @@ ALL_MODELS = [
     Rect,
     Room,
     RoomDataBlock,
+    ShapeCustomData,
     ShapeDataBlock,
     ShapeOwner,
     ShapeType,

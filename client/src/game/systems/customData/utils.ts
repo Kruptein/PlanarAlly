@@ -1,5 +1,7 @@
 import { computed, type ComputedRef } from "vue";
 
+import { selectedState } from "../selected/state";
+
 import { customDataState } from "./state";
 import { type UiShapeCustomData } from "./types";
 
@@ -32,13 +34,15 @@ export function getVariableSegments(data: string): VariableSegment[] {
             text: last,
             isVariable: true,
             ref: computed(() =>
-                customDataState.mutableReactive.data.find(
-                    (data) =>
-                        (prefix === undefined ||
-                            getCustomDataReference(data.prefix.toLowerCase()) === prefix.toLowerCase()) &&
-                        (data.reference?.toLowerCase() ?? getCustomDataReference(data.name.toLowerCase())) ===
-                            last.toLowerCase(),
-                ),
+                customDataState.mutableReactive.data
+                    .get(selectedState.reactive.focus!)
+                    ?.find(
+                        (data) =>
+                            (prefix === undefined ||
+                                getCustomDataReference(data.prefix.toLowerCase()) === prefix.toLowerCase()) &&
+                            (data.reference?.toLowerCase() ?? getCustomDataReference(data.name.toLowerCase())) ===
+                                last.toLowerCase(),
+                    ),
             ),
         });
         nextIndex = part.index + match.length + 2; // the { and }

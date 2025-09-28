@@ -1,5 +1,6 @@
 import { computed, type ComputedRef } from "vue";
 
+import type { LocalId } from "../../../core/id";
 import { selectedState } from "../selected/state";
 
 import { customDataState } from "./state";
@@ -16,7 +17,7 @@ export function getCustomDataReference(name: string): string {
     return name.replaceAll(new RegExp(`[^${CUSTOM_DATA_VALID_CHARS}]`, "g"), "");
 }
 
-export function getVariableSegments(data: string): VariableSegment[] {
+export function getVariableSegments(data: string, shapeFocus?: LocalId): VariableSegment[] {
     const result: VariableSegment[] = [];
     let nextIndex = 0;
     for (const part of data.matchAll(CUSTOM_DATA_REGEX)) {
@@ -35,7 +36,7 @@ export function getVariableSegments(data: string): VariableSegment[] {
             isVariable: true,
             ref: computed(() =>
                 customDataState.mutableReactive.data
-                    .get(selectedState.reactive.focus!)
+                    .get(shapeFocus ?? selectedState.reactive.focus!)
                     ?.find(
                         (data) =>
                             (prefix === undefined ||

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -14,6 +14,8 @@ import InitiativeSettings from "./InitiativeSettings.vue";
 import PerformanceSettings from "./PerformanceSettings.vue";
 
 const { t } = useI18n();
+
+const activeTab = ref(ClientSettingCategory.Appearance);
 
 const visible = computed({
     get() {
@@ -57,7 +59,7 @@ const tabs = computed(() => [
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :tabs="tabs" :initial-selection="uiState.reactive.clientSettingsTab">
+    <PanelModal v-model:visible="visible" v-model:selection="activeTab" :tabs="tabs">
         <template #title>{{ t("game.ui.settings.client.ClientSettings.client_settings") }}</template>
     </PanelModal>
 </template>

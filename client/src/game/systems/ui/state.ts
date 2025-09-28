@@ -5,6 +5,7 @@ import type { LocalId } from "../../../core/id";
 import { buildState } from "../../../core/systems/state";
 import type { FloorId } from "../../models/floor";
 import { ClientSettingCategory } from "../../ui/settings/client/categories";
+import { ShapeSettingCategory } from "../../ui/settings/shape/categories";
 
 import type { PanelTab } from "./types";
 
@@ -24,6 +25,8 @@ interface UiState {
     selectedFloor: FloorId;
 
     preventContextMenu: boolean;
+
+    activeShapeTab: ShapeSettingCategory;
 
     // MOD interactions
     characterTabs: Raw<{
@@ -49,6 +52,8 @@ const state = buildState<UiState>({
     selectedFloor: 0 as FloorId,
 
     preventContextMenu: false,
+
+    activeShapeTab: ShapeSettingCategory.Properties,
 
     // MODS
     characterTabs: [],

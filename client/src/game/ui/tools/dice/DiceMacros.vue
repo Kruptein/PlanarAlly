@@ -40,7 +40,7 @@ function openSettings(): void {
         <div v-for="macro in macros" :key="macro.id" class="macro">
             <div class="macro-prefix">{{ macro.prefix.slice(1) }}</div>
             <div>
-                <b>{{ macro.name }}</b>
+                <strong>{{ macro.name }}</strong>
                 <DiceFormat :element="macro" :shape-focus="isShape(active) ? active : undefined" />
             </div>
         </div>

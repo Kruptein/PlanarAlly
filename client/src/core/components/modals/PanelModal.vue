@@ -1,30 +1,27 @@
 <script setup lang="ts">
-import { ref, watchEffect, computed } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { PanelTab } from "../../../game/systems/ui/types";
 
 import Modal from "./Modal.vue";
 
-const props = withDefaults(
-    defineProps<{
-        visible: boolean;
-        tabs: (PanelTab & { props?: object })[];
-        initialSelection?: string;
-    }>(),
-    { initialSelection: undefined },
-);
+const { tabs } = defineProps<{
+    visible: boolean;
+    tabs: (PanelTab & { props?: object })[];
+}>();
+
 const emit = defineEmits<{
     (e: "update:visible", visible: boolean): void;
-    (e: "update:selection", selection: string): void;
     (e: "close"): void;
 }>();
 
+const selection = defineModel<string | undefined>("selection", { required: true });
+
 const { t } = useI18n();
 
-const selection = ref(props.tabs[0]?.id);
 const activeTab = computed(() => {
-    const tab = props.tabs.find((t) => t.id === selection.value);
+    const tab = tabs.find((t) => t.id === selection.value);
     if (tab === undefined) return undefined;
     return {
         ...tab,
@@ -32,21 +29,8 @@ const activeTab = computed(() => {
     };
 });
 
-watchEffect(() => {
-    if (props.initialSelection === undefined) {
-        if (!props.tabs.some((c) => c.id === selection.value)) {
-            selection.value = props.tabs.at(0)?.id;
-        }
-    } else {
-        if (props.tabs.some((c) => c.id === props.initialSelection)) {
-            selection.value = props.initialSelection;
-        }
-    }
-});
-
 function setSelection(id: string): void {
     selection.value = id;
-    emit("update:selection", id);
 }
 
 function hideModal(): void {

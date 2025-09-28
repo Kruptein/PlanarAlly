@@ -1,13 +1,10 @@
-import { watch } from "vue";
-
 import type { ApiShapeCustomData, ApiShapeCustomDataIdentifier } from "../../../apiTypes";
 import type { LocalId } from "../../../core/id";
-import { some } from "../../../core/iter";
+import { filter, map, some } from "../../../core/iter";
 import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem } from "../../../core/systems";
 import type { DistributiveOmit } from "../../../core/types";
 import { getGlobalId, getLocalId } from "../../id";
-import { selectedState } from "../selected/state";
 
 import {
     getIdentifier,
@@ -31,19 +28,47 @@ const { mutableReactive: $, mutable } = customDataState;
 let ID = 0 as ElementId;
 
 class CustomDataSystem implements ShapeSystem {
-    loadState(id: LocalId): void {
-        $.id = id;
-        $.data = mutable.data.get(id) ?? [];
+    loadState(id: LocalId, source: string): void {
+        if ($.leases.has(id)) {
+            $.leases.get(id)!.add(source);
+        } else {
+            $.leases.set(id, new Set([source]));
+            $.data.set(id, mutable.data.get(id) ?? []);
+        }
     }
 
-    dropState(): void {
-        $.id = undefined;
-        $.data = [];
+    dropState(id: LocalId, source: string): void {
+        const leases = $.leases.get(id);
+        if (leases === undefined) return console.error("Dropping state for shape without active lease.");
+        leases.delete(source);
+        if (leases.size === 0) {
+            $.leases.delete(id);
+            $.data.delete(id);
+        }
+    }
+
+    // A helper that handles load/drop for multiple ids at once without changing ids that remain active
+    loadAndDropState(ids: ReadonlySet<LocalId>, source: string): void {
+        const activeLeases = new Set(
+            map(
+                filter($.leases.entries(), ([, leases]) => leases.has(source)),
+                ([id]) => id,
+            ),
+        );
+        const diff = activeLeases.symmetricDifference(ids);
+        for (const id of diff) {
+            if (activeLeases.has(id)) {
+                this.dropState(id, source);
+            } else {
+                this.loadState(id, source);
+            }
+        }
     }
 
     clear(): void {
         mutable.data.clear();
-        this.dropState();
+        $.leases.clear();
+        $.data.clear();
     }
 
     drop(id: LocalId): void {
@@ -58,14 +83,14 @@ class CustomDataSystem implements ShapeSystem {
     }
 
     updateElement(id: LocalId, elementId: ElementId, data: ApiShapeCustomData): void {
-        const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+        const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
         if (element === undefined) return;
         Object.assign(element, data);
     }
 
     setName(id: LocalId, elementId: ElementId, newName: string, sync: boolean): void {
-        const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+        const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
 
         // Ensure the element exists AND the new name is unique
@@ -83,7 +108,7 @@ class CustomDataSystem implements ShapeSystem {
     }
 
     updateKind(id: LocalId, elementId: ElementId, newKind: keyof CustomDataKindMap, sync: boolean): void {
-        const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+        const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
         if (element === undefined) return;
         element.kind = newKind;
@@ -94,7 +119,7 @@ class CustomDataSystem implements ShapeSystem {
     }
 
     updateValue(id: LocalId, elementId: ElementId, newValue: unknown, sync: boolean): void {
-        const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+        const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
         if (element === undefined) return;
         if (typeof newValue !== typeof element.value) {
@@ -108,7 +133,7 @@ class CustomDataSystem implements ShapeSystem {
     }
 
     setReference(id: LocalId, elementId: ElementId, newReference: string, sync: boolean): void {
-        const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+        const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
         if (element === undefined) return;
         element.reference = newReference;
@@ -118,7 +143,7 @@ class CustomDataSystem implements ShapeSystem {
     }
 
     setDescription(id: LocalId, elementId: ElementId, newDescription: string, sync: boolean): void {
-        const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+        const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
         if (element === undefined) return;
         element.description = newDescription;
@@ -143,7 +168,7 @@ class CustomDataSystem implements ShapeSystem {
     addBranch(id: LocalId, prefix: string): void {
         const shapeId = getGlobalId(id);
         if (shapeId === undefined) return;
-        const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+        const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
 
         if (
             some(mutable.data.values(), (data) =>
@@ -174,7 +199,7 @@ class CustomDataSystem implements ShapeSystem {
     addElement(element: DistributiveOmit<UiShapeCustomData, "id">, sync: boolean): void {
         const id = getLocalId(element.shapeId);
         if (!id) return;
-        const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+        const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const fullElement = { ...element, id: ID++ as ElementId };
 
         if (this.getElementId(getIdentifier(fullElement)) !== undefined) return;
@@ -186,7 +211,7 @@ class CustomDataSystem implements ShapeSystem {
     }
 
     removeElement(id: LocalId, elementId: ElementId, sync: boolean): void {
-        const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+        const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const index = target.findIndex((element) => element.id === elementId);
         if (index === -1) return;
         const element = target[index]!;
@@ -197,7 +222,7 @@ class CustomDataSystem implements ShapeSystem {
     }
 
     removeBranch(id: LocalId, prefix: string): void {
-        const target = ($.id === id ? $.data : mutable.data.get(id)) ?? [];
+        const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const filteredElements: UiShapeCustomData[] = [];
         for (const element of target) {
             if (element.prefix !== prefix && !element.prefix.startsWith(`${prefix}/`)) {
@@ -212,10 +237,3 @@ class CustomDataSystem implements ShapeSystem {
 
 export const customDataSystem = new CustomDataSystem();
 registerSystem("customData", customDataSystem, true, customDataState);
-
-function checkSelected(shapeId: LocalId | undefined): void {
-    if (shapeId) customDataSystem.loadState(shapeId);
-    else customDataSystem.dropState();
-}
-
-watch(() => selectedState.reactive.focus, checkSelected);

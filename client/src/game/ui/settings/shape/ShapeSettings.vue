@@ -110,7 +110,7 @@ const tabs = computed(() => {
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :tabs="tabs">
+    <PanelModal v-model:visible="visible" v-model:selection="uiState.reactive.activeShapeTab" :tabs="tabs">
         <template #title>{{ t("game.ui.selection.edit_dialog.dialog.edit_shape") }}</template>
         <template v-if="owned" #default>
             <div style="flex-grow: 1"></div>

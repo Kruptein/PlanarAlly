@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, toRef } from "vue";
+import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -17,6 +17,8 @@ import { LocationSettingCategory } from "./categories";
 const { t } = useI18n();
 
 const location = toRef(uiState.reactive, "openedLocationSettings");
+
+const activeTab = ref(LocationSettingCategory.Admin);
 
 const visible = computed({
     get() {
@@ -72,7 +74,7 @@ const tabs = computed(() => [
 </script>
 
 <template>
-    <PanelModal v-if="location >= 0" v-model:visible="visible" :tabs="tabs">
+    <PanelModal v-if="location >= 0" v-model:visible="visible" v-model:selection="activeTab" :tabs="tabs">
         <template #title>
             {{ t("game.ui.settings.LocationBar.LocationSettings.location_settings") }} {{ locationName }}
         </template>

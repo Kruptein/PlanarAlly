@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed, type ComputedRef } from "vue";
+import { computed, watch, type ComputedRef } from "vue";
 
+import { customDataSystem } from "../../../systems/customData";
 import { customDataState } from "../../../systems/customData/state";
 import { ShapeCustomDataPending } from "../../../systems/customData/types";
+import { selectedState } from "../../../systems/selected/state";
 
 import DataSettingsBranch from "./DataSettingsBranch.vue";
 import { type Tree } from "./types";
@@ -12,9 +14,18 @@ defineProps<{
 }>();
 defineEmits<(e: "close") => void>();
 
+watch(
+    () => selectedState.reactive.focus,
+    (newFocus, oldFocus) => {
+        if (newFocus) customDataSystem.loadState(newFocus, "shape-edit");
+        if (oldFocus) customDataSystem.dropState(oldFocus, "shape-edit");
+    },
+    { immediate: true },
+);
+
 const tree = computed(() => {
     const tree: Tree = [];
-    for (const element of customDataState.reactive.data) {
+    for (const element of customDataState.reactive.data.get(selectedState.reactive.focus!) ?? []) {
         const parts = element.prefix.split("/");
         let currentBranch = tree;
         let prefix = "/";

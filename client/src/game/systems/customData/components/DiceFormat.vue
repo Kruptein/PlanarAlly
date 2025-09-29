@@ -5,10 +5,7 @@ import type { ApiShapeCustomDataDiceExpression } from "../../../../apiTypes";
 import type { LocalId } from "../../../../core/id";
 import { ToolName } from "../../../models/tools";
 import { activateTool } from "../../../tools/tools";
-import { diceToolInput } from "../../../tools/variants/dice";
 import { diceSystem } from "../../dice";
-import { diceState } from "../../dice/state";
-import { DiceUiState } from "../../dice/types";
 import type { ElementId } from "../types";
 import { getVariableSegments } from "../utils";
 
@@ -23,12 +20,10 @@ const segments = computed(() => {
 
 async function loadRoll(): Promise<void> {
     if (!diceSystem.isLoaded) await diceSystem.loadSystems();
-    diceState.mutableReactive.uiState = DiceUiState.Roll;
     activateTool(ToolName.Dice);
-    const system = diceSystem.getSystem("2d")!;
     // We need a short timeout when loading the dice tool for the first time
     await new Promise((resolve) => setTimeout(resolve, 100));
-    diceToolInput.value = system.parse(
+    diceSystem.setInput(
         segments.value
             .filter((segment) => !segment.isVariable || segment.ref.value !== undefined)
             .map((segment) => (segment.isVariable ? segment.ref.value!.value : segment.text))

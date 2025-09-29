@@ -1,8 +1,7 @@
 import type { Vector3 } from "@babylonjs/core/Maths/math";
 import { type Part, type RollResult, rollString } from "@planarally/dice/core";
-import type { DxSegment } from "@planarally/dice/systems/dx";
 import tinycolor from "tinycolor2";
-import { reactive, ref } from "vue";
+import { reactive } from "vue";
 
 import type { DiceRollResult } from "../../../apiTypes";
 import { randomInterval } from "../../../core/utils";
@@ -62,8 +61,6 @@ async function generate3dOptions(): Promise<{
         physics,
     };
 }
-
-export const diceToolInput = ref<DxSegment[]>([]);
 
 class DiceTool extends Tool implements ITool {
     readonly toolName = ToolName.Dice;

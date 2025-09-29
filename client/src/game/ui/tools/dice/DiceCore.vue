@@ -466,7 +466,6 @@ async function roll(): Promise<void> {
                     ref="inputElement"
                     v-model="diceState.mutableReactive.textInput"
                     type="text"
-                    @change="updateFromString"
                     @keyup.enter="roll"
                 />
                 <font-awesome-icon

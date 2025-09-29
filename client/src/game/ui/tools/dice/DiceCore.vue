@@ -14,6 +14,8 @@ import { DxHelper } from "../../../systems/dice/dx";
 import { diceState } from "../../../systems/dice/state";
 import { diceTool } from "../../../tools/variants/dice";
 
+import DiceAutoComplete from "./DiceAutoComplete.vue";
+
 const { t } = useI18n();
 
 // const limitOperatorOptionNames = [t('game.ui.tools.DiceTool.limit_operator_options.keep'), t('game.ui.tools.DiceTool.limit_operator_options.drop'), t('game.ui.tools.DiceTool.limit_operator_options.min'), t('game.ui.tools.DiceTool.limit_operator_options.max')]
@@ -461,13 +463,7 @@ async function roll(): Promise<void> {
         </div>
         <div id="buttons">
             <div id="input-bar">
-                <input
-                    id="input"
-                    ref="inputElement"
-                    v-model="diceState.mutableReactive.textInput"
-                    type="text"
-                    @keyup.enter="roll"
-                />
+                <input id="input" ref="inputElement" v-model="diceState.mutableReactive.textInput" type="text" />
                 <font-awesome-icon
                     v-show="diceState.reactive.textInput.length > 0"
                     id="clear-input-icon"
@@ -475,6 +471,7 @@ async function roll(): Promise<void> {
                     :title="t('game.ui.tools.DiceTool.clear_selection_title')"
                     @click.stop="clear"
                 />
+                <DiceAutoComplete :input-element="inputElement" @roll="roll" />
             </div>
             <font-awesome-icon
                 id="roll-button"
@@ -905,6 +902,7 @@ async function roll(): Promise<void> {
         align-items: center;
 
         > #input-bar {
+            position: relative;
             flex: 1 0 0;
             display: flex;
             align-items: center;

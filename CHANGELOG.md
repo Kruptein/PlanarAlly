@@ -18,6 +18,7 @@ tech changes will usually be stripped from release notes for the public
     -   Currently supported data types are text, number, toggle and dice expressions
     -   Dice expressions can reference other data entries and open the dice tool with the evaluated expression
     -   Dice tool has a quick access sidebar to selected shapes with dice expressions
+    -   Dice tool shows auto completion on expression references
 
 ### Changed
 

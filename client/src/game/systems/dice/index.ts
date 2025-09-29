@@ -7,6 +7,7 @@ import type { SystemClearReason } from "../../../core/systems/models";
 import type { AsyncReturnType } from "../../../core/types";
 
 import { diceState } from "./state";
+import { DiceUiState } from "./types";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const _env = () => import("./environment");
@@ -23,6 +24,12 @@ class DiceSystem implements System {
         if (reason !== "full-loading") {
             $.history = [];
         }
+    }
+
+    setInput(input: string): void {
+        $.textInput = input;
+        $.updateTextInputScroll = true;
+        $.uiState = DiceUiState.Roll;
     }
 
     addToHistory(roll: RollResult<Part>, player: string, name?: string): string {

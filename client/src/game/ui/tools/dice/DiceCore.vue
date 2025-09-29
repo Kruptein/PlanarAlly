@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type Part, type RollResult } from "@planarally/dice/core";
 import { DxConfig, DxSegmentType } from "@planarally/dice/systems/dx";
-import { type DeepReadonly, computed, nextTick, ref, watch } from "vue";
+import { type DeepReadonly, computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { DiceRollResult } from "../../../../apiTypes";
@@ -12,7 +12,7 @@ import { convertVariables } from "../../../systems/customData/utils";
 import { diceSystem } from "../../../systems/dice";
 import { DxHelper } from "../../../systems/dice/dx";
 import { diceState } from "../../../systems/dice/state";
-import { diceTool, diceToolInput } from "../../../tools/variants/dice";
+import { diceTool } from "../../../tools/variants/dice";
 
 const { t } = useI18n();
 
@@ -43,7 +43,7 @@ const showRollHistory = ref(false);
 const showHistoryBreakdownFor = ref<number | null>(null);
 
 const canvasElement = ref<HTMLCanvasElement | null>(null);
-const inputElement = ref<HTMLInputElement | null>(null);
+const inputElement = useTemplateRef<HTMLInputElement>("inputElement");
 
 const translationMapping = {
     dice3dOptions: {
@@ -72,7 +72,7 @@ const lastRoll = ref<RollResult<Part>>({
 
 const literalOptions = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ...DxConfig.symbolOptions] as const;
 
-const lastSeg = computed(() => diceToolInput.value.at(-1));
+const lastSeg = computed(() => DxHelper.parts.value.at(-1));
 
 watch(breakdownDetailOptionHistory, () => {
     localStorage.setItem("diceTool.breakdownDetailOptionHistory", breakdownDetailOptionHistory.value);
@@ -115,16 +115,18 @@ const showSelector = computed(() => {
     );
 });
 
-const inputText = ref("");
+// Update the scroll position of the input element when the text input changes
+// This is only set when the input was changed explicitly through the dice system
+// manual text changes will not trigger this (on purpose)
 watch(
-    diceToolInput,
-    async (parts) => {
-        inputText.value = DxHelper.stringifySegments(parts);
+    () => diceState.reactive.updateTextInputScroll,
+    async (value) => {
+        if (!value) return;
         await nextTick();
         inputElement.value!.scrollLeft = inputElement.value!.scrollWidth;
         inputElement.value!.focus();
+        diceState.mutableReactive.updateTextInputScroll = false;
     },
-    { deep: true },
 );
 
 function scrollToHistoryEntry(element: Element): void {
@@ -132,11 +134,11 @@ function scrollToHistoryEntry(element: Element): void {
 }
 
 function clear(): void {
-    diceToolInput.value = [];
+    diceState.mutableReactive.textInput = "";
 }
 
 function addDie(die: (typeof DxConfig.addOptions)[number]): void {
-    DxHelper.addDie(diceToolInput, die);
+    DxHelper.addDie(die);
 }
 
 function addOperator(
@@ -157,16 +159,11 @@ function addLiteral(literal: (typeof literalOptions)[number]): void {
     const literalAsOperator = literal as (typeof DxConfig.symbolOptions)[number];
 
     if (DxConfig.symbolOptions.includes(literalAsOperator)) {
-        diceToolInput.value.push({ type: DxSegmentType.Operator, input: literalAsOperator });
+        DxHelper.parts.value.push({ type: DxSegmentType.Operator, input: literalAsOperator });
     } else {
         const value = Number.parseInt(literal);
-        DxHelper.addLiteral(diceToolInput, value);
+        DxHelper.addLiteral(value);
     }
-}
-
-function updateFromString(event: Event): void {
-    const text = (event.target as HTMLInputElement).value;
-    diceToolInput.value = diceState.raw.systems!["2d"].parse(convertVariables(text));
 }
 
 function populateInputFromHistoryRoll(roll: DeepReadonly<RollResult<Part>>): void {
@@ -177,7 +174,7 @@ function populateInputFromHistoryRoll(roll: DeepReadonly<RollResult<Part>>): voi
     for (const part of parts) {
         content += part.input ?? "";
     }
-    diceToolInput.value = diceState.raw.systems!["2d"].parse(content);
+    diceSystem.setInput(content);
 }
 
 function populateInputFromHistoryIndex(index: number): void {
@@ -187,13 +184,14 @@ function populateInputFromHistoryIndex(index: number): void {
 }
 
 async function roll(): Promise<void> {
-    if (inputText.value.length === 0) return;
+    const content = diceState.raw.textInput;
+    if (content.length === 0) return;
 
     clear();
     awaitingRoll.value = true;
 
     lastRoll.value = await diceTool.roll(
-        inputText.value,
+        convertVariables(content),
         dice3dSetting.value !== "off",
         shareResult.value.toLowerCase() as DiceRollResult["shareWith"],
     );
@@ -466,13 +464,12 @@ async function roll(): Promise<void> {
                 <input
                     id="input"
                     ref="inputElement"
-                    v-model="inputText"
+                    v-model="diceState.mutableReactive.textInput"
                     type="text"
-                    @change="updateFromString"
                     @keyup.enter="roll"
                 />
                 <font-awesome-icon
-                    v-show="inputText.length > 0"
+                    v-show="diceState.reactive.textInput.length > 0"
                     id="clear-input-icon"
                     icon="circle-xmark"
                     :title="t('game.ui.tools.DiceTool.clear_selection_title')"
@@ -481,7 +478,7 @@ async function roll(): Promise<void> {
             </div>
             <font-awesome-icon
                 id="roll-button"
-                :class="{ disabled: inputText.length === 0 }"
+                :class="{ disabled: diceState.reactive.textInput.length === 0 }"
                 class="svg-button"
                 icon="dice-six"
                 :title="t('game.ui.tools.DiceTool.roll')"

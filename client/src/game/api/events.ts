@@ -4,6 +4,7 @@ import "../systems/assets/events";
 import "../systems/auras/events";
 import "../systems/characters/events";
 import "../systems/chat/events";
+import "../systems/customData/events";
 import "../systems/dice/events";
 import "../systems/groups/events";
 import "../systems/logic/door/events";

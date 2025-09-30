@@ -15,7 +15,8 @@ export function onKeyUp(event: KeyboardEvent): Promise<void> {
     if (
         event.target instanceof HTMLInputElement ||
         event.target instanceof HTMLTextAreaElement ||
-        event.target instanceof HTMLSelectElement
+        event.target instanceof HTMLSelectElement ||
+        (event.target instanceof HTMLElement && event.target.contentEditable === "true")
     ) {
         // no-op (condition is cleaner this way)
     } else {

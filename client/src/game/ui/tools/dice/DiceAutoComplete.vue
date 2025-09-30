@@ -12,9 +12,11 @@ import { selectedState } from "../../../systems/selected/state";
 
 const showAutoComplete = ref(false);
 const autoCompleteSearchIndex = ref(0);
-const autoCompleteSearchText = ref("");
 type AutoCompleteOption = DistributiveOmit<UiShapeCustomData, "shapeId"> & { shapeId: LocalId; src: string };
 const autoCompleteOptions = ref<AutoCompleteOption[]>([]);
+
+let autoCompleteSearchTextBackward = "";
+let autoCompleteSearchTextForward = "";
 
 const { inputElement } = defineProps<{
     inputElement: HTMLInputElement | null;
@@ -30,7 +32,6 @@ watch(
     () => inputElement,
     (newVal) => {
         if (newVal === null) return;
-        newVal.addEventListener("input", checkAutoComplete);
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         newVal.addEventListener("keydown", handleAutoCompleteKey);
     },
@@ -39,15 +40,14 @@ watch(
 
 onUnmounted(() => {
     if (inputElement === null) return;
-    inputElement.removeEventListener("input", checkAutoComplete);
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     inputElement.removeEventListener("keydown", handleAutoCompleteKey);
 });
 
-function checkAutoComplete(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const value = target.value;
-    if (value.length === 0) {
+watch(() => diceState.reactive.textInput, checkAutoComplete);
+
+function checkAutoComplete(text: string): void {
+    if (text.length === 0) {
         showAutoComplete.value = false;
         return;
     }
@@ -55,21 +55,38 @@ function checkAutoComplete(event: Event): void {
     // figure out if we're typing a reference
     // look back until we find a {, the start of the input, or a different non-letter
 
-    const end = (target.selectionStart ?? 0) - 1;
+    let end = diceState.raw.lastCursorPosition - 1;
     let start = end;
     for (let i = end; i >= 0; i--) {
-        if (target.value[i] === "{") {
+        if (text[i] === "{") {
             start = i + 1;
             break;
-        } else if (value[i]!.match(/[a-z]/) === null) {
+        } else if (text[i]?.match(/[a-z0-9[\]]/) === null) {
             break;
         }
     }
 
-    autoCompleteSearchText.value = value.slice(start, end + 1);
+    // the regex is the discriminator part (see custom data utils)
+    // for the autocompletion we're just ignoring it, as we might want to change to a different shape
+    autoCompleteSearchTextBackward = text.slice(start, end + 1).replace(/\[\d+\]/, "");
+
+    // if we already have text behind the cursor, we also do a forwards search
+    start = diceState.raw.lastCursorPosition;
+    end = start;
+    for (let i = start; i < text.length; i++) {
+        if (text[i] === "}") {
+            end = i;
+            break;
+        } else if (text[i]?.match(/[a-z0-9]/) === null) {
+            break;
+        }
+    }
+
+    autoCompleteSearchTextForward = text.slice(start, end);
+
     // Require at least 1 character after the { to search
-    if (autoCompleteSearchText.value.length > 1) {
-        autoCompleteOptions.value = getAutoCompleteOptions(autoCompleteSearchText.value);
+    if (autoCompleteSearchTextBackward.length > 1) {
+        autoCompleteOptions.value = getAutoCompleteOptions();
         autoCompleteSearchIndex.value = 0;
         showAutoComplete.value = true;
     } else {
@@ -79,20 +96,23 @@ function checkAutoComplete(event: Event): void {
 
 async function completeAutoComplete(option: AutoCompleteOption): Promise<void> {
     if (inputElement === null) return;
-    const start = (inputElement.selectionStart ?? 0) - autoCompleteSearchText.value.length - 1;
+    const start = diceState.raw.lastCursorPosition - autoCompleteSearchTextBackward.length - 1;
 
     const oldMessage = diceState.raw.textInput;
+    const fullRef = "{" + `[${option.shapeId}]` + option.name + "}";
+    diceState.mutableReactive.lastCursorPosition = start + fullRef.length;
     diceState.mutableReactive.textInput =
-        oldMessage.slice(0, start) + option.value + oldMessage.slice(start + autoCompleteSearchText.value.length + 1);
+        oldMessage.slice(0, start) +
+        fullRef +
+        oldMessage.slice(start + autoCompleteSearchTextBackward.length + autoCompleteSearchTextForward.length + 2);
 
     showAutoComplete.value = false;
 
-    const newStart = start + option.name.length + 3;
-
-    await nextTick(() => {
-        inputElement?.setSelectionRange(newStart, newStart);
-        inputElement?.focus();
-    });
+    await nextTick();
+    const sel = document.getSelection();
+    for (let i = 0; i < diceState.raw.lastCursorPosition; i++) {
+        sel?.modify("move", "forward", "character");
+    }
 }
 
 async function handleAutoCompleteKey(event: KeyboardEvent): Promise<void> {
@@ -104,7 +124,8 @@ async function handleAutoCompleteKey(event: KeyboardEvent): Promise<void> {
             emit("roll");
         }
     } else if (event.key === "{" || event.key === "}") {
-        autoCompleteSearchText.value = "";
+        autoCompleteSearchTextBackward = "";
+        autoCompleteSearchTextForward = "";
     } else if (event.key === "Escape") {
         showAutoComplete.value = false;
     } else if (event.key === "ArrowDown") {
@@ -122,12 +143,15 @@ async function handleAutoCompleteKey(event: KeyboardEvent): Promise<void> {
     }
 }
 
-function getAutoCompleteOptions(value: string): AutoCompleteOption[] {
+function getAutoCompleteOptions(): AutoCompleteOption[] {
     const options: AutoCompleteOption[] = [];
     for (const [shapeId, shapeData] of customDataState.readonly.data.entries()) {
         let shape: IAsset | undefined;
         for (const data of shapeData) {
-            if (data.name.toLowerCase().startsWith(value.toLowerCase())) {
+            if (
+                data.name.toLowerCase().startsWith(autoCompleteSearchTextBackward.toLowerCase()) &&
+                data.name.toLowerCase().endsWith(autoCompleteSearchTextForward.toLowerCase())
+            ) {
                 if (shape === undefined) {
                     const sh = getShape(shapeId);
                     if (sh === undefined || sh.type !== "assetrect") continue;
@@ -155,7 +179,7 @@ function getAutoCompleteOptions(value: string): AutoCompleteOption[] {
 </script>
 
 <template>
-    <div v-if="showAutoComplete" id="auto-complete">
+    <div v-if="showAutoComplete && autoCompleteOptions.length > 0" id="auto-complete">
         <div
             v-for="(option, i) of autoCompleteOptions"
             :key="`${option.shapeId}-${option.id}`"

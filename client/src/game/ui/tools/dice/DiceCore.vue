@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type Part, type RollResult } from "@planarally/dice/core";
 import { DxConfig, DxSegmentType } from "@planarally/dice/systems/dx";
-import { type DeepReadonly, computed, nextTick, ref, useTemplateRef, watch } from "vue";
+import { type DeepReadonly, computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { DiceRollResult } from "../../../../apiTypes";
@@ -14,7 +14,7 @@ import { DxHelper } from "../../../systems/dice/dx";
 import { diceState } from "../../../systems/dice/state";
 import { diceTool } from "../../../tools/variants/dice";
 
-import DiceAutoComplete from "./DiceAutoComplete.vue";
+import DiceRollInput from "./DiceRollInput.vue";
 
 const { t } = useI18n();
 
@@ -45,7 +45,6 @@ const showRollHistory = ref(false);
 const showHistoryBreakdownFor = ref<number | null>(null);
 
 const canvasElement = ref<HTMLCanvasElement | null>(null);
-const inputElement = useTemplateRef<HTMLInputElement>("inputElement");
 
 const translationMapping = {
     dice3dOptions: {
@@ -116,20 +115,6 @@ const showSelector = computed(() => {
         seg.selector === undefined
     );
 });
-
-// Update the scroll position of the input element when the text input changes
-// This is only set when the input was changed explicitly through the dice system
-// manual text changes will not trigger this (on purpose)
-watch(
-    () => diceState.reactive.updateTextInputScroll,
-    async (value) => {
-        if (!value) return;
-        await nextTick();
-        inputElement.value!.scrollLeft = inputElement.value!.scrollWidth;
-        inputElement.value!.focus();
-        diceState.mutableReactive.updateTextInputScroll = false;
-    },
-);
 
 function scrollToHistoryEntry(element: Element): void {
     element.scrollIntoView({ block: "end", behavior: "smooth" });
@@ -462,17 +447,7 @@ async function roll(): Promise<void> {
             />
         </div>
         <div id="buttons">
-            <div id="input-bar">
-                <input id="input" ref="inputElement" v-model="diceState.mutableReactive.textInput" type="text" />
-                <font-awesome-icon
-                    v-show="diceState.reactive.textInput.length > 0"
-                    id="clear-input-icon"
-                    icon="circle-xmark"
-                    :title="t('game.ui.tools.DiceTool.clear_selection_title')"
-                    @click.stop="clear"
-                />
-                <DiceAutoComplete :input-element="inputElement" @roll="roll" />
-            </div>
+            <DiceRollInput @clear="clear" @roll="roll" />
             <font-awesome-icon
                 id="roll-button"
                 :class="{ disabled: diceState.reactive.textInput.length === 0 }"
@@ -901,27 +876,6 @@ async function roll(): Promise<void> {
         justify-content: space-between;
         align-items: center;
 
-        > #input-bar {
-            position: relative;
-            flex: 1 0 0;
-            display: flex;
-            align-items: center;
-            border: solid 1px black;
-            border-radius: 0.5rem;
-            padding: 0.25rem 0.5rem;
-            margin: 0 0.5rem;
-            > input {
-                border-radius: 0.5rem;
-                font-size: 110%;
-                outline: none;
-                border: none;
-                flex: 1 1 auto;
-            }
-            > #clear-input-icon {
-                padding: 0.25rem 0.25rem;
-                font-size: 85%;
-            }
-        }
         > #roll-button {
             flex: 0 0 auto;
             padding: 0.25rem;

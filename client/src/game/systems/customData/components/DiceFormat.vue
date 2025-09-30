@@ -6,6 +6,7 @@ import type { LocalId } from "../../../../core/id";
 import { ToolName } from "../../../models/tools";
 import { activateTool } from "../../../tools/tools";
 import { diceSystem } from "../../dice";
+import { selectedState } from "../../selected/state";
 import type { ElementId } from "../types";
 import { getVariableSegments } from "../utils";
 
@@ -15,7 +16,7 @@ const { element, shapeFocus } = defineProps<{
 }>();
 
 const segments = computed(() => {
-    return getVariableSegments(element.value, shapeFocus);
+    return getVariableSegments(element.value, shapeFocus ?? selectedState.reactive.focus);
 });
 
 async function loadRoll(): Promise<void> {
@@ -25,8 +26,14 @@ async function loadRoll(): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 100));
     diceSystem.setInput(
         segments.value
-            .filter((segment) => !segment.isVariable || segment.ref.value !== undefined)
-            .map((segment) => (segment.isVariable ? segment.ref.value!.value : segment.text))
+            .filter((segment) => !segment.isVariable || segment.ref !== undefined)
+            .map((segment) =>
+                segment.isVariable
+                    ? segment.discriminator !== undefined
+                        ? `{[${segment.discriminator}]${segment.ref!.name}}`
+                        : segment.ref!.value
+                    : segment.text,
+            )
             .join(" "),
     );
 }
@@ -38,8 +45,8 @@ async function loadRoll(): Promise<void> {
             <span
                 v-if="segment.isVariable"
                 class="variable"
-                :class="{ unknown: segment.ref.value === undefined }"
-                :title="segment.ref.value?.value.toString() ?? 'Unknown'"
+                :class="{ unknown: segment.ref === undefined }"
+                :title="segment.ref?.value.toString() ?? 'Unknown'"
             >
                 {{ segment.text }}
             </span>

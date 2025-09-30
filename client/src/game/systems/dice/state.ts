@@ -10,6 +10,7 @@ import { DiceUiState } from "./types";
 interface DiceState {
     uiState: LocalId | DiceUiState;
     textInput: string;
+    lastCursorPosition: number;
     updateTextInputScroll: boolean;
     dimensions3d: { width: number; height: number };
     history: { roll: RollResult<Part>; name: string; player: string }[];
@@ -19,6 +20,7 @@ interface DiceState {
 
 const state = buildState<DiceState>({
     uiState: DiceUiState.Roll,
+    lastCursorPosition: 0,
     updateTextInputScroll: false,
     dimensions3d: { width: 0, height: 0 },
     history: [],

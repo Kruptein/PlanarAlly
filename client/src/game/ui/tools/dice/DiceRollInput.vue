@@ -86,15 +86,50 @@ async function handlePaste(event: ClipboardEvent): Promise<void> {
     await handleText(text, false, false);
 }
 
+function findRelevantTextNode(node: Node, reverse: boolean): { node: Text; offset: number } | null {
+    if (node.nodeType === Node.TEXT_NODE) {
+        const n = node as Text;
+        if (n.textContent.length > 0) return { node: n, offset: reverse ? n.textContent.length : 0 };
+        return null;
+    }
+    const nodes = [...node.childNodes];
+    if (reverse) nodes.reverse();
+    for (const child of nodes) {
+        const result = findRelevantTextNode(child, reverse);
+        if (result) {
+            return result;
+        }
+    }
+    return null;
+}
+
 function getCursorPositions(
     node: Node,
     offset: number,
     text: string,
     isRemove: boolean,
 ): { state: number; visual: number } {
-    // First we need to determine how these positions translate to the state input
+    // There is different behavior when a node is a text node vs other nodes
+    // the selection offset has a different meaning in this context, which makes the logic annoying.
+    // In firefox this happens more frequently, but in chrome it can also happen (e.g. when using the home/end keys).
+    //
+    // To fix it, we manually figure out what the real node and offsets are
+    let textNode: Text;
+    let textOffset = offset;
+    if (node.nodeType === Node.TEXT_NODE) {
+        textNode = node as Text;
+    } else {
+        const result = findRelevantTextNode(node, offset !== 0);
+        if (result === null) return { state: 0, visual: 0 };
+        textNode = result.node;
+        textOffset = result.offset;
+    }
+    if (textNode === undefined) return { state: 0, visual: 0 };
+
+    // With the correct node and offset known,
+    // we now need to determine how this position maps to the state input
     // we do this based on the segment info. The active segment is a data attribute
-    const parentElement = node.parentElement;
+    const parentElement = textNode.parentElement;
     const segmentIndex = parentElement?.getAttribute("data-offset");
     const isReferenceNode = parentElement?.classList.contains("reference") ?? false;
 
@@ -119,8 +154,8 @@ function getCursorPositions(
             if (segment.discriminator !== undefined) statePos += segment.discriminator.length;
         }
     }
-    statePos += offset;
-    visualPos += offset;
+    statePos += textOffset;
+    visualPos += textOffset;
 
     if (isReferenceNode) {
         const segment = segments.value[segmentIndexInt]!;
@@ -129,7 +164,7 @@ function getCursorPositions(
         // so that already accounts for the preceding {, the ending } should only be added if we're at the end of the node
         visualPos -= 1; // for the visual pos, the space is however ignored when doing the move forward by 1 character
         if (segment.isVariable && segment.discriminator !== undefined) statePos += segment.discriminator.length;
-        if ((text === " " || isRemove) && offset === node.textContent!.length) {
+        if ((text === " " || isRemove) && textOffset === textNode.textContent.length) {
             // if we're at the end of the node and we add a space, we want to go to the next segment,
             // so we add 1 as if the ending } was handled
             statePos += 1;
@@ -144,24 +179,6 @@ async function handleText(text: string, isRemove: boolean, isBackspace: boolean)
     if (sel === null) return;
 
     const isCollapsed = sel.isCollapsed ?? false;
-
-    if (sel.anchorNode === sel.focusNode) {
-        if (sel.anchorNode === null) return;
-        if (sel.anchorNode.nodeName !== "#text") {
-            // There is different behavior when a node is a text node vs other nodes
-            // the selection offset has a different meaning in this context, which makes the logic annoying.
-            // We force the selection to work in text node mode, by moving the selection back and forth.
-            // This works, because the non-text mode only works if the selection is at the end of a section.
-            // In firefox this happens more frequently, but in chrome it can also happen (e.g. when using the home/end keys).
-            if (sel.anchorOffset !== 0) {
-                sel.modify("move", "backward", "character");
-                sel.modify("move", "forward", "character");
-            } else {
-                sel.modify("move", "forward", "character");
-                sel.modify("move", "backward", "character");
-            }
-        }
-    }
 
     // Get start positions of the selection, we always operate in a left to right manner
     const startPos: [Node | null, number] =

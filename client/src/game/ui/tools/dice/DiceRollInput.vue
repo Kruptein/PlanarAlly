@@ -38,9 +38,6 @@ const segments = computed(() => {
 });
 
 async function handleKey(event: KeyboardEvent): Promise<void> {
-    const isDeleteKey = event.key === "Backspace" || event.key === "Delete";
-    const isModifierKey = event.ctrlKey || event.metaKey || event.altKey;
-
     if (event.key === "Enter") {
         event.preventDefault();
         // roll is handled by the DiceAutoComplete component
@@ -60,13 +57,22 @@ async function handleKey(event: KeyboardEvent): Promise<void> {
         return;
     }
 
-    if (isModifierKey || (!/^.$/u.test(event.key) && !isDeleteKey)) {
+    const isRemove = event.key === "Backspace" || event.key === "Delete";
+    const isModifierKey = event.ctrlKey || event.metaKey || event.altKey;
+
+    if ((isModifierKey || !/^.$/u.test(event.key)) && !isRemove) {
         // non unicode character or modifier key
         return;
     }
     event.preventDefault();
 
-    await handleText(event.key, isDeleteKey, event.key === "Backspace");
+    if (isRemove && isModifierKey) {
+        const sel = document.getSelection();
+        if (sel === null) return;
+        sel.modify("extend", "backward", "word");
+    }
+
+    await handleText(event.key, isRemove, event.key === "Backspace");
 }
 
 async function handlePaste(event: ClipboardEvent): Promise<void> {
@@ -77,26 +83,15 @@ async function handlePaste(event: ClipboardEvent): Promise<void> {
     await handleText(text, false, false);
 }
 
-async function handleText(text: string, isDelete: boolean, isBackspace: boolean): Promise<void> {
-    const sel = document.getSelection();
-    if (sel === null) return;
-
-    const isCollapsed = sel.isCollapsed ?? false;
-    const selectionLength = isCollapsed ? 1 : (sel.toString().length ?? 0);
-    sel.collapseToStart();
-
-    // First we need to determine the position of the cursor in the state input
-    // we do this based on the segments and selection anchor info + modifications for references that have modified visuals
-    if (sel.anchorNode === null) return;
-    if (sel.anchorNode.nodeName !== "#text") {
-        // firefox shenanigans
-        // sometimes firefox decides that we don't need to have the anchor be the deepest element,
-        // but rather the main input element, which makes the anchorOffset mean something completely different
-        // FF can only do this if the selection is at the very end, so we force it to re-evaluate by moving backward and forward
-        sel.modify("move", "backward", "character");
-        sel.modify("move", "forward", "character");
-    }
-    const parentElement = sel.anchorNode.parentElement;
+function getCursorPositions(
+    node: Node,
+    offset: number,
+    text: string,
+    isRemove: boolean,
+): { state: number; visual: number } {
+    // First we need to determine how these positions translate to the state input
+    // we do this based on the segment info. The active segment is a data attribute
+    const parentElement = node.parentElement;
     const segmentIndex = parentElement?.getAttribute("data-offset");
     const isReferenceNode = parentElement?.classList.contains("reference") ?? false;
 
@@ -121,8 +116,8 @@ async function handleText(text: string, isDelete: boolean, isBackspace: boolean)
             if (segment.discriminator !== undefined) statePos += segment.discriminator.length;
         }
     }
-    statePos += sel.anchorOffset;
-    visualPos += sel.anchorOffset;
+    statePos += offset;
+    visualPos += offset;
 
     if (isReferenceNode) {
         const segment = segments.value[segmentIndexInt]!;
@@ -131,41 +126,97 @@ async function handleText(text: string, isDelete: boolean, isBackspace: boolean)
         // so that already accounts for the preceding {, the ending } should only be added if we're at the end of the node
         visualPos -= 1; // for the visual pos, the space is however ignored when doing the move forward by 1 character
         if (segment.isVariable && segment.discriminator !== undefined) statePos += segment.discriminator.length;
-        if (text === " " && sel.anchorOffset === sel.anchorNode.textContent!.length) {
+        if ((text === " " || isRemove) && offset === node.textContent!.length) {
             // if we're at the end of the node and we add a space, we want to go to the next segment,
             // so we add 1 as if the ending } was handled
             statePos += 1;
         }
     }
 
+    return { state: statePos, visual: visualPos };
+}
+
+async function handleText(text: string, isRemove: boolean, isBackspace: boolean): Promise<void> {
+    const sel = document.getSelection();
+    if (sel === null) return;
+
+    const isCollapsed = sel.isCollapsed ?? false;
+
+    if (sel.anchorNode === sel.focusNode) {
+        if (sel.anchorNode === null) return;
+        if (sel.anchorNode.nodeName !== "#text") {
+            // There is different behavior when a node is a text node vs other nodes
+            // the selection offset has a different meaning in this context, which makes the logic annoying.
+            // We force the selection to work in text node mode, by moving the selection back and forth.
+            // This works, because the non-text mode only works if the selection is at the end of a section.
+            // In firefox this happens more frequently, but in chrome it can also happen (e.g. when using the home/end keys).
+            if (sel.anchorOffset !== 0) {
+                sel.modify("move", "backward", "character");
+                sel.modify("move", "forward", "character");
+            } else {
+                sel.modify("move", "forward", "character");
+                sel.modify("move", "backward", "character");
+            }
+        }
+    }
+
+    // Get start positions of the selection, we always operate in a left to right manner
+    const startPos: [Node | null, number] =
+        sel.direction === "forward" ? [sel.anchorNode, sel.anchorOffset] : [sel.focusNode, sel.focusOffset];
+    const endPos: [Node | null, number] =
+        sel.direction === "forward" ? [sel.focusNode, sel.focusOffset] : [sel.anchorNode, sel.anchorOffset];
+
+    sel.collapseToStart();
+
+    if (startPos[0] === null || endPos[0] === null) return;
+
+    // We first need to determine how the cursor positions translate to the state input
+    // Grab the state and visual positions of the start and end positions
+    // The end position calculation is doing some double work, but it shouldn't occur often and it's not worth the complexity
+    const startPositions = getCursorPositions(startPos[0], startPos[1], text, isRemove);
+    let endPositions = startPositions;
+    if (endPos[0] !== startPos[0] || endPos[1] !== startPos[1]) {
+        endPositions = getCursorPositions(endPos[0], endPos[1], text, isRemove);
+    }
+
+    // If we have no selection (i.e. it's collapsed) and we're doing a backspace
+    // we move the cursor back one character so that we can use the same logic as we do for the delete key
     if (isCollapsed && isBackspace) {
-        statePos--;
-        visualPos--;
+        startPositions.state--;
+        startPositions.visual--;
     }
 
     // Start actual text manipulation
+    // We use a temporary variable while manipulating as both removal and addition might occur at the same time
 
     let newText = diceState.raw.textInput;
 
-    if (!isCollapsed || isDelete) {
+    if (!isCollapsed || isRemove) {
         // If a key is pressed while there is a selection, we need to delete the selection
-        // It's a known bug that the selectionLength does not account for the reference syntax,
-        // so it will sometimes delete too little
-        newText = newText.slice(0, statePos) + newText.slice(statePos + selectionLength);
+        // This also needs to happen if we're using a regular remove operation (backspace or delete)
+        // If the start and end positions are the same, we have no selection but are using delete
+        // so we need to ensure we're actually removing a character so we add 1
+        newText =
+            newText.slice(0, startPositions.state) +
+            newText.slice(endPositions.state + (endPositions.state === startPositions.state ? 1 : 0));
     }
 
-    if (!isDelete) {
-        newText = newText.slice(0, statePos) + text + newText.slice(statePos);
-        statePos += text.length;
-        visualPos += text.length;
+    // Add whatever text we're inserting to our pending text
+    if (!isRemove) {
+        newText = newText.slice(0, startPositions.state) + text + newText.slice(startPositions.state);
+        startPositions.state += text.length;
+        startPositions.visual += text.length;
     }
 
+    // Update state
+    diceState.mutableReactive.lastCursorPosition = startPositions.state;
     diceState.mutableReactive.textInput = newText;
-    diceState.mutableReactive.lastCursorPosition = statePos;
 
     await nextTick();
 
-    for (let i = 0; i < visualPos; i++) {
+    // Update the visual cursor position
+    // it's possible that due to refrence interaction, this is no longer accurate
+    for (let i = 0; i < startPositions.visual; i++) {
         sel.modify("move", "forward", "character");
     }
 }

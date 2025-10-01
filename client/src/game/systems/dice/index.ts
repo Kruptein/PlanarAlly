@@ -27,8 +27,9 @@ class DiceSystem implements System {
     }
 
     setInput(input: string): void {
+        $.lastCursorPosition = input.length;
         $.textInput = input;
-        $.updateTextInputScroll = true;
+        $.updateInputCursor = true;
         $.uiState = DiceUiState.Roll;
     }
 

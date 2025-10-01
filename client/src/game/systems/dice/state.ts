@@ -11,7 +11,7 @@ interface DiceState {
     uiState: LocalId | DiceUiState;
     textInput: string;
     lastCursorPosition: number;
-    updateTextInputScroll: boolean;
+    updateInputCursor: boolean;
     dimensions3d: { width: number; height: number };
     history: { roll: RollResult<Part>; name: string; player: string }[];
     systems?: { "2d": AsyncReturnType<typeof SYSTEMS.DX>["DX"]; "3d": AsyncReturnType<typeof SYSTEMS.DX3>["DX3"] };
@@ -21,7 +21,7 @@ interface DiceState {
 const state = buildState<DiceState>({
     uiState: DiceUiState.Roll,
     lastCursorPosition: 0,
-    updateTextInputScroll: false,
+    updateInputCursor: false,
     dimensions3d: { width: 0, height: 0 },
     history: [],
     textInput: "",

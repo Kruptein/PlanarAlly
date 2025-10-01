@@ -23,13 +23,16 @@ const emit = defineEmits<{
 // This is only set when the input was changed explicitly through the dice system
 // manual text changes will not trigger this (on purpose)
 watch(
-    () => diceState.reactive.updateTextInputScroll,
+    () => diceState.reactive.updateInputCursor,
     async (value) => {
         if (!value) return;
         await nextTick();
-        inputElement.value!.scrollLeft = inputElement.value!.scrollWidth;
         inputElement.value!.focus();
-        diceState.mutableReactive.updateTextInputScroll = false;
+        diceState.mutableReactive.updateInputCursor = false;
+        const sel = document.getSelection();
+        if (sel === null) return;
+        sel.selectAllChildren(inputElement.value!);
+        sel.collapseToEnd();
     },
 );
 

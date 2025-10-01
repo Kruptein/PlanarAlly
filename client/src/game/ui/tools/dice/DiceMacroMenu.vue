@@ -8,6 +8,7 @@ import type { IAsset } from "../../../interfaces/shapes/asset";
 import { customDataSystem } from "../../../systems/customData";
 import { customDataState } from "../../../systems/customData/state";
 import { DiceUiState } from "../../../systems/dice/types";
+import { getProperties } from "../../../systems/properties/state";
 import { selectedState } from "../../../systems/selected/state";
 
 const active = defineModel<LocalId | DiceUiState>({ required: true });
@@ -32,6 +33,10 @@ const shapes = computed(() => {
         if (shape === undefined) continue;
         if (shape.type === "assetrect") {
             images.push({ id, src: baseAdjust((shape as IAsset).src) });
+        } else {
+            const props = getProperties(id);
+            if (props === undefined) continue;
+            images.push({ id, letter: props.name[0]!.toUpperCase() });
         }
     }
     return images;
@@ -47,13 +52,14 @@ const shapes = computed(() => {
             <font-awesome-icon icon="floppy-disk" />
         </div> -->
         <div
-            v-for="{ id, src } in shapes"
+            v-for="{ id, letter, src } in shapes"
             :key="id"
             class="entry"
             :class="{ active: active === id }"
             @click="active = id"
         >
-            <img :src="src" width="30px" height="30px" />
+            <img v-if="src" :src="src" width="30px" height="30px" />
+            <span v-else>{{ letter }}</span>
         </div>
     </div>
 </template>

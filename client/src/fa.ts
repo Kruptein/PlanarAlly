@@ -89,6 +89,7 @@ import {
     faWandMagicSparkles,
     faFolderTree,
     faDiceD20,
+    faCircleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
 
 export function loadFontAwesome(): void {
@@ -112,6 +113,7 @@ export function loadFontAwesome(): void {
         faChevronRight,
         faChevronUp,
         faCircle,
+        faCircleExclamation,
         faCircleInfo,
         faCircleXmark,
         faClockRotateLeft,

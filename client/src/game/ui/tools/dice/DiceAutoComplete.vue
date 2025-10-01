@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onUnmounted, ref, watch } from "vue";
 
+import { baseAdjust } from "../../../../core/http";
 import type { LocalId } from "../../../../core/id";
 import type { DistributiveOmit } from "../../../../core/types";
 import { getShape } from "../../../id";
@@ -8,11 +9,16 @@ import type { IAsset } from "../../../interfaces/shapes/asset";
 import { customDataState } from "../../../systems/customData/state";
 import type { UiShapeCustomData } from "../../../systems/customData/types";
 import { diceState } from "../../../systems/dice/state";
+import { getProperties } from "../../../systems/properties/state";
 import { selectedState } from "../../../systems/selected/state";
 
 const showAutoComplete = ref(false);
 const autoCompleteSearchIndex = ref(0);
-type AutoCompleteOption = DistributiveOmit<UiShapeCustomData, "shapeId"> & { shapeId: LocalId; src: string };
+type AutoCompleteOption = DistributiveOmit<UiShapeCustomData, "shapeId"> & {
+    shapeId: LocalId;
+    src?: string;
+    letter?: string;
+};
 const autoCompleteOptions = ref<AutoCompleteOption[]>([]);
 
 let autoCompleteSearchTextBackward = "";
@@ -111,9 +117,9 @@ function checkAutoComplete(text: string): void {
     }
 }
 
-async function completeAutoComplete(): Promise<void> {
+async function completeAutoComplete(option?: AutoCompleteOption): Promise<void> {
     if (inputElement === null) return;
-    const option = autoCompleteOptions.value[autoCompleteSearchIndex.value]!;
+    option ??= autoCompleteOptions.value[autoCompleteSearchIndex.value]!;
     const start = diceState.raw.lastCursorPosition - autoCompleteSearchTextBackward.length - 1;
 
     const oldMessage = diceState.raw.textInput;
@@ -176,15 +182,17 @@ function getAutoCompleteOptions(): AutoCompleteOption[] {
     }
 
     for (const [shapeId, shapeData] of customDataState.readonly.data.entries()) {
-        let shape: IAsset | undefined;
+        const shape = getShape(shapeId);
+        if (shape === undefined) continue;
         for (const data of shapeData) {
             if (data.name.toLowerCase().startsWith(pre) && data.name.toLowerCase().endsWith(post)) {
-                if (shape === undefined) {
-                    const sh = getShape(shapeId);
-                    if (sh === undefined || sh.type !== "assetrect") continue;
-                    shape = sh as IAsset;
+                if (shape.type === "assetrect") {
+                    options.push({ src: baseAdjust((shape as IAsset).src), ...data, shapeId });
+                } else {
+                    const props = getProperties(shapeId);
+                    if (props === undefined) continue;
+                    options.push({ letter: props.name[0]!.toUpperCase(), ...data, shapeId });
                 }
-                options.push({ src: shape.src, ...data, shapeId });
             }
         }
     }
@@ -211,8 +219,10 @@ function getAutoCompleteOptions(): AutoCompleteOption[] {
             v-for="(option, i) of autoCompleteOptions"
             :key="`${option.shapeId}-${option.id}`"
             :class="{ selected: i === autoCompleteSearchIndex }"
+            @click="completeAutoComplete(option)"
         >
-            <img :src="option.src" />
+            <img v-if="option.src" :src="option.src" />
+            <span v-else-if="option.letter" class="reference-letter">{{ option.letter }}</span>
             <div>
                 <div class="ref-prefix">{{ option.prefix }}</div>
                 <div>{{ option.name }}</div>

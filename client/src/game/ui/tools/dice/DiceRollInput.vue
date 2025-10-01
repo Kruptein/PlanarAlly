@@ -37,7 +37,10 @@ watch(
 );
 
 const segments = computed(() => {
-    return getVariableSegments(diceState.reactive.textInput);
+    return getVariableSegments(diceState.reactive.textInput).map((segment) => ({
+        ...segment,
+        ...(segment.isVariable ? { image: segment.ref?.shapeId ? getImage(segment.ref.shapeId) : undefined } : {}),
+    }));
 });
 
 async function handleKey(event: KeyboardEvent): Promise<void> {
@@ -267,7 +270,8 @@ function getImage(shapeId: GlobalId): string {
                     :class="{ incomplete: segment.ref === undefined }"
                     :data-offset="index"
                 >
-                    <img v-if="segment.ref?.shapeId" :src="getImage(segment.ref.shapeId)" />
+                    <img v-if="segment.image" :src="segment.image" />
+                    <span v-else-if="segment.ref?.shapeId" class="reference-letter">a</span>
                     <font-awesome-icon v-else icon="circle-exclamation" />
                     {{ segment.text }}
                 </div>
@@ -284,6 +288,22 @@ function getImage(shapeId: GlobalId): string {
         <DiceAutoComplete :input-element="inputElement" @roll="emit('roll')" />
     </div>
 </template>
+
+<style lang="scss">
+.reference-letter {
+    background-color: white;
+    color: black;
+    border-radius: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    margin-right: 5px;
+    text-transform: uppercase;
+}
+</style>
 
 <style scoped lang="scss">
 #input-bar {

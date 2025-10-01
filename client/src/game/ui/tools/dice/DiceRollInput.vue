@@ -261,8 +261,14 @@ function getImage(shapeId: GlobalId): string {
             @paste="handlePaste($event as ClipboardEvent)"
         >
             <template v-for="(segment, index) of segments" :key="index">
-                <div v-if="segment.isVariable" class="reference" :data-offset="index">
+                <div
+                    v-if="segment.isVariable"
+                    class="reference"
+                    :class="{ incomplete: segment.ref === undefined }"
+                    :data-offset="index"
+                >
                     <img v-if="segment.ref?.shapeId" :src="getImage(segment.ref.shapeId)" />
+                    <font-awesome-icon v-else icon="circle-exclamation" />
                     {{ segment.text }}
                 </div>
                 <span v-else-if="segment.text.length > 0" :data-offset="index">{{ segment.text }}</span>
@@ -316,6 +322,11 @@ function getImage(shapeId: GlobalId): string {
             img {
                 margin-right: 0.5rem;
                 width: 1.5rem;
+            }
+
+            &.incomplete {
+                border-style: dashed;
+                border-width: 3px;
             }
         }
     }

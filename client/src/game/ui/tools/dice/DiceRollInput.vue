@@ -40,11 +40,23 @@ const segments = computed(() => {
 async function handleKey(event: KeyboardEvent): Promise<void> {
     const isDeleteKey = event.key === "Backspace" || event.key === "Delete";
     const isModifierKey = event.ctrlKey || event.metaKey || event.altKey;
-    // const isPaste = event.key === "v" && ctrlOrCmdPressed(event);
 
     if (event.key === "Enter") {
         event.preventDefault();
         // roll is handled by the DiceAutoComplete component
+        return;
+    } else if (event.key === "Home" || event.key === "End") {
+        event.preventDefault();
+        const sel = document.getSelection();
+        if (sel === null) return;
+        // This was only moving the cursor within the sub-elements.
+        // So we select all children and then collapse to the start or end
+        sel.selectAllChildren(inputElement.value!);
+        if (event.key === "Home") {
+            sel.collapseToStart();
+        } else {
+            sel.collapseToEnd();
+        }
         return;
     }
 
@@ -103,11 +115,9 @@ async function handleText(text: string, isDelete: boolean, isBackspace: boolean)
         const segment = segments.value[i];
         if (segment === undefined) continue;
         statePos += segment.text.length;
-        // visualPos += segment.text.length;
         // If we're dealing with a reference, we need to add 2 for the { and }
         if (segment.isVariable) {
             statePos += 2;
-            // visualPos += 1; // we have a random space (see below)
             if (segment.discriminator !== undefined) statePos += segment.discriminator.length;
         }
     }
@@ -154,8 +164,6 @@ async function handleText(text: string, isDelete: boolean, isBackspace: boolean)
     diceState.mutableReactive.lastCursorPosition = statePos;
 
     await nextTick();
-
-    // const length = isDelete ? 0 : text.length - 1;
 
     for (let i = 0; i < visualPos; i++) {
         sel.modify("move", "forward", "character");

@@ -54,21 +54,38 @@ function checkAutoComplete(text: string): void {
 
     // figure out if we're typing a reference
     // look back until we find a {, the start of the input, or a different non-letter
+    // the only exception is if the last character is a }, we allow it
 
+    let closedVariable = false;
     let end = diceState.raw.lastCursorPosition - 1;
     let start = end;
     for (let i = end; i >= 0; i--) {
-        if (text[i] === "{") {
+        const char = text[i];
+        if (char === "{") {
             start = i + 1;
             break;
-        } else if (text[i]?.match(/[a-z0-9[\]]/) === null) {
+        } else if (char?.match(/[a-z0-9[\]]/) === null) {
+            if (i === text.length - 1 && char === "}") {
+                closedVariable = true;
+                continue;
+            }
             break;
         }
     }
 
-    // the regex is the discriminator part (see custom data utils)
-    // for the autocompletion we're just ignoring it, as we might want to change to a different shape
-    autoCompleteSearchTextBackward = text.slice(start, end + 1).replace(/\[\d+\]/, "");
+    autoCompleteSearchTextBackward = text.slice(start, end + 1);
+
+    // When the reference is modified and there is a discriminator, we almost always want to remove it
+    if (!closedVariable && autoCompleteSearchTextBackward.startsWith("[")) {
+        const endIndex = autoCompleteSearchTextBackward.indexOf("]");
+        if (endIndex !== -1) {
+            diceState.mutableReactive.lastCursorPosition -= endIndex + 1;
+            diceState.mutableReactive.textInput =
+                diceState.raw.textInput.slice(0, start) + diceState.raw.textInput.slice(start + endIndex + 1);
+            // this function will re-trigger
+            return;
+        }
+    }
 
     // if we already have text behind the cursor, we also do a forwards search
     start = diceState.raw.lastCursorPosition;
@@ -84,8 +101,8 @@ function checkAutoComplete(text: string): void {
 
     autoCompleteSearchTextForward = text.slice(start, end);
 
-    // Require at least 1 character after the { to search
-    if (autoCompleteSearchTextBackward.length > 1) {
+    // Require at least 2 characters after the { to search
+    if (autoCompleteSearchTextBackward.length > 1 && !closedVariable) {
         autoCompleteOptions.value = getAutoCompleteOptions();
         autoCompleteSearchIndex.value = 0;
         showAutoComplete.value = true;
@@ -94,8 +111,9 @@ function checkAutoComplete(text: string): void {
     }
 }
 
-async function completeAutoComplete(option: AutoCompleteOption): Promise<void> {
+async function completeAutoComplete(): Promise<void> {
     if (inputElement === null) return;
+    const option = autoCompleteOptions.value[autoCompleteSearchIndex.value]!;
     const start = diceState.raw.lastCursorPosition - autoCompleteSearchTextBackward.length - 1;
 
     const oldMessage = diceState.raw.textInput;
@@ -118,12 +136,15 @@ async function completeAutoComplete(option: AutoCompleteOption): Promise<void> {
 async function handleAutoCompleteKey(event: KeyboardEvent): Promise<void> {
     if (event.key === "Enter") {
         if (showAutoComplete.value) {
-            await completeAutoComplete(autoCompleteOptions.value[autoCompleteSearchIndex.value]!);
+            await completeAutoComplete();
             event.preventDefault();
         } else {
             emit("roll");
         }
     } else if (event.key === "{" || event.key === "}") {
+        if (event.key === "}") {
+            await completeAutoComplete();
+        }
         autoCompleteSearchTextBackward = "";
         autoCompleteSearchTextForward = "";
     } else if (event.key === "Escape") {
@@ -145,13 +166,19 @@ async function handleAutoCompleteKey(event: KeyboardEvent): Promise<void> {
 
 function getAutoCompleteOptions(): AutoCompleteOption[] {
     const options: AutoCompleteOption[] = [];
+
+    // the regex is the discriminator part (see custom data utils)
+    // for the autocompletion we're just ignoring it, as we might want to change to a different shape
+    let pre = autoCompleteSearchTextBackward.toLowerCase().replace(/\[\d+\]/, "");
+    const post = autoCompleteSearchTextForward.toLowerCase();
+    if (pre.endsWith("}")) {
+        pre = pre.slice(0, -1);
+    }
+
     for (const [shapeId, shapeData] of customDataState.readonly.data.entries()) {
         let shape: IAsset | undefined;
         for (const data of shapeData) {
-            if (
-                data.name.toLowerCase().startsWith(autoCompleteSearchTextBackward.toLowerCase()) &&
-                data.name.toLowerCase().endsWith(autoCompleteSearchTextForward.toLowerCase())
-            ) {
+            if (data.name.toLowerCase().startsWith(pre) && data.name.toLowerCase().endsWith(post)) {
                 if (shape === undefined) {
                     const sh = getShape(shapeId);
                     if (sh === undefined || sh.type !== "assetrect") continue;

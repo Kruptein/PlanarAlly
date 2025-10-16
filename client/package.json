@@ -58,7 +58,7 @@
         "eslint-import-resolver-typescript": "^3.6.3",
         "eslint-plugin-import": "^2.30.0",
         "eslint-plugin-vue": "^9.28.0",
-        "happy-dom": "^20.0.0",
+        "happy-dom": "^20.0.2",
         "json-schema-to-typescript": "^15.0.4",
         "prettier": "^3.5.3",
         "rollup-plugin-visualizer": "^6.0.3",

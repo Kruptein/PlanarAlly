@@ -38,6 +38,7 @@ tech changes will usually be stripped from release notes for the public
 
 -   Images in the Token Direction indicator were overflowing
 -   Prevent shortcut handling when targetting an html select element
+-   Ampersand in campaign name preventing game load
 
 ## [2025.3]
 

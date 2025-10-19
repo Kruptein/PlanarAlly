@@ -9,7 +9,7 @@ import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types"
 import { callbackProvider } from "../../../core/utils";
 import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
-import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
+import { sendRemoveShapes, sendShapeOrder } from "../../api/emits/shape/core";
 import { dropId, getGlobalId, getShape } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
@@ -19,7 +19,7 @@ import { addOperation } from "../../operations/undo";
 import { drawAuras } from "../../rendering/auras";
 import { drawTear } from "../../rendering/basic";
 import { drawCells } from "../../rendering/grid";
-import { createShapeFromDict } from "../../shapes/create";
+import { createOnServer, fromSystemForm, instantiateCompactForm, loadFromServer } from "../../shapes/transformations";
 import { BoundingRect } from "../../shapes/variants/simple/boundingRect";
 import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
@@ -206,13 +206,11 @@ export class Layer implements ILayer {
 
         shape.invalidatePoints();
 
+        // We delay compact generation as we don't want to do it for no_sync shapes
+        let compact;
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
-            sendShapeAdd({
-                shape: shape.asDict(),
-                floor: shape.floor!.name,
-                layer: shape.layer!.name,
-                temporary: sync === SyncMode.TEMP_SYNC,
-            });
+            compact = fromSystemForm(shape.id);
+            createOnServer(compact);
         }
         if (invalidate !== InvalidationMode.NO) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
 
@@ -224,10 +222,10 @@ export class Layer implements ILayer {
             selectedSystem.push(shape.id);
         }
 
-        if (sync === SyncMode.FULL_SYNC) {
+        if (sync === SyncMode.FULL_SYNC && compact !== undefined) {
             addOperation({
                 type: "shapeadd",
-                shapes: [shape.asDict()],
+                shapes: [compact],
                 floor: shape.floor!.name,
                 layerName: shape.layer!.name,
             });
@@ -280,15 +278,14 @@ export class Layer implements ILayer {
     }
 
     private setServerShape(serverShape: ApiShape): void {
-        const shape = createShapeFromDict(serverShape, this.floor, this.name);
-        if (shape === undefined) {
-            return;
-        }
-        let invalidate = InvalidationMode.NO;
-        if (visionState.state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
-            invalidate = InvalidationMode.WITH_LIGHT;
-        }
-        this.addShape(shape, SyncMode.NO_SYNC, invalidate);
+        const compact = loadFromServer(serverShape, this.floor, this.name);
+        instantiateCompactForm(compact, "load", (shape) => {
+            let invalidate = InvalidationMode.NO;
+            if (visionState.state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
+                invalidate = InvalidationMode.WITH_LIGHT;
+            }
+            this.addShape(shape, SyncMode.NO_SYNC, invalidate);
+        });
     }
 
     removeShape(shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }): boolean {

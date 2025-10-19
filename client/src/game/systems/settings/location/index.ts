@@ -1,7 +1,6 @@
 import type { GlobalId } from "../../../../core/id";
 import { registerSystem } from "../../../../core/systems";
-import type { System } from "../../../../core/systems";
-import type { SystemClearReason } from "../../../../core/systems/models";
+import type { System, SystemClearReason } from "../../../../core/systems/models";
 import { sendLocationOption } from "../../../api/emits/location";
 import { updateFogColour } from "../../../colour";
 import { floorSystem } from "../../floors";

@@ -1,10 +1,11 @@
 import { type DeepReadonly } from "vue";
 
+import type { ApiCoreShape } from "../../../apiTypes";
 import type { LocalId } from "../../../core/id";
 import { filter, guard } from "../../../core/iter";
 import type { Sync } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
-import type { ShapeSystem } from "../../../core/systems";
+import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { coreStore } from "../../../store/core";
 import { getGlobalId, getShape } from "../../id";
 import { initiativeStore } from "../../ui/initiative/state";
@@ -14,14 +15,83 @@ import { playerSystem } from "../players";
 import { locationSettingsSystem } from "../settings/location";
 
 import { sendShapeAddOwner, sendShapeDeleteOwner, sendShapeUpdateDefaultOwner, sendShapeUpdateOwner } from "./emits";
-import { accessToServer, ownerToServer } from "./helpers";
+import { accessToServer, ownerToClient, ownerToServer } from "./helpers";
 import { ACCESS_LEVELS, DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL, isNonDefaultAccessSymbol } from "./models";
 import type { AccessMap, ACCESS_KEY, AccessConfig, ShapeOwner, AccessLevel } from "./models";
 import { accessState } from "./state";
 
 const { mutableReactive: $, activeTokens, mutable, raw } = accessState;
 
-class AccessSystem implements ShapeSystem {
+class AccessSystem implements ShapeSystem<AccessMap | undefined> {
+    // CORE
+
+    clear(): void {
+        this.dropState();
+        for (const al of ACCESS_LEVELS) {
+            $.activeTokenFilters.delete(al);
+            $.ownedTokens.get(al)?.clear();
+        }
+        mutable.access.clear();
+    }
+
+    drop(id: LocalId): void {
+        mutable.access.delete(id);
+        for (const al of ACCESS_LEVELS) {
+            $.ownedTokens.get(al)?.delete(id);
+            $.activeTokenFilters.get(al)?.delete(id);
+        }
+        if ($.id === id) {
+            this.dropState();
+        }
+    }
+
+    import(id: LocalId, data: AccessMap | undefined, _mode: SystemInformMode): void {
+        if (data === undefined) return;
+        mutable.access.set(id, data);
+
+        if ($.id === id) {
+            this.loadState(id);
+        }
+
+        this._updateOwnedState(id);
+        initiativeStore._forceUpdate();
+    }
+
+    export(id: LocalId): AccessMap | undefined {
+        return mutable.access.get(id);
+    }
+
+    toServerShape(id: LocalId, shape: ApiCoreShape): void {
+        const defaultAccess = this.getDefault(id);
+        shape.default_edit_access = defaultAccess.edit;
+        shape.default_vision_access = defaultAccess.vision;
+        shape.default_movement_access = defaultAccess.movement;
+
+        shape.owners = this.getOwnersFull(id).map((o) => ownerToServer(o));
+    }
+
+    fromServerShape(shape: ApiCoreShape): AccessMap | undefined {
+        const defaultAccess = {
+            edit: shape.default_edit_access,
+            vision: shape.default_vision_access,
+            movement: shape.default_movement_access,
+        };
+
+        const accessMap: AccessMap = new Map();
+
+        // Default Access
+        if (defaultAccess.edit || defaultAccess.movement || defaultAccess.vision) {
+            accessMap.set(DEFAULT_ACCESS_SYMBOL, defaultAccess);
+        }
+
+        // Player Access
+        for (const extra of shape.owners.map((owner) => ownerToClient(owner))) {
+            accessMap.set(extra.user, extra.access);
+        }
+
+        return accessMap.size > 0 ? accessMap : undefined;
+    }
+
     // REACTIVE
 
     loadState(id: LocalId): void {
@@ -47,57 +117,6 @@ class AccessSystem implements ShapeSystem {
     }
 
     // BEHAVIOUR
-
-    clear(): void {
-        this.dropState();
-        for (const al of ACCESS_LEVELS) {
-            $.activeTokenFilters.delete(al);
-            $.ownedTokens.get(al)?.clear();
-        }
-        mutable.access.clear();
-    }
-
-    // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, access: { default: AccessConfig; extra: Omit<ShapeOwner, "shape">[] }): void {
-        const accessMap: AccessMap = new Map();
-
-        // Default Access
-        if (access.default.edit || access.default.movement || access.default.vision) {
-            accessMap.set(DEFAULT_ACCESS_SYMBOL, access.default);
-            if ($.id === id) {
-                $.defaultAccess = access.default;
-            }
-        } else {
-            accessMap.delete(DEFAULT_ACCESS_SYMBOL);
-            if ($.id === id) {
-                $.defaultAccess = access.default;
-            }
-        }
-
-        // Player Access
-        for (const extra of access.extra) {
-            accessMap.set(extra.user, extra.access);
-            if ($.id === id) {
-                $.playerAccess.set(extra.user, extra.access);
-            }
-        }
-
-        // Commit
-        mutable.access.set(id, accessMap);
-        this._updateOwnedState(id);
-        initiativeStore._forceUpdate();
-    }
-
-    drop(id: LocalId): void {
-        mutable.access.delete(id);
-        for (const al of ACCESS_LEVELS) {
-            $.ownedTokens.get(al)?.delete(id);
-            $.activeTokenFilters.get(al)?.delete(id);
-        }
-        if ($.id === id) {
-            this.dropState();
-        }
-    }
 
     getDefault(id: LocalId): DeepReadonly<AccessConfig> {
         return mutable.access.get(id)?.get(DEFAULT_ACCESS_SYMBOL) ?? DEFAULT_ACCESS;

@@ -1,15 +1,13 @@
-import { exportShapeData } from "..";
-import type { ApiCircleShape } from "../../../apiTypes";
 import { g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { getColour } from "../../colour";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerShapeOptions } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
-import type { ShapeProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/types";
 import { Shape } from "../shape";
+import type { CircleCompactCore, CompactShapeCore } from "../transformations";
 import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
@@ -51,14 +49,14 @@ export class Circle extends Shape implements IShape {
 
     readonly isClosed = true;
 
-    asDict(): ApiCircleShape {
-        return { ...exportShapeData(this), radius: this.r, viewing_angle: this.viewingAngle };
+    asCompact(): CircleCompactCore {
+        return { radius: this.r, viewing_angle: this.viewingAngle };
     }
 
-    fromDict(data: ApiCircleShape, options: Partial<ServerShapeOptions>): void {
-        super.fromDict(data, options);
-        this.r = data.radius;
-        this.viewingAngle = data.viewing_angle;
+    fromCompact(core: CompactShapeCore, subShape: CircleCompactCore): void {
+        super.fromCompact(core, subShape);
+        this.r = subShape.radius;
+        this.viewingAngle = subShape.viewing_angle;
     }
 
     getBoundingBox(): BoundingRect {

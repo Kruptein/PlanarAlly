@@ -1,6 +1,5 @@
 import clamp from "lodash/clamp";
 
-import type { ApiCoreShape, ApiShape } from "../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
@@ -19,7 +18,7 @@ import type { ILayer } from "../interfaces/layer";
 import type { IShape } from "../interfaces/shape";
 import { LayerName } from "../models/floor";
 import type { Floor, FloorId } from "../models/floor";
-import type { ServerShapeOptions, ShapeOptions } from "../models/shapes";
+import type { ShapeOptions } from "../models/shapes";
 import { polygon2path } from "../rendering/basic";
 import { accessSystem } from "../systems/access";
 import { auraSystem } from "../systems/auras";
@@ -29,7 +28,7 @@ import { floorState } from "../systems/floors/state";
 import { groupSystem } from "../systems/groups";
 import { propertiesSystem } from "../systems/properties";
 import { getProperties } from "../systems/properties/state";
-import type { ShapeProperties } from "../systems/properties/state";
+import type { ShapeProperties } from "../systems/properties/types";
 import { VisionBlock } from "../systems/properties/types";
 import { locationSettingsState } from "../systems/settings/location/state";
 import { playerSettingsState } from "../systems/settings/players/state";
@@ -38,6 +37,7 @@ import type { BehindPatch } from "../vision/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 import { computeVisibility } from "../vision/te";
 
+import type { CompactShapeCore, CompactSubShapeCore } from "./transformations";
 import type { DepShape, SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/simple/boundingRect";
 
@@ -143,7 +143,7 @@ export abstract class Shape implements IShape {
         this.isSnappable = options?.isSnappable ?? true;
         this._parentId = options?.parentId;
 
-        propertiesSystem.inform(this.id, properties);
+        if (properties !== undefined) propertiesSystem.import(this.id, properties, "load");
     }
 
     abstract __center(): GlobalPoint;
@@ -590,17 +590,15 @@ export abstract class Shape implements IShape {
     }
 
     // STATE
-    abstract asDict(): ApiShape;
+    abstract asCompact(): CompactSubShapeCore;
 
-    fromDict(data: ApiCoreShape, options: Partial<ServerShapeOptions>): void {
-        this.character = data.character ?? undefined;
-        this.angle = data.angle;
-        this.globalCompositeOperation = data.draw_operator as GlobalCompositeOperation;
-
-        this.ignoreZoomSize = data.ignore_zoom_size;
-
-        if (data.options !== undefined) this.options = options;
-        if (data.asset !== null) this.assetId = data.asset;
+    fromCompact(core: CompactShapeCore, _subShape: CompactSubShapeCore): void {
+        this.character = core.character ?? undefined;
+        this.angle = core.angle;
+        this.globalCompositeOperation = core.drawOperator;
+        this.ignoreZoomSize = core.ignoreZoomSize;
+        this.options = core.options;
+        this.assetId = core.assetId ?? undefined;
     }
 
     // UTILITY

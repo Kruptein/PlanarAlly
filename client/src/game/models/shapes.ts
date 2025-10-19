@@ -2,6 +2,7 @@ import type { Vector } from "../../core/geometry";
 import type { LocalId } from "../../core/id";
 import type { DoorOptions } from "../systems/logic/door/models";
 import type { TeleportOptions } from "../systems/logic/tp/models";
+import type { NoteId } from "../systems/notes/types";
 
 export interface ShapeOptions {
     isPlayerRect: boolean;
@@ -21,7 +22,7 @@ export interface ShapeOptions {
 
     // used to store noteIds for templates
     // only relevant on asset drop and template creation
-    templateNoteIds: string[];
+    templateNoteIds: NoteId[];
 
     collapsedIds: [LocalId, Vector][];
 }

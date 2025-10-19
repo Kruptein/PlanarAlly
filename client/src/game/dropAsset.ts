@@ -1,3 +1,6 @@
+import merge from "lodash/merge";
+
+import type { ApiTracker, ApiAura } from "../apiTypes";
 import { assetSystem } from "../assets";
 import { assetState } from "../assets/state";
 import { getImageSrcFromHash } from "../assets/utils";
@@ -5,6 +8,7 @@ import { l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
 import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../core/grid";
 import { baseAdjust } from "../core/http";
+import type { GlobalId } from "../core/id";
 import { SyncMode, InvalidationMode } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
@@ -15,14 +19,23 @@ import { getLocalId, getShape } from "./id";
 import { compositeState } from "./layers/state";
 import type { BaseTemplate } from "./models/templates";
 import { moveShapes } from "./operations/movement";
-import { loadShapeData } from "./shapes";
-import { applyTemplate } from "./shapes/templates";
+import {
+    applyCompactForm,
+    createServerDataFromCompact,
+    fromSystemForm,
+    loadFromServer,
+} from "./shapes/transformations";
 import { Asset } from "./shapes/variants/asset";
+import { aurasToServer } from "./systems/auras/conversion";
+import { createEmptyAura } from "./systems/auras/utils";
 import type { CharacterId } from "./systems/characters/models";
 import { characterState } from "./systems/characters/state";
 import { floorState } from "./systems/floors/state";
 import { noteSystem } from "./systems/notes";
+import { VisionBlock } from "./systems/properties/types";
 import { locationSettingsState } from "./systems/settings/location/state";
+import { trackersToServer } from "./systems/trackers/conversion";
+import { createEmptyTracker } from "./systems/trackers/utils";
 import { selectionBoxFunction } from "./temp";
 import { handleDropFF } from "./ui/firefox";
 
@@ -154,10 +167,6 @@ export async function dropAsset(
 
             asset.setLayer(layer.floor, layer.name); // set this early to avoid conflicts
 
-            if (template) {
-                loadShapeData(asset, applyTemplate(asset.asDict(), template));
-            }
-
             if (locationSettingsState.raw.useGrid.value) {
                 const gridType = locationSettingsState.raw.gridType.value;
                 asset.refPoint = snapPointToGrid(asset.refPoint, gridType, {
@@ -165,7 +174,44 @@ export async function dropAsset(
                 })[0];
             }
 
-            layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+            if (template) {
+                // Patch for old templates
+                // these things should be removed once we complete part 2 of the shape/template rework
+                if ("src" in template) delete template.src;
+                if (typeof template.vision_obstruction === "boolean") {
+                    template.vision_obstruction = template.vision_obstruction ? VisionBlock.Complete : VisionBlock.No;
+                }
+                const defaultTracker = trackersToServer("" as unknown as GlobalId, [createEmptyTracker()])[0]!;
+                for (const tracker of template.trackers ?? []) {
+                    for (const key of Object.keys(defaultTracker)) {
+                        if (!(key in tracker)) {
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                            (tracker as any)[key] = defaultTracker[key as keyof ApiTracker];
+                        }
+                    }
+                }
+                const defaultAura = aurasToServer("" as unknown as GlobalId, [createEmptyAura()])[0]!;
+                for (const aura of template.auras ?? []) {
+                    for (const key of Object.keys(defaultAura)) {
+                        if (!(key in aura)) {
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                            (aura as any)[key] = defaultAura[key as keyof ApiAura];
+                        }
+                    }
+                }
+                // end of patching
+
+                const compact = loadFromServer(
+                    merge(createServerDataFromCompact(fromSystemForm(asset.id)), template),
+                    layer.floor,
+                    layer.name,
+                );
+                applyCompactForm(asset, compact, "create", (shape) => {
+                    layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+                });
+            } else {
+                layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+            }
 
             for (const noteId of asset.options.templateNoteIds ?? []) {
                 noteSystem.attachShape(noteId, asset.id, true);

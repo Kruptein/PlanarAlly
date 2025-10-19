@@ -1,9 +1,9 @@
-import type { ApiShape } from "../../apiTypes";
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { GridType } from "../../core/grid";
 import type { LocalId } from "../../core/id";
 import type { Floor, FloorId, LayerName } from "../models/floor";
-import type { ServerShapeOptions, ShapeOptions } from "../models/shapes";
+import type { ShapeOptions } from "../models/shapes";
+import type { CompactShapeCore, CompactSubShapeCore } from "../shapes/transformations";
 import type { DepShape, SHAPE_TYPE } from "../shapes/types";
 import type { BoundingRect } from "../shapes/variants/simple/boundingRect";
 import type { CharacterId } from "../systems/characters/models";
@@ -39,7 +39,7 @@ export interface IShape extends SimpleShape {
 
     assetId?: number;
 
-    globalCompositeOperation: string;
+    globalCompositeOperation: GlobalCompositeOperation;
 
     showHighlight: boolean;
 
@@ -112,10 +112,9 @@ export interface IShape extends SimpleShape {
 
     // STATE
 
-    asDict: () => ApiShape;
-    // getSubtypeDict: () => ApiShape["subtype"];
+    asCompact: () => CompactSubShapeCore;
     // eslint-disable-next-line @typescript-eslint/method-signature-style
-    fromDict(data: ApiShape, options: Partial<ServerShapeOptions>): void;
+    fromCompact(core: CompactShapeCore, subShape: CompactSubShapeCore): void;
 
     // UTILITY
 

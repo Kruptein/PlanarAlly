@@ -1,18 +1,14 @@
-import { exportShapeData } from "..";
-import type { ApiBaseRectShape, ApiShape } from "../../../apiTypes";
 import { g2lx, g2ly } from "../../../core/conversions";
 import { addP, cloneP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { rotateAroundPoint } from "../../../core/math";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerShapeOptions } from "../../models/shapes";
-import type { ShapeProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/types";
 import { Shape } from "../shape";
+import type { CompactShapeCore, RectCompactCore } from "../transformations";
 
 import { BoundingRect } from "./simple/boundingRect";
-
-type ServerBaseRect = ApiShape & { width: number; height: number };
 
 export abstract class BaseRect extends Shape implements IShape {
     private _w: number;
@@ -63,14 +59,14 @@ export abstract class BaseRect extends Shape implements IShape {
         }
     }
 
-    asDict(): ApiBaseRectShape {
-        return { ...exportShapeData(this), width: this.w, height: this.h };
+    asCompact(): RectCompactCore {
+        return { width: this.w, height: this.h };
     }
 
-    fromDict(data: ServerBaseRect, options: Partial<ServerShapeOptions>): void {
-        super.fromDict(data, options);
-        this.w = data.width;
-        this.h = data.height;
+    fromCompact(core: CompactShapeCore, subShape: RectCompactCore): void {
+        super.fromCompact(core, subShape);
+        this.w = subShape.width;
+        this.h = subShape.height;
     }
 
     getBoundingBox(): BoundingRect {

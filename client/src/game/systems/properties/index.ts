@@ -1,9 +1,10 @@
 import { watch } from "vue";
 
+import type { ApiCoreShape } from "../../../apiTypes";
 import type { LocalId } from "../../../core/id";
 import type { Sync } from "../../../core/models/types";
-import type { ShapeSystem } from "../../../core/systems";
 import { registerSystem } from "../../../core/systems";
+import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import {
     sendShapeSetBlocksMovement,
     sendShapeSetBlocksVision,
@@ -26,36 +27,59 @@ import { getGlobalId, getShape } from "../../id";
 import { doorSystem } from "../logic/door";
 import { selectedState } from "../selected/state";
 
+import { propertiesFromServer, propertiesToServer } from "./conversion";
 import { checkMovementSources } from "./movement";
 import { propertiesState } from "./state";
-import type { ShapeProperties } from "./state";
-import { VisionBlock } from "./types";
+import { type ServerShapeProperties, VisionBlock, type ShapeProperties } from "./types";
 import { checkVisionSources } from "./vision";
 
 const { mutable, mutableReactive: $, DEFAULT } = propertiesState;
 
-class PropertiesSystem implements ShapeSystem {
+class PropertiesSystem implements ShapeSystem<Partial<ShapeProperties>> {
     // Multiple sources might want to reactively load info on a shape.
     // To ensure that we do not remove data that is still in use, we keep track of the sources that are using the data.
     // at one point we might want to do something more fancy were we keep shapes that are often used always loaded.
     private shapeLeases = new Map<LocalId, Set<string>>();
 
-    // BEHAVIOUR
+    // CORE
 
     clear(): void {
         $.data.clear();
         mutable.data.clear();
     }
 
-    // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, data?: Partial<ShapeProperties>): void {
-        mutable.data.set(id, { ...DEFAULT(), ...data });
-    }
-
     drop(id: LocalId): void {
         mutable.data.delete(id);
         $.data.delete(id);
     }
+
+    import(id: LocalId, data: Partial<ShapeProperties>, _mode: SystemInformMode): void {
+        mutable.data.set(id, { ...DEFAULT(), ...data });
+    }
+
+    export(id: LocalId): ShapeProperties {
+        const data = mutable.data.get(id);
+        if (data === undefined) throw new Error("Shape properties not found");
+        return data;
+    }
+
+    toServerShape(id: LocalId, data: ApiCoreShape): void {
+        const uuid = getGlobalId(id);
+        if (uuid === undefined) return;
+
+        const properties = this.export(id);
+        const serverProperties = propertiesToServer(properties);
+        for (const key of Object.keys(serverProperties) as (keyof ServerShapeProperties)[]) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            (data as any)[key] = serverProperties[key];
+        }
+    }
+
+    fromServerShape(data: ApiCoreShape): Partial<ShapeProperties> {
+        return propertiesFromServer(data);
+    }
+
+    // BEHAVIOUR
 
     loadState(id: LocalId, source: string): void {
         const data = mutable.data.get(id);

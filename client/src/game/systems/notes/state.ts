@@ -2,23 +2,23 @@ import { BiArrMap } from "../../../core/biArrMap";
 import type { LocalId } from "../../../core/id";
 import { buildState } from "../../../core/systems/state";
 
-import { type ClientNote, NoteManagerMode } from "./types";
+import { type ClientNote, type NoteId, NoteManagerMode } from "./types";
 
 interface ReactiveNoteState {
     // manager UI
     managerOpen: boolean;
     managerMode: NoteManagerMode;
-    currentNote: string | undefined;
+    currentNote: NoteId | undefined;
 
     shapeFilter: LocalId | undefined;
 
-    notes: Map<string, ClientNote>;
-    shapeNotes: BiArrMap<LocalId, string>;
+    notes: Map<NoteId, ClientNote>;
+    shapeNotes: BiArrMap<LocalId, NoteId>;
 }
 
 interface NonReactiveNoteState {
-    syncTimeouts: Map<string, number>;
-    iconShapes: Map<string, LocalId[]>;
+    syncTimeouts: Map<NoteId, number>;
+    iconShapes: Map<NoteId, LocalId[]>;
 }
 
 const state = buildState<ReactiveNoteState, NonReactiveNoteState>(

@@ -1,4 +1,5 @@
-import { type System, registerSystem } from "../../../core/systems";
+import { registerSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems/models";
 
 import { sendSetChatFeature, sendSetDiceFeature } from "./emits";
 import { roomState } from "./state";

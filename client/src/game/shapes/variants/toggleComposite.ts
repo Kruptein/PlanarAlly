@@ -1,5 +1,3 @@
-import { exportShapeData } from "..";
-import type { ApiToggleCompositeShape } from "../../../apiTypes";
 import type { GlobalPoint } from "../../../core/geometry";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { SyncMode } from "../../../core/models/types";
@@ -12,18 +10,19 @@ import {
     sendToggleCompositeRemoveVariant,
     sendToggleCompositeRenameVariant,
 } from "../../api/emits/shape/toggleComposite";
-import { getGlobalId, getShape } from "../../id";
+import { getGlobalId, getLocalId, getShape } from "../../id";
 import type { IToggleComposite } from "../../interfaces/shapes/toggleComposite";
 import { compositeState } from "../../layers/state";
 import { accessSystem } from "../../systems/access";
 import { ACCESS_LEVELS } from "../../systems/access/models";
 import { auraSystem } from "../../systems/auras";
 import { getProperties } from "../../systems/properties/state";
-import type { ShapeProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/types";
 import { VisionBlock } from "../../systems/properties/types";
 import { selectedSystem } from "../../systems/selected";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { Shape } from "../shape";
+import type { CompactShapeCore, ToggleCompositeCompactCore } from "../transformations";
 import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
@@ -197,12 +196,17 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         newVariant.invalidate(false);
     }
 
-    asDict(): ApiToggleCompositeShape {
+    asCompact(): ToggleCompositeCompactCore {
         return {
-            ...exportShapeData(this),
             active_variant: getGlobalId(this.active_variant)!,
             variants: this._variants.map((v) => ({ uuid: getGlobalId(v.id)!, name: v.name })),
         };
+    }
+
+    fromCompact(core: CompactShapeCore, subShape: ToggleCompositeCompactCore): void {
+        super.fromCompact(core, subShape);
+        this.active_variant = getLocalId(subShape.active_variant)!;
+        this._variants = subShape.variants.map((v) => ({ id: getLocalId(v.uuid)!, name: v.name }));
     }
 
     updatePoints(): void {

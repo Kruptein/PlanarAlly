@@ -1,8 +1,8 @@
-import type { ApiShapeCustomData, ApiShapeCustomDataIdentifier } from "../../../apiTypes";
+import type { ApiCoreShape, ApiShapeCustomData, ApiShapeCustomDataIdentifier } from "../../../apiTypes";
 import type { LocalId } from "../../../core/id";
 import { filter, map, some } from "../../../core/iter";
 import { registerSystem } from "../../../core/systems";
-import type { ShapeSystem } from "../../../core/systems";
+import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import type { DistributiveOmit } from "../../../core/types";
 import { getGlobalId, getLocalId } from "../../id";
 
@@ -26,22 +26,76 @@ import {
 const { mutableReactive: $, mutable } = customDataState;
 
 let ID = 0 as ElementId;
+const CLEAR_ALL = Symbol();
 
-class CustomDataSystem implements ShapeSystem {
+class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
+    // CORE
+
+    clear(): void {
+        mutable.data.clear();
+        $.leases.clear();
+        $.data.clear();
+    }
+
+    drop(id: LocalId): void {
+        mutable.data.delete(id);
+        this.dropState(id, CLEAR_ALL);
+    }
+
+    importLate(id: LocalId, data: UiShapeCustomData[], mode: SystemInformMode): void {
+        if (data.length === 0) return;
+
+        if (mode === "load") {
+            mutable.data.set(id, data);
+        } else {
+            const shapeId = getGlobalId(id);
+            if (shapeId === undefined) throw new Error(`Shape ${id} not found`);
+            for (const element of data) {
+                this.addElement(
+                    {
+                        ...element,
+                        shapeId,
+                    },
+                    true,
+                );
+            }
+        }
+    }
+
+    export(id: LocalId): UiShapeCustomData[] {
+        return mutable.data.get(id) ?? [];
+    }
+
+    toServerShape(id: LocalId, shape: ApiCoreShape): void {
+        shape.custom_data = this.export(id).map(({ id: _, ...rest }) => rest);
+    }
+
+    fromServerShape(shape: ApiCoreShape): UiShapeCustomData[] {
+        return shape.custom_data.map((element) => ({ ...element, id: ID++ as ElementId }));
+    }
+
+    // REACTIVE
+
     loadState(id: LocalId, source: string): void {
         if ($.leases.has(id)) {
             $.leases.get(id)!.add(source);
         } else {
             $.leases.set(id, new Set([source]));
-            $.data.set(id, mutable.data.get(id) ?? []);
+            if (mutable.data.has(id)) {
+                $.data.set(id, mutable.data.get(id)!);
+            }
         }
     }
 
-    dropState(id: LocalId, source: string): void {
-        const leases = $.leases.get(id);
-        if (leases === undefined) return console.error("Dropping state for shape without active lease.");
-        leases.delete(source);
-        if (leases.size === 0) {
+    dropState(id: LocalId, source: string | typeof CLEAR_ALL): void {
+        let remove = source === CLEAR_ALL;
+        if (source !== CLEAR_ALL) {
+            const leases = $.leases.get(id);
+            if (leases === undefined) return console.error("Dropping state for shape without active lease.");
+            leases.delete(source);
+            remove = leases.size === 0;
+        }
+        if (remove) {
             $.leases.delete(id);
             $.data.delete(id);
         }
@@ -65,22 +119,7 @@ class CustomDataSystem implements ShapeSystem {
         }
     }
 
-    clear(): void {
-        mutable.data.clear();
-        $.leases.clear();
-        $.data.clear();
-    }
-
-    drop(id: LocalId): void {
-        mutable.data.delete(id);
-    }
-
-    inform(id: LocalId, data: ApiShapeCustomData[]): void {
-        mutable.data.set(
-            id,
-            data.map((element) => ({ ...element, id: ID++ as ElementId })),
-        );
-    }
+    // BEHAVIOUR
 
     updateElement(id: LocalId, elementId: ElementId, data: ApiShapeCustomData): void {
         const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
@@ -199,10 +238,20 @@ class CustomDataSystem implements ShapeSystem {
     addElement(element: DistributiveOmit<UiShapeCustomData, "id">, sync: boolean): void {
         const id = getLocalId(element.shapeId);
         if (!id) return;
-        const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
-        const fullElement = { ...element, id: ID++ as ElementId };
 
+        const fullElement = { ...element, id: ID++ as ElementId };
         if (this.getElementId(getIdentifier(fullElement)) !== undefined) return;
+
+        const hasLease = $.leases.has(id);
+        if (!mutable.data.has(id)) {
+            const newData: UiShapeCustomData[] = [];
+            mutable.data.set(id, newData);
+            if (hasLease) {
+                $.data.set(id, newData);
+            }
+        }
+        const targetBase = hasLease ? $.data : mutable.data;
+        const target = targetBase.get(id)!;
 
         target.push(fullElement);
         if (sync && element.pending === undefined) {

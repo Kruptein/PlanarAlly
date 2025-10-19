@@ -9,9 +9,10 @@ import { modalSystem } from "../../systems/modals";
 import type { ModalIndex } from "../../systems/modals/types";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
+import type { NoteId } from "../../systems/notes/types";
 import { editNote } from "../../systems/notes/ui";
 
-const props = defineProps<{ modalIndex: ModalIndex; uuid: string }>();
+const props = defineProps<{ modalIndex: ModalIndex; uuid: NoteId }>();
 defineExpose({ close });
 
 const { t } = useI18n();

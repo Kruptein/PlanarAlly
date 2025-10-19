@@ -14,6 +14,7 @@ sed -i 's/"Role"/Role/g' ../client/src/apiTypes.ts
 sed -i 's/"VisionBlock"/VisionBlock/g' ../client/src/apiTypes.ts
 sed -i 's/"GridModeLabelFormat"/GridModeLabelFormat/g' ../client/src/apiTypes.ts
 sed -i 's/"FloorIndex"/FloorIndex/g' ../client/src/apiTypes.ts
+sed -i 's/"NoteId"/NoteId/g' ../client/src/apiTypes.ts
 # Import the concrete types & export union types
 sed -i '1s/^/'\
 'import type { AssetId } from ".\/assets\/models";\n'\
@@ -23,6 +24,7 @@ sed -i '1s/^/'\
 'import type { AuraId } from ".\/game\/systems\/auras\/models";\n'\
 'import type { CharacterId } from ".\/game\/systems\/characters\/models";\n'\
 'import type { ClientId } from ".\/game\/systems\/client\/models";\n'\
+'import type { NoteId } from ".\/game\/systems\/notes\/types";\n'\
 'import type { PlayerId } from ".\/game\/systems\/players\/models";\n'\
 'import type { VisionBlock } from ".\/game\/systems\/properties\/types";\n'\
 'import type { GridModeLabelFormat } from ".\/game\/systems\/settings\/players\/models";\n'\

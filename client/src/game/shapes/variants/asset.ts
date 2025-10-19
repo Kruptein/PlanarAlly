@@ -1,4 +1,3 @@
-import type { ApiAssetRectShape } from "../../../apiTypes";
 import { getImageSrcFromHash } from "../../../assets/utils";
 import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
@@ -12,13 +11,13 @@ import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { LayerName } from "../../models/floor";
-import type { ServerShapeOptions } from "../../models/shapes";
 import { loadSvgData } from "../../svg";
 import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
 import { getProperties } from "../../systems/properties/state";
 import { VisionBlock } from "../../systems/properties/types";
 import { TriangulationTarget, visionState } from "../../vision/state";
+import type { AssetRectCompactCore, CompactShapeCore } from "../transformations";
 import type { SHAPE_TYPE } from "../types";
 
 import { BaseRect } from "./baseRect";
@@ -53,16 +52,13 @@ export class Asset extends BaseRect implements IAsset {
 
     readonly isClosed = true;
 
-    asDict(): ApiAssetRectShape {
-        return {
-            ...super.asDict(),
-            src: this.src,
-        };
+    asCompact(): AssetRectCompactCore {
+        return { ...super.asCompact(), src: this.src };
     }
 
-    fromDict(data: ApiAssetRectShape, options: Partial<ServerShapeOptions>): void {
-        super.fromDict(data, options);
-        this.src = data.src;
+    fromCompact(core: CompactShapeCore, subShape: AssetRectCompactCore): void {
+        super.fromCompact(core, subShape);
+        this.src = subShape.src;
     }
 
     setLoaded(): void {

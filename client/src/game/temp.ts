@@ -1,15 +1,15 @@
-import type { ApiShape } from "../apiTypes";
 import { InvalidationMode } from "../core/models/types";
 import type { SyncMode } from "../core/models/types";
 import type { SelectionBoxFunction } from "../core/plugins/modals/selectionBox";
+import type { SystemInformMode } from "../core/systems/models";
 
 import { sendFloorChange, sendLayerChange } from "./api/emits/shape/core";
 import { getGlobalId } from "./id";
 import type { ILayer } from "./interfaces/layer";
 import type { IShape } from "./interfaces/shape";
-import type { Floor, LayerName } from "./models/floor";
+import type { Floor } from "./models/floor";
 import { addOperation } from "./operations/undo";
-import { createShapeFromDict } from "./shapes/create";
+import { instantiateCompactForm, type CompactForm } from "./shapes/transformations";
 import type { DepShape } from "./shapes/types";
 import { floorSystem } from "./systems/floors";
 import { getProperties } from "./systems/properties/state";
@@ -84,23 +84,21 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
 }
 
 export function addShape(
-    shape: ApiShape,
-    floor: string,
-    layerName: LayerName,
+    shape: CompactForm,
     sync: SyncMode,
+    mode: SystemInformMode,
     dependents?: readonly DepShape[],
 ): IShape | undefined {
-    if (!floorSystem.hasLayer(floorSystem.getFloor({ name: floor })!, layerName)) {
-        console.log(`Shape with unknown layer ${layerName} could not be added`);
+    const layer = floorSystem.getLayer(floorSystem.getFloor({ id: shape.floor })!, shape.layer)!;
+    if (layer === undefined) {
+        console.log(`Shape with unknown layer ${shape.floor}/${shape.layer} could not be added`);
         return;
     }
-    const layer = floorSystem.getLayer(floorSystem.getFloor({ name: floor })!, layerName)!;
-    const sh = createShapeFromDict(shape, layer.floor, layerName);
-    if (sh === undefined) {
-        return;
-    }
+    const sh = instantiateCompactForm(shape, mode, (newShape) =>
+        layer.addShape(newShape, sync, InvalidationMode.NORMAL),
+    );
+    if (sh === undefined) return undefined;
 
-    layer.addShape(sh, sync, InvalidationMode.NORMAL);
     for (const dep of dependents ?? []) {
         sh.addDependentShape(dep);
     }

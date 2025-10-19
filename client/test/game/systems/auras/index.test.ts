@@ -11,6 +11,8 @@ import { NO_SYNC, SERVER_SYNC, UI_SYNC } from "../../../../src/core/models/types
 import { socket } from "../../../../src/game/api/socket";
 import { compositeState } from "../../../../src/game/layers/state";
 import { accessSystem } from "../../../../src/game/systems/access";
+import type { AccessConfig, AccessMap } from "../../../../src/game/systems/access/models";
+import { DEFAULT_ACCESS_SYMBOL } from "../../../../src/game/systems/access/models";
 import { auraSystem } from "../../../../src/game/systems/auras";
 import { visionState } from "../../../../src/game/vision/state";
 import { generateTestLocalId, generateTestShape } from "../../../helpers";
@@ -20,6 +22,12 @@ import { generateTestAura, generateTestAuraId } from "./helpers";
 const emitSpy = vi.spyOn(socket, "emit");
 const addVisionSpy = vi.spyOn(visionState, "addVisionSource");
 const removeVisionSpy = vi.spyOn(visionState, "removeVisionSource");
+
+function toAccessMap(access: { default: AccessConfig }): AccessMap {
+    const map: AccessMap = new Map();
+    map.set(DEFAULT_ACCESS_SYMBOL, access.default);
+    return map;
+}
 
 describe("Aura System", () => {
     beforeEach(() => {
@@ -43,7 +51,7 @@ describe("Aura System", () => {
             // setup
             const id = generateTestLocalId();
             const auraId = generateTestAuraId();
-            auraSystem.inform(id, []);
+            auraSystem.importLate(id, [], "load");
             // test
             expect(auraSystem.get(id, auraId, false)).toBeUndefined();
             expect(auraSystem.get(id, auraId, true)).toBeUndefined();
@@ -52,7 +60,7 @@ describe("Aura System", () => {
             // setup
             const id = generateTestLocalId(generateTestShape({ floor: "test" }));
             const aura = generateTestAura();
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             // test
             expect(auraSystem.get(id, aura.uuid, false)).toMatchObject(aura);
             expect(auraSystem.get(id, aura.uuid, true)).toMatchObject(aura);
@@ -63,7 +71,7 @@ describe("Aura System", () => {
             const id2 = generateTestLocalId();
             const aura = generateTestAura();
             compositeState.addComposite(id, { id: id2, name: "variant" }, false);
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             // test
             expect(auraSystem.get(id2, aura.uuid, false)).toBeUndefined();
             expect(auraSystem.get(id2, aura.uuid, true)).toMatchObject(aura);
@@ -80,11 +88,11 @@ describe("Aura System", () => {
         it("should return all auras associated with the shape when vision access is granted", () => {
             // setup
             const id = generateTestLocalId(generateTestShape({ floor: "test" }));
-            accessSystem.inform(id, { default: { edit: false, movement: false, vision: true }, extra: [] });
+            accessSystem.import(id, toAccessMap({ default: { edit: false, movement: false, vision: true } }), "load");
             const aura = generateTestAura();
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             const aura2 = generateTestAura({ visible: false, visionSource: false });
-            auraSystem.inform(id, [aura, aura2]);
+            auraSystem.importLate(id, [aura, aura2], "load");
             // test
             expect(auraSystem.getAll(id, false)).toEqual([aura, aura2]);
             expect(auraSystem.getAll(id, true)).toEqual([aura, aura2]);
@@ -96,7 +104,7 @@ describe("Aura System", () => {
             const aura2 = generateTestAura({ visible: false, visionSource: false });
             const aura3 = generateTestAura({ visible: false, visionSource: true });
             const aura4 = generateTestAura({ visible: true, visionSource: false });
-            auraSystem.inform(id, [aura, aura2, aura3, aura4]);
+            auraSystem.importLate(id, [aura, aura2, aura3, aura4], "load");
             // test
             expect(auraSystem.getAll(id, false)).toEqual([aura, aura4]);
             expect(auraSystem.getAll(id, true)).toEqual([aura, aura4]);
@@ -104,14 +112,14 @@ describe("Aura System", () => {
         it("should correctly work for variants", () => {
             // setup
             const id = generateTestLocalId(generateTestShape({ floor: "test" }));
-            accessSystem.inform(id, { default: { edit: false, movement: false, vision: true }, extra: [] });
+            accessSystem.import(id, toAccessMap({ default: { edit: false, movement: false, vision: true } }), "load");
             const id2 = generateTestLocalId();
-            accessSystem.inform(id2, { default: { edit: false, movement: false, vision: true }, extra: [] });
+            accessSystem.import(id2, toAccessMap({ default: { edit: false, movement: false, vision: true } }), "load");
             compositeState.addComposite(id, { id: id2, name: "variant" }, false);
             const aura = generateTestAura();
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             const aura2 = generateTestAura({ visible: false, visionSource: false });
-            auraSystem.inform(id2, [aura2]);
+            auraSystem.importLate(id2, [aura2], "load");
             // test
             expect(auraSystem.getAll(id2, false)).toEqual([aura2]);
             expect(auraSystem.getAll(id2, true)).toEqual([aura, aura2]);
@@ -123,7 +131,7 @@ describe("Aura System", () => {
             const shape = generateTestShape({ floor: "test" });
             const id = generateTestLocalId(shape);
             const aura = generateTestAura({ active: false, visionSource: true });
-            auraSystem.inform(id, []);
+            auraSystem.importLate(id, [], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
             auraSystem.add(id, aura, NO_SYNC);
@@ -138,7 +146,7 @@ describe("Aura System", () => {
             const shape = generateTestShape({ floor: "test" });
             const id = generateTestLocalId(shape);
             const aura = generateTestAura({ active: false, visionSource: true });
-            auraSystem.inform(id, []);
+            auraSystem.importLate(id, [], "load");
             // test
             auraSystem.add(id, aura, SERVER_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toEqual(aura);
@@ -150,7 +158,7 @@ describe("Aura System", () => {
             const shape = generateTestShape({ floor: "test" });
             const id = generateTestLocalId(shape);
             const aura = generateTestAura({ active: true, visionSource: false });
-            auraSystem.inform(id, []);
+            auraSystem.importLate(id, [], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
             auraSystem.add(id, aura, NO_SYNC);
@@ -165,7 +173,7 @@ describe("Aura System", () => {
             const shape = generateTestShape({ floor: "test" });
             const id = generateTestLocalId(shape);
             const aura = generateTestAura({ active: true, visionSource: true });
-            auraSystem.inform(id, []);
+            auraSystem.importLate(id, [], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
             auraSystem.add(id, aura, UI_SYNC);
@@ -192,7 +200,7 @@ describe("Aura System", () => {
                 value: 560,
                 visible: false,
             });
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
             auraSystem.update(
@@ -227,7 +235,7 @@ describe("Aura System", () => {
                 active: false,
                 visionSource: true,
             });
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
             auraSystem.update(id, aura.uuid, { angle: 90, visible: true }, SERVER_SYNC);
@@ -251,7 +259,7 @@ describe("Aura System", () => {
                 active: true,
                 visionSource: true,
             });
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             addVisionSpy.mockClear();
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
@@ -276,7 +284,7 @@ describe("Aura System", () => {
                 active: false,
                 visionSource: true,
             });
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
             auraSystem.update(id, aura.uuid, { active: true, angle: 90, visible: true }, NO_SYNC);
@@ -300,7 +308,7 @@ describe("Aura System", () => {
                 active: true,
                 visionSource: false,
             });
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             addVisionSpy.mockClear();
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
@@ -325,7 +333,7 @@ describe("Aura System", () => {
                 active: true,
                 visionSource: false,
             });
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             addVisionSpy.mockClear();
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
@@ -350,7 +358,7 @@ describe("Aura System", () => {
                 active: true,
                 visionSource: true,
             });
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             addVisionSpy.mockClear();
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
@@ -373,7 +381,7 @@ describe("Aura System", () => {
             const shape = generateTestShape({ floor: "test" });
             const id = generateTestLocalId(shape);
             const aura = generateTestAura({ active: false, visionSource: true });
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
             auraSystem.remove(id, aura.uuid, NO_SYNC);
@@ -387,7 +395,7 @@ describe("Aura System", () => {
             const shape = generateTestShape({ floor: "test" });
             const id = generateTestLocalId(shape);
             const aura = generateTestAura({ active: false, visionSource: true });
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             // test
             auraSystem.remove(id, aura.uuid, SERVER_SYNC);
             expect(auraSystem.get(id, aura.uuid, false)).toBeUndefined();
@@ -399,7 +407,7 @@ describe("Aura System", () => {
             const shape = generateTestShape({ floor: "test" });
             const id = generateTestLocalId(shape);
             const aura = generateTestAura({ active: true, visionSource: false });
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
             auraSystem.remove(id, aura.uuid, NO_SYNC);
@@ -414,7 +422,7 @@ describe("Aura System", () => {
             const shape = generateTestShape({ floor: "test" });
             const id = generateTestLocalId(shape);
             const aura = generateTestAura({ active: true, visionSource: true });
-            auraSystem.inform(id, [aura]);
+            auraSystem.importLate(id, [aura], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
             // test
             auraSystem.remove(id, aura.uuid, UI_SYNC);

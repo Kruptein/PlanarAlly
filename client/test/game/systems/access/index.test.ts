@@ -5,7 +5,7 @@ import { NO_SYNC, SERVER_SYNC, UI_SYNC } from "../../../../src/core/models/types
 import { socket } from "../../../../src/game/api/socket";
 import { accessSystem } from "../../../../src/game/systems/access";
 import { DEFAULT_ACCESS, DEFAULT_ACCESS_SYMBOL } from "../../../../src/game/systems/access/models";
-import type { AccessConfig } from "../../../../src/game/systems/access/models";
+import type { AccessConfig, AccessMap } from "../../../../src/game/systems/access/models";
 import { accessState } from "../../../../src/game/systems/access/state";
 import { gameSystem } from "../../../../src/game/systems/game";
 import { playerSystem } from "../../../../src/game/systems/players";
@@ -39,6 +39,15 @@ vi.spyOn(coreStore, "setUsername").mockImplementation((username: string) => {
     }
 });
 
+function toAccessMap(access: { default: AccessConfig; extra: { access: AccessConfig; user: string }[] }): AccessMap {
+    const map: AccessMap = new Map();
+    map.set(DEFAULT_ACCESS_SYMBOL, access.default);
+    for (const extra of access.extra) {
+        map.set(extra.user, extra.access);
+    }
+    return map;
+}
+
 function accessCheck(id: LocalId, access: AccessConfig, limiter: boolean = false): void {
     for (const [key, value] of Object.entries(access)) {
         expect(accessSystem.hasAccessTo(id, key as keyof AccessConfig, limiter)).toBe(value);
@@ -60,17 +69,25 @@ describe("Access System", () => {
             const id2 = generateTestLocalId();
             accessSystem.loadState(id);
             //test
-            accessSystem.inform(id2, {
-                default: { edit: false, movement: true, vision: true },
-                extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
-            });
+            accessSystem.import(
+                id2,
+                toAccessMap({
+                    default: { edit: false, movement: true, vision: true },
+                    extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
+                }),
+                "load",
+            );
             expect(accessState.raw.defaultAccess).toEqual(DEFAULT_ACCESS);
             expect(accessState.raw.playerAccess.size).toBe(0);
 
-            accessSystem.inform(id, {
-                default: { edit: false, movement: true, vision: true },
-                extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: { edit: false, movement: true, vision: true },
+                    extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
+                }),
+                "load",
+            );
             expect(accessState.raw.defaultAccess).toEqual({ edit: false, movement: true, vision: true });
             expect(accessState.raw.playerAccess.get("testUser")).toEqual({
                 edit: true,
@@ -84,11 +101,15 @@ describe("Access System", () => {
             // setup
             const id = generateTestLocalId();
             const id2 = generateTestLocalId();
-            accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [] });
-            accessSystem.inform(id2, {
-                default: DEFAULT_ACCESS,
-                extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
-            });
+            accessSystem.import(id, toAccessMap({ default: DEFAULT_ACCESS, extra: [] }), "load");
+            accessSystem.import(
+                id2,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
+                }),
+                "load",
+            );
             // test
             expect(accessSystem.getDefault(id)).toBe(DEFAULT_ACCESS);
             expect(accessSystem.getDefault(id2)).toBe(DEFAULT_ACCESS);
@@ -100,11 +121,15 @@ describe("Access System", () => {
             const id1Default = { edit: true, movement: false, vision: true };
             const id2Default = { edit: false, movement: true, vision: false };
 
-            accessSystem.inform(id, { default: id1Default, extra: [] });
-            accessSystem.inform(id2, {
-                default: id2Default,
-                extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
-            });
+            accessSystem.import(id, toAccessMap({ default: id1Default, extra: [] }), "load");
+            accessSystem.import(
+                id2,
+                toAccessMap({
+                    default: id2Default,
+                    extra: [{ access: { edit: true, movement: false, vision: true }, user: "testUser" }],
+                }),
+                "load",
+            );
             // test
             expect(accessSystem.getDefault(id)).toBe(id1Default);
             expect(accessSystem.getDefault(id2)).toBe(id2Default);
@@ -152,23 +177,39 @@ describe("Access System", () => {
             };
             playerSystem.addPlayer(generatePlayer("userWithLimitedRights"));
 
-            accessSystem.inform(id, { default: id1Default, extra: [] });
-            accessSystem.inform(id2, {
-                default: id2Default,
-                extra: [id2TestUser, id2DmUser],
-            });
-            accessSystem.inform(id3, {
-                default: id3Default,
-                extra: [id3TestUser],
-            });
-            accessSystem.inform(id4, {
-                default: id4Default,
-                extra: [],
-            });
-            accessSystem.inform(id5, {
-                default: id5Default,
-                extra: [id3TestUser],
-            });
+            accessSystem.import(id, toAccessMap({ default: id1Default, extra: [] }), "load");
+            accessSystem.import(
+                id2,
+                toAccessMap({
+                    default: id2Default,
+                    extra: [id2TestUser, id2DmUser],
+                }),
+                "load",
+            );
+            accessSystem.import(
+                id3,
+                toAccessMap({
+                    default: id3Default,
+                    extra: [id3TestUser],
+                }),
+                "load",
+            );
+            accessSystem.import(
+                id4,
+                toAccessMap({
+                    default: id4Default,
+                    extra: [],
+                }),
+                "load",
+            );
+            accessSystem.import(
+                id5,
+                toAccessMap({
+                    default: id5Default,
+                    extra: [id3TestUser],
+                }),
+                "load",
+            );
         });
         it("should return true for the DM without limiters", () => {
             // setup
@@ -351,13 +392,17 @@ describe("Access System", () => {
         });
         it("should return undefined if access was not given for a specific user.", () => {
             const id = generateTestLocalId();
-            accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [] });
+            accessSystem.import(id, toAccessMap({ default: DEFAULT_ACCESS, extra: [] }), "load");
             expect(accessSystem.getAccess(id, "some user")).toBeUndefined();
         });
         it("should return the access for a specific user if it was added", () => {
             const id = generateTestLocalId();
             const access: AccessConfig = { vision: true, movement: false, edit: true };
-            accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [{ user: "some user", access }] });
+            accessSystem.import(
+                id,
+                toAccessMap({ default: DEFAULT_ACCESS, extra: [{ user: "some user", access }] }),
+                "load",
+            );
             expect(accessSystem.getAccess(id, "some user")).toBe(access);
         });
     });
@@ -366,7 +411,11 @@ describe("Access System", () => {
             // setup
             const id = generateTestLocalId();
             const access: AccessConfig = { edit: false, movement: false, vision: true };
-            accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [{ user: "some user", access }] });
+            accessSystem.import(
+                id,
+                toAccessMap({ default: DEFAULT_ACCESS, extra: [{ user: "some user", access }] }),
+                "load",
+            );
             // test
             accessSystem.addAccess(id, "some user", access, SERVER_SYNC);
             expect(errorSpy).toBeCalled();
@@ -378,10 +427,14 @@ describe("Access System", () => {
             const id = generateTestLocalId();
             const someUserAccess: AccessConfig = { edit: false, movement: false, vision: true };
             const newUserAccess: AccessConfig = { edit: false, movement: true, vision: true };
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", access: someUserAccess }],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [{ user: "some user", access: someUserAccess }],
+                }),
+                "load",
+            );
             // test
             accessSystem.addAccess(id, "new user", newUserAccess, SERVER_SYNC);
             expect(errorSpy).not.toBeCalled();
@@ -397,10 +450,14 @@ describe("Access System", () => {
             const id = generateTestLocalId();
             const someUserAccess: AccessConfig = { edit: false, movement: false, vision: true };
             const newUserAccess: AccessConfig = { edit: false, movement: true, vision: true };
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [],
+                }),
+                "load",
+            );
             // test
             accessSystem.addAccess(id, "some user", someUserAccess, UI_SYNC);
             accessSystem.addAccess(id, "new user", newUserAccess, NO_SYNC);
@@ -414,14 +471,22 @@ describe("Access System", () => {
             const id2 = generateTestLocalId();
             const someUserAccess: AccessConfig = { edit: false, movement: false, vision: true };
             const newUserAccess: AccessConfig = { edit: false, movement: true, vision: true };
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [],
-            });
-            accessSystem.inform(id2, {
-                default: DEFAULT_ACCESS,
-                extra: [],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [],
+                }),
+                "load",
+            );
+            accessSystem.import(
+                id2,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [],
+                }),
+                "load",
+            );
             accessSystem.loadState(id);
             // test
             accessSystem.addAccess(id, "some user", someUserAccess, UI_SYNC);
@@ -441,7 +506,7 @@ describe("Access System", () => {
         it("should error if the user has no access to the shape", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [] });
+            accessSystem.import(id, toAccessMap({ default: DEFAULT_ACCESS, extra: [] }), "load");
             accessSystem.updateAccess(id, "some user", { edit: true }, SERVER_SYNC);
             // test
             expect(errorSpy).toBeCalled();
@@ -449,7 +514,7 @@ describe("Access System", () => {
         it("should update default state", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [] });
+            accessSystem.import(id, toAccessMap({ default: DEFAULT_ACCESS, extra: [] }), "load");
             // test
             expect(accessSystem.getDefault(id)).toEqual({ edit: false, movement: false, vision: false });
             accessSystem.updateAccess(id, DEFAULT_ACCESS_SYMBOL, { edit: true }, SERVER_SYNC);
@@ -460,10 +525,14 @@ describe("Access System", () => {
         it("should update user state", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", access: { edit: false, movement: false, vision: false } }],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [{ user: "some user", access: { edit: false, movement: false, vision: false } }],
+                }),
+                "load",
+            );
             // test
             expect(accessSystem.getAccess(id, "some user")).toEqual({ edit: false, movement: false, vision: false });
             accessSystem.updateAccess(id, "some user", { edit: true }, SERVER_SYNC);
@@ -474,10 +543,14 @@ describe("Access System", () => {
         it("should update $state", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
+                }),
+                "load",
+            );
             accessSystem.loadState(id);
             // test
             expect(accessState.raw.playerAccess.get("some user")).toEqual({
@@ -504,7 +577,7 @@ describe("Access System", () => {
         it("should error if the user has no access to the shape", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.inform(id, { default: DEFAULT_ACCESS, extra: [] });
+            accessSystem.import(id, toAccessMap({ default: DEFAULT_ACCESS, extra: [] }), "load");
             accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             // test
             expect(errorSpy).toBeCalled();
@@ -512,10 +585,14 @@ describe("Access System", () => {
         it("should remove the user state", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", access: { edit: false, movement: false, vision: false } }],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [{ user: "some user", access: { edit: false, movement: false, vision: false } }],
+                }),
+                "load",
+            );
             // test
             expect(accessSystem.getAccess(id, "some user")).toEqual({ edit: false, movement: false, vision: false });
             accessSystem.removeAccess(id, "some user", SERVER_SYNC);
@@ -526,10 +603,14 @@ describe("Access System", () => {
         it("should update $state", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
+                }),
+                "load",
+            );
             accessSystem.loadState(id);
             // test
             expect(accessState.raw.playerAccess.has("some user")).toBe(true);
@@ -547,20 +628,28 @@ describe("Access System", () => {
         it("should return an empty list if no owners are associated with the shape", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [],
+                }),
+                "load",
+            );
             // test
             expect([...accessSystem.getOwners(id)].length).toBe(0);
         });
         it("should return all owners associated with the shape", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
+                }),
+                "load",
+            );
             // test
             expect([...accessSystem.getOwners(id)]).toEqual(["some user"]);
             accessSystem.addAccess(id, "other user", DEFAULT_ACCESS, UI_SYNC);
@@ -577,20 +666,28 @@ describe("Access System", () => {
         it("should return an empty list if no owners are associated with the shape", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [],
+                }),
+                "load",
+            );
             // test
             expect(accessSystem.getOwnersFull(id).length).toBe(0);
         });
         it("should return all owners associated with the shape", () => {
             // setup
             const id = generateTestLocalId();
-            accessSystem.inform(id, {
-                default: DEFAULT_ACCESS,
-                extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
-            });
+            accessSystem.import(
+                id,
+                toAccessMap({
+                    default: DEFAULT_ACCESS,
+                    extra: [{ user: "some user", access: { edit: false, movement: false, vision: true } }],
+                }),
+                "load",
+            );
             // test
             expect(accessSystem.getOwnersFull(id)).toEqual([
                 { user: "some user", shape: id, access: { edit: false, movement: false, vision: true } },

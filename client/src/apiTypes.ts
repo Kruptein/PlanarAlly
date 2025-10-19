@@ -5,6 +5,7 @@ import type { Role } from "./game/models/role";
 import type { AuraId } from "./game/systems/auras/models";
 import type { CharacterId } from "./game/systems/characters/models";
 import type { ClientId } from "./game/systems/client/models";
+import type { NoteId } from "./game/systems/notes/types";
 import type { PlayerId } from "./game/systems/players/models";
 import type { VisionBlock } from "./game/systems/properties/types";
 import type { GridModeLabelFormat } from "./game/systems/settings/players/models";
@@ -314,7 +315,7 @@ export interface ApiModMeta {
   hasCss: boolean;
 }
 export interface ApiNote {
-  uuid: string;
+  uuid: NoteId;
   creator: string;
   title: string;
   text: string;
@@ -332,18 +333,18 @@ export interface ApiNoteAccess {
   can_view: boolean;
 }
 export interface ApiNoteAccessEdit extends ApiNoteAccess {
-  note: string;
+  note: NoteId;
 }
 export interface ApiNoteSetBoolean {
-  uuid: string;
+  uuid: NoteId;
   value: boolean;
 }
 export interface ApiNoteSetString {
-  uuid: string;
+  uuid: NoteId;
   value: string;
 }
 export interface ApiNoteShape {
-  note_id: string;
+  note_id: NoteId;
   shape_id: GlobalId;
 }
 export interface ApiOptionalAura {

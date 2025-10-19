@@ -1,13 +1,15 @@
 import type { DeepReadonly } from "vue";
 
+import type { ApiCoreShape } from "../../../../apiTypes";
 import { baseAdjust } from "../../../../core/http";
 import type { LocalId } from "../../../../core/id";
 import { FULL_SYNC } from "../../../../core/models/types";
 import type { Sync } from "../../../../core/models/types";
 import { registerSystem } from "../../../../core/systems";
-import type { ShapeSystem } from "../../../../core/systems";
+import type { ShapeSystem, SystemInformMode } from "../../../../core/systems/models";
 import { Colour, registerColour } from "../../../colour";
 import { getGlobalId } from "../../../id";
+import type { ServerShapeOptions } from "../../../models/shapes";
 import { selectToolState } from "../../../tools/variants/select/state";
 import type { PlayerId } from "../../players/models";
 import { propertiesSystem } from "../../properties";
@@ -23,7 +25,7 @@ import { doorLogicState } from "./state";
 
 const { readonly, mutable, mutableReactive: $, dropState, DEFAULT_OPTIONS } = doorLogicState;
 
-class DoorSystem implements ShapeSystem {
+class DoorSystem implements ShapeSystem<{ enabled: boolean; options?: DoorOptions }> {
     constructor() {
         // Ensure that toggling doors keeps the correct colour
         registerColour(Colour.Door, (id: LocalId | undefined) => {
@@ -46,30 +48,13 @@ class DoorSystem implements ShapeSystem {
             return playerSettingsState.raw.defaultOpenDoorColour.value;
         });
     }
-    // BEHAVIOUR
+
+    // CORE
 
     clear(): void {
         dropState();
         mutable.enabled.clear();
         mutable.data.clear();
-    }
-
-    // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, enabled: boolean, options?: DoorOptions, syncToServer = false): void {
-        if (enabled) {
-            mutable.enabled.add(id);
-        }
-        mutable.data.set(id, { ...DEFAULT_OPTIONS(), ...options });
-
-        if (syncToServer) {
-            const options = readonly.data.get(id)!;
-            const shape = getGlobalId(id);
-            if (shape) {
-                sendShapeIsDoor({ shape, value: enabled });
-                if (options.permissions) sendShapeDoorPermissions({ shape, value: options.permissions });
-                if (options.toggleMode !== "both") sendShapeDoorToggleMode({ shape, value: options.toggleMode });
-            }
-        }
     }
 
     drop(id: LocalId): void {
@@ -79,6 +64,41 @@ class DoorSystem implements ShapeSystem {
             dropState();
         }
     }
+
+    importLate(id: LocalId, data: { enabled: boolean; options?: DoorOptions }, mode: SystemInformMode): void {
+        if (data.enabled) {
+            mutable.enabled.add(id);
+        }
+        const options = { ...DEFAULT_OPTIONS(), ...data.options };
+        mutable.data.set(id, options);
+
+        if (mode !== "load") {
+            const shape = getGlobalId(id);
+            if (shape) {
+                sendShapeIsDoor({ shape, value: data.enabled });
+                if (options.permissions) sendShapeDoorPermissions({ shape, value: options.permissions });
+                if (options.toggleMode !== "both") sendShapeDoorToggleMode({ shape, value: options.toggleMode });
+            }
+        }
+    }
+
+    export(id: LocalId): { enabled: boolean; options?: DoorOptions } {
+        return { enabled: readonly.enabled.has(id), options: mutable.data.get(id)! };
+    }
+
+    toServerShape(id: LocalId, shape: ApiCoreShape): void {
+        const data = this.export(id);
+        shape.is_door = data.enabled;
+    }
+
+    fromServerShape(
+        shape: ApiCoreShape,
+        serverOptions: Partial<ServerShapeOptions>,
+    ): { enabled: boolean; options?: DoorOptions } {
+        return { enabled: shape.is_door, options: serverOptions.door };
+    }
+
+    // BEHAVIOUR
 
     toggle(id: LocalId, enabled: boolean, syncTo: Sync): void {
         if (syncTo.server) {

@@ -7,7 +7,7 @@ import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
 import { noteState } from "../../systems/notes/state";
-import { NoteManagerMode, type ClientNote, type NoteTag } from "../../systems/notes/types";
+import { type NoteId, NoteManagerMode, type ClientNote, type NoteTag } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
 import { propertiesState } from "../../systems/properties/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
@@ -170,7 +170,7 @@ function toggleTagInSearch(tag: NoteTag): void {
     }
 }
 
-function editNote(noteId: string): void {
+function editNote(noteId: NoteId): void {
     noteState.mutableReactive.currentNote = noteId;
     emit("mode", NoteManagerMode.Edit);
 }

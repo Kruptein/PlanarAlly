@@ -20,6 +20,7 @@ import type { Floor } from "../../../models/floor";
 import { ToolName } from "../../../models/tools";
 import type { ToolFeatures, ITool } from "../../../models/tools";
 import { overrideLastOperation } from "../../../operations/undo";
+import { fromSystemForm } from "../../../shapes/transformations";
 import { Circle } from "../../../shapes/variants/circle";
 import { Line } from "../../../shapes/variants/line";
 import { Polygon } from "../../../shapes/variants/polygon";
@@ -212,19 +213,21 @@ class DrawTool extends Tool implements ITool {
             }
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
             if (this.state.isDoor) {
-                doorSystem.inform(
+                doorSystem.importLate(
                     this.shape.id,
-                    true,
                     {
-                        permissions: this.state.doorPermissions,
-                        toggleMode: this.state.toggleMode,
+                        enabled: true,
+                        options: {
+                            permissions: this.state.doorPermissions,
+                            toggleMode: this.state.toggleMode,
+                        },
                     },
-                    true,
+                    "create",
                 );
             }
             overrideLastOperation({
                 type: "shapeadd",
-                shapes: [this.shape.asDict()],
+                shapes: [fromSystemForm(this.shape.id)],
                 floor: this.shape.floor!.name,
                 layerName: this.shape.layer!.name,
             });

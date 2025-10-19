@@ -7,7 +7,7 @@ import { uuidv4 } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
-import { NoteManagerMode } from "../../systems/notes/types";
+import { type NoteId, NoteManagerMode } from "../../systems/notes/types";
 import { locationSettingsState } from "../../systems/settings/location/state";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
@@ -23,7 +23,7 @@ onDeactivated(() => {
 });
 
 async function createNote(): Promise<void> {
-    const uuid = uuidv4();
+    const uuid = uuidv4() as unknown as NoteId;
     const note: ApiNote = {
         uuid,
         creator: coreStore.state.username,

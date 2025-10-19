@@ -1,6 +1,6 @@
 import type { LocalId } from "../../../core/id";
 import { registerSystem } from "../../../core/systems";
-import type { ShapeSystem } from "../../../core/systems";
+import type { System } from "../../../core/systems/models";
 import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import { compositeState } from "../../layers/state";
@@ -9,7 +9,7 @@ import { selectedState } from "./state";
 
 const { mutableReactive: $ } = selectedState;
 
-class SelectedSystem implements ShapeSystem {
+class SelectedSystem implements System {
     // BEHAVIOUR
 
     clear(): void {
@@ -19,10 +19,6 @@ class SelectedSystem implements ShapeSystem {
 
     drop(id: LocalId): void {
         this.remove(id);
-    }
-
-    inform(id: LocalId): void {
-        this.push(id);
     }
 
     // Should only be used to update the focus within a selection (e.g. clicking on an already selected shape)

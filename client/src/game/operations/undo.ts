@@ -1,4 +1,3 @@
-import type { ApiShape } from "../../apiTypes";
 import { toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
 import type { LocalId } from "../../core/id";
@@ -7,6 +6,7 @@ import { getLocalId, getShape } from "../id";
 import type { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
 import type { ISelectTool } from "../models/tools";
+import type { CompactForm } from "../shapes/transformations";
 import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";
 import { addShape, moveFloor, moveLayer } from "../temp";
@@ -78,9 +78,9 @@ async function handleOperation(direction: "undo" | "redo"): Promise<void> {
         } else if (op.type === "layermovement") {
             handleLayerMove(op.shapes, op.from, op.to, direction);
         } else if (op.type === "shaperemove") {
-            handleShapeRemove(op.shapes, op.floor, op.layerName, direction);
+            handleShapeRemove(op.shapes, direction);
         } else if (op.type === "shapeadd") {
-            handleShapeRemove(op.shapes, op.floor, op.layerName, direction === "redo" ? "undo" : "redo");
+            handleShapeRemove(op.shapes, direction === "redo" ? "undo" : "redo");
         }
     }
     operationInProgress = false;
@@ -141,12 +141,12 @@ function handleLayerMove(shapes: LocalId[], from: LayerName, to: LayerName, dire
     }
 }
 
-function handleShapeRemove(shapes: ApiShape[], floor: string, layerName: LayerName, direction: "undo" | "redo"): void {
+function handleShapeRemove(shapes: CompactForm[], direction: "undo" | "redo"): void {
     if (direction === "undo") {
-        for (const shape of shapes) addShape(shape, floor, layerName, SyncMode.FULL_SYNC);
+        for (const shape of shapes) addShape(shape, SyncMode.FULL_SYNC, "create");
     } else {
         deleteShapes(
-            shapes.map((s) => getShape(getLocalId(s.uuid)!)!),
+            shapes.map((s) => getShape(getLocalId(s.core.uuid)!)!),
             SyncMode.FULL_SYNC,
         );
     }

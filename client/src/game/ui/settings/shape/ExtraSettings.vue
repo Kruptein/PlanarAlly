@@ -8,7 +8,6 @@ import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
 import { DEFAULT_GRID_SIZE } from "../../../../core/grid";
 import { InvalidationMode, NO_SYNC, SERVER_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
-import { uuidv4 } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
@@ -19,7 +18,8 @@ import { Polygon } from "../../../shapes/variants/polygon";
 import { accessSystem } from "../../../systems/access";
 import { pickAsset } from "../../../systems/assets/ui";
 import { auraSystem } from "../../../systems/auras";
-import type { Aura, AuraId } from "../../../systems/auras/models";
+import type { Aura } from "../../../systems/auras/models";
+import { generateAuraId } from "../../../systems/auras/utils";
 import { floorSystem } from "../../../systems/floors";
 import { floorState } from "../../../systems/floors/state";
 import { gameState } from "../../../systems/game/state";
@@ -128,7 +128,7 @@ function applyDDraft(): void {
         propertiesSystem.setIsInvisible(shape.id, true, NO_SYNC);
 
         const aura: Aura = {
-            uuid: uuidv4() as unknown as AuraId,
+            uuid: generateAuraId(),
             active: true,
             visionSource: true,
             visible: true,

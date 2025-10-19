@@ -1,35 +1,35 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from .helpers import TypeIdModel
 
 
-class ApiNoteSetString(BaseModel):
-    uuid: str
+class ApiNoteSetString(TypeIdModel):
+    uuid: str = Field(typeId="NoteId")
     value: str
 
 
-class ApiNoteSetBoolean(BaseModel):
-    uuid: str
+class ApiNoteSetBoolean(TypeIdModel):
+    uuid: str = Field(typeId="NoteId")
     value: bool
 
 
-class ApiNoteAccess(BaseModel):
+class ApiNoteAccess(TypeIdModel):
     name: str
     can_edit: bool
     can_view: bool
 
 
 class ApiNoteAccessEdit(ApiNoteAccess):
-    note: str
+    note: str = Field(typeId="NoteId")
 
 
 class ApiNoteShape(TypeIdModel):
-    note_id: str
+    note_id: str = Field(typeId="NoteId")
     shape_id: str = Field(..., typeId="GlobalId")
 
 
 class ApiNote(TypeIdModel):
-    uuid: str
+    uuid: str = Field(typeId="NoteId")
     creator: str
     title: str
     text: str

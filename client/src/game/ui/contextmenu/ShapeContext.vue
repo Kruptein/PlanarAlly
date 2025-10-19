@@ -22,6 +22,7 @@ import { compositeState } from "../../layers/state";
 import type { AssetOptions } from "../../models/asset";
 import type { Floor, LayerName } from "../../models/floor";
 import { toTemplate } from "../../shapes/templates";
+import { createServerDataFromCompact, fromSystemForm } from "../../shapes/transformations";
 import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
 import { sendCreateCharacter } from "../../systems/characters/emits";
@@ -298,7 +299,7 @@ async function saveTemplate(): Promise<boolean> {
         } else if (shape.options.templateNoteIds !== undefined) {
             delete shape.options.templateNoteIds;
         }
-        assetOptions.templates[selection[0]!] = toTemplate(shape.asDict());
+        assetOptions.templates[selection[0]!] = toTemplate(createServerDataFromCompact(fromSystemForm(shape.id)));
         sendAssetOptions(shape.assetId, assetOptions);
     } catch {
         // no-op ; action cancelled
@@ -376,7 +377,7 @@ async function mergeGroups(): Promise<boolean> {
     );
     if (keepBadges === undefined) return false;
     let targetGroup: string | undefined;
-    const membersToMove: { uuid: LocalId; badge?: number }[] = [];
+    const membersToMove: { id: LocalId; badge?: number }[] = [];
     for (const shape of selectedSystem.get({ includeComposites: false })) {
         const groupId = groupSystem.getGroupId(shape.id);
         if (groupId !== undefined) {
@@ -386,7 +387,7 @@ async function mergeGroups(): Promise<boolean> {
                 continue;
             } else {
                 const badge = groupSystem.getBadge(shape.id);
-                membersToMove.push({ uuid: shape.id, badge: keepBadges ? badge : undefined });
+                membersToMove.push({ id: shape.id, badge: keepBadges ? badge : undefined });
             }
         }
     }
@@ -413,7 +414,7 @@ function enlargeGroup(): boolean {
     if (shape?.groupId !== undefined) {
         groupSystem.addGroupMembers(
             shape.groupId,
-            selection.filter((s) => s.groupId === undefined).map((s) => ({ uuid: s.id })),
+            selection.filter((s) => s.groupId === undefined).map((s) => ({ id: s.id })),
             true,
         );
     }

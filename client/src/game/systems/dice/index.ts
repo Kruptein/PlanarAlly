@@ -2,8 +2,7 @@ import { SYSTEMS, type Part, type RollResult } from "@planarally/dice/core";
 import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "../../../core/systems";
-import type { System } from "../../../core/systems";
-import type { SystemClearReason } from "../../../core/systems/models";
+import type { System, SystemClearReason } from "../../../core/systems/models";
 import type { AsyncReturnType } from "../../../core/types";
 
 import { diceState } from "./state";

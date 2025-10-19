@@ -6,7 +6,7 @@ import type { GlobalPoint, LocalPoint } from "../../../core/geometry";
 import { DEFAULT_GRID_SIZE } from "../../../core/grid";
 import type { LocalId } from "../../../core/id";
 import { registerSystem } from "../../../core/systems";
-import type { System } from "../../../core/systems";
+import type { System } from "../../../core/systems/models";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { getAllShapes, getShape, getShapeCount } from "../../id";
 import type { IShape } from "../../interfaces/shape";

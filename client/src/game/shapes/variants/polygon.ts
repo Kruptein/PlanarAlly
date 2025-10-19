@@ -1,25 +1,24 @@
-import { exportShapeData, loadShapeData } from "..";
-import type { ApiPolygonShape } from "../../../apiTypes";
 import { g2l, g2lz, toDegrees } from "../../../core/conversions";
 import { Vector, addP, getAngleBetween, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { equalPoints, filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
-import { uuidv4 } from "../../../core/utils";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { getColour } from "../../colour";
-import { getGlobalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerShapeOptions } from "../../models/shapes";
-import type { AuraId } from "../../systems/auras/models";
 import { positionState } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
-import type { ShapeProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/types";
 import { VisionBlock } from "../../systems/properties/types";
-import type { TrackerId } from "../../systems/trackers/models";
 import { visionState } from "../../vision/state";
 import { Shape } from "../shape";
+import {
+    fromSystemForm,
+    instantiateCompactForm,
+    type CompactShapeCore,
+    type PolygonCompactCore,
+} from "../transformations";
 import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
@@ -91,21 +90,19 @@ export class Polygon extends Shape implements IShape {
         return filterEqualPoints(this.vertices);
     }
 
-    asDict(): ApiPolygonShape {
+    asCompact(): PolygonCompactCore {
         return {
-            ...exportShapeData(this),
-            vertices: JSON.stringify(this._vertices.map((v) => toArrayP(v))),
+            vertices: this._vertices.map((v) => toArrayP(v)),
             open_polygon: this.openPolygon,
             line_width: this.lineWidth[0]!,
         };
     }
 
-    fromDict(data: ApiPolygonShape, options: Partial<ServerShapeOptions>): void {
-        super.fromDict(data, options);
-        const vertices = JSON.parse(data.vertices) as [number, number][];
-        this._vertices = vertices.map((v) => toGP(v));
-        this.openPolygon = data.open_polygon;
-        this.lineWidth = [data.line_width];
+    fromCompact(core: CompactShapeCore, subShape: PolygonCompactCore): void {
+        super.fromCompact(core, subShape);
+        this._vertices = subShape.vertices.map((v) => toGP(v));
+        this.openPolygon = subShape.open_polygon;
+        this.lineWidth = [subShape.line_width];
     }
 
     getBoundingBox(delta = 0): BoundingRect {
@@ -249,29 +246,22 @@ export class Polygon extends Shape implements IShape {
             this._vertices = this._vertices.slice(0, lastVertex);
             this._vertices.push(nearVertex!);
 
-            const newPolygon = new Polygon(nearVertex!, newVertices);
-            const uuid = getGlobalId(newPolygon.id)!;
-            // make sure we copy over all the same properties but retain the correct uuid and vertices
-            const oldDict = this.asDict();
-            newPolygon.setLayer(this.floorId!, this.layerName!);
-            loadShapeData(newPolygon, {
-                ...oldDict,
-                angle: 0,
-                uuid,
-                trackers: oldDict.trackers.map((t) => ({ ...t, uuid: uuidv4() as unknown as TrackerId })),
-                auras: oldDict.auras.map((a) => ({ ...a, uuid: uuidv4() as unknown as AuraId })),
+            const compact = fromSystemForm(this.id);
+            compact.core.angle = 0;
+            instantiateCompactForm(compact, "duplicate", (shape) => {
+                const polygon = shape as Polygon;
+                polygon._refPoint = rotateAroundPoint(nearVertex!, oldCenter, this.angle);
+                polygon._vertices = newVertices.map((v) => rotateAroundPoint(v, oldCenter, this.angle));
+                polygon._center = polygon.__center();
+
+                const props = getProperties(this.id)!;
+
+                this.layer?.addShape(
+                    polygon,
+                    SyncMode.FULL_SYNC,
+                    props.blocksVision !== VisionBlock.No ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
+                );
             });
-            newPolygon._refPoint = rotateAroundPoint(nearVertex!, oldCenter, this.angle);
-            newPolygon._vertices = newVertices.map((v) => rotateAroundPoint(v, oldCenter, this.angle));
-            newPolygon._center = newPolygon.__center();
-
-            const props = getProperties(this.id)!;
-
-            this.layer?.addShape(
-                newPolygon,
-                SyncMode.FULL_SYNC,
-                props.blocksVision !== VisionBlock.No ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
-            );
 
             this.invalidatePoints();
 

@@ -1,6 +1,6 @@
 import type { LocalId } from "../../../core/id";
 import { registerSystem } from "../../../core/systems";
-import type { System } from "../../../core/systems";
+import type { System } from "../../../core/systems/models";
 import { getGlobalId, getShape } from "../../id";
 import { setCenterPosition } from "../../position";
 import { floorSystem } from "../floors";

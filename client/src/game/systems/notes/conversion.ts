@@ -1,16 +1,8 @@
 import type { ApiNote } from "../../../apiTypes";
 import { word2color } from "../../../core/utils";
-import { getGlobalId, reserveLocalId } from "../../id";
+import { reserveLocalId } from "../../id";
 
 import type { ClientNote } from "./types";
-
-export function noteToServer(note: ClientNote): ApiNote {
-    return {
-        ...note,
-        tags: note.tags.map((tag) => tag.name),
-        shapes: note.shapes.map((s) => getGlobalId(s)).filter((s) => s !== undefined),
-    };
-}
 
 export async function noteFromServer(note: ApiNote): Promise<ClientNote> {
     return {

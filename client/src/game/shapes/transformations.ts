@@ -212,7 +212,7 @@ export function createOnServer(compact: CompactForm): void {
     // call systems to create
 }
 
-export interface CompactShapeCoreOptions {
+interface CompactShapeCoreOptions {
     uuid: GlobalId;
     angle: number;
     drawOperator: GlobalCompositeOperation;

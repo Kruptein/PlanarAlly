@@ -26,6 +26,7 @@ class GroupSystem implements ShapeSystem<{ groupId: string | undefined; badge: n
 
     clear(): void {
         this.dropState();
+        mutable.removedGroupCache.clear();
     }
 
     drop(id: LocalId): void {
@@ -39,11 +40,19 @@ class GroupSystem implements ShapeSystem<{ groupId: string | undefined; badge: n
     import(id: LocalId, data: { groupId: string | undefined; badge: number }, mode: SystemInformMode): void {
         if (data.groupId === undefined) return;
 
-        if (mode === "load") {
-            mutable.shapeData.set(id, data);
-        } else {
-            this.addGroupMembers(data.groupId, [{ id, badge: undefined }], false);
+        if (mode !== "load") {
+            if (!readonly.groups.has(data.groupId)) {
+                const oldGroup = mutable.removedGroupCache.get(data.groupId);
+                if (oldGroup) {
+                    this.addNewGroup(oldGroup, true);
+                } else {
+                    console.error(`Group ${data.groupId} not found, skipping shape import for ${id}`);
+                    return;
+                }
+            }
         }
+        // sync happens in the layerAdd already, so not necessary here
+        this.addGroupMembers(data.groupId, [{ id, badge: undefined }], false);
     }
 
     export(id: LocalId): { groupId: string | undefined; badge: number } {
@@ -130,6 +139,7 @@ class GroupSystem implements ShapeSystem<{ groupId: string | undefined; badge: n
         }
         if (sync) sendRemoveGroup(groupId);
 
+        mutable.removedGroupCache.set(groupId, mutable.groups.get(groupId)!);
         mutable.groups.delete(groupId);
         mutable.groupMembers.delete(groupId);
 

@@ -166,11 +166,14 @@ async def remove_group(sid: str, group_id: str):
         await _send_game("Group.Remove", group_id, room=psid, skip_sid=sid)
 
 
-async def remove_group_if_empty(group_id: str):
+async def remove_group_if_empty(group_id: str) -> bool:
     try:
         group = Group.get_by_id(group_id)
     except Group.DoesNotExist:
-        return
+        return False
 
     if Shape.filter(group=group_id).count() == 0:
         group.delete_instance(True)
+        return True
+
+    return False

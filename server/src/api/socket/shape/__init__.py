@@ -68,6 +68,16 @@ async def add_shape(sid: str, raw_data: Any):
 
     if data.temporary:
         game_state.add_temp(sid, data.shape.uuid)
+    elif data.shape.character:
+        # Restore shape from character (e.g. undo a shape delete related to a character)
+        shape = Shape.get_or_none(Shape.character_id == data.shape.character)
+        if shape is None:
+            logger.error(f"Add shape failed: character {data.shape.character} not found")
+            return
+        shape.layer = layer
+        shape.x = data.shape.x
+        shape.y = data.shape.y
+        shape.save()
     else:
         shape = create_shape(data.shape, layer=layer)
         if shape is None:

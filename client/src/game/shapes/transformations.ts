@@ -373,7 +373,6 @@ export function createServerDataFromCompact(compact: CompactForm): ApiShape {
         owners: [],
         trackers: [],
         auras: [],
-        character: null,
         odd_hex_orientation: false,
         size: 0,
         show_cells: false,

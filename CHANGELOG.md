@@ -33,12 +33,15 @@ tech changes will usually be stripped from release notes for the public
         -   [DM] Add previous/next round buttons
     -   Add effects with infinite timespan
     -   Fix names in initiative list not being reactive
+-   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)
 
 ### Fixed
 
 -   Images in the Token Direction indicator were overflowing
 -   Prevent shortcut handling when targetting an html select element
 -   Ampersand in campaign name preventing game load
+-   Duplicating (copy/paste) or undoing a removal of shapes would lose some info (e.g. notes)
+-   Undoing a shape removal related to a character did not work
 
 ## [2025.3]
 

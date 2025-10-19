@@ -42,6 +42,7 @@ tech changes will usually be stripped from release notes for the public
 -   Ampersand in campaign name preventing game load
 -   Duplicating (copy/paste) or undoing a removal of shapes would lose some info (e.g. notes)
 -   Undoing a shape removal related to a character did not work
+-   Undoing a shape removal causing the related group to be removed (i.e. last shape of the group)
 
 ## [2025.3]
 

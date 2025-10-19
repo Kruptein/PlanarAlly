@@ -173,7 +173,7 @@ async def remove_shapes(sid: str, raw_data: Any):
 
         layer = shapes[0].layer
 
-        group_ids = set()
+        group_ids: set[str] = set()
 
         for shape in shapes:
             if not has_ownership(shape, pr, edit=True):
@@ -183,7 +183,7 @@ async def remove_shapes(sid: str, raw_data: Any):
             await initiative.remove_shape(pr, shape.uuid, shape.group)
 
             if shape.group:
-                group_ids.add(shape.group)
+                group_ids.add(shape.group.uuid)
 
             is_char_related = shape.character_id is not None
             # ToggleComposite patches
@@ -218,7 +218,8 @@ async def remove_shapes(sid: str, raw_data: Any):
                 shape.save()
 
         for group_id in group_ids:
-            await remove_group_if_empty(group_id)
+            if await remove_group_if_empty(group_id):
+                await _send_game("Group.Remove", group_id, room=sid)
 
         await send_remove_shapes([sh.uuid for sh in shapes], room=pr.active_location.get_path(), skip_sid=sid)
 

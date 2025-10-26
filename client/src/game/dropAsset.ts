@@ -1,5 +1,6 @@
 import type { AssetTemplateInfo } from "../apiTypes";
 import { assetSystem } from "../assets";
+import type { AssetId } from "../assets/models";
 import { assetState } from "../assets/state";
 import { getImageSrcFromHash } from "../assets/utils";
 import { l2gx, l2gy, l2gz } from "../core/conversions";
@@ -43,7 +44,7 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
     } else if (transferInfo) {
         const assetInfo = JSON.parse(transferInfo) as {
             assetHash: string;
-            assetId: number;
+            assetId: AssetId;
             characterId?: CharacterId;
         };
         await dropHelper(assetInfo, location);
@@ -53,7 +54,7 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
 }
 
 async function dropHelper(
-    assetInfo: { assetHash: string; assetId: number; characterId?: CharacterId },
+    assetInfo: { assetHash: string; assetId: AssetId; characterId?: CharacterId },
     location: GlobalPoint,
 ): Promise<void> {
     if (assetInfo.characterId !== undefined) {
@@ -109,46 +110,44 @@ async function loadTemplate(template: AssetTemplateInfo, position: GlobalPoint):
 }
 
 export async function dropAsset(
-    data: { imageSource: string; assetId: number },
+    data: { imageSource: string; assetId: AssetId },
     position: GlobalPoint,
 ): Promise<Asset | undefined> {
     let dimensions: { width: number; height: number } | undefined;
 
-    if (data.assetId) {
-        const assetInfo = await requestAssetOptions(data.assetId);
-        if (assetInfo.success) {
-            // First check if there are templates and if so, if we want to use one
-            const choices = assetInfo.templates.map((template) => template.name);
-            if (choices.length > 0) {
-                try {
-                    const choice = await selectionBoxFunction!(
-                        i18n.global.t("game.ui.templates.choose").toString(),
-                        choices,
-                    );
-                    if (choice === undefined || choice.length === 0) return;
-                    const template = assetInfo.templates.find((template) => template.name === choice[0]);
-                    if (template) {
-                        await loadTemplate(template, position);
-                        return;
-                    }
-                } catch {
-                    // no-op ; action cancelled
+    const assetInfo = await requestAssetOptions(data.assetId);
+    if (assetInfo.success) {
+        // First check if there are templates and if so, if we want to use one
+        const choices = assetInfo.templates.map((template) => template.name);
+        if (choices.length > 0) {
+            try {
+                const choice = await selectionBoxFunction!(
+                    i18n.global.t("game.ui.templates.choose").toString(),
+                    choices,
+                );
+                if (choice === undefined || choice.length === 0) return;
+                const template = assetInfo.templates.find((template) => template.name === choice[0]);
+                if (template) {
+                    await loadTemplate(template, position);
+                    return;
                 }
+            } catch {
+                // no-op ; action cancelled
             }
+        }
 
-            // If no templates, check if there are map dimensions in the asset name
-            const dimensionsMatch = assetInfo.name.match(/(?<x>\d+)x(?<y>\d+)/);
-            if (dimensionsMatch?.groups !== undefined) {
-                const dimX = Number.parseInt(dimensionsMatch.groups.x ?? "0");
-                const dimY = Number.parseInt(dimensionsMatch.groups.y ?? "0");
+        // If no templates, check if there are map dimensions in the asset name
+        const dimensionsMatch = assetInfo.name.match(/(?<x>\d+)x(?<y>\d+)/);
+        if (dimensionsMatch?.groups !== undefined) {
+            const dimX = Number.parseInt(dimensionsMatch.groups.x ?? "0");
+            const dimY = Number.parseInt(dimensionsMatch.groups.y ?? "0");
 
-                const gridRescale = locationSettingsState.raw.dropRatio.value;
+            const gridRescale = locationSettingsState.raw.dropRatio.value;
 
-                dimensions = {
-                    width: dimX * DEFAULT_GRID_SIZE * gridRescale,
-                    height: dimY * DEFAULT_GRID_SIZE * gridRescale,
-                };
-            }
+            dimensions = {
+                width: dimX * DEFAULT_GRID_SIZE * gridRescale,
+                height: dimY * DEFAULT_GRID_SIZE * gridRescale,
+            };
         }
     }
 

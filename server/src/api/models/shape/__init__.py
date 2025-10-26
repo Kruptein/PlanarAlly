@@ -68,14 +68,14 @@ class ShapeTextValueSet(TypeIdModel):
 
 class ShapeRectSizeUpdate(TypeIdModel):
     uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
-    w: int
-    h: int
+    w: float
+    h: float
     temporary: bool
 
 
 class ShapeCircleSizeUpdate(TypeIdModel):
     uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
-    r: int
+    r: float
     temporary: bool
 
 

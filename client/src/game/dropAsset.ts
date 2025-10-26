@@ -97,11 +97,14 @@ async function dropHelper(
     );
 }
 
-async function loadTemplate(template: AssetTemplateInfo): Promise<void> {
+async function loadTemplate(template: AssetTemplateInfo, position: GlobalPoint): Promise<void> {
     const shape = await fetchFullShape(template.id);
     if (shape) {
         const layer = floorState.currentLayer.value!;
-        addShape(loadFromServer(shape, layer.floor, layer.name), SyncMode.FULL_SYNC, "create");
+        const compact = loadFromServer(shape, layer.floor, layer.name);
+        compact.core.x = position.x;
+        compact.core.y = position.y;
+        addShape(compact, SyncMode.FULL_SYNC, "create");
     }
 }
 
@@ -125,7 +128,7 @@ export async function dropAsset(
                     if (choice === undefined || choice.length === 0) return;
                     const template = assetInfo.templates.find((template) => template.name === choice[0]);
                     if (template) {
-                        await loadTemplate(template);
+                        await loadTemplate(template, position);
                         return;
                     }
                 } catch {

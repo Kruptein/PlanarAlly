@@ -8,7 +8,8 @@ from functools import partial
 from io import BytesIO
 from pathlib import Path
 from time import time
-from typing import Dict, List, Literal, Optional, Union, cast
+from typing import Literal, cast
+from uuid import UUID
 
 from playhouse.shortcuts import model_to_dict
 from playhouse.sqlite_ext import SqliteExtDatabase
@@ -61,9 +62,9 @@ from ..utils import ASSETS_DIR, SAVE_PATH, TEMP_DIR, get_asset_hash_subpath
 
 async def export_campaign(
     filename: str,
-    rooms: List[Room],
+    rooms: list[Room],
     *,
-    sid: Optional[str] = None,
+    sid: str | None = None,
     export_all_assets=False,
 ):
     loop = asyncio.get_running_loop()
@@ -84,7 +85,7 @@ async def import_campaign(
     *,
     name: str,
     take_over_name: bool,
-    sid: Optional[str] = None,
+    sid: str | None = None,
 ):
     loop = asyncio.get_running_loop()
     task = loop.run_in_executor(
@@ -109,11 +110,11 @@ async def import_campaign(
 
 def __export_campaign(
     name: str,
-    rooms: List[Room],
-    sid: Optional[str],
+    rooms: list[Room],
+    sid: str | None,
     *,
     export_all_assets=False,
-    loop: Optional[asyncio.AbstractEventLoop] = None,
+    loop: asyncio.AbstractEventLoop | None = None,
 ):
     try:
         CampaignExporter(name, rooms, sid, export_all_assets=export_all_assets, loop=loop).pack()
@@ -126,9 +127,9 @@ def __import_campaign(
     pac: BytesIO,
     name: str,
     take_over_name: bool,
-    sid: Optional[str],
+    sid: str | None,
     *,
-    loop: Optional[asyncio.AbstractEventLoop] = None,
+    loop: asyncio.AbstractEventLoop | None = None,
 ):
     try:
         ci = CampaignImporter(user, pac, name, take_over_name, sid, loop=loop)
@@ -142,9 +143,9 @@ def __import_campaign(
 
 
 def send_status(
-    loop: Optional[asyncio.AbstractEventLoop],
-    mode: Union[Literal["export"], Literal["import"]],
-    sid: Optional[str],
+    loop: asyncio.AbstractEventLoop | None,
+    mode: Literal["export"] | Literal["import"],
+    sid: str | None,
     status: str,
 ):
     if sid is None or loop is None:
@@ -162,11 +163,11 @@ class CampaignExporter:
     def __init__(
         self,
         name: str,
-        rooms: List[Room],
-        sid: Optional[str],
+        rooms: list[Room],
+        sid: str | None,
         *,
         export_all_assets=False,
-        loop: Optional[asyncio.AbstractEventLoop] = None,
+        loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
         self.filename = name
         self.copy_name = TEMP_DIR / f"PA-temp-{str(uuid.uuid4())}.sqlite"
@@ -195,7 +196,7 @@ class CampaignExporter:
         if export_all_assets:
             self.migrator.migrate_all_assets()
 
-    def generate_empty_db(self, rooms: List[Room]):
+    def generate_empty_db(self, rooms: list[Room]):
         self.output_folder = TEMP_DIR
         os.makedirs(self.output_folder, exist_ok=True)
         self.sqlite_name = f"{self.filename}.sqlite"
@@ -299,13 +300,13 @@ class CampaignImporter:
         pac: BytesIO,
         name: str,
         take_over_name: bool,
-        sid: Optional[str],
+        sid: str | None,
         *,
-        loop: Optional[asyncio.AbstractEventLoop] = None,
+        loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
         print("Starting campaign import")
         self.root_user = user
-        self.location_mapping: Dict[int, int] = {}
+        self.location_mapping: dict[int, int] = {}
         self.sid = sid
         self.loop = loop
 
@@ -416,37 +417,37 @@ class CampaignImporter:
 class CampaignMigrator:
     def __init__(
         self,
-        mode: Union[Literal["export"], Literal["import"]],
+        mode: Literal["export"] | Literal["import"],
         from_db: SqliteExtDatabase,
         to_db: SqliteExtDatabase,
-        rooms: Optional[List[Room]] = None,
-        sid: Optional[str] = None,
-        loop: Optional[asyncio.AbstractEventLoop] = None,
+        rooms: list[Room] | None = None,
+        sid: str | None = None,
+        loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
-        self.mode: Union[Literal["export"], Literal["import"]] = mode
+        self.mode: Literal["export"] | Literal["import"] = mode
         self.from_db = from_db
         self.to_db = to_db
         self.rooms = rooms if rooms else self.__rooms
         self.sid = sid
         self.loop = loop
 
-        self._asset_mapping: Dict[int, int] = {}
-        self.aura_mapping: Dict[uuid.UUID, uuid.UUID] = {}
-        self.character_mapping: Dict[int, int] = {}
-        self._group_mapping: Dict[uuid.UUID, uuid.UUID] = {}
-        self.layer_mapping: Dict[int, int] = {}
-        self.location_mapping: Dict[int, int] = {}
-        self.room_mapping: Dict[int, int] = {}
-        self._shape_mapping: Dict[uuid.UUID, uuid.UUID] = {}
-        self.tracker_mapping: Dict[uuid.UUID, uuid.UUID] = {}
-        self.user_mapping: Dict[int, int] = {}
+        self._asset_mapping: dict[int, int] = {}
+        self.aura_mapping: dict[UUID, UUID] = {}
+        self.character_mapping: dict[int, int] = {}
+        self._group_mapping: dict[UUID, UUID] = {}
+        self.layer_mapping: dict[int, int] = {}
+        self.location_mapping: dict[int, int] = {}
+        self.room_mapping: dict[int, int] = {}
+        self._shape_mapping: dict[UUID, UUID] = {}
+        self.tracker_mapping: dict[UUID, UUID] = {}
+        self.user_mapping: dict[int, int] = {}
 
     @property
     def __rooms(self) -> SelectSequence[Room]:
         with self.from_db.bind_ctx([Room]):
             return Room.select()
 
-    def migrate_asset(self, asset_id: int) -> Optional[int]:
+    def migrate_asset(self, asset_id: int) -> int | None:
         if asset_id in self._asset_mapping:
             return self._asset_mapping[asset_id]
 
@@ -585,9 +586,9 @@ class CampaignMigrator:
                     self.layer_mapping[layer.id] = new_layer.id
 
                 for shape in layer.shapes:
-                    self.migrate_shape(shape.uuid)
+                    self.migrate_shape(UUID(shape.uuid))
 
-    def migrate_shape(self, shape_id: str):
+    def migrate_shape(self, shape_id: UUID):
         if shape_id in self._shape_mapping:
             return self._shape_mapping[shape_id]
 
@@ -628,7 +629,7 @@ class CampaignMigrator:
             self.migrate_composite_shape_associations(shape.shape_variants)
             self.migrate_shape_datablocks(new_uuid, shape.data_blocks)
 
-    def migrate_group(self, group_id: str):
+    def migrate_group(self, group_id: UUID):
         if group_id in self._group_mapping:
             return self._group_mapping[group_id]
 
@@ -767,7 +768,7 @@ class CampaignMigrator:
                 with self.to_db.bind_ctx([ToggleComposite]):
                     ToggleComposite.create(**togglecomposite_data)
 
-    def migrate_shape_datablocks(self, new_uuid: uuid.UUID, data_blocks: SelectSequence[ShapeDataBlock]):
+    def migrate_shape_datablocks(self, new_uuid: UUID, data_blocks: SelectSequence[ShapeDataBlock]):
         with self.from_db.bind_ctx([DataBlock, ShapeDataBlock]):
             for data_block in data_blocks:
                 data_block_data = model_to_dict(data_block, recurse=False)
@@ -786,7 +787,7 @@ class CampaignMigrator:
             with self.to_db.bind_ctx([Initiative]):
                 Initiative.create(**initiative_data)
 
-    def migrate_location_user_options(self, new_location_id: int, user_options: List[LocationUserOption]):
+    def migrate_location_user_options(self, new_location_id: int, user_options: list[LocationUserOption]):
         with self.from_db.bind_ctx([LocationUserOption]):
             for user_option in user_options:
                 user_option_data = model_to_dict(user_option, recurse=False)

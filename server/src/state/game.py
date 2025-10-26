@@ -1,4 +1,4 @@
-from typing import Dict, Set
+from typing import Set
 
 from ..api.models.client import Viewport
 from ..api.socket.constants import GAME_NS
@@ -11,8 +11,8 @@ from . import State
 class GameState(State[PlayerRoom]):
     def __init__(self) -> None:
         super().__init__(GAME_NS)
-        self.client_temporaries: Dict[str, Set[str]] = {}
-        self.client_viewports: Dict[str, Viewport] = {}
+        self.client_temporaries: dict[str, Set[str]] = {}
+        self.client_viewports: dict[str, Viewport] = {}
 
     def get_user(self, sid: str) -> User:
         return self._sid_map[sid].player

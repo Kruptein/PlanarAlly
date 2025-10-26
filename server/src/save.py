@@ -23,25 +23,15 @@ import secrets
 import shutil
 import sys
 from datetime import datetime
-from pathlib import Path
-from typing import Optional
 from uuid import uuid4
 
 from playhouse.sqlite_ext import SqliteExtDatabase
 
-from .thumbnail import generate_thumbnail_for_asset
-
 from .db.all import ALL_MODELS
 from .db.db import db as ACTIVE_DB
 from .db.models.constants import Constants
-from .utils import (
-    ASSETS_DIR,
-    FILE_DIR,
-    SAVE_PATH,
-    OldVersionException,
-    UnknownVersionException,
-    get_asset_hash_subpath,
-)
+from .thumbnail import generate_thumbnail_for_asset
+from .utils import ASSETS_DIR, FILE_DIR, SAVE_PATH, OldVersionException, UnknownVersionException, get_asset_hash_subpath
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -76,7 +66,7 @@ def upgrade(
     db: SqliteExtDatabase,
     version: int,
     is_import: bool,
-    loop: Optional[asyncio.AbstractEventLoop] = None,
+    loop: asyncio.AbstractEventLoop | None = None,
 ):
     if version < 85:
         raise OldVersionException(
@@ -494,10 +484,10 @@ def upgrade(
 
 
 def upgrade_save(
-    db: Optional[SqliteExtDatabase] = None,
+    db: SqliteExtDatabase | None = None,
     *,
     is_import=False,
-    loop: Optional[asyncio.AbstractEventLoop] = None,
+    loop: asyncio.AbstractEventLoop | None = None,
 ):
     if db is None:
         db = ACTIVE_DB

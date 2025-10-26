@@ -31,7 +31,7 @@ class ShapeCustomData(BaseDbModel):
     reference = cast(str, TextField(null=True))
     description = cast(str, TextField(null=True))
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         indexes = ((("shape", "source", "prefix", "name"), True),)
 
     def as_pydantic(self):

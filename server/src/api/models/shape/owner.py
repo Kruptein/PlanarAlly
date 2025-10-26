@@ -7,7 +7,7 @@ class ApiDefaultShapeOwner(TypeIdModel):
     edit_access: bool
     movement_access: bool
     vision_access: bool
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
 
 
 class ApiShapeOwner(ApiDefaultShapeOwner):
@@ -15,5 +15,5 @@ class ApiShapeOwner(ApiDefaultShapeOwner):
 
 
 class ApiDeleteShapeOwner(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     user: str

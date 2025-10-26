@@ -29,5 +29,5 @@ class Layer(BaseDbModel):
     def get_path(self):
         return f"{self.floor.location.get_path()}/{self.name}"
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         indexes = ((("floor", "name"), True), (("floor", "index"), True))

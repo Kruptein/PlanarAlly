@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import Any, Callable
 
 import rtoml
 from pydantic import ValidationError
@@ -67,7 +67,7 @@ class ConfigManager:
 
         logger.info("Saving config")
         try:
-            config_dict = self.config.dict()
+            config_dict = self.config.model_dump()
             update_time = datetime.now(UTC).isoformat()
             self.config_path.write_text(
                 f"# Last updated from UI at {update_time}\n{rtoml.dumps(config_dict, none_value=None)}"
@@ -75,14 +75,14 @@ class ConfigManager:
         except Exception as e:
             logger.error(f"Error saving config: {e}")
 
-    def update_config(self, updates: Dict[str, Any]) -> None:
+    def update_config(self, updates: dict[str, Any]) -> None:
         """Update config with new values"""
         if "admin_user" in updates:
             raise ValueError("admin_user cannot be updated dynamically for security reasons.")
 
         try:
             # Create new config with updates
-            new_config = ServerConfig(**(self.config.dict() | updates))
+            new_config = ServerConfig(**(self.config.model_dump() | updates))
             self.config = new_config
 
             # Save and notify

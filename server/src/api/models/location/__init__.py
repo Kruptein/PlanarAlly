@@ -1,6 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from pydantic_core import MISSING
 
 from ..common import PositionTuple
+from ..helpers import TypeIdModel
 from .settings import *
 from .settings import ApiOptionalLocationOptions
 from .spawn_info import *
@@ -17,10 +19,10 @@ class ApiLocation(ApiLocationCore):
     options: ApiOptionalLocationOptions
 
 
-class LocationChange(BaseModel):
+class LocationChange(TypeIdModel):
     location: int
     users: list[str]
-    position: PositionTuple | None
+    position: PositionTuple | MISSING = Field(json_schema_extra={"missing": True})
 
 
 class LocationClone(BaseModel):

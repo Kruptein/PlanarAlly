@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, cast
+from typing import Any, cast
 
 from peewee import Case
 
@@ -141,7 +141,7 @@ async def update_shape_positions(sid: str, raw_data: Any):
     )
 
 
-async def send_remove_shapes(data: list[str], *, room: str, skip_sid: Optional[str] = None):
+async def send_remove_shapes(data: list[str], *, room: str, skip_sid: str | None = None):
     await _send_game("Shapes.Remove", data, room=room, skip_sid=skip_sid)
 
 
@@ -484,7 +484,7 @@ async def update_rect_size(sid: str, raw_data: Any):
     pr: PlayerRoom = game_state.get(sid)
 
     if not data.temporary:
-        shape: Union[AssetRect, Rect]
+        shape: AssetRect | Rect
         try:
             shape = AssetRect.get_by_id(data.uuid)
         except AssetRect.DoesNotExist:
@@ -504,7 +504,7 @@ async def update_circle_size(sid: str, raw_data: Any):
     pr: PlayerRoom = game_state.get(sid)
 
     if not data.temporary:
-        shape: Union[Circle, CircularToken]
+        shape: Circle | CircularToken
         try:
             shape = CircularToken.get_by_id(data.uuid)
         except CircularToken.DoesNotExist:

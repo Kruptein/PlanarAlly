@@ -1,6 +1,6 @@
 import asyncio
 from abc import ABC, abstractmethod
-from typing import Dict, Generator, Generic, Tuple, TypeVar
+from typing import Generator, Generic, TypeVar
 
 from ..app import sio
 from ..db.models.user import User
@@ -10,7 +10,7 @@ T = TypeVar("T")
 
 class State(ABC, Generic[T]):
     def __init__(self, namespace: str | None) -> None:
-        self._sid_map: Dict[str, T] = {}
+        self._sid_map: dict[str, T] = {}
         self.namespace = namespace
 
     async def disconnect_all(self) -> None:
@@ -43,10 +43,10 @@ class State(ABC, Generic[T]):
             if all(getattr(self.get(sid), option, None) == value for option, value in options.items()):
                 yield sid
 
-    def get_t(self, **options) -> Generator[Tuple[str, T], None, None]:
+    def get_t(self, **options) -> Generator[tuple[str, T], None, None]:
         for sid in self.get_sids(**options):
             yield sid, self.get(sid)
 
-    def get_users(self, **options) -> Generator[Tuple[str, User], None, None]:
+    def get_users(self, **options) -> Generator[tuple[str, User], None, None]:
         for sid in self.get_sids(**options):
             yield sid, self.get_user(sid)

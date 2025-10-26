@@ -5,4 +5,4 @@ from .base_rect import BaseRect
 
 class Rect(BaseRect):
     def as_pydantic(self, shape: ApiCoreShape):
-        return ApiRectShape(**shape.dict(), width=self.width, height=self.height)
+        return ApiRectShape(**shape.model_dump(), width=self.width, height=self.height)

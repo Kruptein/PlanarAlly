@@ -45,4 +45,4 @@ class Aura(BaseDbModel):
         _dict = self.as_pydantic()
         _dict.uuid = str(uuid4())
         _dict.shape = new_shape
-        type(self).create(**_dict.dict())
+        type(self).create(**_dict.model_dump())

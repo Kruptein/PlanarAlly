@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 from peewee import BooleanField, ForeignKeyField, IntegerField, TextField
 
@@ -19,7 +19,7 @@ class Floor(BaseDbModel):
     name = cast(str, TextField())
     player_visible = cast(bool, BooleanField(default=False))
     type_ = cast(int, IntegerField(default=1))
-    background_color = cast(Optional[str], TextField(default=None, null=True))
+    background_color = cast(str | None, TextField(default=None, null=True))
 
     def __repr__(self):
         return f"<Floor {self.name} {[self.index]}>"

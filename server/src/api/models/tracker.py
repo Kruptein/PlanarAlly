@@ -1,11 +1,12 @@
 from pydantic import Field
+from pydantic.experimental.missing_sentinel import MISSING
 
 from .helpers import TypeIdModel
 
 
 class TrackerRef(TypeIdModel):
-    uuid: str = Field(typeId="TrackerId")
-    shape: str = Field(typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "TrackerId"})
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
 
 
 class ApiTracker(TrackerRef):
@@ -19,21 +20,21 @@ class ApiTracker(TrackerRef):
 
 
 class ApiOptionalTracker(TrackerRef):
-    visible: bool | None
-    name: str | None
-    value: int | None
-    maxvalue: int | None
-    draw: bool | None
-    primary_color: str | None
-    secondary_color: str | None
+    visible: bool | MISSING = Field(json_schema_extra={"missing": True})
+    name: str | MISSING = Field(json_schema_extra={"missing": True})
+    value: int | MISSING = Field(json_schema_extra={"missing": True})
+    maxvalue: int | MISSING = Field(json_schema_extra={"missing": True})
+    draw: bool | MISSING = Field(json_schema_extra={"missing": True})
+    primary_color: str | MISSING = Field(json_schema_extra={"missing": True})
+    secondary_color: str | MISSING = Field(json_schema_extra={"missing": True})
 
 
 class TrackerMove(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
-    tracker: str = Field(typeId="TrackerId")
-    new_shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    tracker: str = Field(json_schema_extra={"typeId": "TrackerId"})
+    new_shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
 
 
 class ShapeSetTrackerValue(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
-    value: str = Field(typeId="TrackerId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    value: str = Field(json_schema_extra={"typeId": "TrackerId"})

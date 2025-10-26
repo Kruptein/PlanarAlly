@@ -7,7 +7,7 @@ from ..helpers import TypeIdModel
 
 class AssetOptionsInfoSuccess(TypeIdModel):
     name: str
-    options: str | None = Field(..., noneAsNull=True)
+    options: str | None
     success: Literal[True]
 
 

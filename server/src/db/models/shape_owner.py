@@ -30,7 +30,7 @@ class ShapeOwner(BaseDbModel):
         )
 
     def make_copy(self, new_shape):
-        _dict = self.as_pydantic().dict()
+        _dict = self.as_pydantic().model_dump()
         _dict["shape"] = new_shape.uuid
         _dict["user"] = self.user
         type(self).create(**_dict)

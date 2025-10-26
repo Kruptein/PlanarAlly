@@ -1,6 +1,7 @@
 from typing import cast
 
 from peewee import FloatField, ForeignKeyField, IntegerField
+from pydantic_core import MISSING
 
 from ...api.models.location.userOption import ApiLocationUserOption
 from ..base import BaseDbModel
@@ -23,8 +24,8 @@ class LocationUserOption(BaseDbModel):
         return f"<LocationUserOption {self.location.get_path()} - {self.user.name}>"
 
     def as_pydantic(self):
-        active_floor = None
-        active_layer = None
+        active_floor = MISSING
+        active_layer = MISSING
         if self.active_layer:
             active_layer = self.active_layer.name
             active_floor = self.active_layer.floor.name
@@ -37,5 +38,5 @@ class LocationUserOption(BaseDbModel):
             active_floor=active_floor,
         )
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         indexes = ((("location", "user"), True),)

@@ -13,7 +13,7 @@ class CircularToken(Circle):
 
     def as_pydantic(self, shape: ApiCoreShape):
         return ApiCircularTokenShape(
-            **shape.dict(),
+            **shape.model_dump(),
             radius=self.radius,
             viewing_angle=self.viewing_angle,
             text=self.text,

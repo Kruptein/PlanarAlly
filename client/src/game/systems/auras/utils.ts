@@ -16,7 +16,7 @@ export function createEmptyUiAura(shape: LocalId): UiAura {
     };
 }
 
-export function createEmptyAura(): Aura {
+function createEmptyAura(): Aura {
     return {
         uuid: generateAuraId(),
         active: false,

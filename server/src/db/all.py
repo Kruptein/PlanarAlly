@@ -1,6 +1,5 @@
 #  Has to appear before Asset due to DeferredForeignKey
 from .models.asset_shortcut import AssetShortcut
-
 from .models.asset_share import AssetShare  # isort: skip
 from .models.asset import Asset
 from .models.asset_rect import AssetRect
@@ -36,6 +35,7 @@ from .models.shape import Shape
 from .models.shape_custom_data import ShapeCustomData
 from .models.shape_data_block import ShapeDataBlock
 from .models.shape_owner import ShapeOwner
+from .models.shape_template import ShapeTemplate
 from .models.shape_type import ShapeType
 from .models.stats import Stats
 from .models.text import Text
@@ -82,6 +82,7 @@ ALL_MODELS = [
     ShapeCustomData,
     ShapeDataBlock,
     ShapeOwner,
+    ShapeTemplate,
     ShapeType,
     Shape,
     Stats,

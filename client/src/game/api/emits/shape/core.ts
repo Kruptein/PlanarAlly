@@ -1,5 +1,6 @@
 import type {
-    ShapeAdd,
+    ApiShape,
+    ApiShapeAdd,
     ShapeCircleSizeUpdate,
     ShapeFloorChange,
     ShapeInfo,
@@ -11,6 +12,7 @@ import type {
     ShapeTextSizeUpdate,
     TemporaryShapes,
 } from "../../../../apiTypes";
+import { GlobalId } from "../../../../core/id";
 import { getGlobalId } from "../../../id";
 import type { IShape } from "../../../interfaces/shape";
 import type { ICircle } from "../../../interfaces/shapes/circle";
@@ -18,7 +20,7 @@ import type { IRect } from "../../../interfaces/shapes/rect";
 import type { IText } from "../../../interfaces/shapes/text";
 import { wrapSocket, socket } from "../../socket";
 
-export const sendShapeAdd = wrapSocket<ShapeAdd>("Shape.Add");
+export const sendShapeAdd = wrapSocket<ApiShapeAdd>("Shape.Add");
 export const sendRemoveShapes = (data: TemporaryShapes): void => {
     if (data.uuids.length === 0) {
         if (import.meta.env.NODE_ENV === "production") {
@@ -80,6 +82,10 @@ export function sendShapeSizeUpdate(data: { shape: IShape; temporary: boolean })
 export async function requestShapeInfo(shape: string): Promise<ShapeInfo> {
     socket.emit("Shape.Info.Get", shape);
     return new Promise((resolve: (value: ShapeInfo) => void) => socket.once("Shape.Info", resolve));
+}
+
+export async function fetchFullShape(shapeId: GlobalId): Promise<ApiShape | undefined> {
+    return (await socket.emitWithAck("Shape.Get", shapeId)) as ApiShape | undefined;
 }
 
 // helpers

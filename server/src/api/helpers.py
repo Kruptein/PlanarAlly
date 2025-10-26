@@ -11,7 +11,7 @@ async def _send_game(
     *,
     room: str | None,
     skip_sid: str | None = None,
-):
+) -> None:
     await sio.emit(event, data, room=room, skip_sid=skip_sid, namespace=GAME_NS)
 
 

@@ -1,6 +1,4 @@
-import merge from "lodash/merge";
-
-import type { ApiTracker, ApiAura } from "../apiTypes";
+import type { AssetTemplateInfo } from "../apiTypes";
 import { assetSystem } from "../assets";
 import { assetState } from "../assets/state";
 import { getImageSrcFromHash } from "../assets/utils";
@@ -8,35 +6,22 @@ import { l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
 import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../core/grid";
 import { baseAdjust } from "../core/http";
-import type { GlobalId } from "../core/id";
 import { SyncMode, InvalidationMode } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
 
 import { requestAssetOptions } from "./api/emits/asset";
-import { sendShapesMove } from "./api/emits/shape/core";
+import { fetchFullShape, sendShapesMove } from "./api/emits/shape/core";
 import { getLocalId, getShape } from "./id";
 import { compositeState } from "./layers/state";
-import type { BaseTemplate } from "./models/templates";
 import { moveShapes } from "./operations/movement";
-import {
-    applyCompactForm,
-    createServerDataFromCompact,
-    fromSystemForm,
-    loadFromServer,
-} from "./shapes/transformations";
+import { loadFromServer } from "./shapes/transformations";
 import { Asset } from "./shapes/variants/asset";
-import { aurasToServer } from "./systems/auras/conversion";
-import { createEmptyAura } from "./systems/auras/utils";
 import type { CharacterId } from "./systems/characters/models";
 import { characterState } from "./systems/characters/state";
 import { floorState } from "./systems/floors/state";
-import { noteSystem } from "./systems/notes";
-import { VisionBlock } from "./systems/properties/types";
 import { locationSettingsState } from "./systems/settings/location/state";
-import { trackersToServer } from "./systems/trackers/conversion";
-import { createEmptyTracker } from "./systems/trackers/utils";
-import { selectionBoxFunction } from "./temp";
+import { addShape, selectionBoxFunction } from "./temp";
 import { handleDropFF } from "./ui/firefox";
 
 export async function handleDropEvent(event: DragEvent): Promise<void> {
@@ -112,29 +97,25 @@ async function dropHelper(
     );
 }
 
+async function loadTemplate(template: AssetTemplateInfo): Promise<void> {
+    const shape = await fetchFullShape(template.id);
+    if (shape) {
+        const layer = floorState.currentLayer.value!;
+        addShape(loadFromServer(shape, layer.floor, layer.name), SyncMode.FULL_SYNC, "create");
+    }
+}
+
 export async function dropAsset(
     data: { imageSource: string; assetId: number },
     position: GlobalPoint,
 ): Promise<Asset | undefined> {
-    const layer = floorState.currentLayer.value!;
+    let dimensions: { width: number; height: number } | undefined;
 
-    let template: BaseTemplate | undefined;
     if (data.assetId) {
         const assetInfo = await requestAssetOptions(data.assetId);
         if (assetInfo.success) {
-            // check if map dimensions in asset name
-            const dimensions = assetInfo.name.match(/(?<x>\d+)x(?<y>\d+)/);
-            if (dimensions?.groups !== undefined) {
-                const dimX = Number.parseInt(dimensions.groups.x ?? "0");
-                const dimY = Number.parseInt(dimensions.groups.y ?? "0");
-                // DropRatio is already accounted for in applyTemplate!!
-                template = {
-                    width: dimX * DEFAULT_GRID_SIZE,
-                    height: dimY * DEFAULT_GRID_SIZE,
-                } as BaseTemplate;
-            }
-
-            const choices = Object.keys(assetInfo.options?.templates ?? {});
+            // First check if there are templates and if so, if we want to use one
+            const choices = assetInfo.templates.map((template) => template.name);
             if (choices.length > 0) {
                 try {
                     const choice = await selectionBoxFunction!(
@@ -142,10 +123,28 @@ export async function dropAsset(
                         choices,
                     );
                     if (choice === undefined || choice.length === 0) return;
-                    template = assetInfo.options!.templates[choice[0]!];
+                    const template = assetInfo.templates.find((template) => template.name === choice[0]);
+                    if (template) {
+                        await loadTemplate(template);
+                        return;
+                    }
                 } catch {
                     // no-op ; action cancelled
                 }
+            }
+
+            // If no templates, check if there are map dimensions in the asset name
+            const dimensionsMatch = assetInfo.name.match(/(?<x>\d+)x(?<y>\d+)/);
+            if (dimensionsMatch?.groups !== undefined) {
+                const dimX = Number.parseInt(dimensionsMatch.groups.x ?? "0");
+                const dimY = Number.parseInt(dimensionsMatch.groups.y ?? "0");
+
+                const gridRescale = locationSettingsState.raw.dropRatio.value;
+
+                dimensions = {
+                    width: dimX * DEFAULT_GRID_SIZE * gridRescale,
+                    height: dimY * DEFAULT_GRID_SIZE * gridRescale,
+                };
             }
         }
     }
@@ -155,12 +154,20 @@ export async function dropAsset(
     const uuid = uuidv4();
     image.src = baseAdjust(data.imageSource);
 
+    const layer = floorState.currentLayer.value!;
+
     return new Promise((resolve) => {
         image.onload = () => {
-            const asset = new Asset(image, position, l2gz(image.width), l2gz(image.height), {
-                assetId: data.assetId,
-                uuid,
-            });
+            const asset = new Asset(
+                image,
+                position,
+                dimensions?.width ?? l2gz(image.width),
+                dimensions?.height ?? l2gz(image.height),
+                {
+                    assetId: data.assetId,
+                    uuid,
+                },
+            );
 
             const pathname = new URL(image.src).pathname;
             asset.src = pathname.replace(import.meta.env.BASE_URL, "/");
@@ -174,48 +181,7 @@ export async function dropAsset(
                 })[0];
             }
 
-            if (template) {
-                // Patch for old templates
-                // these things should be removed once we complete part 2 of the shape/template rework
-                if ("src" in template) delete template.src;
-                if (typeof template.vision_obstruction === "boolean") {
-                    template.vision_obstruction = template.vision_obstruction ? VisionBlock.Complete : VisionBlock.No;
-                }
-                const defaultTracker = trackersToServer("" as unknown as GlobalId, [createEmptyTracker()])[0]!;
-                for (const tracker of template.trackers ?? []) {
-                    for (const key of Object.keys(defaultTracker)) {
-                        if (!(key in tracker)) {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                            (tracker as any)[key] = defaultTracker[key as keyof ApiTracker];
-                        }
-                    }
-                }
-                const defaultAura = aurasToServer("" as unknown as GlobalId, [createEmptyAura()])[0]!;
-                for (const aura of template.auras ?? []) {
-                    for (const key of Object.keys(defaultAura)) {
-                        if (!(key in aura)) {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                            (aura as any)[key] = defaultAura[key as keyof ApiAura];
-                        }
-                    }
-                }
-                // end of patching
-
-                const compact = loadFromServer(
-                    merge(createServerDataFromCompact(fromSystemForm(asset.id)), template),
-                    layer.floor,
-                    layer.name,
-                );
-                applyCompactForm(asset, compact, "create", (shape) => {
-                    layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
-                });
-            } else {
-                layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
-            }
-
-            for (const noteId of asset.options.templateNoteIds ?? []) {
-                noteSystem.attachShape(noteId, asset.id, true);
-            }
+            layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 
             resolve(asset);
         };

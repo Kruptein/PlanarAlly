@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 107
+SAVE_VERSION = 108
 
 import asyncio
 import json
@@ -476,6 +476,12 @@ def upgrade(
             )
             db.execute_sql(
                 "CREATE UNIQUE INDEX 'shape_custom_data_keys' ON 'shape_custom_data' ('shape_id', 'source', 'prefix', 'name')"
+            )
+    elif version == 107:
+        # Add AssetTemplate
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TABLE IF NOT EXISTS 'shape_template' ('id' INTEGER NOT NULL PRIMARY KEY, 'shape_id' TEXT NOT NULL, 'asset_id' INTEGER NOT NULL, 'name' TEXT NOT NULL, FOREIGN KEY ('shape_id') REFERENCES 'shape' ('uuid') ON DELETE CASCADE, FOREIGN KEY ('asset_id') REFERENCES 'asset' ('id') ON DELETE CASCADE)"
             )
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")

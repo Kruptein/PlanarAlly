@@ -9,7 +9,7 @@ import type { ILayer } from "./interfaces/layer";
 import type { IShape } from "./interfaces/shape";
 import type { Floor } from "./models/floor";
 import { addOperation } from "./operations/undo";
-import { instantiateCompactForm, type CompactForm } from "./shapes/transformations";
+import { instantiateCompactForm, type FullCompactForm } from "./shapes/transformations";
 import type { DepShape } from "./shapes/types";
 import { floorSystem } from "./systems/floors";
 import { getProperties } from "./systems/properties/state";
@@ -84,7 +84,7 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
 }
 
 export function addShape(
-    shape: CompactForm,
+    shape: FullCompactForm,
     sync: SyncMode,
     mode: SystemInformMode,
     dependents?: readonly DepShape[],

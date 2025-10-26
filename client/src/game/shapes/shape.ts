@@ -1,5 +1,6 @@
 import clamp from "lodash/clamp";
 
+import type { AssetId } from "../../assets/models";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
@@ -88,7 +89,7 @@ export abstract class Shape implements IShape {
 
     strokeWidth: number;
 
-    assetId?: number;
+    assetId?: AssetId;
 
     // Draw mode to use
     globalCompositeOperation: GlobalCompositeOperation = "source-over";
@@ -129,7 +130,7 @@ export abstract class Shape implements IShape {
         options?: {
             id?: LocalId;
             uuid?: GlobalId;
-            assetId?: number;
+            assetId?: AssetId;
             strokeWidth?: number;
             isSnappable?: boolean;
             parentId?: LocalId;

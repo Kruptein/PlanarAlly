@@ -10,11 +10,14 @@ from ....logs import logger
 from ...models.shape import ApiShape
 
 
-def create_shape(data: ApiShape, *, layer: Layer):
+def create_shape(data: ApiShape, *, layer: Layer | None):
     with db.atomic():
         # Shape itself
         data_dict = data.model_dump()
-        index = layer.shapes.count()
+        if layer:
+            index = layer.shapes.count()
+        else:
+            index = 0
         data_dict["layer"] = layer
         shape = Shape.create(index=index, **reduce_data_to_model(Shape, data_dict))
         # Subshape

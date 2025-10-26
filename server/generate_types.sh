@@ -32,5 +32,6 @@ sed -i '1s/^/'\
 '\n'\
 'export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape\n'\
 'export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock\n'\
+'export type ApiShapeAdd = ApiShapeWithLayerAndTemporary | ApiTemplateShape\n'\
 'export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumber | ApiShapeCustomDataBoolean | ApiShapeCustomDataDiceExpression\n'\
 '\n/' ../client/src/apiTypes.ts

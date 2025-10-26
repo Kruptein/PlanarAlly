@@ -1,11 +1,13 @@
 from typing import Any, cast
 
 from peewee import Case
+from pydantic import TypeAdapter
 
 from .... import auth
 from ....api.helpers import _send_game
 from ....app import app, sio
 from ....db.db import db
+from ....db.models.asset import Asset
 from ....db.models.asset_rect import AssetRect
 from ....db.models.circle import Circle
 from ....db.models.circular_token import CircularToken
@@ -15,6 +17,7 @@ from ....db.models.location import Location
 from ....db.models.player_room import PlayerRoom
 from ....db.models.rect import Rect
 from ....db.models.shape import Shape
+from ....db.models.shape_template import ShapeTemplate
 from ....db.models.text import Text
 from ....db.typed import SelectSequence
 from ....logs import logger
@@ -24,7 +27,7 @@ from ....state.game import game_state
 from ....transform.to_api.shape import transform_shape
 from ...common.shapes import create_shape
 from ...models.shape import (
-    ApiShapeWithLayerInfo,
+    ApiShapeWithLayer,
     ShapeAdd,
     ShapeAssetImageSet,
     ShapeCircleSizeUpdate,
@@ -34,6 +37,7 @@ from ...models.shape import (
     ShapeLocationMove,
     ShapeOrder,
     ShapeRectSizeUpdate,
+    ShapeTemplateAdd,
     ShapeTextSizeUpdate,
     ShapeTextValueSet,
     TemporaryShapes,
@@ -46,56 +50,73 @@ from ..groups import remove_group_if_empty
 from . import access, custom_data, options, toggle_composite  # noqa: F401
 
 
+@sio.on("Shape.Get", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def get_shape(sid: str, shape_id: str):
+    shape: Shape = Shape.get_by_id(shape_id)
+
+    return transform_shape(shape, game_state.get(sid))
+
+
 @sio.on("Shape.Add", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def add_shape(sid: str, raw_data: Any):
-    data = ShapeAdd(**raw_data)
+    adapter: TypeAdapter[ShapeAdd] = TypeAdapter(ShapeAdd)
+    data = adapter.validate_python(raw_data)
 
     pr: PlayerRoom = game_state.get(sid)
 
-    try:
-        floor = pr.active_location.floors.where(Floor.name == data.floor)[0]
-        layer = floor.layers.where(Layer.name == data.layer)[0]
-    except IndexError:
-        logger.error(f"Attempt to add a shape to unknown floor/layer {data.floor}/{data.layer}")
-        return
+    is_temp = False
+    floor: Floor | None = None
+    layer: Layer | None = None
 
-    if pr.role != Role.DM and not layer.player_editable:
-        logger.warning(f"{pr.player.name} attempted to add a shape to a dm layer")
-        return
+    if isinstance(data, ApiShapeWithLayer):
+        try:
+            floor = pr.active_location.floors.where(Floor.name == data.floor)[0]
+            layer = floor.layers.where(Layer.name == data.layer)[0]
+        except IndexError:
+            logger.error(f"Attempt to add a shape to unknown floor/layer {data.floor}/{data.layer}")
+            return
+
+        if pr.role != Role.DM and not layer.player_editable:
+            logger.warning(f"{pr.player.name} attempted to add a shape to a dm layer")
+            return
+
+        if data.temporary:
+            game_state.add_temp(sid, data.shape.uuid)
+            is_temp = True
 
     shape: Shape | None = None
 
-    if data.temporary:
-        game_state.add_temp(sid, data.shape.uuid)
-    elif data.shape.character:
-        # Restore shape from character (e.g. undo a shape delete related to a character)
-        shape = Shape.get_or_none(Shape.character_id == data.shape.character)
-        if shape is None:
-            logger.error(f"Add shape failed: character {data.shape.character} not found")
-            return
-        shape.layer = layer
-        shape.x = data.shape.x
-        shape.y = data.shape.y
-        shape.save()
-    else:
-        shape = create_shape(data.shape, layer=layer)
-        if shape is None:
-            logger.error(f"Failed to create new shape {raw_data}")
-            return
+    if not is_temp:
+        if data.shape.character:
+            # Restore shape from character (e.g. undo a shape delete related to a character)
+            shape = Shape.get_or_none(Shape.character_id == data.shape.character)
+            if shape is None:
+                logger.error(f"Add shape failed: character {data.shape.character} not found")
+                return
+            shape.layer = layer
+            shape.x = data.shape.x
+            shape.y = data.shape.y
+            shape.save()
+        else:
+            shape = create_shape(data.shape, layer=layer)
+            if shape is None:
+                logger.error(f"Failed to create new shape {raw_data}")
+                return
 
     for room_player in pr.room.players:
         is_dm = room_player.role == Role.DM
         for psid in game_state.get_sids(player=room_player.player, active_location=pr.active_location):
             if psid == sid:
                 continue
-            if not is_dm and not layer.player_visible:
+            if not is_dm and layer is not None and not layer.player_visible:
                 continue
-            if not data.temporary and shape is not None:
+            if not is_temp and shape is not None:
                 data.shape = transform_shape(shape, room_player)
             await _send_game(
                 "Shape.Add",
-                ApiShapeWithLayerInfo(shape=data.shape, floor=floor.name, layer=layer.name),
+                data,
                 room=psid,
             )
 
@@ -313,7 +334,7 @@ async def change_shape_layer(sid: str, raw_data: Any):
                     await _send_game(
                         "Shapes.Add",
                         [
-                            ApiShapeWithLayerInfo(
+                            ApiShapeWithLayer(
                                 shape=transform_shape(shape, tpr),
                                 floor=floor.name,
                                 layer=layer.name,
@@ -430,7 +451,7 @@ async def move_shapes(sid: str, raw_data: Any):
         await _send_game(
             "Shapes.Add",
             [
-                ApiShapeWithLayerInfo(
+                ApiShapeWithLayer(
                     shape=transform_shape(shape, tpr),
                     floor=floor.name,
                     layer=layer.name,
@@ -549,6 +570,23 @@ async def change_asset_image(sid: str, raw_data: Any):
     shape.save()
 
     await _send_game("Shape.Asset.Image.Set", data, room=pr.active_location.get_path(), skip_sid=sid)
+
+
+@sio.on("Shape.Template.Add", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def add_shape_template(sid: str, raw_data: Any):
+    data = ShapeTemplateAdd(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = Shape.get_by_id(data.shapeId)
+    asset = Asset.get_by_id(data.assetId)
+
+    if not asset.can_be_accessed_by(pr.player, right="edit"):
+        logger.error(f"{pr.player.name} attempted to add a shape template to an asset they do not have edit access to")
+        return
+
+    ShapeTemplate.create(shape=shape, asset=asset, name=data.name)
 
 
 @sio.on("Shape.Info.Get", namespace=GAME_NS)

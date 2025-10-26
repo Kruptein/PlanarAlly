@@ -1,10 +1,10 @@
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { buildState } from "../../../core/systems/state";
-import type { CompactForm } from "../../shapes/transformations";
+import type { FullCompactForm } from "../../shapes/transformations";
 
 interface ClipboardState {
-    clipboard: CompactForm[];
+    clipboard: FullCompactForm[];
     clipboardPosition: GlobalPoint;
 }
 

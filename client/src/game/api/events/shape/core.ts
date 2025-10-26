@@ -1,5 +1,5 @@
 import type {
-    ApiShapeWithLayerInfo,
+    ApiShapeWithLayer,
     ShapeCircleSizeUpdate,
     ShapeFloorChange,
     ShapeLayerChange,
@@ -22,7 +22,7 @@ import { addShape, moveFloor, moveLayer } from "../../../temp";
 import { initiativeStore } from "../../../ui/initiative/state";
 import { socket } from "../../socket";
 
-socket.on("Shape.Set", (data: ApiShapeWithLayerInfo) => {
+socket.on("Shape.Set", (data: ApiShapeWithLayer) => {
     const { shape: apiShape, layer, floor } = data;
     // hard reset a shape
     const uuid = apiShape.uuid;
@@ -45,13 +45,13 @@ socket.on("Shape.Set", (data: ApiShapeWithLayerInfo) => {
     }
 });
 
-socket.on("Shape.Add", (data: ApiShapeWithLayerInfo) => {
+socket.on("Shape.Add", (data: ApiShapeWithLayer) => {
     const floorId = floorSystem.getFloor({ name: data.floor })!.id;
     addShape(loadFromServer(data.shape, floorId, data.layer), SyncMode.NO_SYNC, "load");
     initiativeStore._forceUpdate();
 });
 
-socket.on("Shapes.Add", (shapes: ApiShapeWithLayerInfo[]) => {
+socket.on("Shapes.Add", (shapes: ApiShapeWithLayer[]) => {
     for (const data of shapes) {
         const floorId = floorSystem.getFloor({ name: data.floor })!.id;
         addShape(loadFromServer(data.shape, floorId, data.layer), SyncMode.NO_SYNC, "load");

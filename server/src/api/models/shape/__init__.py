@@ -19,14 +19,24 @@ if TYPE_CHECKING:
 ApiShape = ApiShapeSubType
 
 
-class ApiShapeWithLayerInfo(TypeIdModel):
+class ApiShapeCore(TypeIdModel):
     shape: ApiShape
+
+
+class ApiShapeWithLayer(ApiShapeCore):
     floor: str
     layer: str = Field(json_schema_extra={"typeId": "LayerName"})
 
 
-class ShapeAdd(ApiShapeWithLayerInfo):
+class ApiShapeWithLayerAndTemporary(ApiShapeWithLayer):
     temporary: bool
+
+
+class ApiTemplateShape(ApiShapeCore):
+    template: bool
+
+
+ShapeAdd = ApiShapeWithLayerAndTemporary | ApiTemplateShape
 
 
 class TemporaryShapes(TypeIdModel):
@@ -88,6 +98,12 @@ class ShapeTextSizeUpdate(TypeIdModel):
 class ShapeAssetImageSet(TypeIdModel):
     uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
     src: str
+
+
+class ShapeTemplateAdd(TypeIdModel):
+    assetId: int = Field(json_schema_extra={"typeId": "AssetId"})
+    shapeId: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    name: str
 
 
 # todo: This can probably be removed in favor of the very similar SpawnInfo

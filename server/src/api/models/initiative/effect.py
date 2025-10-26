@@ -10,23 +10,23 @@ class ApiInitiativeEffect(BaseModel):
 
 
 class InitiativeEffectNew(TypeIdModel):
-    actor: str = Field(typeId="GlobalId")
+    actor: str = Field(json_schema_extra={"typeId": "GlobalId"})
     effect: ApiInitiativeEffect
     effect: ApiInitiativeEffect
 
 
 class InitiativeEffectRename(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     index: int
     name: str
 
 
 class InitiativeEffectTurns(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     index: int
     turns: str
 
 
 class InitiativeEffectRemove(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     index: int

@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
@@ -16,6 +16,7 @@ from ..models.floor import FloorCreate, FloorRename
 from ..models.floor.background import FloorBackgroundSet
 from ..models.floor.type import FloorTypeSet
 from ..models.floor.visible import FloorVisibleSet
+from ..models.helpers import missing_to_none
 
 
 @sio.on("Floor.Create", namespace=GAME_NS)
@@ -138,7 +139,7 @@ async def set_floor_background(sid: str, raw_data: Any):
         return
 
     floor: Floor = Floor.get(location=pr.active_location, name=data.name)
-    floor.background_color = data.background or None
+    floor.background_color = missing_to_none(data.background) or None
     floor.save()
 
     await _send_game(
@@ -151,7 +152,7 @@ async def set_floor_background(sid: str, raw_data: Any):
 
 @sio.on("Floors.Reorder", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def reorder_floors(sid: str, data: List[str]):
+async def reorder_floors(sid: str, data: list[str]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:

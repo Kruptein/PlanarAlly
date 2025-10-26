@@ -161,7 +161,6 @@ export interface ApiCircularTokenShape extends ApiCoreShape {
 export interface ApiCoreDataBlock {
   source: string;
   name: string;
-  category: "room" | "shape" | "user";
   data: string;
 }
 export interface ApiCoreShape {
@@ -512,6 +511,15 @@ export interface Viewport {
   offset_x?: number;
   offset_y?: number;
 }
+export interface CoreModMeta {
+  apiSchema: string;
+  tag: string;
+  name: string;
+  version: string;
+  author: string;
+  shortDescription: string;
+  description: string;
+}
 export interface DiceRollResult {
   player: string;
   roll: string;
@@ -569,16 +577,6 @@ export interface InitiativeEffectRename {
   index: number;
   name: string;
 }
-export interface InitiativeTurnUpdate {
-  turn: number;
-  direction: InitiativeDirection;
-  processEffects: boolean;
-}
-export interface InitiativeRoundUpdate {
-  round: number;
-  direction: InitiativeDirection;
-  processEffects: boolean;
-}
 export interface InitiativeEffectTurns {
   shape: GlobalId;
   index: number;
@@ -593,6 +591,16 @@ export interface InitiativeOrderChange {
   shape: GlobalId;
   oldIndex: number;
   newIndex: number;
+}
+export interface InitiativeRoundUpdate {
+  round: number;
+  direction: InitiativeDirection;
+  processEffects: boolean;
+}
+export interface InitiativeTurnUpdate {
+  turn: number;
+  direction: InitiativeDirection;
+  processEffects: boolean;
 }
 export interface InitiativeValueSet {
   shape: GlobalId;
@@ -724,7 +732,7 @@ export interface ShapeLocationMoveTarget {
   y: number;
   location: number;
   floor: string;
-  layer?: string;
+  layer?: LayerName;
 }
 export interface ShapeOption {
   uuid: GlobalId;

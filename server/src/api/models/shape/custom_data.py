@@ -6,16 +6,15 @@ from ..helpers import TypeIdModel
 
 
 class ApiShapeCustomDataIdentifier(TypeIdModel):
-    shapeId: str = Field(typeId="GlobalId")
+    shapeId: str = Field(json_schema_extra={"typeId": "GlobalId"})
     source: str
     prefix: str
     name: str
 
 
 class ApiShapeCustomDataCore(ApiShapeCustomDataIdentifier):
-    kind: str
-    reference: str | None = Field(..., noneAsNull=True)
-    description: str | None = Field(..., noneAsNull=True)
+    reference: str | None
+    description: str | None
 
 
 class ApiShapeCustomDataText(ApiShapeCustomDataCore):

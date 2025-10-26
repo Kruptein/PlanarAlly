@@ -1,7 +1,7 @@
 import json
 from typing import Any
 
-import pydantic
+from pydantic import TypeAdapter
 
 from .... import auth
 from ....api.helpers import _send_game
@@ -18,11 +18,7 @@ from ....state.game import game_state
 @sio.on("Shape.CustomData.Add", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def add_shape_custom_data(sid: str, raw_data: Any):
-    try:
-        data: ApiShapeCustomData = pydantic.parse_obj_as(ApiShapeCustomData, raw_data)
-    except pydantic.error_wrappers.ValidationError as e:
-        logger.exception(e)
-        return
+    data = TypeAdapter(ApiShapeCustomData).validate_python(raw_data)
 
     pr: PlayerRoom = game_state.get(sid)
 
@@ -83,12 +79,7 @@ async def remove_shape_custom_data(sid: str, raw_data: Any):
 @sio.on("Shape.CustomData.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def update_shape_custom_data(sid: str, raw_data: Any):
-    try:
-        data: ApiShapeCustomData = pydantic.parse_obj_as(ApiShapeCustomData, raw_data)
-    except pydantic.error_wrappers.ValidationError as e:
-        logger.exception(e)
-        return
-
+    data = TypeAdapter(ApiShapeCustomData).validate_python(raw_data)
     pr: PlayerRoom = game_state.get(sid)
 
     shape = get_shape_or_none(pr, data.shapeId, "Shape.CustomData.Update")

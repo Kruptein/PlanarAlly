@@ -1,4 +1,4 @@
-from typing import Tuple, cast
+from typing import cast
 
 from peewee import FloatField
 
@@ -9,5 +9,5 @@ class BaseRect(ShapeType):
     width = cast(float, FloatField())
     height = cast(float, FloatField())
 
-    def get_center_offset(self) -> Tuple[float, float]:
+    def get_center_offset(self) -> tuple[float, float]:
         return self.width / 2, self.height / 2

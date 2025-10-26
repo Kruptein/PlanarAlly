@@ -14,7 +14,7 @@ class ApiGroup(BaseModel):
 
 
 class ApiLayer(TypeIdModel):
-    name: str = Field(typeId="LayerName")
+    name: str = Field(json_schema_extra={"typeId": "LayerName"})
     type_: str
     player_editable: bool
     selectable: bool
@@ -28,7 +28,7 @@ class ApiFloor(TypeIdModel):
     name: str
     player_visible: bool
     type_: int
-    background_color: str | None = Field(..., noneAsNull=True)
+    background_color: str | None
     layers: list[ApiLayer]
 
 
@@ -38,5 +38,5 @@ class FloorCreate(BaseModel):
 
 
 class FloorRename(TypeIdModel):
-    index: int = Field(typeId="FloorIndex")
+    index: int = Field(json_schema_extra={"typeId": "FloorIndex"})
     name: str

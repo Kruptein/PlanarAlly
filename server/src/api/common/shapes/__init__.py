@@ -13,7 +13,7 @@ from ...models.shape import ApiShape
 def create_shape(data: ApiShape, *, layer: Layer):
     with db.atomic():
         # Shape itself
-        data_dict = data.dict()
+        data_dict = data.model_dump()
         index = layer.shapes.count()
         data_dict["layer"] = layer
         shape = Shape.create(index=index, **reduce_data_to_model(Shape, data_dict))
@@ -39,9 +39,9 @@ def create_shape(data: ApiShape, *, layer: Layer):
             )
         # Trackers
         for tracker in data.trackers:
-            Tracker.create(**reduce_data_to_model(Tracker, tracker.dict()))
+            Tracker.create(**reduce_data_to_model(Tracker, tracker.model_dump()))
         # Auras
         for aura in data.auras:
-            Aura.create(**reduce_data_to_model(Aura, aura.dict()))
+            Aura.create(**reduce_data_to_model(Aura, aura.model_dump()))
 
         return shape

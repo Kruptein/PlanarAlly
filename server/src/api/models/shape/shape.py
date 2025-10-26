@@ -8,7 +8,7 @@ from .owner import ApiShapeOwner
 
 
 class ApiCoreShape(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
     type_: str
     x: float
     y: float
@@ -17,7 +17,7 @@ class ApiCoreShape(TypeIdModel):
     name_visible: bool
     fill_colour: str
     stroke_colour: str
-    vision_obstruction: int = Field(..., typeId="VisionBlock")
+    vision_obstruction: int = Field(json_schema_extra={"typeId": "VisionBlock"})
     movement_obstruction: bool
     draw_operator: str
     options: str
@@ -31,8 +31,8 @@ class ApiCoreShape(TypeIdModel):
     is_locked: bool
     angle: float
     stroke_width: int
-    asset: int | None = Field(..., noneAsNull=True)
-    group: str | None = Field(..., noneAsNull=True)
+    asset: int | None
+    group: str | None
     ignore_zoom_size: bool
     is_door: bool
     is_teleport_zone: bool
@@ -40,10 +40,10 @@ class ApiCoreShape(TypeIdModel):
     owners: list[ApiShapeOwner]
     trackers: list[ApiTracker]
     auras: list[ApiAura]
-    character: int | None = Field(..., typeId="CharacterId", noneAsNull=True)
+    character: int | None = Field(json_schema_extra={"typeId": "CharacterId"})
     odd_hex_orientation: bool
     size: int
     show_cells: bool
-    cell_fill_colour: str | None = Field(..., noneAsNull=True)
-    cell_stroke_colour: str | None = Field(..., noneAsNull=True)
-    cell_stroke_width: int | None = Field(..., noneAsNull=True)
+    cell_fill_colour: str | None
+    cell_stroke_colour: str | None
+    cell_stroke_width: int | None

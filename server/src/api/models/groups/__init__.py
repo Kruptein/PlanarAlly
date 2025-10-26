@@ -11,5 +11,5 @@ class GroupJoin(BaseModel):
 
 
 class GroupLeave(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
     group_id: str

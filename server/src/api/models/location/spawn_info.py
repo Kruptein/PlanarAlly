@@ -8,4 +8,4 @@ class ApiSpawnInfo(TypeIdModel):
     position: PositionTuple
     floor: str
     name: str
-    uuid: str = Field(..., typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})

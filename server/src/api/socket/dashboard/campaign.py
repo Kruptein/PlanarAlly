@@ -1,5 +1,4 @@
 import asyncio
-from typing import Optional
 
 from .... import auth
 from ....app import app, sio
@@ -19,7 +18,7 @@ async def _export_campaign(sid: str, campaign_name: str):
 
     user = dashboard_state.get_user(sid)
 
-    room: Optional[Room] = Room.get_or_none(name=campaign_name, creator=user)
+    room: Room | None = Room.get_or_none(name=campaign_name, creator=user)
     if room is None:
         logger.warning(f"Attempt to export campaign that does not exist. [{campaign_name}-{user.name}]")
         return

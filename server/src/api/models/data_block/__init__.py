@@ -8,7 +8,6 @@ from ..helpers import TypeIdModel
 class ApiCoreDataBlock(TypeIdModel):
     source: str
     name: str
-    category: Literal["room"] | Literal["shape"] | Literal["user"]
     data: str
 
 
@@ -19,7 +18,7 @@ class ApiRoomDataBlock(ApiCoreDataBlock):
 
 class ApiShapeDataBlock(ApiCoreDataBlock):
     category: Literal["shape"]
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
 
 
 # RoomDataBlock is always associated with the active user

@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Extra
 
@@ -43,7 +43,7 @@ class WebserverConfig(ConfigModel):
     #   https://python-socketio.readthedocs.io/en/latest/api.html#asyncserver-class
     # A value of '*' can be set to allow all origins,
     # this is useful for testing purposes, but not secure
-    cors_allowed_origins: Optional[str | list[str]] = None
+    cors_allowed_origins: str | list[str] | None = None
 
     # This limits the maximum size a single request to the server can be.
     # This does _not_ limit the maximum size of assets. (See AssetsConfig)
@@ -54,7 +54,7 @@ class WebserverConfig(ConfigModel):
 
 class AssetsConfig(ConfigModel):
     # Can be used to signal that assets are stored in a different directory
-    directory: Optional[str] = None
+    directory: str | None = None
 
     # Configuration limits for User asset uploads
     # Single asset is simply the max allowed upload size for a single asset
@@ -77,7 +77,7 @@ class GeneralConfig(ConfigModel):
     # This is used for generated URLs (e.g. password reset link, invitation URL)
     # If not specified, this will be guessed or simply not available
     # It's strongly suggested to set this value
-    client_url: Optional[str] = None
+    client_url: str | None = None
 
     # Allow users to sign up
     # If disabled, only existing accounts can login
@@ -93,7 +93,7 @@ class GeneralConfig(ConfigModel):
     max_log_size_in_bytes: int = 200_000
     max_log_backups: int = 5
 
-    admin_user: Optional[str] = None
+    admin_user: str | None = None
 
 
 class MailConfig(ConfigModel):
@@ -104,8 +104,8 @@ class MailConfig(ConfigModel):
     host: str
     port: int
     # Username/password are optional for SMTP servers that do not require authentication
-    username: Optional[str] = None
-    password: Optional[str] = None
+    username: str | None = None
+    password: str | None = None
     # The default from address to use for emails
     default_from_address: EmailStr
     ssl_mode: Literal["ssl", "tls", "starttls", "lmtp"] = "starttls"
@@ -132,4 +132,4 @@ class ServerConfig(ConfigModel):
     assets: AssetsConfig = AssetsConfig()
     webserver: WebserverConfig = WebserverConfig()
     stats: StatsConfig = StatsConfig()
-    mail: Optional[MailConfig] = None
+    mail: MailConfig | None = None

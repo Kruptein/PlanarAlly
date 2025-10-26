@@ -34,6 +34,7 @@ tech changes will usually be stripped from release notes for the public
     -   Add effects with infinite timespan
     -   Fix names in initiative list not being reactive
 -   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)
+-   [tech] upgraded pydantic from 1.x to 2.x
 
 ### Fixed
 

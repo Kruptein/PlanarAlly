@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional, cast
+from typing import cast
 
 from peewee import DateField, ForeignKeyField, IntegerField, TextField
 
@@ -17,11 +17,11 @@ class PlayerRoom(BaseDbModel):
     room = cast(Room, ForeignKeyField(Room, backref="players", on_delete="CASCADE"))
     active_location = cast(Location, ForeignKeyField(Location, backref="players", on_delete="CASCADE"))
     user_options = cast(
-        Optional[UserOptions],
+        UserOptions | None,
         ForeignKeyField(UserOptions, on_delete="CASCADE", null=True),
     )
     notes = TextField(null=True)
-    last_played = cast(Optional[date], DateField(null=True))
+    last_played = cast(date | None, DateField(null=True))
 
     def __repr__(self):
         return f"<PlayerRoom {self.room.get_path()} - {self.player.name}>"

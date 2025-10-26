@@ -1,6 +1,6 @@
 from typing import Any
 
-import pydantic
+from pydantic import TypeAdapter
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
@@ -12,13 +12,7 @@ from ...logs import logger
 from ...state.game import game_state
 from ...transform.from_api.data_block import get_data_block
 from ..helpers import _send_game
-from ..models.data_block import (
-    ApiCoreDataBlock,
-    ApiDataBlock,
-    ApiRoomDataBlock,
-    ApiShapeDataBlock,
-    ApiUserDataBlock,
-)
+from ..models.data_block import ApiDataBlock, ApiRoomDataBlock, ApiShapeDataBlock, ApiUserDataBlock
 
 db_mapper = {
     "room": {"api": ApiRoomDataBlock, "db": RoomDataBlock},
@@ -27,20 +21,12 @@ db_mapper = {
 }
 
 
-def get_api_block(data: ApiCoreDataBlock) -> ApiDataBlock:
-    return db_mapper[data.category]["api"](**data.dict())
-
-
 @sio.on("DataBlock.Load", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def load_datablock(sid: str, raw_data: Any):
     pr = game_state.get(sid)
 
-    try:
-        data = pydantic.parse_obj_as(ApiDataBlock, {"data": "", **raw_data})
-    except pydantic.error_wrappers.ValidationError as e:
-        logger.exception(e)
-        return
+    data = TypeAdapter(ApiDataBlock).validate_python({"data": "", **raw_data})
 
     if data_block := get_data_block(data, pr):
         return data_block.as_pydantic()
@@ -52,14 +38,10 @@ async def load_datablock(sid: str, raw_data: Any):
 async def create_datablock(sid: str, raw_data: Any):
     pr = game_state.get(sid)
 
-    try:
-        data = pydantic.parse_obj_as(ApiDataBlock, raw_data)
-    except pydantic.error_wrappers.ValidationError as e:
-        logger.error(e)
-        return False
+    data = TypeAdapter(ApiDataBlock).validate_python(raw_data)
 
     try:
-        db_data = data.dict()
+        db_data = data.model_dump()
         del db_data["category"]
         if data.category == "room":
             db_data["room"] = pr.room
@@ -86,11 +68,7 @@ async def create_datablock(sid: str, raw_data: Any):
 async def save_datablock(sid: str, raw_data: Any):
     pr = game_state.get(sid)
 
-    try:
-        data = pydantic.parse_obj_as(ApiDataBlock, raw_data)
-    except pydantic.error_wrappers.ValidationError as e:
-        logger.error(e)
-        return
+    data = TypeAdapter(ApiDataBlock).validate_python(raw_data)
 
     if data_block := get_data_block(data, pr):
         data_block.data = data.data

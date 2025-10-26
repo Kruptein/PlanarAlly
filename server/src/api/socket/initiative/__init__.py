@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .... import auth
 from ....app import app, sio
@@ -16,9 +16,9 @@ from ...helpers import _send_game
 from ...models.initiative import (
     ApiInitiative,
     InitiativeAdd,
+    InitiativeDirection,
     InitiativeRoundUpdate,
     InitiativeTurnUpdate,
-    InitiativeDirection,
 )
 from ...models.initiative.option import InitiativeOptionSet
 from ...models.initiative.order import InitiativeOrderChange
@@ -37,7 +37,7 @@ async def send_initiative(data: ApiInitiative, pr: PlayerRoom):
     await _send_game("Initiative.Set", data, room=pr.active_location.get_path())
 
 
-async def check_initiative(uuids: List[str], pr: PlayerRoom):
+async def check_initiative(uuids: list[str], pr: PlayerRoom):
     location_data = Initiative.get_or_none(location=pr.active_location)
     if location_data is not None:
         json_data = json.loads(location_data.data)
@@ -45,7 +45,7 @@ async def check_initiative(uuids: List[str], pr: PlayerRoom):
             await send_initiative(location_data.as_pydantic(), pr)
 
 
-def get_turn_order(data: List[Dict[str, Any]], shape: str) -> int:
+def get_turn_order(data: list[dict[str, Any]], shape: str) -> int:
     for i, info in enumerate(data):
         if info["shape"] == shape:
             return i
@@ -155,10 +155,10 @@ async def add_initiative(sid: str, raw_data: Any):
 
         for initiative in json_data:
             if initiative["shape"] == data.shape:
-                initiative.update(**data.dict())
+                initiative.update(**data.model_dump())
                 break
         else:
-            json_data.append(data.dict())
+            json_data.append(data.model_dump())
 
         location_data.data = json.dumps(json_data)
         location_data.save()
@@ -218,7 +218,7 @@ async def wipe_initiatives(sid: str):
     with db.atomic():
         location_data = Initiative.get(location=pr.active_location)
 
-        location_data.data = []
+        location_data.data = json.dumps([])
         location_data.turn = 0
         location_data.save()
 
@@ -252,7 +252,7 @@ async def clear_initiatives(sid: str):
     await _send_game("Initiative.Clear", None, room=pr.active_location.get_path())
 
 
-async def remove_shape(pr: PlayerRoom, uuid: str, group: Optional[Group]):
+async def remove_shape(pr: PlayerRoom, uuid: str, group: Group | None):
     location_data = Initiative.get_or_none(location=pr.active_location)
     if location_data is None:
         return
@@ -386,7 +386,7 @@ async def change_initiative_order(sid: str, raw_data: Any):
     await send_initiative(location_data.as_pydantic(), pr)
 
 
-def update_initiative_effects(entry: Dict[str, Any], direction: InitiativeDirection):
+def update_initiative_effects(entry: dict[str, Any], direction: InitiativeDirection):
     effect_list = entry["effects"]
     starting_len = len(effect_list)
     for i, _effect in enumerate(effect_list[::-1]):

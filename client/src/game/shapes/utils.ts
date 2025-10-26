@@ -18,12 +18,12 @@ import { VisionBlock } from "../systems/properties/types";
 import { selectedSystem } from "../systems/selected";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
-import type { FullCompactForm } from "./transformations";
+import type { CompactForm } from "./transformations";
 import { fromSystemForm, instantiateCompactForm } from "./transformations";
 
 export function copyShapes(): void {
     if (!selectedSystem.hasSelection) return;
-    const clipboard: FullCompactForm[] = [];
+    const clipboard: CompactForm[] = [];
     for (const shape of selectedSystem.get({ includeComposites: true })) {
         if (!accessSystem.hasAccessTo(shape.id, "edit")) continue;
         // todo: check if we can delay this to the paste phase, to prevent over-eager group creation
@@ -52,7 +52,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     }
 
     const shapeMap = new Map<GlobalId, GlobalId>();
-    const compactShapes = clipboardState.raw.clipboard as FullCompactForm[];
+    const compactShapes = clipboardState.raw.clipboard as CompactForm[];
 
     for (const clip of compactShapes.sort((a, b) =>
         a.core.type_ === b.core.type_ ? 0 : a.core.type_ === "togglecomposite" ? 1 : -1,

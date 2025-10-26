@@ -12,7 +12,7 @@ import type {
     ShapeTextSizeUpdate,
     TemporaryShapes,
 } from "../../../../apiTypes";
-import { GlobalId } from "../../../../core/id";
+import type { GlobalId } from "../../../../core/id";
 import { getGlobalId } from "../../../id";
 import type { IShape } from "../../../interfaces/shape";
 import type { ICircle } from "../../../interfaces/shapes/circle";

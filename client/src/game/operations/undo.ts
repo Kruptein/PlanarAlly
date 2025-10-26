@@ -6,7 +6,7 @@ import { getLocalId, getShape } from "../id";
 import type { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
 import type { ISelectTool } from "../models/tools";
-import type { FullCompactForm } from "../shapes/transformations";
+import type { CompactForm } from "../shapes/transformations";
 import { deleteShapes } from "../shapes/utils";
 import { floorSystem } from "../systems/floors";
 import { addShape, moveFloor, moveLayer } from "../temp";
@@ -141,7 +141,7 @@ function handleLayerMove(shapes: LocalId[], from: LayerName, to: LayerName, dire
     }
 }
 
-function handleShapeRemove(shapes: FullCompactForm[], direction: "undo" | "redo"): void {
+function handleShapeRemove(shapes: CompactForm[], direction: "undo" | "redo"): void {
     if (direction === "undo") {
         for (const shape of shapes) addShape(shape, SyncMode.FULL_SYNC, "create");
     } else {

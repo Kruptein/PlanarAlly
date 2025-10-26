@@ -9,7 +9,7 @@
  * We sometimes need to transform between these different forms.
  * But we also sometimes just need an intermediate form. (e.g. copy-paste, creating a template, undoing a shape delete, ...)
  *
- * This file contains functions to move from Server form to the intermediate form (which we'll call FullCompactForm),
+ * This file contains functions to move from Server form to the intermediate form (which we'll call CompactForm),
  * as well as from intermediate form to System form (which we'll call the local system data setup).
  *
  * It should also be noted that the functions that move from compact form to another form, have a `mode` parameter,
@@ -58,15 +58,13 @@ import { Rect } from "./variants/rect";
 import { Text } from "./variants/text";
 import { ToggleComposite } from "./variants/toggleComposite";
 
-export interface FullCompactForm extends CompactForm {
-    floor: FloorId;
-    layer: LayerName;
-}
 export interface CompactForm {
     id: LocalId;
     core: CompactShapeCore;
     subShape: CompactSubShapeCore;
     systems: Record<string, unknown>;
+    floor: FloorId;
+    layer: LayerName;
 }
 
 /**
@@ -75,7 +73,7 @@ export interface CompactForm {
  *
  * NOTE: A structured clone is done around the data to ensure that we retain the exact state as it is at the moment of calling.
  */
-export function fromSystemForm(shapeId: LocalId): FullCompactForm {
+export function fromSystemForm(shapeId: LocalId): CompactForm {
     const shape = getShape(shapeId);
     if (shape === undefined) throw new Error("Shape not found");
     const uuid = getGlobalId(shapeId);
@@ -120,7 +118,7 @@ export function fromSystemForm(shapeId: LocalId): FullCompactForm {
  * This is mostly needed for toggle composites.
  */
 export function instantiateCompactForm(
-    originalCompact: FullCompactForm,
+    originalCompact: CompactForm,
     mode: SystemInformMode,
     layerAddCallback: (shape: IShape) => void,
     shapeMap?: Map<GlobalId, GlobalId>,
@@ -158,7 +156,7 @@ export function instantiateCompactForm(
     return runImportSystems(newShape, compact, mode, layerAddCallback);
 }
 
-function importSystemForms(compact: FullCompactForm, mode: SystemInformMode, late: boolean = false): void {
+function importSystemForms(compact: CompactForm, mode: SystemInformMode, late: boolean = false): void {
     for (const [name, system] of getShapeSystems()) {
         const target = late ? system.importLate : system.import;
         target?.bind(system)(compact.id, compact.systems[name], mode);
@@ -167,7 +165,7 @@ function importSystemForms(compact: FullCompactForm, mode: SystemInformMode, lat
 
 function runImportSystems(
     shape: IShape,
-    compact: FullCompactForm,
+    compact: CompactForm,
     mode: SystemInformMode,
     layerAddCallback: (shape: IShape) => void,
 ): IShape | undefined {
@@ -180,12 +178,12 @@ function runImportSystems(
     return shape;
 }
 
-export function loadFromServer(serverShape: ApiShape, floor: FloorId, layer: LayerName): FullCompactForm {
+export function loadFromServer(serverShape: ApiShape, floor: FloorId, layer: LayerName): CompactForm {
     const id = reserveLocalId(serverShape.uuid);
     return createCompactFromServerData(serverShape, id, floor, layer);
 }
 
-export function createOnServer(compact: FullCompactForm, asTemplate: boolean): void {
+export function createOnServer(compact: CompactForm, asTemplate: boolean): void {
     const uuid = getGlobalId(compact.id);
     if (uuid === undefined) throw new Error("Global ID not found");
     const shape = createServerDataFromCompact(compact);
@@ -280,7 +278,7 @@ export type CompactSubShapeCore =
     | AssetRectCompactCore
     | ToggleCompositeCompactCore;
 
-function createShapeInstanceFromCore(compact: FullCompactForm): IShape | undefined {
+function createShapeInstanceFromCore(compact: CompactForm): IShape | undefined {
     const { core, subShape } = compact;
 
     let sh: IShape;
@@ -342,7 +340,7 @@ function createShapeInstanceFromCore(compact: FullCompactForm): IShape | undefin
     return sh;
 }
 
-function createServerDataFromCompact(compact: FullCompactForm): ApiShape {
+function createServerDataFromCompact(compact: CompactForm): ApiShape {
     const { core, id, subShape } = compact;
 
     // Create the core shape content + default values for all system related data
@@ -428,7 +426,7 @@ function createCompactFromServerData(
     id: LocalId,
     floor: FloorId,
     layer: LayerName,
-): FullCompactForm {
+): CompactForm {
     const options: Partial<ServerShapeOptions> =
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         Object.fromEntries(JSON.parse(serverShape.options));
@@ -459,7 +457,7 @@ function createCompactFromServerData(
         throw new Error(`Failed to create Shape with unknown type ${serverShape.type_}`);
     }
 
-    const compact: FullCompactForm = {
+    const compact: CompactForm = {
         id,
         floor,
         layer,

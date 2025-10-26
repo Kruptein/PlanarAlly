@@ -1,5 +1,3 @@
-from pydantic import Field
-
 from ..helpers import TypeIdModel
 from ..user import ApiOptionalUserOptions, ApiUserOptions
 

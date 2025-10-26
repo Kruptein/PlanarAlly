@@ -88,13 +88,13 @@ async def load_location(sid: str, location: Location, *, complete=False):
                 name=rp.player.name,
                 location=rp.active_location.id,
                 role=rp.role,
-            )
+            ),
+            position=MISSING,
+            clients=MISSING,
         )
 
         if IS_DM or rp.player.id == pr.player.id:
-            player_info.position = (LocationUserOption.get(user=rp.player, location=rp.active_location).as_pydantic(),)[
-                0
-            ]
+            player_info.position = LocationUserOption.get(user=rp.player, location=rp.active_location).as_pydantic()
 
         if IS_DM:
             client_data: list[OptionalClientViewport] = []
@@ -341,7 +341,7 @@ async def set_location_options(sid: str, raw_data: Any):
         logger.warning(f"{pr.player.name} attempted to set a room option")
         return
 
-    if data.location is None:
+    if data.location is MISSING:
         options = pr.room.default_options
     else:
         loc = Location.get_by_id(data.location)
@@ -353,7 +353,7 @@ async def set_location_options(sid: str, raw_data: Any):
     safe_update_model_from_dict(options, raw_data["options"])  # Don't use .model_dump() here
     options.save()
 
-    if data.location is None:
+    if data.location is MISSING:
         for sid in game_state.get_sids(skip_sid=sid, room=pr.room):
             await _send_game("Location.Options.Set", raw_data, room=sid)
     else:

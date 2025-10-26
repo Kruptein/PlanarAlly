@@ -5,5 +5,5 @@ from ..client import ClientPosition
 
 
 class ApiLocationUserOption(ClientPosition):
-    active_layer: str | MISSING = Field(json_schema_extra={"missing": True})
-    active_floor: str | MISSING = Field(json_schema_extra={"missing": True})
+    active_layer: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    active_floor: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})

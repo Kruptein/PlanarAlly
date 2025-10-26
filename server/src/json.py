@@ -18,5 +18,5 @@ class PydanticJson(object):
 class PydanticEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, BaseModel):
-            return o.model_dump()
+            return o.model_dump(warnings="error", exclude_unset=True)
         return json.JSONEncoder.default(self, o)

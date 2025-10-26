@@ -29,16 +29,16 @@ class ApiAura(AuraRef):
 
 
 class ApiOptionalAura(AuraRef):
-    vision_source: bool | MISSING = Field(json_schema_extra={"missing": True})
-    visible: bool | MISSING = Field(json_schema_extra={"missing": True})
-    name: str | MISSING = Field(json_schema_extra={"missing": True})
-    value: int | MISSING = Field(json_schema_extra={"missing": True})
+    vision_source: bool | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    visible: bool | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    name: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    value: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     dim: int | MISSING = Field(json_schema_extra={"missing": True})
-    colour: str | MISSING = Field(json_schema_extra={"missing": True})
-    active: bool | MISSING = Field(json_schema_extra={"missing": True})
-    border_colour: str | MISSING = Field(json_schema_extra={"missing": True})
-    angle: int | MISSING = Field(json_schema_extra={"missing": True})
-    direction: int | MISSING = Field(json_schema_extra={"missing": True})
+    colour: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    active: bool | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    border_colour: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    angle: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    direction: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
 
 
 class ShapeSetAuraValue(TypeIdModel):

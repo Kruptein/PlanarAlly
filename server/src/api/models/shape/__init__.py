@@ -52,7 +52,7 @@ class ShapeOrder(TypeIdModel):
 class ShapeLocationMoveTarget(PositionTuple):
     location: int
     floor: str
-    layer: str | MISSING = Field(json_schema_extra={"typeId": "LayerName", "missing": True})
+    layer: str | MISSING = Field(default=MISSING, json_schema_extra={"typeId": "LayerName", "missing": True})
 
 
 class ShapeLocationMove(TypeIdModel):

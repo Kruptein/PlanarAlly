@@ -22,7 +22,7 @@ class ApiLocation(ApiLocationCore):
 class LocationChange(TypeIdModel):
     location: int
     users: list[str]
-    position: PositionTuple | MISSING = Field(json_schema_extra={"missing": True})
+    position: PositionTuple | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
 
 
 class LocationClone(BaseModel):

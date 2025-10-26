@@ -54,4 +54,4 @@ class LocationSettingsSet(BaseModel):
 
 class LocationOptionsSet(TypeIdModel):
     options: ApiOptionalLocationOptions
-    location: int | MISSING = Field(json_schema_extra={"missing": True})
+    location: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})

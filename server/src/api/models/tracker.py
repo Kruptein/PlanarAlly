@@ -20,13 +20,13 @@ class ApiTracker(TrackerRef):
 
 
 class ApiOptionalTracker(TrackerRef):
-    visible: bool | MISSING = Field(json_schema_extra={"missing": True})
-    name: str | MISSING = Field(json_schema_extra={"missing": True})
-    value: int | MISSING = Field(json_schema_extra={"missing": True})
-    maxvalue: int | MISSING = Field(json_schema_extra={"missing": True})
-    draw: bool | MISSING = Field(json_schema_extra={"missing": True})
-    primary_color: str | MISSING = Field(json_schema_extra={"missing": True})
-    secondary_color: str | MISSING = Field(json_schema_extra={"missing": True})
+    visible: bool | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    name: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    value: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    maxvalue: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    draw: bool | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    primary_color: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    secondary_color: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
 
 
 class TrackerMove(TypeIdModel):

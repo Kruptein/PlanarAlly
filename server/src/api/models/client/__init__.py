@@ -16,8 +16,8 @@ class Viewport(TypeIdModel):
     height: int
     width: int
     zoom_factor: float
-    offset_x: int | MISSING = Field(json_schema_extra={"missing": True})
-    offset_y: int | MISSING = Field(json_schema_extra={"missing": True})
+    offset_x: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    offset_y: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
 
 
 class OptionalClientViewport(TypeIdModel):

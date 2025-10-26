@@ -1,5 +1,4 @@
 from pydantic import Field
-from pydantic_core import MISSING
 
 from ..helpers import TypeIdModel
 from .shape import ApiCoreShape

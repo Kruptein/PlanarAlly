@@ -19,7 +19,7 @@ class InitiativeDirection(IntEnum):
 
 class ApiInitiativeData(TypeIdModel):
     shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
-    initiative: int | MISSING = Field(json_schema_extra={"missing": True})
+    initiative: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     isVisible: bool
     isGroup: bool
     effects: list[ApiInitiativeEffect]
@@ -36,7 +36,7 @@ class ApiInitiative(BaseModel):
 
 class InitiativeAdd(TypeIdModel):
     shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
-    initiative: int | MISSING = Field(json_schema_extra={"missing": True})
+    initiative: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     isVisible: bool
     isGroup: bool
     effects: list[ApiInitiativeEffect]

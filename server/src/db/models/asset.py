@@ -42,7 +42,6 @@ class Asset(BaseDbModel):
     )
     name = cast(str, TextField())
     file_hash = cast(str | None, TextField(null=True))
-    options = cast(str | None, TextField(null=True))
 
     def __repr__(self):
         return f"<Asset {self.owner.name} - {self.name}>"

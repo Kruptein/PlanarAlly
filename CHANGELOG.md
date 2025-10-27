@@ -33,6 +33,10 @@ tech changes will usually be stripped from release notes for the public
         -   [DM] Add previous/next round buttons
     -   Add effects with infinite timespan
     -   Fix names in initiative list not being reactive
+-   Templates
+    -   Are now stored as proper shapes in the DB
+    -   Will migrate along with other shapes on DB upgrades (old templates could become broken)
+    -   Can be linked with other systems (e.g. custom-data, notes, ...)
 -   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)
 -   [tech] upgraded pydantic from 1.x to 2.x
 

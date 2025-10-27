@@ -1,15 +1,21 @@
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
-from peewee import BooleanField, ForeignKeyField
+from peewee import BooleanField, DeferredForeignKey, ForeignKeyField
 
 from ...api.models.note import ApiNoteAccess
 from ..base import BaseDbModel
-from .note import Note
 from .user import User
+
+if TYPE_CHECKING:
+    from .note import Note
 
 
 class NoteAccess(BaseDbModel):
-    note = cast(Note, ForeignKeyField(Note, backref="access", on_delete="CASCADE"))
+    note_id: str
+
+    note = cast(
+        "Note", DeferredForeignKey("Note", deferrable="INITIALLY DEFERRED", backref="access", on_delete="CASCADE")
+    )
     # User is null if the access is describing the default behaviour
     user = cast(
         User | None,

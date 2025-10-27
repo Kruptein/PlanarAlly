@@ -1,13 +1,18 @@
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..helpers import TypeIdModel
 
 
+class AssetTemplateInfo(TypeIdModel):
+    name: str
+    id: str = Field(json_schema_extra={"typeId": "GlobalId"})
+
+
 class AssetOptionsInfoSuccess(TypeIdModel):
     name: str
-    options: str | None
+    templates: list[AssetTemplateInfo]
     success: Literal[True]
 
 

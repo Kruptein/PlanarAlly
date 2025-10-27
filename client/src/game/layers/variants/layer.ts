@@ -210,7 +210,7 @@ export class Layer implements ILayer {
         let compact;
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             compact = fromSystemForm(shape.id);
-            createOnServer(compact);
+            createOnServer(compact, sync === SyncMode.TEMPLATE_SYNC);
         }
         if (invalidate !== InvalidationMode.NO) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
 

@@ -1,3 +1,4 @@
+import type { AssetId } from "../../../assets/models";
 import { g2lx, g2ly } from "../../../core/conversions";
 import { addP, cloneP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
@@ -21,7 +22,7 @@ export abstract class BaseRect extends Shape implements IShape {
         options?: {
             id?: LocalId;
             uuid?: GlobalId;
-            assetId?: number;
+            assetId?: AssetId;
             isSnappable?: boolean;
             parentId?: LocalId;
         },

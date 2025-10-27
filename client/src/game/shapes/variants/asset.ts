@@ -1,3 +1,4 @@
+import type { AssetId } from "../../../assets/models";
 import { getImageSrcFromHash } from "../../../assets/utils";
 import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
@@ -39,7 +40,7 @@ export class Asset extends BaseRect implements IAsset {
         options?: {
             id?: LocalId;
             uuid?: GlobalId;
-            assetId?: number;
+            assetId?: AssetId;
             loaded?: boolean;
             isSnappable?: boolean;
             parentId?: LocalId;

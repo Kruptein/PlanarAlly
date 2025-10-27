@@ -374,7 +374,6 @@ async def assetmgmt_search(sid: str, query: str, include_shared_assets: bool):
     if include_shared_assets:
         assets = []
         for asset in Asset.get_all_assets(user):
-            print(asset.name)
             if query in asset.name.lower():
                 assets.append(asset)
     else:

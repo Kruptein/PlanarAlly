@@ -1,3 +1,4 @@
+import type { AssetId } from "../../assets/models";
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { GridType } from "../../core/grid";
 import type { LocalId } from "../../core/id";
@@ -37,7 +38,7 @@ export interface IShape extends SimpleShape {
 
     strokeWidth: number;
 
-    assetId?: number;
+    assetId?: AssetId;
 
     globalCompositeOperation: GlobalCompositeOperation;
 

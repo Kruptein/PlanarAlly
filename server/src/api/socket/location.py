@@ -1,7 +1,6 @@
 import json
 from typing import Any
 
-from peewee import JOIN
 from pydantic_core import MISSING
 from typing_extensions import TypedDict
 
@@ -21,7 +20,6 @@ from ...db.models.location_user_option import LocationUserOption
 from ...db.models.marker import Marker
 from ...db.models.mod_room import ModRoom
 from ...db.models.note import Note
-from ...db.models.note_access import NoteAccess
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.shape import Shape
@@ -224,34 +222,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     await _send_game(
         "Notes.Set",
-        [
-            note.as_pydantic()
-            for note in Note.select()
-            .join(NoteAccess, JOIN.LEFT_OUTER)
-            .where(
-                # Global
-                (
-                    (Note.room >> None)  # type: ignore
-                    & (
-                        # Note owner or specific access (w/o default access)
-                        (Note.creator == pr.player) | ((NoteAccess.user == pr.player) & NoteAccess.can_view)
-                    )
-                )
-                | (
-                    # Local
-                    (Note.room == pr.room)
-                    & (
-                        # Note owner or specific access
-                        (Note.creator == pr.player)
-                        | (
-                            ((NoteAccess.user >> None) | (NoteAccess.user == pr.player))  # type: ignore
-                            & NoteAccess.can_view
-                        )
-                    )
-                )
-            )
-            .group_by(Note.uuid)
-        ],
+        Note.get_for_player(pr),
         room=sid,
     )
 

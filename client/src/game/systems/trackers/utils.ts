@@ -12,7 +12,7 @@ export function createEmptyUiTracker(shape: LocalId): UiTracker {
     };
 }
 
-export function createEmptyTracker(): Tracker {
+function createEmptyTracker(): Tracker {
     return {
         uuid: uuidv4() as unknown as TrackerId,
         name: "",

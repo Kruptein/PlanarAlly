@@ -27,10 +27,12 @@ import type {
     ApiPolygonShape,
     ApiRectShape,
     ApiShape,
+    ApiShapeAdd,
     ApiShapeCustomData,
     ApiTextShape,
     ApiToggleCompositeShape,
 } from "../../apiTypes";
+import type { AssetId } from "../../assets/models";
 import { toGP } from "../../core/geometry";
 import { baseAdjust } from "../../core/http";
 import type { GlobalId, LocalId } from "../../core/id";
@@ -58,11 +60,11 @@ import { ToggleComposite } from "./variants/toggleComposite";
 
 export interface CompactForm {
     id: LocalId;
-    floor: FloorId;
-    layer: LayerName;
     core: CompactShapeCore;
     subShape: CompactSubShapeCore;
     systems: Record<string, unknown>;
+    floor: FloorId;
+    layer: LayerName;
 }
 
 /**
@@ -125,7 +127,7 @@ export function instantiateCompactForm(
     // we can't use structuredClone, because we use Symbols :(
     const compact = cloneDeep(originalCompact);
 
-    if (mode === "duplicate") {
+    if (mode !== "load") {
         compact.core.uuid = uuidv4();
 
         if (compact.core.type_ === "togglecomposite") {
@@ -152,23 +154,6 @@ export function instantiateCompactForm(
     compact.id = newShape.id;
 
     return runImportSystems(newShape, compact, mode, layerAddCallback);
-}
-
-/**
- * Apply a compact form (e.g. a template) to an existing shape.
- * This runs the same logic as instantiateCompactForm, but with the existing shape as the base.
- * It just improves ergonomics in some cases, where you might only need to apply a compact form conditionally.
- *
- * The one notable difference is that this version does NOT modify the shape's ID.
- */
-export function applyCompactForm(
-    shape: IShape,
-    compact: CompactForm,
-    mode: SystemInformMode,
-    layerAddCallback: (shape: IShape) => void,
-): IShape | undefined {
-    shape.fromCompact(compact.core, compact.subShape);
-    return runImportSystems(shape, compact, mode, layerAddCallback);
 }
 
 function importSystemForms(compact: CompactForm, mode: SystemInformMode, late: boolean = false): void {
@@ -198,17 +183,29 @@ export function loadFromServer(serverShape: ApiShape, floor: FloorId, layer: Lay
     return createCompactFromServerData(serverShape, id, floor, layer);
 }
 
-export function createOnServer(compact: CompactForm): void {
+export function createOnServer(compact: CompactForm, asTemplate: boolean): void {
     const uuid = getGlobalId(compact.id);
     if (uuid === undefined) throw new Error("Global ID not found");
     const shape = createServerDataFromCompact(compact);
-    const floor = floorSystem.getFloor({ id: compact.floor })!.name;
-    sendShapeAdd({
-        shape,
-        floor,
-        layer: compact.layer,
-        temporary: false,
-    });
+    let data: ApiShapeAdd;
+    if (asTemplate) {
+        data = {
+            shape,
+            template: true,
+        };
+    } else {
+        let floor;
+        if (compact.floor !== undefined) floor = floorSystem.getFloor({ id: compact.floor })?.name;
+        if (floor === undefined) throw new Error("Floor not found");
+        data = {
+            shape,
+            floor,
+            layer: compact.layer,
+            temporary: false,
+        };
+    }
+
+    sendShapeAdd(data);
     // call systems to create
 }
 
@@ -219,7 +216,7 @@ interface CompactShapeCoreOptions {
     customData: ApiShapeCustomData[];
     strokeWidth: number;
     options: Partial<ShapeOptions>;
-    assetId: number | null;
+    assetId: AssetId | null;
     ignoreZoomSize: boolean;
     character: CharacterId | null;
 }
@@ -343,7 +340,7 @@ function createShapeInstanceFromCore(compact: CompactForm): IShape | undefined {
     return sh;
 }
 
-export function createServerDataFromCompact(compact: CompactForm): ApiShape {
+function createServerDataFromCompact(compact: CompactForm): ApiShape {
     const { core, id, subShape } = compact;
 
     // Create the core shape content + default values for all system related data

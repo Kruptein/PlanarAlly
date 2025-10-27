@@ -1,5 +1,5 @@
 import json
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from peewee import ForeignKeyField, TextField
 from typing_extensions import Self, TypedDict
@@ -9,6 +9,10 @@ from ..base import BaseDbModel
 from ..typed import SelectSequence
 from .asset_share import AssetShare
 from .user import User
+
+if TYPE_CHECKING:
+    from .shape import Shape
+    from .shape_template import ShapeTemplate
 
 
 class FileStructure(TypedDict):
@@ -28,6 +32,8 @@ class Asset(BaseDbModel):
     id: int
     parent_id: int
     shares: SelectSequence["AssetShare"]
+    shapes: SelectSequence["Shape"]
+    templates: SelectSequence["ShapeTemplate"]
 
     owner = cast(User, ForeignKeyField(User, backref="assets", on_delete="CASCADE"))
     parent = cast(
@@ -36,7 +42,6 @@ class Asset(BaseDbModel):
     )
     name = cast(str, TextField())
     file_hash = cast(str | None, TextField(null=True))
-    options = cast(str | None, TextField(null=True))
 
     def __repr__(self):
         return f"<Asset {self.owner.name} - {self.name}>"

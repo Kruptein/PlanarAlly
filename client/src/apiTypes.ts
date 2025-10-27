@@ -13,6 +13,7 @@ import type { TrackerId } from "./game/systems/trackers/models";
 
 export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
 export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock
+export type ApiShapeAdd = ApiShapeWithLayerAndTemporary | ApiTemplateShape
 export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumber | ApiShapeCustomDataBoolean | ApiShapeCustomDataDiceExpression
 
 /* eslint-disable */
@@ -186,7 +187,7 @@ export interface ApiCoreShape {
   is_locked: boolean;
   angle: number;
   stroke_width: number;
-  asset: number | null;
+  asset: AssetId | null;
   group: string | null;
   ignore_zoom_size: boolean;
   is_door: boolean;
@@ -387,11 +388,13 @@ export interface ApiOptionalUserOptions {
   render_all_floors?: boolean | null;
 }
 export interface ApiRoomDataBlock extends ApiCoreDataBlock {
-  category: "room";
   data: string;
+  category: "room";
+}
+export interface ApiShapeCore {
+  shape: ApiShape;
 }
 export interface ApiShapeCustomDataCore extends ApiShapeCustomDataIdentifier {
-  kind: string;
   reference: string | null;
   description: string | null;
 }
@@ -402,26 +405,23 @@ export interface ApiShapeCustomDataIdentifier {
   name: string;
 }
 export interface ApiShapeDataBlock extends ApiCoreDataBlock {
-  category: "shape";
   data: string;
+  category: "shape";
   shape: GlobalId;
 }
-export interface ApiShapeWithLayerInfo {
-  shape:
-    | ApiAssetRectShape
-    | ApiRectShape
-    | ApiCircleShape
-    | ApiCircularTokenShape
-    | ApiPolygonShape
-    | ApiTextShape
-    | ApiLineShape
-    | ApiToggleCompositeShape;
+export interface ApiShapeWithLayer extends ApiShapeCore {
   floor: string;
   layer: LayerName;
 }
+export interface ApiShapeWithLayerAndTemporary extends ApiShapeWithLayer {
+  temporary: boolean;
+}
+export interface ApiTemplateShape extends ApiShapeCore {
+  template: boolean;
+}
 export interface ApiUserDataBlock extends ApiCoreDataBlock {
-  category: "user";
   data: string;
+  category: "user";
 }
 export interface ApiUserOptions {
   fow_colour: string;
@@ -455,8 +455,12 @@ export interface AssetOptionsInfoFail {
 }
 export interface AssetOptionsInfoSuccess {
   name: string;
-  options: string | null;
+  templates: AssetTemplateInfo[];
   success: true;
+}
+export interface AssetTemplateInfo {
+  name: string;
+  id: GlobalId;
 }
 export interface AssetOptionsSet {
   asset: number;
@@ -686,20 +690,6 @@ export interface RoomInfoSet {
   features: RoomFeatures;
   mods: ApiModMeta[];
 }
-export interface ShapeAdd {
-  shape:
-    | ApiAssetRectShape
-    | ApiRectShape
-    | ApiCircleShape
-    | ApiCircularTokenShape
-    | ApiPolygonShape
-    | ApiTextShape
-    | ApiLineShape
-    | ApiToggleCompositeShape;
-  floor: string;
-  layer: LayerName;
-  temporary: boolean;
-}
 export interface ShapeAssetImageSet {
   uuid: GlobalId;
   src: string;
@@ -792,6 +782,11 @@ export interface ShapeSetTeleportLocationValue {
 export interface TeleportLocation {
   id: number;
   spawnUuid: GlobalId;
+}
+export interface ShapeTemplateAdd {
+  assetId: AssetId;
+  shapeId: GlobalId;
+  name: string;
 }
 export interface ShapeTextSizeUpdate {
   uuid: GlobalId;

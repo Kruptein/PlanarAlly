@@ -386,7 +386,21 @@ async def move_shape_order(sid: str, raw_data: Any):
             ),
             Shape.index,
         )
-        Shape.update(index=case).where(Shape.layer == layer).execute()
+        updated = (
+            Shape.update(index=case)
+            .where((Shape.layer == layer) & ((sign * Shape.index) <= (sign * shape.index)))
+            .execute()
+        )
+
+        # Run a cheap sanity check - we can do this for free on updates where sign > 0,
+        # For sign < 0, we would need to query the total amount of shapes on the layer, which is more expensive.
+        # If this mismatch happens, some indices are duplicate or missing - re-assign the entire layer.
+        if sign > 0 and updated != shape.index + 1:
+            # Re-assign the entire layer
+            for i, s in enumerate(layer.shapes):
+                s.index = i
+                s.save()
+            await _send_game("Request.Refresh", "errors.shape-order-mismatch", room=pr.active_location.get_path())
 
     await _send_game("Shape.Order.Set", data, room=pr.active_location.get_path(), skip_sid=sid)
 

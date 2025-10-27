@@ -37,7 +37,7 @@ class SelectSequence(Generic[T], Sequence[T], ModelSelect):
 
 
 class UpdateSequence(Generic[T], Sequence[T], ModelUpdate):
-    def execute(self): ...  # pyright: ignore [reportIncompatibleMethodOverride]
+    def execute(self) -> int: ...  # pyright: ignore [reportIncompatibleMethodOverride]
 
     def where(self, *_expressions) -> UpdateSequence[T]: ...
 

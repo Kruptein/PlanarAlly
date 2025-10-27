@@ -1,3 +1,5 @@
+import { POSITION, useToast } from "vue-toastification";
+
 import "../dataBlock/events";
 import "../systems/access/events";
 import "../systems/assets/events";
@@ -35,6 +37,7 @@ import type { ApiFloor, ApiLocationCore, PlayerPosition } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import type { GlobalId } from "../../core/id";
 import { SyncMode } from "../../core/models/types";
+import { i18n } from "../../i18n";
 import { debugLayers } from "../../localStorageHelpers";
 import { modEvents } from "../../mods/events";
 import { router } from "../../router";
@@ -51,6 +54,8 @@ import { gameSystem } from "../systems/game";
 import { playerSystem } from "../systems/players";
 
 import { socket } from "./socket";
+
+const toast = useToast();
 
 // Core WS events
 
@@ -113,6 +118,14 @@ socket.on("Board.Floor.Set", (floor: ApiFloor) => {
 });
 
 // Varia
+
+socket.on("Request.Refresh", (translationKey: string) => {
+    const translation = i18n.global.t(translationKey);
+    toast.error(translation, {
+        timeout: false,
+        position: POSITION.TOP_RIGHT,
+    });
+});
 
 socket.on("Position.Set", (data: PlayerPosition) => {
     if (data.floor !== undefined) floorSystem.selectFloor({ name: data.floor }, true);

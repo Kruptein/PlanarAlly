@@ -8,7 +8,8 @@
         "ru": "Русский",
         "dk": "Dansk",
         "es": "Español",
-        "it": "Italiano"
+        "it": "Italiano",
+        "fr": "Français"
     },
     "assetManager": {
         "AssetContextMenu": {
@@ -97,6 +98,9 @@
         "background": "Background",
         "mods": "Mods",
         "ok": "Ok"
+    },
+    "errors": {
+        "shape-order-mismatch": "An inconsistency in the shape order was detected on the server. This has been automatically corrected. Please refresh the page to ensure you're seeing the correct order."
     },
     "assets": {
         "add_shortcut": "Add shortcut",

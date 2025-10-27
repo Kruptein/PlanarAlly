@@ -46,6 +46,10 @@ export function reserveLocalId(uuid: GlobalId): LocalId {
     return local;
 }
 
+export function knownId(local: LocalId): boolean {
+    return idMap.has(local);
+}
+
 export function generateLocalId(shape: IShape, global?: GlobalId): LocalId {
     let local: LocalId;
     if (global && reservedIds.has(global)) {

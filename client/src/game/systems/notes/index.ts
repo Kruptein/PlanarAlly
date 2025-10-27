@@ -68,9 +68,14 @@ class NoteSystem implements ShapeSystem<NoteId[]> {
 
     // BEHAVIOUR
 
-    async newNote(apiNote: ApiNote, sync: boolean): Promise<void> {
+    async loadNote(apiNote: ApiNote): Promise<ClientNote> {
         const note = await noteFromServer(apiNote);
         $.notes.set(note.uuid, note);
+        return note;
+    }
+
+    async newNote(apiNote: ApiNote, sync: boolean): Promise<void> {
+        const note = await this.loadNote(apiNote);
 
         // This section should only run if the note comes from the remote
         // as a newly created shape locally should never have a shape already attached
@@ -313,11 +318,11 @@ class NoteSystem implements ShapeSystem<NoteId[]> {
     }
 
     private createNoteIcon(shapeId: LocalId, noteId: NoteId): void {
+        const shape = getShape(shapeId);
+        if (shape?.layer === undefined) return;
         const icon = new FontAwesomeIcon({ prefix: "fas", iconName: "sticky-note" }, toGP(0, 0), 15, {
             parentId: shapeId,
         });
-        const shape = getShape(shapeId);
-        if (shape?.layer === undefined) return;
         shape.addDependentShape({
             shape: icon,
             render: (ctx, bbox, _depShape) => {

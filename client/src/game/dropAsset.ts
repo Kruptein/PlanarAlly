@@ -21,6 +21,7 @@ import { Asset } from "./shapes/variants/asset";
 import type { CharacterId } from "./systems/characters/models";
 import { characterState } from "./systems/characters/state";
 import { floorState } from "./systems/floors/state";
+import { noteSystem } from "./systems/notes";
 import { locationSettingsState } from "./systems/settings/location/state";
 import { addShape, selectionBoxFunction } from "./temp";
 import { handleDropFF } from "./ui/firefox";
@@ -99,12 +100,15 @@ async function dropHelper(
 }
 
 async function loadTemplate(template: AssetTemplateInfo, position: GlobalPoint): Promise<void> {
-    const shape = await fetchFullShape(template.id);
-    if (shape) {
+    const data = await fetchFullShape(template.id);
+    if (data !== undefined) {
+        const { shape, notes } = data;
+        await Promise.all(notes.map((note) => noteSystem.loadNote(note)));
         const layer = floorState.currentLayer.value!;
         const compact = loadFromServer(shape, layer.floor, layer.name);
         compact.core.x = position.x;
         compact.core.y = position.y;
+        compact.systems.notes = notes.map((note) => note.uuid);
         addShape(compact, SyncMode.FULL_SYNC, "create");
     }
 }

@@ -1,8 +1,11 @@
-#  Has to appear before Asset due to DeferredForeignKey
-from .models.asset_shortcut import AssetShortcut
+#  These have to appear before some others due to circular referencing and DeferredForeignKey
 from .models.asset_share import AssetShare  # isort: skip
+from .models.note_access import NoteAccess  # isort: skip
+from .models.note_shape import NoteShape  # isort: skip
+
 from .models.asset import Asset
 from .models.asset_rect import AssetRect
+from .models.asset_shortcut import AssetShortcut
 from .models.aura import Aura
 from .models.base_rect import BaseRect
 from .models.character import Character
@@ -23,8 +26,6 @@ from .models.mod import Mod
 from .models.mod_player_room import ModPlayerRoom
 from .models.mod_room import ModRoom
 from .models.note import Note
-from .models.note_access import NoteAccess
-from .models.note_shape import NoteShape
 from .models.notification import Notification
 from .models.player_room import PlayerRoom
 from .models.polygon import Polygon

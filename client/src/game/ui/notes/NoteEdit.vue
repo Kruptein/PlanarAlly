@@ -7,7 +7,7 @@ import type { LocalId } from "../../../core/id";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
-import { getShape } from "../../id";
+import { getShape, knownId } from "../../id";
 import { setCenterPosition } from "../../position";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
@@ -41,7 +41,10 @@ const canEdit = computed(() => {
 const localShapenotes = computed(() =>
     note.value === undefined
         ? []
-        : (noteState.reactive.shapeNotes.get2(note.value.uuid)?.map((s) => ({ ...getProperties(s), id: s })) ?? []),
+        : (noteState.reactive.shapeNotes
+              .get2(note.value.uuid)
+              ?.map((s) => ({ ...getProperties(s), id: s }))
+              ?.filter((s) => knownId(s.id)) ?? []),
 );
 
 const showOnHover = computed({

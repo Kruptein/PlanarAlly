@@ -14,6 +14,7 @@ from ....db.models.circular_token import CircularToken
 from ....db.models.floor import Floor
 from ....db.models.layer import Layer
 from ....db.models.location import Location
+from ....db.models.note import Note
 from ....db.models.player_room import PlayerRoom
 from ....db.models.rect import Rect
 from ....db.models.shape import Shape
@@ -53,9 +54,16 @@ from . import access, custom_data, options, toggle_composite  # noqa: F401
 @sio.on("Shape.Get", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def get_shape(sid: str, shape_id: str):
-    shape: Shape = Shape.get_by_id(shape_id)
+    """
+    Fully load a shape from the database.
+    This should also include systems related data where relevant.
+    """
+    pr: PlayerRoom = game_state.get(sid)
 
-    return transform_shape(shape, game_state.get(sid))
+    shape = Shape.get_by_id(shape_id)
+    notes = Note.get_for_shape(shape_id, pr)
+
+    return {"shape": transform_shape(shape, pr), "notes": notes}
 
 
 @sio.on("Shape.Add", namespace=GAME_NS)

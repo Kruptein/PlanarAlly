@@ -2,6 +2,7 @@ import json
 from typing import cast
 
 from peewee import BooleanField, ForeignKeyField, IntegerField, TextField
+from pydantic_core import MISSING
 
 from ...api.models.initiative import ApiInitiative
 from ..base import BaseDbModel
@@ -21,11 +22,15 @@ class Initiative(BaseDbModel):
     is_active = cast(bool, BooleanField(default=False))
 
     def as_pydantic(self):
+        data = json.loads(self.data)
+        for el in data:
+            if el["initiative"] is None:
+                el["initiative"] = MISSING
         return ApiInitiative(
             location=self.location.id,
             round=self.round,
             turn=self.turn,
             sort=self.sort,
-            data=json.loads(self.data),
+            data=data,
             isActive=self.is_active,
         )

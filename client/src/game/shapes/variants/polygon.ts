@@ -141,6 +141,20 @@ export class Polygon extends Shape implements IShape {
         this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
     }
 
+    /**
+     * This normalizes the polygon back to an angle of 0.
+     * Some operations (e.g. resizing) don't work correctly in angled-mode if we want to keep the center up to date.
+     * By first normalizing the angle, all operations work as expected.
+     */
+    private normalizeAngle(): void {
+        if (this.angle === 0) return;
+        this._refPoint = rotateAroundPoint(this._refPoint, this.center, this.angle);
+        for (let i = 0; i < this._vertices.length; i++) {
+            this._vertices[i] = rotateAroundPoint(this._vertices[i]!, this.center, this.angle);
+        }
+        this.angle = 0;
+    }
+
     draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
         if (lightRevealRender && this.openPolygon) return;
 
@@ -218,8 +232,10 @@ export class Polygon extends Shape implements IShape {
     }
 
     resize(resizePoint: number, point: GlobalPoint): number {
-        if (resizePoint === 0) this._refPoint = rotateAroundPoint(point, this.center, -this.angle);
-        else this._vertices[resizePoint - 1] = rotateAroundPoint(point, this.center, -this.angle);
+        this.normalizeAngle();
+        if (resizePoint === 0) this._refPoint = point;
+        else this._vertices[resizePoint - 1] = point;
+        this._center = this.__center();
         this.invalidatePoints();
         return resizePoint;
     }
@@ -263,19 +279,22 @@ export class Polygon extends Shape implements IShape {
                 );
             });
 
+            this.normalizeAngle();
             this.invalidatePoints();
 
             // Do the OG shape update AFTER sending the new polygon or there might (depending on network)
             // be a couple of frames where the new polygon is not shown and the old one is already cut
             // potentially showing hidden stuff
             if (!this.preventSync) sendShapePositionUpdate([this], false);
+
+            console.log(this.center, this.refPoint, this.points, this.vertices);
         }
     }
 
     pushPoint(point: GlobalPoint, options?: { simplifyEnd?: boolean }): void {
         this._vertices.push(point);
-        this._points.push(this.invalidatePoint(point, this.center));
-        this.layer?.updateSectors(this.id, this.getAuraAABB());
+        this._center = this.__center();
+        this.invalidatePoints();
         if (options?.simplifyEnd === true) this.simplifyEnd();
     }
 

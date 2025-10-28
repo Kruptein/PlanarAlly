@@ -51,6 +51,8 @@ tech changes will usually be stripped from release notes for the public
 -   Duplicating (copy/paste) or undoing a removal of shapes would lose some info (e.g. notes)
 -   Undoing a shape removal related to a character did not work
 -   Undoing a shape removal causing the related group to be removed (i.e. last shape of the group)
+-   Cutting a rotated polygon would be wrong on refresh
+-   Resizing a rotated polygon did not correctly recalculate center, causing sudden shifts on move
 
 ## [2025.3]
 

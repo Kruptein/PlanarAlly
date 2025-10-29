@@ -22,6 +22,7 @@ tech changes will usually be stripped from release notes for the public
 -   Shape order inconsistency check
     -   Runs when moving a shape to the back
     -   Fixes the order of all shapes on the layer and requests a page refresh
+-   Asset manager icon when a shape has template info
 
 ### Changed
 

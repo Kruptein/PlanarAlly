@@ -50,6 +50,7 @@ def transform_asset(
         fileHash=asset.file_hash,
         children=pydantic_children,
         shares=[],
+        has_templates=asset.templates.count() > 0,
     )
 
     if share_info is None or share_info.right == "edit":

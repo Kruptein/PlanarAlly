@@ -31,6 +31,7 @@ export interface ApiAsset {
   fileHash: string | null;
   children: ApiAsset[] | null;
   shares: ApiAssetShare[];
+  has_templates: boolean;
 }
 export interface ApiAssetShare {
   user: string;

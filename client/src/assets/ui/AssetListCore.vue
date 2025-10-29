@@ -38,11 +38,9 @@ const props = withDefaults(
 
 const assetContextMenu = useAssetContextMenu();
 const drag = useDrag(emit);
-// const route = useRoute();
 
 const thumbnailMisses = ref(new Set<AssetId>());
 
-// const body = document.getElementsByTagName("body")[0];
 const contextTargetElement = ref<HTMLElement | null>(null);
 const currentRenameAsset = ref<AssetId | null>(null);
 
@@ -60,7 +58,6 @@ const files = computed(() => {
 });
 
 function dragStart(event: DragEvent, file: AssetId, assetHash: string | null): void {
-    // emit("onDragStart", event);
     drag.startDrag(event, file, assetHash);
 }
 
@@ -219,9 +216,11 @@ async function showRenameUI(id: AssetId): Promise<void> {
                 @dragleave.prevent="drag.leaveDrag"
                 @drop.prevent.stop="drag.stopDrag($event, folder.id)"
             >
-                <font-awesome-icon v-if="isShared(folder)" icon="user-tag" class="asset-link" />
                 <font-awesome-icon icon="folder" :style="{ fontSize: props.fontSize }" />
                 <font-awesome-icon icon="folder-open" :style="{ fontSize: props.fontSize }" />
+                <div class="asset-icons">
+                    <font-awesome-icon v-if="isShared(folder)" icon="user-tag" />
+                </div>
                 <div
                     :contenteditable="folder.id === currentRenameAsset"
                     class="title"
@@ -246,13 +245,16 @@ async function showRenameUI(id: AssetId): Promise<void> {
                 @dragstart="dragStart($event, file.id, file.fileHash)"
                 @dragend="drag.onDragEnd"
             >
-                <font-awesome-icon v-if="isShared(file)" icon="user-tag" class="asset-link" />
                 <picture v-if="!thumbnailMisses.has(file.id)">
                     <source :srcset="getImageSrcFromAssetId(file.id, { thumbnailFormat: 'webp' })" type="image/webp" />
                     <source :srcset="getImageSrcFromAssetId(file.id, { thumbnailFormat: 'jpeg' })" type="image/jpeg" />
                     <img alt="" loading="lazy" @error="thumbnailMisses.add(file.id)" />
                 </picture>
                 <img v-else :src="getImageSrcFromAssetId(file.id)" alt="" loading="lazy" />
+                <div class="asset-icons">
+                    <font-awesome-icon v-if="isShared(file)" icon="user-tag" />
+                    <font-awesome-icon v-if="file.has_templates" icon="floppy-disk" />
+                </div>
                 <div
                     :contenteditable="file.id === currentRenameAsset"
                     class="title"
@@ -346,14 +348,18 @@ async function showRenameUI(id: AssetId): Promise<void> {
                 word-break: break-all;
             }
 
-            > .asset-link {
-                font-size: 2em;
+            > .asset-icons {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+
                 position: absolute;
-                left: 0.25rem;
-                top: 0.25rem;
+
+                font-size: 2em;
+                left: -0.2rem;
                 color: white;
 
-                :deep(> path) {
+                svg :deep(> path) {
                     stroke: black;
                     stroke-width: 1.5rem;
                 }

@@ -25,6 +25,7 @@ class ApiAsset(TypeIdModel):
     # And is only provided in specific calls
     children: list["ApiAsset"] | None
     shares: list[ApiAssetShare]  # Info on users that this specific asset is shared with
+    has_templates: bool
 
 
 class ApiAssetFolder(TypeIdModel):

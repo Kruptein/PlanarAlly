@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { type DeepReadonly, computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { filter, map } from "../../../core/iter";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
+import { getShape } from "../../id";
+import type { IAsset } from "../../interfaces/shapes/asset";
+import { gameState } from "../../systems/game/state";
 import { noteState } from "../../systems/notes/state";
-import { type NoteId, NoteManagerMode, type ClientNote, type NoteTag } from "../../systems/notes/types";
+import { type NoteId, NoteManagerMode, type NoteTag } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
 import { propertiesState } from "../../systems/properties/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 
+import NoteFilter from "./NoteFilter.vue";
 import TagAutoCompleteSearch from "./TagAutoCompleteSearch.vue";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
@@ -26,22 +29,10 @@ onUnmounted(() => {
     document.removeEventListener("pointerdown", handleClickOutsideDialog);
 });
 
-const noteTypes = ["global", "local", "all"] as const;
-const selectedNoteTypes = ref<(typeof noteTypes)[number]>(
-    (localStorage.getItem("note-display-type") as (typeof noteTypes)[number]) ?? "local",
-);
-watch(selectedNoteTypes, () => {
-    localStorage.setItem("note-display-type", selectedNoteTypes.value);
-});
-
 const searchFilters = reactive({
     title: true,
     text: false,
     author: false,
-    activeLocation: true,
-    includeArchivedLocations: false,
-    notesWithShapes: true,
-    globalIfLocalShape: false,
 });
 
 const searchBar = ref<HTMLInputElement | null>(null);
@@ -74,17 +65,15 @@ const availableTags = computed(() => {
     return Array.from(tagList, ([name, value]) => value).sort((a, b) => a.name.localeCompare(b.name));
 });
 
-const noteArray = computed(() => {
-    let it: Iterable<DeepReadonly<ClientNote>> = noteState.reactive.notes.values();
-    if (!searchFilters.includeArchivedLocations) {
-        it = filter(it, (n) => !locationStore.archivedLocations.value.some((l) => l.id === n.location));
-    }
-    const it2 = map(it, (n) => ({
-        ...n,
-        shapes: noteState.reactive.shapeNotes.get2(n.uuid) ?? [],
-    }));
-    return Array.from(it2);
-});
+const noteArray = computed(() =>
+    // temp-fix for vue iterator method breaking
+    Iterator.from(noteState.reactive.notes.values())
+        .map((n) => ({
+            ...n,
+            shapes: noteState.reactive.shapeNotes.get2(n.uuid) ?? [],
+        }))
+        .toArray(),
+);
 
 function containsSearchTags(note: (typeof noteArray.value)[number]): boolean {
     for (const tag of searchTags.value) {
@@ -95,30 +84,85 @@ function containsSearchTags(note: (typeof noteArray.value)[number]): boolean {
     return true;
 }
 
+const NO_LINK_FILTER = Symbol("NO_LINK_FILTER");
+const roomFilterOptions = computed(() => {
+    return {
+        default: [
+            { label: "(no filter)", value: undefined },
+            { label: "active campaign", value: gameState.reactive.roomName },
+            { label: "no campaign links", value: NO_LINK_FILTER },
+        ],
+    };
+});
+const roomFilter = ref<string | symbol | undefined>(undefined);
+
+const locationFilterOptions = computed(() => {
+    return {
+        default: [
+            { label: "(no filter)", value: undefined },
+            { label: "active location", value: locationSettingsState.reactive.activeLocation },
+            { label: "no location links", value: NO_LINK_FILTER },
+        ],
+        search: locationStore.activeLocations.value.map((l) => ({ label: l.name, value: l.id })),
+    };
+});
+const locationFilter = ref<number | symbol | undefined>(undefined);
+
+const HAS_SHAPE_FILTER = Symbol("HAS_SHAPE_FILTER");
+const shapeFilterOptions = computed(() => {
+    return {
+        default: [
+            { label: "(no filter)", value: undefined },
+            { label: "has shape(s)", value: HAS_SHAPE_FILTER },
+            { label: "no shape(s)", value: NO_LINK_FILTER },
+        ],
+        search: noteState.localShapeNotes.value
+            .keys2()
+            .map((l) => {
+                const shape = getShape(l);
+                // we pass by the reactive state, to catch renames made by the client
+                // renames made by another client will not be caught this way though
+                // it feels somewhat overkill to actively load all these shapes just for this
+                const props = propertiesState.reactive.data.get(l) ?? propertiesState.readonly.data.get(l);
+                const url = shape && shape.type === "assetrect" ? (shape as IAsset).src : undefined;
+                return {
+                    label: props?.name ?? "Unknown Shape",
+                    value: l,
+                    icon: url,
+                };
+            })
+            .toArray(),
+    };
+});
+const shapeFilter = ref<number | symbol | undefined>(undefined);
+
 const filteredNotes = computed(() => {
     const sf = searchFilter.value.trim().toLowerCase();
-    const searchLocal = selectedNoteTypes.value !== "global";
-    const searchGlobal = selectedNoteTypes.value !== "local";
-    const locationId = locationSettingsState.reactive.activeLocation;
     const notes: typeof noteArray.value = [];
     for (const note of noteArray.value) {
+        const roomLinks = note.rooms.filter((r) => r.room === gameState.fullRoomName.value);
+
+        if (roomFilter.value === NO_LINK_FILTER) {
+            if (roomLinks.length > 0) continue;
+        } else if (roomFilter.value !== undefined) {
+            if (roomLinks.length === 0) continue;
+        }
+
+        // const hasLocalShape = noteState.localShapeNotes.value.has(note.uuid);
+        if (locationFilter.value === NO_LINK_FILTER) {
+            if (roomLinks.every((r) => r.location === undefined)) continue;
+        } else if (locationFilter.value !== undefined) {
+            if (!roomLinks.some((r) => r.location === locationFilter.value)) continue;
+        }
+
         if (shapeFiltered.value) {
-            if (!note.shapes.some((s) => s === noteState.reactive.shapeFilter)) {
-                continue;
-            }
-        } else {
-            if (!searchFilters.notesWithShapes && note.shapes.length > 0) continue;
-            if (!note.isRoomNote) {
-                if (!searchGlobal) {
-                    if (!searchFilters.globalIfLocalShape || note.shapes.length === 0) {
-                        continue;
-                    }
-                }
-            } else {
-                if (!searchLocal || (searchFilters.activeLocation && locationId !== note.location)) {
-                    continue;
-                }
-            }
+            if (!note.shapes.some((s) => s === noteState.reactive.shapeFilter)) continue;
+        } else if (shapeFilter.value === HAS_SHAPE_FILTER) {
+            if (note.shapes.length === 0) continue;
+        } else if (shapeFilter.value === NO_LINK_FILTER) {
+            if (note.shapes.length > 0) continue;
+        } else if (shapeFilter.value !== undefined) {
+            if (!note.shapes.some((s) => s === shapeFilter.value)) continue;
         }
 
         if (!containsSearchTags(note)) {
@@ -194,11 +238,6 @@ function clearSearchBar(): void {
     </header>
     <div id="notes-search" :class="shapeFiltered ? 'disabled' : ''">
         <div id="search-bar">
-            <select v-show="!shapeFiltered" id="kind-selector" v-model="selectedNoteTypes">
-                <option v-for="type in noteTypes" :key="type" :value="type">
-                    {{ t(`game.ui.notes.note_types.${type}`) }}
-                </option>
-            </select>
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
             <div id="search-field">
                 <input
@@ -238,57 +277,18 @@ function clearSearchBar(): void {
                         <label for="note-search-author">{{ t("game.ui.notes.NoteList.filter.author") }}</label>
                     </div>
                 </fieldset>
-                <fieldset :disabled="selectedNoteTypes === 'global' || shapeFiltered">
-                    <legend>{{ t("game.ui.notes.NoteList.filter.local_locations") }}</legend>
-                    <div>
-                        <input
-                            id="note-search-active-location"
-                            v-model="searchFilters.activeLocation"
-                            type="checkbox"
-                        />
-                        <label
-                            for="note-search-active-location"
-                            :title="t('game.ui.notes.NoteList.filter.active_location_title')"
-                        >
-                            {{ t("game.ui.notes.NoteList.filter.active_location") }}
-                        </label>
-                    </div>
-                    <div>
-                        <input
-                            id="note-search-archived"
-                            v-model="searchFilters.includeArchivedLocations"
-                            type="checkbox"
-                        />
-                        <label for="note-search-archived">
-                            {{ t("game.ui.notes.NoteList.filter.archived_location") }}
-                        </label>
-                    </div>
-                </fieldset>
-                <div></div>
-                <fieldset :disabled="selectedNoteTypes === 'global' || shapeFiltered">
-                    <legend>{{ t("game.ui.notes.NoteList.filter.local_shapes") }}</legend>
-                    <div>
-                        <input id="note-search-shapes" v-model="searchFilters.notesWithShapes" type="checkbox" />
-                        <label for="note-search-shapes">{{ t("game.ui.notes.NoteList.filter.note_with_shape") }}</label>
-                    </div>
-                    <div>
-                        <input
-                            id="note-search-global-if-local-shape"
-                            v-model="searchFilters.globalIfLocalShape"
-                            type="checkbox"
-                        />
-                        <label
-                            for="note-search-global-if-local-shape"
-                            :title="t('game.ui.notes.NoteList.filter.global_note_title')"
-                        >
-                            {{ t("game.ui.notes.NoteList.filter.global_note") }}
-                        </label>
-                    </div>
-                </fieldset>
             </div>
         </div>
         <div id="search-filters">
             <span style="padding-right: 1rem">{{ t("game.ui.notes.NoteList.filters.title") }}</span>
+            <NoteFilter v-model="roomFilter" label="campaign" :options="roomFilterOptions" />
+            <NoteFilter
+                v-model="locationFilter"
+                label="location"
+                :options="locationFilterOptions"
+                :disabled="roomFilter === undefined || roomFilter === NO_LINK_FILTER"
+            />
+            <NoteFilter v-show="!shapeFiltered" v-model="shapeFilter" label="shape" :options="shapeFilterOptions" />
             <div id="filter-bubbles">
                 <div v-if="shapeName" class="shape-name tag-bubble removable" @click="clearShapeFilter">
                     {{ shapeName }}

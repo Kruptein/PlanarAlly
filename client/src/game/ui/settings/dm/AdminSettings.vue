@@ -72,7 +72,7 @@ async function deleteSession(): Promise<void> {
         }),
         t("game.ui.settings.dm.AdminSettings.deleting_session"),
     );
-    if (value !== `${gameState.raw.roomCreator}/${gameState.raw.roomName}`) return;
+    if (value !== gameState.fullRoomName.value) return;
     sendDeleteRoom();
     await router.push("/");
 }

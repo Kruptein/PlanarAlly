@@ -11,7 +11,6 @@ if TYPE_CHECKING:
 
 
 T = TypeVar("T", bound="TypedModel")
-U = TypeVar("U", bound="TypedModel")
 
 
 def safe_update_model_from_dict(instance: TypedModel, data: dict, ignore_unknown=False):

@@ -1,8 +1,10 @@
 #  These have to appear before some others due to circular referencing and DeferredForeignKey
 from .models.asset_share import AssetShare  # isort: skip
 from .models.note_access import NoteAccess  # isort: skip
+from .models.note_room import NoteRoom  # isort: skip
 from .models.note_shape import NoteShape  # isort: skip
 
+from .base import BaseDbModel, BaseViewModel
 from .models.asset import Asset
 from .models.asset_rect import AssetRect
 from .models.asset_shortcut import AssetShortcut
@@ -36,6 +38,7 @@ from .models.shape import Shape
 from .models.shape_custom_data import ShapeCustomData
 from .models.shape_data_block import ShapeDataBlock
 from .models.shape_owner import ShapeOwner
+from .models.shape_room_view import ShapeRoomView
 from .models.shape_template import ShapeTemplate
 from .models.shape_type import ShapeType
 from .models.stats import Stats
@@ -47,7 +50,7 @@ from .models.user_data_block import UserDataBlock
 from .models.user_options import UserOptions
 from .signals import *  # noqa: F403
 
-ALL_MODELS = [
+ALL_NORMAL_MODELS: list[type[BaseDbModel]] = [
     AssetRect,
     Asset,
     AssetShare,
@@ -73,6 +76,7 @@ ALL_MODELS = [
     ModRoom,
     Note,
     NoteAccess,
+    NoteRoom,
     NoteShape,
     Notification,
     PlayerRoom,
@@ -94,3 +98,9 @@ ALL_MODELS = [
     UserOptions,
     User,
 ]
+
+ALL_VIEWS: list[type[BaseViewModel]] = [
+    ShapeRoomView,
+]
+
+ALL_MODELS: list[type[BaseDbModel]] = ALL_NORMAL_MODELS + ALL_VIEWS

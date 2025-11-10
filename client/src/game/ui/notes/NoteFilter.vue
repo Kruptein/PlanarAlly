@@ -1,5 +1,7 @@
-<script setup lang="ts" generic="T extends PropertyKey | undefined">
+<script setup lang="ts" generic="T extends PropertyKey">
 import { computed, ref, watch } from "vue";
+
+import { NO_FILTER } from "../../../core/symbols";
 
 const props = defineProps<{
     label: string;
@@ -8,8 +10,9 @@ const props = defineProps<{
         search?: { label: string; value: T; icon?: string }[];
     };
     disabled?: boolean;
+    multiSelect: boolean;
 }>();
-const selected = defineModel<T>({ required: true });
+const selected = defineModel<T[]>({ required: true });
 
 const searchQuery = ref("");
 const isOpen = ref(false);
@@ -52,8 +55,26 @@ function closeDropdown(): void {
 }
 
 function selectOption(option: T): void {
-    selected.value = option;
-    closeDropdown();
+    if (props.multiSelect) {
+        const arr = selected.value;
+        if (option === NO_FILTER) {
+            selected.value = [props.options.default[0]!.value];
+        } else {
+            let newArr = arr.filter((o) => o !== NO_FILTER);
+            if (newArr.includes(option)) {
+                newArr = arr.filter((o) => o !== option);
+            } else {
+                newArr.push(option);
+            }
+            if (newArr.length === 0) {
+                newArr.push(NO_FILTER as T);
+            }
+            selected.value = newArr;
+        }
+    } else {
+        selected.value = [option];
+        closeDropdown();
+    }
 }
 
 function onFocusOut(event: FocusEvent): void {
@@ -136,9 +157,11 @@ function handleSearchKeyDown(event: KeyboardEvent): void {
                 <span class="note-filter-label">{{ label }}:</span>
                 <span class="note-filter-value">
                     {{
-                        options.default.find((o) => o.value === selected)?.label ??
-                        options.search?.find((o) => o.value === selected)?.label ??
-                        ""
+                        selected.length > 1
+                            ? `${selected.length} selected`
+                            : (options.default.find((o) => selected.includes(o.value))?.label ??
+                              options.search?.find((o) => selected.includes(o.value))?.label ??
+                              "")
                     }}
                 </span>
                 <font-awesome-icon icon="chevron-down" class="chevron-icon" />
@@ -149,7 +172,7 @@ function handleSearchKeyDown(event: KeyboardEvent): void {
                         v-for="(option, index) in options.default"
                         :key="option.value"
                         class="note-filter-option"
-                        :class="{ 'is-active': index === arrowCounter }"
+                        :class="{ 'is-active': index === arrowCounter, 'is-selected': selected.includes(option.value) }"
                         @click="selectOption(option.value)"
                     >
                         {{ option.label }}
@@ -170,7 +193,10 @@ function handleSearchKeyDown(event: KeyboardEvent): void {
                             v-for="(option, index) in filteredOptions"
                             :key="option.value"
                             class="note-filter-option"
-                            :class="{ 'is-active': index === arrowCounter }"
+                            :class="{
+                                'is-active': index === arrowCounter,
+                                'is-selected': selected.includes(option.value),
+                            }"
                             @click="selectOption(option.value)"
                         >
                             <img v-if="option.icon" :src="option.icon" width="20px" height="20px" />
@@ -281,6 +307,10 @@ function handleSearchKeyDown(event: KeyboardEvent): void {
                     display: flex;
                     align-items: center;
                     gap: 0.5rem;
+
+                    &.is-selected {
+                        background-color: lightgreen;
+                    }
 
                     &:hover,
                     &.is-active {

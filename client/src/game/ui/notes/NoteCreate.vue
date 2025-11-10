@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import type { ApiNote } from "../../../apiTypes";
 import { uuidv4 } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
+import { gameState } from "../../systems/game/state";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 import { type NoteId, NoteManagerMode } from "../../systems/notes/types";
@@ -31,8 +32,12 @@ async function createNote(): Promise<void> {
         text: "",
         showOnHover: false,
         showIconOnShape: false,
-        isRoomNote: isLocal.value,
-        location: isLocal.value ? locationSettingsState.reactive.activeLocation : null,
+        rooms: [
+            {
+                room: gameState.fullRoomName.value,
+                location: isLocal.value ? locationSettingsState.reactive.activeLocation : null,
+            },
+        ],
         tags: [],
         access: [],
         shapes: [],

@@ -16,7 +16,6 @@ import { propertiesState } from "../../systems/properties/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 
 import NoteFilter from "./NoteFilter.vue";
-import TagAutoCompleteSearch from "./TagAutoCompleteSearch.vue";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
@@ -38,10 +37,8 @@ const searchFilters = reactive({
 
 const searchBar = ref<HTMLInputElement | null>(null);
 const searchOptionsDialog = ref<HTMLDivElement | null>(null);
-const searchTags = ref<NoteTag[]>([]);
 const searchFilter = ref("");
 const showSearchFilters = ref(false);
-const showTagSearch = ref(false);
 const searchPage = ref(1);
 
 const shapeFiltered = computed(() => noteState.reactive.shapeFilter !== undefined);
@@ -56,16 +53,6 @@ const shapeName = computed(() => {
 //     searchBar.value?.focus();
 // });
 
-const availableTags = computed(() => {
-    const tagList = new Map<string, NoteTag>();
-    for (const [_, note] of noteState.reactive.notes) {
-        for (const tag of note.tags) {
-            tagList.set(tag.name, tag);
-        }
-    }
-    return Array.from(tagList, ([name, value]) => value).sort((a, b) => a.name.localeCompare(b.name));
-});
-
 const noteArray = computed(() =>
     // temp-fix for vue iterator method breaking
     Iterator.from(noteState.reactive.notes.values())
@@ -75,15 +62,6 @@ const noteArray = computed(() =>
         }))
         .toArray(),
 );
-
-function containsSearchTags(note: (typeof noteArray.value)[number]): boolean {
-    for (const tag of searchTags.value) {
-        if (!note.tags.some((t) => t.name === tag.name)) {
-            return false;
-        }
-    }
-    return true;
-}
 
 function getDefaultFilter<T extends string | number | symbol>(
     key: string,
@@ -185,6 +163,30 @@ watch(shapeFilter, () => {
     saveDefaultFilter("note-shape-filter", shapeFilterOptions.value.default, shapeFilter.value);
 });
 
+const HAS_TAG_FILTER = Symbol("HAS_SHAPE_FILTER");
+const tagFilterOptions = computed(() => {
+    const tagList = new Set<string>();
+    for (const [_, note] of noteState.reactive.notes) {
+        for (const tag of note.tags) {
+            tagList.add(tag.name);
+        }
+    }
+    return {
+        default: [
+            { label: "(no filter)", value: NO_FILTER },
+            { label: "has tag(s)", value: HAS_TAG_FILTER },
+            { label: "no tag(s)", value: NO_LINK_FILTER },
+        ],
+        search: Array.from(tagList).map((name) => ({ label: name, value: name })),
+    };
+});
+const tagFilter = ref<(string | symbol)[]>(
+    getDefaultFilter("note-tag-filter", tagFilterOptions.value.default, [NO_FILTER]),
+);
+watch(tagFilter, () => {
+    saveDefaultFilter("note-tag-filter", tagFilterOptions.value.default, tagFilter.value);
+});
+
 const filteredNotes = computed(() => {
     const sf = searchFilter.value.trim().toLowerCase();
     const notes: typeof noteArray.value = [];
@@ -217,18 +219,25 @@ const filteredNotes = computed(() => {
             match = true;
         } else if (shapeFilter.value.includes(HAS_SHAPE_FILTER)) {
             if (note.shapes.length > 0) match = true;
-            match = true;
         } else if (shapeFilter.value.includes(NO_LINK_FILTER)) {
             if (note.shapes.length === 0) match = true;
-            match = true;
         } else if (note.shapes.some((s) => shapeFilter.value.includes(s))) {
             match = true;
         }
         if (!match) continue;
 
-        if (!containsSearchTags(note)) {
-            continue;
+        match = false;
+        if (tagFilter.value.includes(NO_FILTER)) match = true;
+        else if (tagFilter.value.includes(HAS_TAG_FILTER)) {
+            if (note.tags.length > 0) match = true;
         }
+        if (tagFilter.value.includes(NO_LINK_FILTER)) {
+            if (note.tags.length === 0) match = true;
+        }
+        if (note.tags.some((t) => tagFilter.value.includes(t.name))) {
+            match = true;
+        }
+        if (!match) continue;
 
         if (sf.length === 0) {
             notes.push(note);
@@ -267,11 +276,13 @@ function handleClickOutsideDialog(event: MouseEvent): void {
 }
 
 function toggleTagInSearch(tag: NoteTag): void {
-    const tempArray = searchTags.value.filter((x) => x.name !== tag.name);
-    if (tempArray.length === searchTags.value.length) {
-        searchTags.value.push(tag);
+    if (tagFilter.value.includes(tag.name)) {
+        tagFilter.value = tagFilter.value.filter((x) => x !== tag.name);
+        if (tagFilter.value.length === 0) {
+            tagFilter.value.push(NO_FILTER);
+        }
     } else {
-        searchTags.value = tempArray;
+        tagFilter.value.push(tag.name);
     }
 }
 
@@ -357,41 +368,12 @@ function clearSearchBar(): void {
                 :options="shapeFilterOptions"
                 :multi-select="true"
             />
+            <NoteFilter v-model="tagFilter" label="tag" :options="tagFilterOptions" :multi-select="true" />
             <div id="filter-bubbles">
                 <div v-if="shapeName" class="shape-name tag-bubble removable" @click="clearShapeFilter">
                     {{ shapeName }}
                 </div>
-                <div
-                    v-for="tag of searchTags"
-                    :key="tag.name"
-                    :style="{ color: mostReadable(tag.colour), backgroundColor: tag.colour }"
-                    class="tag-bubble removable"
-                    @click="toggleTagInSearch(tag)"
-                >
-                    {{ tag.name }}
-                </div>
             </div>
-            <TagAutoCompleteSearch
-                v-show="showTagSearch"
-                id="tag-search-bar"
-                :placeholder="t('game.ui.notes.NoteList.filters.tag_placeholder')"
-                :options="availableTags"
-                @picked="toggleTagInSearch"
-            />
-            <font-awesome-icon
-                v-if="showTagSearch"
-                id="tag-search-show"
-                icon="minus"
-                :title="t('game.ui.notes.NoteList.filters.hide_title')"
-                @click="showTagSearch = false"
-            />
-            <font-awesome-icon
-                v-else
-                id="tag-search-hide"
-                icon="plus"
-                :title="t('game.ui.notes.NoteList.filters.show_title')"
-                @click="showTagSearch = true"
-            />
         </div>
     </div>
     <template v-if="visibleNotes.notes.length === 0">
@@ -609,17 +591,6 @@ header {
                 flex: 0 1 auto;
                 word-break: break-word;
             }
-        }
-        > #tag-search-bar {
-            flex: 2 1 0;
-            height: 1.5rem;
-            min-width: 8rem;
-        }
-
-        > #tag-search-show,
-        > #tag-search-hide {
-            flex: 0 0 auto;
-            margin: 0 0.5rem;
         }
     }
 }

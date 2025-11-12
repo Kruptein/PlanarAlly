@@ -139,7 +139,7 @@ watchEffect(() => {
 const accessLevels = computed(() => {
     if (note.value === undefined) return [];
     // For global notes, there is no default access so just return the access levels with a filter
-    if (!note.value.isRoomNote) return note.value.access.filter((a) => a.name !== defaultAccessName);
+    if (note.value.rooms.length === 0) return note.value.access.filter((a) => a.name !== defaultAccessName);
     // For local notes, add a default access level and make sure it's first
     // It's possible that a specific config for the default access level is set, so we need to check for that
     const access = [];

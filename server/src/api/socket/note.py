@@ -17,7 +17,7 @@ from ...db.models.user import User
 from ...logs import logger
 from ...state.game import game_state
 from ..helpers import _send_game
-from ..models.note import ApiNote, ApiNoteAccessEdit, ApiNoteSetBoolean, ApiNoteSetString, ApiNoteShape
+from ..models.note import ApiNote, ApiNoteAccessEdit, ApiNoteRoomLink, ApiNoteSetBoolean, ApiNoteSetString, ApiNoteShape
 
 
 def can_edit(note: Note, user: User):
@@ -36,20 +36,13 @@ async def send_remove_note(uuid: str, psid: str):
     await _send_game("Note.Remove", uuid, room=psid)
 
 
-async def get_room(full_room_path: str) -> Room | None:
-    room_creator, room_name = full_room_path.split("/", 1)
-
+async def get_room(room_creator: str, room_name: str) -> Room | None:
     creator = User.by_name(room_creator)
     if not creator:
-        logger.warning(f"User {room_creator} not found ({full_room_path})")
+        logger.warning(f"User {room_creator} not found ({room_creator}/{room_name})")
         return
 
-    room = Room.get_or_none(creator=creator, name=room_name)
-    if not room:
-        logger.warning(f"Room {full_room_path} not found")
-        return
-
-    return room
+    return Room.get_or_none(creator=creator, name=room_name)
 
 
 @sio.on("Note.New", namespace=GAME_NS)
@@ -74,11 +67,11 @@ async def new_note(sid: str, raw_data: Any):
     )
 
     for room_data in data.rooms:
-        room = await get_room(room_data.room)
+        room = await get_room(room_data.roomCreator, room_data.roomName)
         if not room:
-            logger.warning(f"Room {room_data.room} not found")
+            logger.warning(f"Room {room_data.roomCreator}/{room_data.roomName} not found")
             continue
-        NoteRoom.create(note=note, room=room, location=room_data.location)
+        NoteRoom.create(note=note, room=room, location=room_data.locationId)
 
     for psid in game_state.get_sids(skip_sid=sid, player=pr.player):
         await send_create_note(note, psid)
@@ -389,6 +382,69 @@ async def remove_shape(sid, raw_data: Any):
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
         if can_view(note, user):
             await _send_game("Note.Shape.Remove", data.model_dump(), room=psid)
+
+
+@sio.on("Note.Room.Link", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def link_note_to_room(sid: str, raw_data: Any):
+    data = ApiNoteRoomLink(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+    note = Note.get_or_none(uuid=data.note)
+
+    if not note:
+        logger.warning(f"{pr.player.name} tried to link non-existent note with id: '{data.note}'")
+        return
+
+    if not can_edit(note, pr.player):
+        logger.warning(f"{pr.player.name} tried to link a note not belonging to them.")
+        return
+
+    room = await get_room(data.roomCreator, data.roomName)
+    if not room:
+        return
+
+    if note.rooms.filter(room=room, location=data.locationId).exists():
+        logger.warning(f"Note {data.note} already linked to room {data.roomCreator}/{data.roomName}")
+        return
+
+    NoteRoom.create(note=note, room=room, location=data.locationId)
+
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if can_view(note, user):
+            await _send_game("Note.Room.Link", data.model_dump(), room=psid)
+
+
+@sio.on("Note.Room.Unlink", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def unlink_note_from_room(sid: str, raw_data: Any):
+    data = ApiNoteRoomLink(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+    note = Note.get_or_none(uuid=data.note)
+
+    if not note:
+        logger.warning(f"{pr.player.name} tried to unlink non-existent note with id: '{data.note}'")
+        return
+
+    if not can_edit(note, pr.player):
+        logger.warning(f"{pr.player.name} tried to unlink a note not belonging to them.")
+        return
+
+    room = await get_room(data.roomCreator, data.roomName)
+    if not room:
+        return
+
+    nr = NoteRoom.get_or_none(note=note, room=room, location=data.locationId)
+    if nr:
+        nr.delete_instance()
+    else:
+        logger.warning(f"Note {data.note} not linked to room {data.roomCreator}/{data.roomName}")
+        return
+
+    for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
+        if can_view(note, user):
+            await _send_game("Note.Room.Unlink", data.model_dump(), room=psid)
 
 
 @sio.on("Note.ShowOnHover.Set", namespace=GAME_NS)

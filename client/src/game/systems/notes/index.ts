@@ -19,6 +19,8 @@ import {
     sendNoteAccessRemove,
     sendNoteAddShape,
     sendNoteRemoveShape,
+    sendNoteRoomLink,
+    sendNoteRoomUnlink,
     sendNoteSetShowIconOnShape,
     sendNoteSetShowOnHover,
     sendRemoveNote,
@@ -278,6 +280,39 @@ class NoteSystem implements ShapeSystem<NoteId[]> {
         note.access.splice(a, 1);
         if (sync) {
             sendNoteAccessRemove({ uuid: noteId, value: userName });
+        }
+    }
+
+    linkToRoom(
+        noteId: NoteId,
+        roomCreator: string,
+        roomName: string,
+        locationId: number | null,
+        locationName: string | null,
+        sync: boolean,
+    ): void {
+        const note = $.notes.get(noteId);
+        if (note === undefined) return;
+        note.rooms.push({ roomCreator, roomName, locationId, locationName });
+        if (sync) {
+            sendNoteRoomLink({ note: noteId, roomCreator, roomName, locationId, locationName });
+        }
+    }
+
+    removeRoomLink(
+        noteId: NoteId,
+        roomCreator: string,
+        roomName: string,
+        locationId: number | null,
+        sync: boolean,
+    ): void {
+        const note = $.notes.get(noteId);
+        if (note === undefined) return;
+        note.rooms = note.rooms.filter(
+            (r) => r.roomCreator !== roomCreator || r.roomName !== roomName || r.locationId !== locationId,
+        );
+        if (sync) {
+            sendNoteRoomUnlink({ note: noteId, roomCreator, roomName, locationId, locationName: null });
         }
     }
 

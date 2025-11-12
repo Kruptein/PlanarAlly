@@ -4,11 +4,35 @@ from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...db.models.player_room import PlayerRoom
+from ...db.models.room import Room
 from ...db.models.user import User
 from ...logs import logger
 from ...models.role import Role
 from ...state.game import game_state
 from ..helpers import _send_game
+
+
+@sio.on("Room.List", namespace=GAME_NS)
+async def list_rooms(sid: str):
+    pr = game_state.get(sid)
+    return [{"creator": r.room.creator.name, "name": r.room.name} for r in pr.player.rooms_joined]
+
+
+@sio.on("Room.Locations.List", namespace=GAME_NS)
+async def list_owned_rooms(sid: str, room_path: str):
+    pr = game_state.get(sid)
+    creator_name, name = room_path.split("/", 1)
+    creator = User.by_name(creator_name)
+    if not creator:
+        logger.warning(f"User {creator_name} not found ({room_path})")
+        return
+
+    room = Room.get_or_none(creator=creator, name=name)
+    if not room or pr.player.rooms_joined.filter(room=room).count() == 0:
+        logger.warning(f"Room {room_path} not found")
+        return
+
+    return [{"id": loc.id, "name": loc.name} for loc in room.locations]
 
 
 @sio.on("Room.Info.InviteCode.Refresh", namespace=GAME_NS)

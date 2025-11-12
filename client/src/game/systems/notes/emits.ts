@@ -1,4 +1,11 @@
-import type { ApiNoteAccessEdit, ApiNote, ApiNoteSetBoolean, ApiNoteSetString, ApiNoteShape } from "../../../apiTypes";
+import type {
+    ApiNoteAccessEdit,
+    ApiNote,
+    ApiNoteSetBoolean,
+    ApiNoteSetString,
+    ApiNoteShape,
+    ApiNoteRoomLink,
+} from "../../../apiTypes";
 import { wrapSocket } from "../../api/socket";
 
 export const sendNewNote = wrapSocket<ApiNote>("Note.New");
@@ -14,3 +21,5 @@ export const sendNoteAddShape = wrapSocket<ApiNoteShape>("Note.Shape.Add");
 export const sendNoteRemoveShape = wrapSocket<ApiNoteShape>("Note.Shape.Remove");
 export const sendNoteSetShowOnHover = wrapSocket<ApiNoteSetBoolean>("Note.ShowOnHover.Set");
 export const sendNoteSetShowIconOnShape = wrapSocket<ApiNoteSetBoolean>("Note.ShowIconOnShape.Set");
+export const sendNoteRoomLink = wrapSocket<ApiNoteRoomLink>("Note.Room.Link");
+export const sendNoteRoomUnlink = wrapSocket<ApiNoteRoomLink>("Note.Room.Unlink");

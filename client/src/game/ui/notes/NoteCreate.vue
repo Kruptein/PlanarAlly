@@ -25,6 +25,7 @@ onDeactivated(() => {
 
 async function createNote(): Promise<void> {
     const uuid = uuidv4() as unknown as NoteId;
+    const [roomCreator, roomName] = gameState.fullRoomName.value.split("/", 1) as [string, string];
     const note: ApiNote = {
         uuid,
         creator: coreStore.state.username,
@@ -34,8 +35,10 @@ async function createNote(): Promise<void> {
         showIconOnShape: false,
         rooms: [
             {
-                room: gameState.fullRoomName.value,
-                location: isLocal.value ? locationSettingsState.reactive.activeLocation : null,
+                roomCreator,
+                roomName,
+                locationId: isLocal.value ? locationSettingsState.reactive.activeLocation : null,
+                locationName: null,
             },
         ],
         tags: [],

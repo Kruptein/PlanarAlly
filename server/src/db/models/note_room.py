@@ -31,7 +31,12 @@ class NoteRoom(BaseDbModel):
     )
 
     def as_pydantic(self):
-        return ApiNoteRoom(room=self.room.get_path(), location=self.location.id if self.location else None)
+        return ApiNoteRoom(
+            roomCreator=self.room.creator.name,
+            roomName=self.room.name,
+            locationId=self.location.id if self.location else None,
+            locationName=self.location.name if self.location else None,
+        )
 
     class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         indexes = ((("note_id", "room_id", "location_id"), True),)

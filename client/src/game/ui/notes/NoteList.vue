@@ -100,14 +100,14 @@ const roomFilterOptions = computed(() => {
             {
                 label: "active campaign",
                 value: ACTIVE_CAMPAIGN_FILTER,
-                disabled: noteArray.value.every((n) => n.rooms.every((r) => r.room !== gameState.fullRoomName.value)),
+                disabled: noteArray.value.every((n) =>
+                    n.rooms.every((r) => `${r.roomCreator}/${r.roomName}` !== gameState.fullRoomName.value),
+                ),
             },
             {
                 label: "no campaign links",
                 value: NO_LINK_FILTER,
-                disabled: noteArray.value.every(
-                    (n) => n.rooms.length > 0 && n.rooms.every((r) => r.room !== undefined),
-                ),
+                disabled: noteArray.value.every((n) => n.rooms.length > 0),
             },
         ],
     };
@@ -129,17 +129,17 @@ const locationFilterOptions = computed(() => {
                 label: "active location",
                 value: ACTIVE_LOCATION_FILTER,
                 disabled: noteArray.value.every((n) =>
-                    n.rooms.every((r) => r.location !== locationSettingsState.reactive.activeLocation),
+                    n.rooms.every((r) => r.locationId !== locationSettingsState.reactive.activeLocation),
                 ),
             },
             {
                 label: "no location links",
                 value: NO_LINK_FILTER,
-                disabled: noteArray.value.every((n) => n.rooms.every((r) => r.location !== undefined)),
+                disabled: noteArray.value.every((n) => n.rooms.every((r) => r.locationId !== null)),
             },
         ],
         search: locationStore.activeLocations.value
-            .filter((l) => noteArray.value.some((n) => n.rooms.some((r) => r.location === l.id)))
+            .filter((l) => noteArray.value.some((n) => n.rooms.some((r) => r.locationId === l.id)))
             .map((l) => ({ label: l.name, value: l.id })),
     };
 });
@@ -240,7 +240,7 @@ const filteredNotes = computed(() => {
     const _roomFilter = roomFilter.value[0];
 
     for (const note of noteArray.value) {
-        const roomLinks = note.rooms.filter((r) => r.room === gameState.fullRoomName.value);
+        const roomLinks = note.rooms.filter((r) => `${r.roomCreator}/${r.roomName}` === gameState.fullRoomName.value);
 
         let match = false;
         if (_roomFilter === NO_FILTER) match = true;
@@ -252,10 +252,11 @@ const filteredNotes = computed(() => {
         match = false;
         if (locationFilter.value.includes(NO_FILTER)) match = true;
         else if (locationFilter.value.includes(ACTIVE_LOCATION_FILTER)) {
-            if (roomLinks.some((r) => r.location === locationSettingsState.reactive.activeLocation)) match = true;
-        } else if (locationFilter.value.includes(NO_LINK_FILTER) && roomLinks.every((r) => r.location === undefined))
+            if (roomLinks.some((r) => r.locationId === locationSettingsState.reactive.activeLocation)) match = true;
+        } else if (locationFilter.value.includes(NO_LINK_FILTER) && roomLinks.some((r) => r.locationId === null))
             match = true;
-        else if (roomLinks.some((r) => r.location !== null && locationFilter.value.includes(r.location))) match = true;
+        else if (roomLinks.some((r) => r.locationId !== null && locationFilter.value.includes(r.locationId)))
+            match = true;
         if (!match) continue;
 
         match = false;

@@ -232,7 +232,6 @@ function handleSearchKeyDown(event: KeyboardEvent): void {
 
     .note-filter-dropdown {
         position: relative;
-        min-width: 150px;
 
         .note-filter-label {
             margin-right: 0.5rem;
@@ -262,6 +261,14 @@ function handleSearchKeyDown(event: KeyboardEvent): void {
                 margin-left: 0.5rem;
                 font-size: 0.75em;
                 opacity: 0.6;
+            }
+
+            .note-filter-value {
+                flex-grow: 0;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+                max-width: 5vw;
             }
         }
 

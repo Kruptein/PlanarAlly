@@ -565,11 +565,12 @@ header {
         }
     }
     > #search-filters {
-        margin: 0 1rem 0;
+        padding: 0.5rem 1rem;
         display: flex;
         flex-direction: row;
+        flex-wrap: wrap;
+        row-gap: 0.5rem;
         align-items: center;
-        min-height: 2.7rem;
         border-bottom: solid 2px black;
 
         > #filter-bubbles {

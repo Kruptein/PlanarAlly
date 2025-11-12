@@ -62,6 +62,10 @@ export class BiArrMap<K1, K2> {
         return this.map1.entries();
     }
 
+    entries2(): MapIterator<[K2, K1[]]> {
+        return this.map2.entries();
+    }
+
     keys2(): MapIterator<K2> {
         return this.map2.keys();
     }

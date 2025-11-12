@@ -6,7 +6,7 @@ import { NO_FILTER } from "../../../core/symbols";
 const props = defineProps<{
     label: string;
     options: {
-        default: { label: string; value: T }[];
+        default: { label: string; value: T; disabled?: boolean }[];
         search?: { label: string; value: T; icon?: string }[];
     };
     disabled?: boolean;
@@ -172,7 +172,11 @@ function handleSearchKeyDown(event: KeyboardEvent): void {
                         v-for="(option, index) in options.default"
                         :key="option.value"
                         class="note-filter-option"
-                        :class="{ 'is-active': index === arrowCounter, 'is-selected': selected.includes(option.value) }"
+                        :class="{
+                            'is-active': index === arrowCounter,
+                            'is-selected': selected.includes(option.value),
+                            'is-disabled': option.disabled,
+                        }"
                         @click="selectOption(option.value)"
                     >
                         {{ option.label }}
@@ -317,6 +321,10 @@ function handleSearchKeyDown(event: KeyboardEvent): void {
 
                     &.is-selected {
                         background-color: lightgreen;
+                    }
+
+                    &.is-disabled {
+                        opacity: 0.5;
                     }
 
                     &:hover,

@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import type { LocalId } from "../../../core/id";
 import { NO_FILTER } from "../../../core/symbols";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
@@ -92,19 +93,31 @@ function saveDefaultFilter<T extends string | number | symbol>(
 
 const NO_LINK_FILTER = Symbol("NO_LINK_FILTER");
 const ACTIVE_CAMPAIGN_FILTER = Symbol("ACTIVE_CAMPAIGN_FILTER");
-const roomFilterOptions = {
-    default: [
-        { label: "(no filter)", value: NO_FILTER },
-        { label: "active campaign", value: ACTIVE_CAMPAIGN_FILTER },
-        { label: "no campaign links", value: NO_LINK_FILTER },
-    ],
-};
+const roomFilterOptions = computed(() => {
+    return {
+        default: [
+            { label: "(no filter)", value: NO_FILTER },
+            {
+                label: "active campaign",
+                value: ACTIVE_CAMPAIGN_FILTER,
+                disabled: noteArray.value.every((n) => n.rooms.every((r) => r.room !== gameState.fullRoomName.value)),
+            },
+            {
+                label: "no campaign links",
+                value: NO_LINK_FILTER,
+                disabled: noteArray.value.every(
+                    (n) => n.rooms.length > 0 && n.rooms.every((r) => r.room !== undefined),
+                ),
+            },
+        ],
+    };
+});
 const roomFilter = ref<(string | symbol)[]>(
-    getDefaultFilter("note-room-filter", roomFilterOptions.default, [ACTIVE_CAMPAIGN_FILTER]),
+    getDefaultFilter("note-room-filter", roomFilterOptions.value.default, [ACTIVE_CAMPAIGN_FILTER]),
 );
 
 watch(roomFilter, () => {
-    saveDefaultFilter("note-room-filter", roomFilterOptions.default, roomFilter.value);
+    saveDefaultFilter("note-room-filter", roomFilterOptions.value.default, roomFilter.value);
 });
 
 const ACTIVE_LOCATION_FILTER = Symbol("ACTIVE_LOCATION_FILTER");
@@ -112,10 +125,22 @@ const locationFilterOptions = computed(() => {
     return {
         default: [
             { label: "(no filter)", value: NO_FILTER },
-            { label: "active location", value: ACTIVE_LOCATION_FILTER },
-            { label: "no location links", value: NO_LINK_FILTER },
+            {
+                label: "active location",
+                value: ACTIVE_LOCATION_FILTER,
+                disabled: noteArray.value.every((n) =>
+                    n.rooms.every((r) => r.location !== locationSettingsState.reactive.activeLocation),
+                ),
+            },
+            {
+                label: "no location links",
+                value: NO_LINK_FILTER,
+                disabled: noteArray.value.every((n) => n.rooms.every((r) => r.location !== undefined)),
+            },
         ],
-        search: locationStore.activeLocations.value.map((l) => ({ label: l.name, value: l.id })),
+        search: locationStore.activeLocations.value
+            .filter((l) => noteArray.value.some((n) => n.rooms.some((r) => r.location === l.id)))
+            .map((l) => ({ label: l.name, value: l.id })),
     };
 });
 const locationFilter = ref<(number | symbol)[]>(
@@ -134,12 +159,21 @@ const shapeFilterOptions = computed(() => {
     return {
         default: [
             { label: "(no filter)", value: NO_FILTER },
-            { label: "has shape(s)", value: HAS_SHAPE_FILTER },
-            { label: "no shape(s)", value: NO_LINK_FILTER },
+            {
+                label: "has shape(s)",
+                value: HAS_SHAPE_FILTER,
+                disabled: noteArray.value.every((n) => n.shapes.length === 0),
+            },
+            {
+                label: "no shape(s)",
+                value: NO_LINK_FILTER,
+                disabled: noteArray.value.every((n) => n.shapes.length > 0),
+            },
         ],
         search: noteState.localShapeNotes.value
-            .keys2()
-            .map((l) => {
+            .entries2()
+            .filter(([, notes]) => noteArray.value.some((n) => notes.includes(n.uuid)))
+            .map(([l]) => {
                 const shape = getShape(l);
                 // we pass by the reactive state, to catch renames made by the client
                 // renames made by another client will not be caught this way though
@@ -155,7 +189,7 @@ const shapeFilterOptions = computed(() => {
             .toArray(),
     };
 });
-const shapeFilter = ref<(number | symbol)[]>(
+const shapeFilter = ref<(LocalId | symbol)[]>(
     getDefaultFilter("note-shape-filter", shapeFilterOptions.value.default, [NO_FILTER]),
 );
 
@@ -174,10 +208,22 @@ const tagFilterOptions = computed(() => {
     return {
         default: [
             { label: "(no filter)", value: NO_FILTER },
-            { label: "has tag(s)", value: HAS_TAG_FILTER },
-            { label: "no tag(s)", value: NO_LINK_FILTER },
+            {
+                label: "has tag(s)",
+                value: HAS_TAG_FILTER,
+                disabled: noteArray.value.every((n) => n.tags.length === 0),
+            },
+            {
+                label: "no tag(s)",
+                value: NO_LINK_FILTER,
+                disabled: noteArray.value.every((n) => n.tags.length > 0),
+            },
         ],
-        search: Array.from(tagList).map((name) => ({ label: name, value: name })),
+        search: tagList
+            .values()
+            .filter((name) => noteArray.value.some((n) => n.tags.some((t) => t.name === name)))
+            .map((name) => ({ label: name, value: name }))
+            .toArray(),
     };
 });
 const tagFilter = ref<(string | symbol)[]>(

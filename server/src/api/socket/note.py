@@ -9,8 +9,10 @@ from ...app import app, sio
 from ...db.db import db
 from ...db.models.note import Note
 from ...db.models.note_access import NoteAccess
+from ...db.models.note_room import NoteRoom
 from ...db.models.note_shape import NoteShape
 from ...db.models.player_room import PlayerRoom
+from ...db.models.room import Room
 from ...db.models.user import User
 from ...logs import logger
 from ...state.game import game_state
@@ -34,6 +36,22 @@ async def send_remove_note(uuid: str, psid: str):
     await _send_game("Note.Remove", uuid, room=psid)
 
 
+async def get_room(full_room_path: str) -> Room | None:
+    room_creator, room_name = full_room_path.split("/", 1)
+
+    creator = User.by_name(room_creator)
+    if not creator:
+        logger.warning(f"User {room_creator} not found ({full_room_path})")
+        return
+
+    room = Room.get_or_none(creator=creator, name=room_name)
+    if not room:
+        logger.warning(f"Room {full_room_path} not found")
+        return
+
+    return room
+
+
 @sio.on("Note.New", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def new_note(sid: str, raw_data: Any):
@@ -53,9 +71,14 @@ async def new_note(sid: str, raw_data: Any):
         tags=data.tags,
         show_on_hover=data.showOnHover,
         show_icon_on_shape=data.showIconOnShape,
-        room=pr.room if data.isRoomNote else None,
-        location=data.location,
     )
+
+    for room_data in data.rooms:
+        room = await get_room(room_data.room)
+        if not room:
+            logger.warning(f"Room {room_data.room} not found")
+            continue
+        NoteRoom.create(note=note, room=room, location=room_data.location)
 
     for psid in game_state.get_sids(skip_sid=sid, player=pr.player):
         await send_create_note(note, psid)
@@ -214,7 +237,7 @@ async def add_note_access(sid, raw_data: Any):
     user = None
     if data.name != "default":
         user = User.by_name(data.name)
-    elif note.room is None:
+    elif note.rooms.count() == 0:
         logger.warning(f"Note '{uuid}' is global but tried to add default access")
         return
 

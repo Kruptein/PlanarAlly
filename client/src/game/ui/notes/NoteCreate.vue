@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onDeactivated, ref } from "vue";
+import { onActivated, onDeactivated, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { ApiNote, ApiNoteRoom } from "../../../apiTypes";
@@ -24,9 +24,14 @@ enum NoteLinkType {
 const title = ref("");
 const noteLinkType = ref(NoteLinkType.Campaign);
 
+onActivated(() => {
+    window.addEventListener("keydown", handleEnter);
+});
+
 onDeactivated(() => {
     title.value = "";
     noteLinkType.value = NoteLinkType.Campaign;
+    window.removeEventListener("keydown", handleEnter);
 });
 
 const roomLinkOptions = [
@@ -77,6 +82,12 @@ async function createNote(): Promise<void> {
 
     noteState.mutableReactive.currentNote = note.uuid;
     emit("mode", NoteManagerMode.Edit);
+}
+
+function handleEnter(event: KeyboardEvent): void {
+    if (event.key === "Enter") {
+        void createNote();
+    }
 }
 </script>
 

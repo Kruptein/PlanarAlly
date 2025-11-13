@@ -13,8 +13,10 @@ if TYPE_CHECKING:
 
 
 class NoteRoom(BaseDbModel):
+    id: int
     note_id: str
     room_id: str
+    location_id: int | None
 
     note = cast(
         "Note", DeferredForeignKey("Note", deferrable="INITIALLY DEFERRED", backref="rooms", on_delete="CASCADE")

@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends PropertyKey">
 import { computed, ref, watch } from "vue";
 
-import { NO_FILTER } from "../../../core/symbols";
+import { NO_FILTER } from "../../systems/notes/types";
 
 const props = defineProps<{
     label: string;

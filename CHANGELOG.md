@@ -49,6 +49,8 @@ tech changes will usually be stripped from release notes for the public
         -   Can be linked to multiple locations or no location (global/local concept is removed)
     -   List filters have been redesigned to be mure useful
         -   Many preferences have been removed as a result
+    -   Pagination is now in the bottom left and clearly notes the amount of pages
+    -   [tech] Searching/Filtering/Pagination is now done on the server
     -   [tech] tags are now stored in their own tables instead of being a json array on notes
 -   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)
 -   [tech] upgraded pydantic from 1.x to 2.x

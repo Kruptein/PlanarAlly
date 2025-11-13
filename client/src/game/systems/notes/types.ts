@@ -21,3 +21,7 @@ export enum NoteManagerMode {
     List,
     Map,
 }
+
+export const NO_FILTER = Symbol("NO_FILTER");
+export const ACTIVE_FILTER = Symbol("ACTIVE_FILTER");
+export const NO_LINK_FILTER = Symbol("NO_LINK_FILTER");

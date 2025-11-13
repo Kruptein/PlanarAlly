@@ -1,3 +1,4 @@
+import enum
 from pydantic import Field
 
 from .helpers import TypeIdModel
@@ -50,3 +51,22 @@ class ApiNote(TypeIdModel):
     rooms: list[ApiNoteRoom]
     access: list[ApiNoteAccess]
     shapes: list[str] = Field(json_schema_extra={"typeId": "GlobalId"})
+
+
+class DefaultNoteFilter(enum.StrEnum):
+    NO_FILTER = "NO_FILTER"
+    ACTIVE_FILTER = "ACTIVE_FILTER"  # Used for both "Active location" and "has shapes" style filters
+    NO_LINK_FILTER = "NO_LINK_FILTER"  # Used for both "No linked campaign" and "No linked shapes" style filters
+
+
+class ApiNoteSearch(TypeIdModel):
+    search: str
+    campaign_filter: DefaultNoteFilter
+    location_filter: list[DefaultNoteFilter | int]
+    shape_filter: list[DefaultNoteFilter | str]
+    tag_filter: list[DefaultNoteFilter | str]
+    search_title: bool
+    search_text: bool
+    search_author: bool
+    page_number: int
+    page_size: int

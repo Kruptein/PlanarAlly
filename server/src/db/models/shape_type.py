@@ -11,6 +11,7 @@ from ..base import BaseDbModel
 
 
 class ShapeType(BaseDbModel):
+    shape_id: str
     shape = cast(Shape, ForeignKeyField(Shape, primary_key=True, on_delete="CASCADE"))
 
     @staticmethod

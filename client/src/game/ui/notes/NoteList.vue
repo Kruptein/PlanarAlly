@@ -249,15 +249,17 @@ const filteredNotes = computed(() => {
         } else if (roomLinks.length > 0) match = true;
         if (!match) continue;
 
-        match = false;
-        if (locationFilter.value.includes(NO_FILTER)) match = true;
-        else if (locationFilter.value.includes(ACTIVE_LOCATION_FILTER)) {
-            if (roomLinks.some((r) => r.locationId === locationSettingsState.reactive.activeLocation)) match = true;
-        } else if (locationFilter.value.includes(NO_LINK_FILTER) && roomLinks.some((r) => r.locationId === null))
-            match = true;
-        else if (roomLinks.some((r) => r.locationId !== null && locationFilter.value.includes(r.locationId)))
-            match = true;
-        if (!match) continue;
+        if (_roomFilter === ACTIVE_CAMPAIGN_FILTER) {
+            match = false;
+            if (locationFilter.value.includes(NO_FILTER)) match = true;
+            else if (locationFilter.value.includes(ACTIVE_LOCATION_FILTER)) {
+                if (roomLinks.some((r) => r.locationId === locationSettingsState.reactive.activeLocation)) match = true;
+            } else if (locationFilter.value.includes(NO_LINK_FILTER) && roomLinks.some((r) => r.locationId === null))
+                match = true;
+            else if (roomLinks.some((r) => r.locationId !== null && locationFilter.value.includes(r.locationId)))
+                match = true;
+            if (!match) continue;
+        }
 
         match = false;
         if (shapeFiltered.value && note.shapes.some((s) => s === noteState.reactive.shapeFilter)) {

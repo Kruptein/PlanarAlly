@@ -1,4 +1,3 @@
-import json
 from typing import Any
 
 from pydantic import TypeAdapter
@@ -11,6 +10,8 @@ from ...db.models.note import Note
 from ...db.models.note_access import NoteAccess
 from ...db.models.note_room import NoteRoom
 from ...db.models.note_shape import NoteShape
+from ...db.models.note_tag import NoteTag
+from ...db.models.note_user_tag import NoteUserTag
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.user import User
@@ -146,12 +147,9 @@ async def add_note_tag(sid: str, raw_data: Any):
         logger.warning(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
-    tags: list[str] = json.loads(note.tags or "[]")
-    tags.append(data.value)
+    tag, _ = NoteUserTag.get_or_create(user=pr.player, tag=data.value)
 
-    with db.atomic():
-        note.tags = json.dumps(tags)
-        note.save()
+    NoteTag.create(note=note, tag=tag)
 
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
         if can_view(note, user):
@@ -175,12 +173,11 @@ async def remove_note_tag(sid: str, raw_data: Any):
         logger.warning(f"{pr.player.name} tried to update note not belonging to them.")
         return
 
-    tags: list[str] = json.loads(note.tags or "[]")
-    tags.remove(data.value)
-
-    with db.atomic():
-        note.tags = json.dumps(tags)
-        note.save()
+    for tag in note.tags.join(NoteUserTag).where(NoteUserTag.tag == data.value):
+        if tag.tag.note_tags.count() == 1:
+            tag.tag.delete_instance()
+        else:
+            tag.delete_instance()
 
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
         if can_view(note, user):

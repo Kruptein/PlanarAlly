@@ -14,9 +14,10 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 109
+SAVE_VERSION = 110
 
 import asyncio
+from collections import defaultdict
 import json
 import logging
 import secrets
@@ -622,6 +623,44 @@ def upgrade(
             db.execute_sql(
                 "CREATE VIEW IF NOT EXISTS shape_room_view AS SELECT shape.uuid as shape_id, room.id as room_id FROM shape LEFT JOIN layer ON shape.layer_id = layer.id INNER JOIN floor ON layer.floor_id = floor.id INNER JOIN location ON floor.location_id = location.id INNER JOIN room ON location.room_id = room.id"
             )
+    elif version == 109:
+        # Add NoteTag and NoteUserTag and remove tags column from note
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_user_tag" ("id" INTEGER NOT NULL PRIMARY KEY, "user_id" INTEGER NOT NULL, "tag" TEXT NOT NULL, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_user_tag_user_id" ON "note_user_tag" ("user_id")')
+            db.execute_sql('CREATE UNIQUE INDEX "unique_note_user_tag" ON "note_user_tag" ("user_id", "tag")')
+
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_tag" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "tag_id" INTEGER NOT NULL, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("tag_id") REFERENCES "note_user_tag" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_tag_note_id" ON "note_tag" ("note_id")')
+            db.execute_sql('CREATE INDEX "note_tag_tag_id" ON "note_tag" ("tag_id")')
+            db.execute_sql('CREATE UNIQUE INDEX "unique_note_tag" ON "note_tag" ("note_id", "tag_id")')
+            data = db.execute_sql("SELECT uuid, creator_id, tags FROM note WHERE tags IS NOT NULL")
+            for note_id, creator_id, tags in data.fetchall():
+                try:
+                    tags = json.loads(tags)
+                except:
+                    continue
+                for tag in set(tags):
+                    tag_query = db.execute_sql(
+                        "SELECT id FROM note_user_tag WHERE user_id = ? AND tag = ?", (creator_id, tag)
+                    )
+                    result = tag_query.fetchone()
+                    if result is None:
+                        tag_query = db.execute_sql(
+                            "INSERT INTO 'note_user_tag' ('user_id', 'tag') VALUES (?, ?) RETURNING id",
+                            (creator_id, tag),
+                        )
+                        result = tag_query.fetchone()
+                    tag_id = result[0]
+                    db.execute_sql(
+                        "INSERT INTO 'note_tag' ('note_id', 'tag_id') VALUES (?, ?)",
+                        (note_id, tag_id),
+                    )
+            db.execute_sql("ALTER TABLE note DROP COLUMN tags")
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

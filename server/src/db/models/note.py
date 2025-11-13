@@ -1,4 +1,3 @@
-import json
 from typing import TYPE_CHECKING, cast
 
 from peewee import JOIN, ForeignKeyField, TextField
@@ -9,6 +8,7 @@ from ..typed import SelectSequence
 from .note_access import NoteAccess
 from .note_room import NoteRoom
 from .note_shape import NoteShape
+from .note_tag import NoteTag
 from .shape_room_view import ShapeRoomView
 from .user import User
 
@@ -20,12 +20,12 @@ class Note(BaseDbModel):
     access: SelectSequence["NoteAccess"]
     rooms: SelectSequence["NoteRoom"]
     shapes: SelectSequence["NoteShape"]
+    tags: SelectSequence["NoteTag"]
 
     uuid = cast(str, TextField(primary_key=True))
     creator = ForeignKeyField(User, backref="notes", on_delete="CASCADE")
     title = cast(str, TextField())
     text = cast(str, TextField())
-    tags = cast(str | None, TextField(null=True))
 
     show_on_hover = cast(bool, TextField(default="false"))
     show_icon_on_shape = cast(bool, TextField(default="false"))
@@ -34,7 +34,7 @@ class Note(BaseDbModel):
         return f"<Note {self.title} - {self.creator.name}"
 
     def as_pydantic(self):
-        tags = json.loads(self.tags) if self.tags else []
+        tags = [t.tag.tag for t in self.tags]
         access = [a.as_pydantic() for a in self.access]
         rooms = [r.as_pydantic() for r in self.rooms]
         return ApiNote(

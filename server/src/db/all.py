@@ -3,6 +3,7 @@ from .models.asset_share import AssetShare  # isort: skip
 from .models.note_access import NoteAccess  # isort: skip
 from .models.note_room import NoteRoom  # isort: skip
 from .models.note_shape import NoteShape  # isort: skip
+from .models.note_tag import NoteTag  # isort: skip
 
 from .base import BaseDbModel, BaseViewModel
 from .models.asset import Asset
@@ -28,6 +29,7 @@ from .models.mod import Mod
 from .models.mod_player_room import ModPlayerRoom
 from .models.mod_room import ModRoom
 from .models.note import Note
+from .models.note_user_tag import NoteUserTag
 from .models.notification import Notification
 from .models.player_room import PlayerRoom
 from .models.polygon import Polygon
@@ -78,6 +80,8 @@ ALL_NORMAL_MODELS: list[type[BaseDbModel]] = [
     NoteAccess,
     NoteRoom,
     NoteShape,
+    NoteTag,
+    NoteUserTag,
     Notification,
     PlayerRoom,
     Polygon,

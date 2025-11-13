@@ -62,6 +62,7 @@ tech changes will usually be stripped from release notes for the public
 -   Undoing a shape removal causing the related group to be removed (i.e. last shape of the group)
 -   Cutting a rotated polygon would be wrong on refresh
 -   Resizing a rotated polygon did not correctly recalculate center, causing sudden shifts on move
+-   Note creation not going straight to edit mode in some cases
 
 ## [2025.3]
 

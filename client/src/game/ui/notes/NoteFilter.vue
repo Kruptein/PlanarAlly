@@ -87,72 +87,11 @@ function onFocusOut(event: FocusEvent): void {
         closeDropdown();
     }
 }
-
-function handleKeyDown(event: KeyboardEvent): void {
-    //     if (!isOpen.value) {
-    //         if (event.key === "Enter" || event.key === " ") {
-    //             event.preventDefault();
-    //             openDropdown();
-    //         }
-    //         return;
-    //     }
-    //     switch (event.key) {
-    //         case "ArrowDown":
-    //             event.preventDefault();
-    //             if (arrowCounter.value < filteredOptions.value.length - 1) {
-    //                 arrowCounter.value += 1;
-    //             }
-    //             break;
-    //         case "ArrowUp":
-    //             event.preventDefault();
-    //             if (arrowCounter.value > 0) {
-    //                 arrowCounter.value -= 1;
-    //             }
-    //             break;
-    //         case "Enter":
-    //             event.preventDefault();
-    //             if (arrowCounter.value >= 0 && arrowCounter.value < filteredOptions.value.length) {
-    //                 selectOption(filteredOptions.value[arrowCounter.value] as (typeof options)[number]);
-    //             }
-    //             break;
-    //         case "Escape":
-    //             event.preventDefault();
-    //             closeDropdown();
-    //             break;
-    //     }
-}
-
-function handleSearchKeyDown(event: KeyboardEvent): void {
-    //     switch (event.key) {
-    //         case "ArrowDown":
-    //             event.preventDefault();
-    //             if (arrowCounter.value < filteredOptions.value.length - 1) {
-    //                 arrowCounter.value += 1;
-    //             }
-    //             break;
-    //         case "ArrowUp":
-    //             event.preventDefault();
-    //             if (arrowCounter.value > 0) {
-    //                 arrowCounter.value -= 1;
-    //             }
-    //             break;
-    //         case "Enter":
-    //             event.preventDefault();
-    //             if (arrowCounter.value >= 0 && arrowCounter.value < filteredOptions.value.length) {
-    //                 selectOption(filteredOptions.value[arrowCounter.value] as (typeof options)[number]);
-    //             }
-    //             break;
-    //         case "Escape":
-    //             event.preventDefault();
-    //             closeDropdown();
-    //             break;
-    //     }
-}
 </script>
 
 <template>
     <div class="note-filter" :class="{ disabled }">
-        <div class="note-filter-dropdown" tabindex="0" @focusout="onFocusOut" @keydown="handleKeyDown">
+        <div class="note-filter-dropdown" tabindex="0" @focusout="onFocusOut">
             <div class="note-filter-selected" @click="openDropdown">
                 <span class="note-filter-label">{{ label }}:</span>
                 <span class="note-filter-value">
@@ -184,13 +123,7 @@ function handleSearchKeyDown(event: KeyboardEvent): void {
                 </div>
                 <template v-if="options.search !== undefined && options.search.length > 0">
                     <div class="note-filter-search">
-                        <input
-                            ref="searchInput"
-                            v-model="searchQuery"
-                            type="text"
-                            placeholder="Search options..."
-                            @keydown="handleSearchKeyDown"
-                        />
+                        <input ref="searchInput" v-model="searchQuery" type="text" placeholder="Search options..." />
                     </div>
                     <div class="note-filter-options">
                         <div

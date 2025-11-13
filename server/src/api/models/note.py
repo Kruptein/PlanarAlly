@@ -29,8 +29,14 @@ class ApiNoteShape(TypeIdModel):
 
 
 class ApiNoteRoom(TypeIdModel):
-    room: str
-    location: int | None
+    roomCreator: str
+    roomName: str
+    locationId: int | None
+    locationName: str | None
+
+
+class ApiNoteRoomLink(ApiNoteRoom):
+    note: str = Field(json_schema_extra={"typeId": "NoteId"})
 
 
 class ApiNote(TypeIdModel):

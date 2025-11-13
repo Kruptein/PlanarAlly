@@ -23,6 +23,7 @@ tech changes will usually be stripped from release notes for the public
     -   Runs when moving a shape to the back
     -   Fixes the order of all shapes on the layer and requests a page refresh
 -   Asset manager icon when a shape has template info
+-   Notes: Campaigns tab (see more general note changes below)
 
 ### Changed
 
@@ -41,6 +42,11 @@ tech changes will usually be stripped from release notes for the public
     -   Are now stored as proper shapes in the DB
     -   Will migrate along with other shapes on DB upgrades (old templates could become broken)
     -   Can be linked with other systems (e.g. custom-data, notes, ...)
+-   Notes
+    -   No longer hard-linked to 1 particular location
+        -   Can be linked to multiple locations or no location (global/local concept is removed)
+    -   List filters have been redesigned to be mure useful
+        -   Many preferences have been removed as a result
 -   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)
 -   [tech] upgraded pydantic from 1.x to 2.x
 

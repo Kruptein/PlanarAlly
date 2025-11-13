@@ -97,7 +97,8 @@
         "type": "Type",
         "background": "Background",
         "mods": "Mods",
-        "ok": "Ok"
+        "ok": "Ok",
+        "link": "Link"
     },
     "errors": {
         "shape-order-mismatch": "An inconsistency in the shape order was detected on the server. This has been automatically corrected. Please refresh the page to ensure you're seeing the correct order."
@@ -640,10 +641,13 @@
                     "title": "Title:",
                     "title_placeholder": "New note...",
                     "type": "Type:",
-                    "local_note_title": "Local note",
-                    "local_note_body": "A note that is relevant to the current campaign only. This is the most common kind of type and should be used for most cases.",
-                    "global_note_title": "Global note",
-                    "global_note_body": "A note that will be visible in all campaigns. This is a special type that can be used to note down information on common things like monster stats thare are used in multiple campaigns."
+                    "type_description": "(This can be modified later; a note can also be linked to multiple campaigns or locations.)",
+                    "campaign_note_title": "Campaign note",
+                    "campaign_note_body": "A note that is relevant to the current campaign in its entirety. Commonly used for things like lore and worldbuilding or personal notes.",
+                    "location_note_title": "Location specific note",
+                    "location_note_body": "A note that is relevant to the current location only. Commonly used for notes that are not relevant to other locations. (e.g. special rules, info on hidden rooms, etc.)",
+                    "no_link_note_title": "No link note",
+                    "no_link_note_body": "A note that is not linked to any campaign or location. Commonly used for asset templates or generic system rules (e.g. monster stats, condition rules, roll tables, etc.)"
                 },
                 "NoteDialog": {
                     "show": "show",
@@ -703,6 +707,10 @@
                         "go_to_map": "Go to shape on the map",
                         "remove": "Remove shape link"
                     },
+                    "campaigns": {
+                        "link_to_current_campaign": "Link to current campaign",
+                        "link_to_current_location": "Link to current location"
+                    },
                     "show_icon": "Show note icon on shape",
                     "show_icon_title": "Checking this will render a special icon in the bottom-left of a shape on the map. This can be useful to remind yourself of an important note",
                     "show_text": "Show text on shape hover",
@@ -718,7 +726,9 @@
                         "access_title": "Configure access rights",
                         "shapes": "shapes",
                         "shapes_title": "See which shapes are linked to this note",
-                        "access": "access"
+                        "access": "access",
+                        "campaigns": "campaigns",
+                        "campaigns_title": "See which campaigns and locations are linked to this note"
                     }
                 },
                 "note_types": {

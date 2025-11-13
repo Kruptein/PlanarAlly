@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watchEffect } from "vue";
+import { computed, onBeforeMount, ref, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import VueMarkdown from "vue-markdown-render";
 
@@ -7,8 +7,10 @@ import type { LocalId } from "../../../core/id";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
+import { socket } from "../../api/socket";
 import { getShape, knownId } from "../../id";
 import { setCenterPosition } from "../../position";
+import { gameState } from "../../systems/game/state";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 import { type ClientNote, NoteManagerMode } from "../../systems/notes/types";
@@ -70,6 +72,7 @@ enum TabLabel {
     Edit = "edit",
     Access = "access",
     Shapes = "shapes",
+    Campaigns = "campaigns",
     Triggers = "triggers & visuals",
     Map = "map",
 }
@@ -123,6 +126,13 @@ const tabs = computed(
                 icon: "link",
                 visible: canEdit.value,
                 title: t("game.ui.notes.NoteEdit.tab_label.shapes_title"),
+            },
+            {
+                label: TabLabel.Campaigns,
+                label_text: t("game.ui.notes.NoteEdit.tab_label.campaigns"),
+                icon: "link",
+                visible: canEdit.value,
+                title: t("game.ui.notes.NoteEdit.tab_label.campaigns_title"),
             },
             // { label: TabLabel.Map, icon: "location-dot", visible: false },
         ] as Tab[],
@@ -234,6 +244,63 @@ function removeShape(shape: LocalId): void {
     if (!note.value) return;
     noteSystem.removeShape(note.value.uuid, shape, true);
 }
+
+const sortedRooms = computed(() => {
+    if (note.value === undefined) return [];
+    return note.value.rooms.toSorted(
+        (a, b) =>
+            a.roomCreator.localeCompare(b.roomCreator) ||
+            a.roomName.localeCompare(b.roomName) ||
+            (a.locationName ?? "").localeCompare(b.locationName ?? ""),
+    );
+});
+
+const loadedRooms = ref<{ creator: string; name: string }[]>([]);
+const roomLinkOptions = computed(() => {
+    if (loadedRooms.value.length === 0)
+        return [
+            {
+                creator: gameState.fullRoomName.value.split("/")[0]!,
+                name: gameState.fullRoomName.value.split("/").slice(1).join("/"),
+            },
+        ];
+    return loadedRooms.value;
+});
+const newRoomLink = ref(roomLinkOptions.value[0]!);
+
+async function loadRooms(): Promise<void> {
+    if (loadedRooms.value.length > 0) return;
+    const rooms = (await socket.emitWithAck("Room.List")) as { creator: string; name: string }[];
+    loadedRooms.value = rooms.sort((a, b) => a.creator.localeCompare(b.creator) || a.name.localeCompare(b.name));
+}
+
+watch(newRoomLink, () => (loadedLocations.value = []));
+
+const loadedLocations = ref<{ id: number; name: string }[]>([]);
+async function loadLocations(): Promise<void> {
+    if (loadedLocations.value.length > 0) return;
+    const locations = (await socket.emitWithAck(
+        "Room.Locations.List",
+        `${newRoomLink.value.creator}/${newRoomLink.value.name}`,
+    )) as {
+        id: number;
+        name: string;
+    }[];
+    loadedLocations.value = locations.sort((a, b) => a.name.localeCompare(b.name));
+}
+const newLocationLink = ref(loadedLocations.value[0] ?? null);
+
+function linkToLocation(): void {
+    if (!note.value) return;
+    noteSystem.linkToRoom(
+        note.value.uuid,
+        newRoomLink.value.creator,
+        newRoomLink.value.name,
+        newLocationLink.value?.id ?? null,
+        newLocationLink.value?.name ?? null,
+        true,
+    );
+}
 </script>
 
 <template>
@@ -342,7 +409,9 @@ function removeShape(shape: LocalId): void {
                 <span v-if="localShapenotes.length > 0">
                     {{ t("game.ui.notes.NoteEdit.shapes.listed") }}
                 </span>
-                <button @click="addShape">{{ t("game.ui.notes.NoteEdit.shapes.add") }}</button>
+                <button class="button" style="margin-left: 1rem" @click="addShape">
+                    {{ t("game.ui.notes.NoteEdit.shapes.add") }}
+                </button>
             </div>
             <div v-for="shape of localShapenotes" :key="shape.id" @click="navigateToShape(shape.id)">
                 <font-awesome-icon icon="location-dot" :title="t('game.ui.notes.NoteEdit.shapes.go_to_map')" />
@@ -354,6 +423,43 @@ function removeShape(shape: LocalId): void {
                     @click.stop="removeShape(shape.id)"
                 />
             </div>
+        </div>
+        <div v-else-if="activeTab === TabLabel.Campaigns" id="note-campaigns" class="tab-container">
+            <div id="campaign-headers">
+                <div>Campaign</div>
+                <div>Location</div>
+                <div>Action(s)</div>
+            </div>
+            <template
+                v-for="{ roomCreator, roomName, locationId, locationName } of sortedRooms"
+                :key="`${roomCreator}-${roomName}-${locationId}`"
+            >
+                <div>{{ roomCreator }}/{{ roomName }}</div>
+                <div v-if="locationId !== null">
+                    {{ locationName ?? "Unknown" }}
+                </div>
+                <div v-else></div>
+                <font-awesome-icon
+                    icon="trash-alt"
+                    style="justify-self: center"
+                    :title="t('game.ui.notes.NoteEdit.shapes.remove')"
+                    @click="noteSystem.removeRoomLink(note!.uuid, roomCreator, roomName, locationId, true)"
+                />
+            </template>
+            <div style="margin: 0.5rem; grid-column: 1/-1"></div>
+            <select v-model="newRoomLink" @click="loadRooms">
+                <option v-for="room of roomLinkOptions" :key="`${room.creator}-${room.name}`" :value="room">
+                    {{ room.creator }}/{{ room.name }}
+                </option>
+            </select>
+            <select v-model="newLocationLink" @click="loadLocations">
+                <option v-for="location of loadedLocations" :key="location.id" :value="location">
+                    {{ location.name }}
+                </option>
+            </select>
+            <button class="button" @click="linkToLocation">
+                {{ t("common.link") }}
+            </button>
         </div>
         <div v-else id="note-triggers" class="tab-container">
             <label for="note-trigger-icon">
@@ -579,18 +685,22 @@ header {
             }
         }
     }
+}
 
-    button {
-        background-color: lightblue;
-        border: solid 2px lightblue;
-        border-width: 1px;
-        border-radius: 1rem;
-        padding: 0.5rem 0.75rem;
-        margin-left: 1rem;
+#note-campaigns {
+    display: grid;
+    width: fit-content;
+    grid-template-columns: 1fr minmax(auto, 7.5rem) auto;
+    row-gap: 0.5rem;
+    column-gap: 1.5rem;
 
-        &:hover {
-            cursor: pointer;
-            background-color: rgba(173, 216, 230, 0.5);
+    #campaign-headers {
+        display: contents;
+
+        > div {
+            font-weight: bold;
+            border-bottom: solid 1px black;
+            margin-bottom: 0.5rem;
         }
     }
 }
@@ -600,5 +710,18 @@ header {
     grid-template-columns: 1fr auto;
     width: fit-content;
     gap: 0.5rem;
+}
+
+.button {
+    background-color: lightblue;
+    border: solid 2px lightblue;
+    border-width: 1px;
+    border-radius: 1rem;
+    padding: 0.5rem 0.75rem;
+
+    &:hover {
+        cursor: pointer;
+        background-color: rgba(173, 216, 230, 0.5);
+    }
 }
 </style>

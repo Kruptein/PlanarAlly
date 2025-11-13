@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watch, watchEffect } from "vue";
+import { computed, onActivated, ref, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import VueMarkdown from "vue-markdown-render";
 
@@ -161,7 +161,7 @@ const accessLevels = computed(() => {
     return [defaultAccess, ...access];
 });
 
-onBeforeMount(() => {
+onActivated(() => {
     if (noteState.reactive.currentNote === undefined) emit("mode", NoteManagerMode.List);
     if ((note.value?.text ?? "").trim().length === 0) activeTabIndex.value = 1;
 });

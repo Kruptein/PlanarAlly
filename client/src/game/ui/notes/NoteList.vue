@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useDebounceFn } from "@vueuse/core";
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, onActivated, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { ApiNote, DefaultNoteFilter } from "../../../apiTypes";
@@ -57,6 +57,21 @@ const shapeName = computed(() => {
 // onMounted(() => {
 //     searchBar.value?.focus();
 // });
+
+// triggers when switching between modes
+onActivated(async () => {
+    await search();
+});
+
+// triggers when toggling the note manager (it's behind a v-show)
+watch(
+    () => noteState.reactive.managerOpen,
+    async (open) => {
+        if (open) {
+            await search();
+        }
+    },
+);
 
 const debouncedSearch = useDebounceFn(() => void search(), 300);
 

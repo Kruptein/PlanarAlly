@@ -536,13 +536,23 @@ async def search_notes(sid: str, raw_data: Any):
         .join(NoteShape, JOIN.LEFT_OUTER, on=(Note.uuid == NoteShape.note_id))
         .join(NoteTag, JOIN.LEFT_OUTER, on=(Note.uuid == NoteTag.note_id))
         .join(ShapeRoomView, JOIN.LEFT_OUTER, on=(NoteShape.shape_id == ShapeRoomView.shape_id))
-        .where((NoteRoom.room == pr.room) | (ShapeRoomView.room_id == pr.room.id))
     )
+
+    access_direct = (Note.creator == pr.player) | ((NoteAccess.user == pr.player) & (NoteAccess.can_view == True))  # noqa: E712
+    access_default = (
+        (NoteAccess.user >> None)  # type: ignore
+        & (NoteAccess.can_view == True)  # noqa: E712
+        & ((NoteRoom.room == pr.room) | (ShapeRoomView.room_id == pr.room.id))
+    )
+
+    notes_query = notes_query.where(access_direct | access_default)
 
     if data.campaign_filter == DefaultNoteFilter.ACTIVE_FILTER:
         notes_query = notes_query.where(NoteRoom.room == pr.room)
     elif data.campaign_filter == DefaultNoteFilter.NO_LINK_FILTER:
         notes_query = notes_query.where(NoteRoom.id >> None)  # type: ignore
+    else:
+        notes_query = notes_query.where((NoteRoom.room == pr.room) | (NoteRoom.room >> None))  # type: ignore
 
     # Loc filter is only relevant if we're filtering on the active campaign
     if data.campaign_filter == DefaultNoteFilter.ACTIVE_FILTER:

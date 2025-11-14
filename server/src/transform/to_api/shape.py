@@ -25,7 +25,11 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
     custom_data = [c.as_pydantic() for c in shape.custom_data]
     trackers = [t.as_pydantic() for t in tracker_query]
     auras = [a.as_pydantic() for a in aura_query]
-    notes = [n.note.as_pydantic() for n in shape.notes]
+    notes = [
+        n.note.as_pydantic()
+        for n in shape.notes
+        if n.note.creator == pr.player or any((not a.user or a.user == pr.player) and a.can_view for a in n.note.access)
+    ]
     # Subtype
     shape_model = ApiCoreShape(
         uuid=shape.uuid,

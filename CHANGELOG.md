@@ -23,6 +23,8 @@ tech changes will usually be stripped from release notes for the public
     -   Runs when moving a shape to the back
     -   Fixes the order of all shapes on the layer and requests a page refresh
 -   Asset manager icon when a shape has template info
+-   Added OIDC Authentication to Client and Server, based on original changes from JatinVasman PR
+    -   This uses Authorization Code Flow with optional PKCE
 
 ### Changed
 

@@ -9,3 +9,5 @@ config_manager = ConfigManager(CONFIG_PATH)
 # Otherwise, updates would not be reflected if they change the pointer
 def cfg():
     return config_manager.config
+def cfg_last_update():
+    return config_manager.last_update

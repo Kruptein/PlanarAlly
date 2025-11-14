@@ -118,7 +118,9 @@
             "resetPassword": "Reset password",
             "resetPasswordSuccess": "Password reset",
             "resetPasswordFailed": "Failed to reset password - Token incorrect or expired",
-            "resetPasswordNote": "Enter your new password below and click submit to reset your password."
+            "resetPasswordNote": "Enter your new password below and click submit to reset your password.",
+            "oidc_login": "Login with OpenID Connect",
+            "oidc_with": "Login with"
         }
     },
     "core": {

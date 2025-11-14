@@ -28,13 +28,14 @@ class ConfigFileHandler(FileSystemEventHandler):
 
 
 class ConfigManager:
+    
     def __init__(self, config_path: Path):
         self.config_path = config_path
         self.config = ServerConfig()
         self._file_observer = Observer()
+        self.last_update: datetime = datetime.now(UTC)
 
         self.load_config(startup=True)
-
         # Setup file watching
         event_handler = ConfigFileHandler(self.load_config)
         self._file_observer.schedule(event_handler, str(self.config_path.parent), recursive=False)
@@ -54,6 +55,7 @@ class ConfigManager:
 
                     logger.info("Config file changed, reloading")
                     reset_email()
+                    self.last_update = datetime.now(UTC)
         except rtoml.TomlParsingError as e:
             print(f"Error loading config: {e}")
         except ValidationError as e:
@@ -74,21 +76,6 @@ class ConfigManager:
             )
         except Exception as e:
             logger.error(f"Error saving config: {e}")
-
-    def update_config(self, updates: dict[str, Any]) -> None:
-        """Update config with new values"""
-        if "admin_user" in updates:
-            raise ValueError("admin_user cannot be updated dynamically for security reasons.")
-
-        try:
-            # Create new config with updates
-            new_config = ServerConfig(**(self.config.model_dump() | updates))
-            self.config = new_config
-
-            # Save and notify
-            self.save_config()
-        except ValidationError as e:
-            raise ValueError(f"Invalid configuration: {e}")
 
     def cleanup(self) -> None:
         """Cleanup resources"""

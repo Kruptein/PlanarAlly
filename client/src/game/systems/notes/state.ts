@@ -1,6 +1,9 @@
+import { computed } from "vue";
+
 import { BiArrMap } from "../../../core/biArrMap";
 import type { LocalId } from "../../../core/id";
 import { buildState } from "../../../core/systems/state";
+import { knownId } from "../../id";
 
 import { type ClientNote, type NoteId, NoteManagerMode } from "./types";
 
@@ -40,4 +43,13 @@ const state = buildState<ReactiveNoteState, NonReactiveNoteState>(
 
 export const noteState = {
     ...state,
+    localShapeNotes: computed(
+        () =>
+            new BiArrMap(
+                // temp-fix for vue iterator method breaking
+                Iterator.from(state.reactive.shapeNotes.entries1())
+                    .filter(([shapeId]) => knownId(shapeId))
+                    .flatMap(([shapeId, notes]) => notes.map((noteId) => [noteId, shapeId])),
+            ),
+    ),
 };

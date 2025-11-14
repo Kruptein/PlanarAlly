@@ -14,9 +14,10 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 108
+SAVE_VERSION = 110
 
 import asyncio
+from collections import defaultdict
 import json
 import secrets
 import shutil
@@ -26,7 +27,7 @@ from uuid import uuid4
 
 from playhouse.sqlite_ext import SqliteExtDatabase
 
-from .db.all import ALL_MODELS
+from .db.all import ALL_NORMAL_MODELS, ALL_VIEWS
 from .db.db import db as ACTIVE_DB
 from .db.models.constants import Constants
 from .thumbnail import generate_thumbnail_for_asset
@@ -43,7 +44,9 @@ def inc_save_version(db: SqliteExtDatabase):
 
 
 def create_new_db(db: SqliteExtDatabase, version: int):
-    db.create_tables(ALL_MODELS)
+    db.create_tables(ALL_NORMAL_MODELS)
+    for view in ALL_VIEWS:
+        view.create_view(db)
     Constants.create(
         save_version=version,
         secret_token=secrets.token_bytes(32),
@@ -582,6 +585,78 @@ def upgrade(
                 "INSERT INTO 'asset' ('id', 'owner_id', 'parent_id', 'name', 'file_hash') SELECT id, owner_id, parent_id, name, file_hash FROM _asset_107"
             )
             db.execute_sql("DROP TABLE _asset_107")
+    elif version == 108:
+        # Add NoteRoom and migrate Note to NoteRoom
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_room" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "room_id" INTEGER NOT NULL, "location_id" INTEGER DEFAULT NULL, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_room_note_id" ON "note_room" ("note_id")')
+            db.execute_sql('CREATE INDEX "note_room_room_id" ON "note_room" ("room_id")')
+            db.execute_sql('CREATE INDEX "note_room_location_id" ON "note_room" ("location_id")')
+            db.execute_sql(
+                'CREATE UNIQUE INDEX "unique_note_room" ON "note_room" ("note_id", "room_id", "location_id")'
+            )
+
+            data = db.execute_sql("SELECT uuid, location_id, room_id FROM note WHERE room_id IS NOT NULL")
+            for note_id, location_id, room_id in data.fetchall():
+                db.execute_sql(
+                    'INSERT INTO "note_room" ("note_id", "room_id", "location_id") VALUES (?, ?, ?)',
+                    (note_id, room_id, location_id),
+                )
+
+            db.execute_sql("CREATE TEMPORARY TABLE _note_108 AS SELECT * FROM note")
+            db.execute_sql("DROP TABLE note")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note" ("uuid" TEXT NOT NULL PRIMARY KEY, "creator_id" INTEGER NOT NULL, "title" TEXT NOT NULL DEFAULT \'\', "text" TEXT NOT NULL DEFAULT \'\', "tags" TEXT DEFAULT NULL, "show_on_hover" INT DEFAULT 0 NOT NULL, "show_icon_on_shape" INT DEFAULT 0 NOT NULL, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_creator_id" ON "note" ("creator_id")')
+            db.execute_sql(
+                'INSERT INTO "note" ("uuid", "creator_id", "title", "text", "tags", "show_on_hover", "show_icon_on_shape") SELECT uuid, creator_id, title, text, tags, show_on_hover, show_icon_on_shape FROM _note_108'
+            )
+            db.execute_sql("DROP TABLE _note_108")
+
+            db.execute_sql(
+                "CREATE VIEW IF NOT EXISTS shape_room_view AS SELECT shape.uuid as shape_id, room.id as room_id FROM shape LEFT JOIN layer ON shape.layer_id = layer.id INNER JOIN floor ON layer.floor_id = floor.id INNER JOIN location ON floor.location_id = location.id INNER JOIN room ON location.room_id = room.id"
+            )
+    elif version == 109:
+        # Add NoteTag and NoteUserTag and remove tags column from note
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_user_tag" ("id" INTEGER NOT NULL PRIMARY KEY, "user_id" INTEGER NOT NULL, "tag" TEXT NOT NULL, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_user_tag_user_id" ON "note_user_tag" ("user_id")')
+            db.execute_sql('CREATE UNIQUE INDEX "unique_note_user_tag" ON "note_user_tag" ("user_id", "tag")')
+
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_tag" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "tag_id" INTEGER NOT NULL, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("tag_id") REFERENCES "note_user_tag" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_tag_note_id" ON "note_tag" ("note_id")')
+            db.execute_sql('CREATE INDEX "note_tag_tag_id" ON "note_tag" ("tag_id")')
+            db.execute_sql('CREATE UNIQUE INDEX "unique_note_tag" ON "note_tag" ("note_id", "tag_id")')
+            data = db.execute_sql("SELECT uuid, creator_id, tags FROM note WHERE tags IS NOT NULL")
+            for note_id, creator_id, tags in data.fetchall():
+                try:
+                    tags = json.loads(tags)
+                except:
+                    continue
+                for tag in set(tags):
+                    tag_query = db.execute_sql(
+                        "SELECT id FROM note_user_tag WHERE user_id = ? AND tag = ?", (creator_id, tag)
+                    )
+                    result = tag_query.fetchone()
+                    if result is None:
+                        tag_query = db.execute_sql(
+                            "INSERT INTO 'note_user_tag' ('user_id', 'tag') VALUES (?, ?) RETURNING id",
+                            (creator_id, tag),
+                        )
+                        result = tag_query.fetchone()
+                    tag_id = result[0]
+                    db.execute_sql(
+                        "INSERT INTO 'note_tag' ('note_id', 'tag_id') VALUES (?, ?)",
+                        (note_id, tag_id),
+                    )
+            db.execute_sql("ALTER TABLE note DROP COLUMN tags")
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

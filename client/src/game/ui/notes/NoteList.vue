@@ -1,18 +1,22 @@
 <script setup lang="ts">
-import { type DeepReadonly, computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { filter, map } from "../../../core/iter";
+import type { LocalId } from "../../../core/id";
+import { NO_FILTER } from "../../../core/symbols";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { locationStore } from "../../../store/location";
+import { getShape } from "../../id";
+import type { IAsset } from "../../interfaces/shapes/asset";
+import { gameState } from "../../systems/game/state";
 import { noteState } from "../../systems/notes/state";
-import { type NoteId, NoteManagerMode, type ClientNote, type NoteTag } from "../../systems/notes/types";
+import { type NoteId, NoteManagerMode, type NoteTag } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
 import { propertiesState } from "../../systems/properties/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 
-import TagAutoCompleteSearch from "./TagAutoCompleteSearch.vue";
+import NoteFilter from "./NoteFilter.vue";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
@@ -26,30 +30,16 @@ onUnmounted(() => {
     document.removeEventListener("pointerdown", handleClickOutsideDialog);
 });
 
-const noteTypes = ["global", "local", "all"] as const;
-const selectedNoteTypes = ref<(typeof noteTypes)[number]>(
-    (localStorage.getItem("note-display-type") as (typeof noteTypes)[number]) ?? "local",
-);
-watch(selectedNoteTypes, () => {
-    localStorage.setItem("note-display-type", selectedNoteTypes.value);
-});
-
 const searchFilters = reactive({
     title: true,
     text: false,
     author: false,
-    activeLocation: true,
-    includeArchivedLocations: false,
-    notesWithShapes: true,
-    globalIfLocalShape: false,
 });
 
 const searchBar = ref<HTMLInputElement | null>(null);
 const searchOptionsDialog = ref<HTMLDivElement | null>(null);
-const searchTags = ref<NoteTag[]>([]);
 const searchFilter = ref("");
 const showSearchFilters = ref(false);
-const showTagSearch = ref(false);
 const searchPage = ref(1);
 
 const shapeFiltered = computed(() => noteState.reactive.shapeFilter !== undefined);
@@ -64,66 +54,239 @@ const shapeName = computed(() => {
 //     searchBar.value?.focus();
 // });
 
-const availableTags = computed(() => {
-    const tagList = new Map<string, NoteTag>();
+const noteArray = computed(() =>
+    // temp-fix for vue iterator method breaking
+    Iterator.from(noteState.reactive.notes.values())
+        .map((n) => ({
+            ...n,
+            shapes: noteState.reactive.shapeNotes.get2(n.uuid) ?? [],
+        }))
+        .toArray(),
+);
+
+function getDefaultFilter<T extends string | number | symbol>(
+    key: string,
+    defaultOptions: { label: string; value: T }[],
+    defaultValue: T[],
+): T[] {
+    const value = localStorage.getItem(key);
+    if (value !== null) {
+        let indices: number[] = [];
+        try {
+            indices = JSON.parse(value) as number[];
+            return indices.map((i) => defaultOptions[i]!.value);
+        } catch (error) {
+            return defaultValue;
+        }
+    }
+    return defaultValue;
+}
+
+function saveDefaultFilter<T extends string | number | symbol>(
+    key: string,
+    defaultOptions: { label: string; value: T }[],
+    value: T[],
+): void {
+    const indices = value.map((v) => defaultOptions.findIndex((o) => o.value === v));
+    localStorage.setItem(key, JSON.stringify(indices));
+}
+
+const NO_LINK_FILTER = Symbol("NO_LINK_FILTER");
+const ACTIVE_CAMPAIGN_FILTER = Symbol("ACTIVE_CAMPAIGN_FILTER");
+const roomFilterOptions = computed(() => {
+    return {
+        default: [
+            { label: "(no filter)", value: NO_FILTER },
+            {
+                label: "active campaign",
+                value: ACTIVE_CAMPAIGN_FILTER,
+                disabled: noteArray.value.every((n) =>
+                    n.rooms.every((r) => `${r.roomCreator}/${r.roomName}` !== gameState.fullRoomName.value),
+                ),
+            },
+            {
+                label: "no campaign links",
+                value: NO_LINK_FILTER,
+                disabled: noteArray.value.every((n) => n.rooms.length > 0),
+            },
+        ],
+    };
+});
+const roomFilter = ref<(string | symbol)[]>(
+    getDefaultFilter("note-room-filter", roomFilterOptions.value.default, [ACTIVE_CAMPAIGN_FILTER]),
+);
+
+watch(roomFilter, () => {
+    saveDefaultFilter("note-room-filter", roomFilterOptions.value.default, roomFilter.value);
+});
+
+const ACTIVE_LOCATION_FILTER = Symbol("ACTIVE_LOCATION_FILTER");
+const locationFilterOptions = computed(() => {
+    return {
+        default: [
+            { label: "(no filter)", value: NO_FILTER },
+            {
+                label: "active location",
+                value: ACTIVE_LOCATION_FILTER,
+                disabled: noteArray.value.every((n) =>
+                    n.rooms.every((r) => r.locationId !== locationSettingsState.reactive.activeLocation),
+                ),
+            },
+            {
+                label: "no location links",
+                value: NO_LINK_FILTER,
+                disabled: noteArray.value.every((n) => n.rooms.every((r) => r.locationId !== null)),
+            },
+        ],
+        search: locationStore.activeLocations.value
+            .filter((l) => noteArray.value.some((n) => n.rooms.some((r) => r.locationId === l.id)))
+            .map((l) => ({ label: l.name, value: l.id })),
+    };
+});
+const locationFilter = ref<(number | symbol)[]>(
+    getDefaultFilter("note-location-filter", locationFilterOptions.value.default, [
+        ACTIVE_LOCATION_FILTER,
+        NO_LINK_FILTER,
+    ]),
+);
+
+watch(locationFilter, () => {
+    saveDefaultFilter("note-location-filter", locationFilterOptions.value.default, locationFilter.value);
+});
+
+const HAS_SHAPE_FILTER = Symbol("HAS_SHAPE_FILTER");
+const shapeFilterOptions = computed(() => {
+    return {
+        default: [
+            { label: "(no filter)", value: NO_FILTER },
+            {
+                label: "has shape(s)",
+                value: HAS_SHAPE_FILTER,
+                disabled: noteArray.value.every((n) => n.shapes.length === 0),
+            },
+            {
+                label: "no shape(s)",
+                value: NO_LINK_FILTER,
+                disabled: noteArray.value.every((n) => n.shapes.length > 0),
+            },
+        ],
+        search: noteState.localShapeNotes.value
+            .entries2()
+            .filter(([, notes]) => noteArray.value.some((n) => notes.includes(n.uuid)))
+            .map(([l]) => {
+                const shape = getShape(l);
+                // we pass by the reactive state, to catch renames made by the client
+                // renames made by another client will not be caught this way though
+                // it feels somewhat overkill to actively load all these shapes just for this
+                const props = propertiesState.reactive.data.get(l) ?? propertiesState.readonly.data.get(l);
+                const url = shape && shape.type === "assetrect" ? (shape as IAsset).src : undefined;
+                return {
+                    label: props?.name ?? "Unknown Shape",
+                    value: l,
+                    icon: url,
+                };
+            })
+            .toArray(),
+    };
+});
+const shapeFilter = ref<(LocalId | symbol)[]>(
+    getDefaultFilter("note-shape-filter", shapeFilterOptions.value.default, [NO_FILTER]),
+);
+
+watch(shapeFilter, () => {
+    saveDefaultFilter("note-shape-filter", shapeFilterOptions.value.default, shapeFilter.value);
+});
+
+const HAS_TAG_FILTER = Symbol("HAS_SHAPE_FILTER");
+const tagFilterOptions = computed(() => {
+    const tagList = new Set<string>();
     for (const [_, note] of noteState.reactive.notes) {
         for (const tag of note.tags) {
-            tagList.set(tag.name, tag);
+            tagList.add(tag.name);
         }
     }
-    return Array.from(tagList, ([name, value]) => value).sort((a, b) => a.name.localeCompare(b.name));
+    return {
+        default: [
+            { label: "(no filter)", value: NO_FILTER },
+            {
+                label: "has tag(s)",
+                value: HAS_TAG_FILTER,
+                disabled: noteArray.value.every((n) => n.tags.length === 0),
+            },
+            {
+                label: "no tag(s)",
+                value: NO_LINK_FILTER,
+                disabled: noteArray.value.every((n) => n.tags.length > 0),
+            },
+        ],
+        search: tagList
+            .values()
+            .filter((name) => noteArray.value.some((n) => n.tags.some((t) => t.name === name)))
+            .map((name) => ({ label: name, value: name }))
+            .toArray(),
+    };
 });
-
-const noteArray = computed(() => {
-    let it: Iterable<DeepReadonly<ClientNote>> = noteState.reactive.notes.values();
-    if (!searchFilters.includeArchivedLocations) {
-        it = filter(it, (n) => !locationStore.archivedLocations.value.some((l) => l.id === n.location));
-    }
-    const it2 = map(it, (n) => ({
-        ...n,
-        shapes: noteState.reactive.shapeNotes.get2(n.uuid) ?? [],
-    }));
-    return Array.from(it2);
+const tagFilter = ref<(string | symbol)[]>(
+    getDefaultFilter("note-tag-filter", tagFilterOptions.value.default, [NO_FILTER]),
+);
+watch(tagFilter, () => {
+    saveDefaultFilter("note-tag-filter", tagFilterOptions.value.default, tagFilter.value);
 });
-
-function containsSearchTags(note: (typeof noteArray.value)[number]): boolean {
-    for (const tag of searchTags.value) {
-        if (!note.tags.some((t) => t.name === tag.name)) {
-            return false;
-        }
-    }
-    return true;
-}
 
 const filteredNotes = computed(() => {
     const sf = searchFilter.value.trim().toLowerCase();
-    const searchLocal = selectedNoteTypes.value !== "global";
-    const searchGlobal = selectedNoteTypes.value !== "local";
-    const locationId = locationSettingsState.reactive.activeLocation;
     const notes: typeof noteArray.value = [];
+
+    const _roomFilter = roomFilter.value[0];
+
     for (const note of noteArray.value) {
-        if (shapeFiltered.value) {
-            if (!note.shapes.some((s) => s === noteState.reactive.shapeFilter)) {
-                continue;
-            }
-        } else {
-            if (!searchFilters.notesWithShapes && note.shapes.length > 0) continue;
-            if (!note.isRoomNote) {
-                if (!searchGlobal) {
-                    if (!searchFilters.globalIfLocalShape || note.shapes.length === 0) {
-                        continue;
-                    }
-                }
-            } else {
-                if (!searchLocal || (searchFilters.activeLocation && locationId !== note.location)) {
-                    continue;
-                }
-            }
+        const roomLinks = note.rooms.filter((r) => `${r.roomCreator}/${r.roomName}` === gameState.fullRoomName.value);
+
+        let match = false;
+        if (_roomFilter === NO_FILTER) match = true;
+        else if (_roomFilter === NO_LINK_FILTER) {
+            if (roomLinks.length === 0) match = true;
+        } else if (roomLinks.length > 0) match = true;
+        if (!match) continue;
+
+        if (_roomFilter === ACTIVE_CAMPAIGN_FILTER) {
+            match = false;
+            if (locationFilter.value.includes(NO_FILTER)) match = true;
+            else if (locationFilter.value.includes(ACTIVE_LOCATION_FILTER)) {
+                if (roomLinks.some((r) => r.locationId === locationSettingsState.reactive.activeLocation)) match = true;
+            } else if (locationFilter.value.includes(NO_LINK_FILTER) && roomLinks.some((r) => r.locationId === null))
+                match = true;
+            else if (roomLinks.some((r) => r.locationId !== null && locationFilter.value.includes(r.locationId)))
+                match = true;
+            if (!match) continue;
         }
 
-        if (!containsSearchTags(note)) {
-            continue;
+        match = false;
+        if (shapeFiltered.value && note.shapes.some((s) => s === noteState.reactive.shapeFilter)) {
+            match = true;
+        } else if (shapeFilter.value.includes(NO_FILTER)) {
+            match = true;
+        } else if (shapeFilter.value.includes(HAS_SHAPE_FILTER)) {
+            if (note.shapes.length > 0) match = true;
+        } else if (shapeFilter.value.includes(NO_LINK_FILTER)) {
+            if (note.shapes.length === 0) match = true;
+        } else if (note.shapes.some((s) => shapeFilter.value.includes(s))) {
+            match = true;
         }
+        if (!match) continue;
+
+        match = false;
+        if (tagFilter.value.includes(NO_FILTER)) match = true;
+        else if (tagFilter.value.includes(HAS_TAG_FILTER)) {
+            if (note.tags.length > 0) match = true;
+        }
+        if (tagFilter.value.includes(NO_LINK_FILTER)) {
+            if (note.tags.length === 0) match = true;
+        }
+        if (note.tags.some((t) => tagFilter.value.includes(t.name))) {
+            match = true;
+        }
+        if (!match) continue;
 
         if (sf.length === 0) {
             notes.push(note);
@@ -162,11 +325,13 @@ function handleClickOutsideDialog(event: MouseEvent): void {
 }
 
 function toggleTagInSearch(tag: NoteTag): void {
-    const tempArray = searchTags.value.filter((x) => x.name !== tag.name);
-    if (tempArray.length === searchTags.value.length) {
-        searchTags.value.push(tag);
+    if (tagFilter.value.includes(tag.name)) {
+        tagFilter.value = tagFilter.value.filter((x) => x !== tag.name);
+        if (tagFilter.value.length === 0) {
+            tagFilter.value.push(NO_FILTER);
+        }
     } else {
-        searchTags.value = tempArray;
+        tagFilter.value.push(tag.name);
     }
 }
 
@@ -194,11 +359,6 @@ function clearSearchBar(): void {
     </header>
     <div id="notes-search" :class="shapeFiltered ? 'disabled' : ''">
         <div id="search-bar">
-            <select v-show="!shapeFiltered" id="kind-selector" v-model="selectedNoteTypes">
-                <option v-for="type in noteTypes" :key="type" :value="type">
-                    {{ t(`game.ui.notes.note_types.${type}`) }}
-                </option>
-            </select>
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
             <div id="search-field">
                 <input
@@ -238,92 +398,31 @@ function clearSearchBar(): void {
                         <label for="note-search-author">{{ t("game.ui.notes.NoteList.filter.author") }}</label>
                     </div>
                 </fieldset>
-                <fieldset :disabled="selectedNoteTypes === 'global' || shapeFiltered">
-                    <legend>{{ t("game.ui.notes.NoteList.filter.local_locations") }}</legend>
-                    <div>
-                        <input
-                            id="note-search-active-location"
-                            v-model="searchFilters.activeLocation"
-                            type="checkbox"
-                        />
-                        <label
-                            for="note-search-active-location"
-                            :title="t('game.ui.notes.NoteList.filter.active_location_title')"
-                        >
-                            {{ t("game.ui.notes.NoteList.filter.active_location") }}
-                        </label>
-                    </div>
-                    <div>
-                        <input
-                            id="note-search-archived"
-                            v-model="searchFilters.includeArchivedLocations"
-                            type="checkbox"
-                        />
-                        <label for="note-search-archived">
-                            {{ t("game.ui.notes.NoteList.filter.archived_location") }}
-                        </label>
-                    </div>
-                </fieldset>
-                <div></div>
-                <fieldset :disabled="selectedNoteTypes === 'global' || shapeFiltered">
-                    <legend>{{ t("game.ui.notes.NoteList.filter.local_shapes") }}</legend>
-                    <div>
-                        <input id="note-search-shapes" v-model="searchFilters.notesWithShapes" type="checkbox" />
-                        <label for="note-search-shapes">{{ t("game.ui.notes.NoteList.filter.note_with_shape") }}</label>
-                    </div>
-                    <div>
-                        <input
-                            id="note-search-global-if-local-shape"
-                            v-model="searchFilters.globalIfLocalShape"
-                            type="checkbox"
-                        />
-                        <label
-                            for="note-search-global-if-local-shape"
-                            :title="t('game.ui.notes.NoteList.filter.global_note_title')"
-                        >
-                            {{ t("game.ui.notes.NoteList.filter.global_note") }}
-                        </label>
-                    </div>
-                </fieldset>
             </div>
         </div>
         <div id="search-filters">
             <span style="padding-right: 1rem">{{ t("game.ui.notes.NoteList.filters.title") }}</span>
+            <NoteFilter v-model="roomFilter" label="campaign" :options="roomFilterOptions" :multi-select="false" />
+            <NoteFilter
+                v-model="locationFilter"
+                label="location"
+                :multi-select="true"
+                :options="locationFilterOptions"
+                :disabled="roomFilter.includes(NO_FILTER) || roomFilter.includes(NO_LINK_FILTER)"
+            />
+            <NoteFilter
+                v-show="!shapeFiltered"
+                v-model="shapeFilter"
+                label="shape"
+                :options="shapeFilterOptions"
+                :multi-select="true"
+            />
+            <NoteFilter v-model="tagFilter" label="tag" :options="tagFilterOptions" :multi-select="true" />
             <div id="filter-bubbles">
                 <div v-if="shapeName" class="shape-name tag-bubble removable" @click="clearShapeFilter">
                     {{ shapeName }}
                 </div>
-                <div
-                    v-for="tag of searchTags"
-                    :key="tag.name"
-                    :style="{ color: mostReadable(tag.colour), backgroundColor: tag.colour }"
-                    class="tag-bubble removable"
-                    @click="toggleTagInSearch(tag)"
-                >
-                    {{ tag.name }}
-                </div>
             </div>
-            <TagAutoCompleteSearch
-                v-show="showTagSearch"
-                id="tag-search-bar"
-                :placeholder="t('game.ui.notes.NoteList.filters.tag_placeholder')"
-                :options="availableTags"
-                @picked="toggleTagInSearch"
-            />
-            <font-awesome-icon
-                v-if="showTagSearch"
-                id="tag-search-show"
-                icon="minus"
-                :title="t('game.ui.notes.NoteList.filters.hide_title')"
-                @click="showTagSearch = false"
-            />
-            <font-awesome-icon
-                v-else
-                id="tag-search-hide"
-                icon="plus"
-                :title="t('game.ui.notes.NoteList.filters.show_title')"
-                @click="showTagSearch = true"
-            />
         </div>
     </div>
     <template v-if="visibleNotes.notes.length === 0">
@@ -515,11 +614,12 @@ header {
         }
     }
     > #search-filters {
-        margin: 0 1rem 0;
+        padding: 0.5rem 1rem;
         display: flex;
         flex-direction: row;
+        flex-wrap: wrap;
+        row-gap: 0.5rem;
         align-items: center;
-        min-height: 2.7rem;
         border-bottom: solid 2px black;
 
         > #filter-bubbles {
@@ -541,17 +641,6 @@ header {
                 flex: 0 1 auto;
                 word-break: break-word;
             }
-        }
-        > #tag-search-bar {
-            flex: 2 1 0;
-            height: 1.5rem;
-            min-width: 8rem;
-        }
-
-        > #tag-search-show,
-        > #tag-search-hide {
-            flex: 0 0 auto;
-            margin: 0 0.5rem;
         }
     }
 }

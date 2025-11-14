@@ -16,7 +16,7 @@ from playhouse.sqlite_ext import SqliteExtDatabase
 
 from ..api.socket.constants import DASHBOARD_NS
 from ..app import sio
-from ..db.all import ALL_MODELS
+from ..db.all import ALL_MODELS, ALL_NORMAL_MODELS, ALL_VIEWS
 from ..db.db import db as ACTIVE_DB
 from ..db.db import open_db
 from ..db.models.asset import Asset
@@ -214,7 +214,9 @@ class CampaignExporter:
 
         # Base model creation
         with self.db.bind_ctx(ALL_MODELS):
-            self.db.create_tables(ALL_MODELS)
+            self.db.create_tables(ALL_NORMAL_MODELS)
+            for view in ALL_VIEWS:
+                view.create_view(self.db)
             # Generate constants (generate new set of tokens to prevent leaking server tokens)
             Constants.create(
                 save_version=SAVE_VERSION,

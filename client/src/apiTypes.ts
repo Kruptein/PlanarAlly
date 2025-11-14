@@ -323,10 +323,15 @@ export interface ApiNote {
   tags: string[];
   showOnHover: boolean;
   showIconOnShape: boolean;
-  isRoomNote: boolean;
-  location: number | null;
+  rooms: ApiNoteRoom[];
   access: ApiNoteAccess[];
   shapes: GlobalId[];
+}
+export interface ApiNoteRoom {
+  roomCreator: string;
+  roomName: string;
+  locationId: number | null;
+  locationName: string | null;
 }
 export interface ApiNoteAccess {
   name: string;
@@ -334,6 +339,9 @@ export interface ApiNoteAccess {
   can_view: boolean;
 }
 export interface ApiNoteAccessEdit extends ApiNoteAccess {
+  note: NoteId;
+}
+export interface ApiNoteRoomLink extends ApiNoteRoom {
   note: NoteId;
 }
 export interface ApiNoteSetBoolean {

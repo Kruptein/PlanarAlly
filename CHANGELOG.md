@@ -23,6 +23,9 @@ tech changes will usually be stripped from release notes for the public
     -   Runs when moving a shape to the back
     -   Fixes the order of all shapes on the layer and requests a page refresh
 -   Asset manager icon when a shape has template info
+-   Notes:
+    -   Campaigns tab (see more general note changes below)
+    -   Create can be confirmed with the enter key
 -   Added OIDC Authentication to Client and Server, based on original changes from JatinVasman PR
     -   This uses Authorization Code Flow with optional PKCE
 
@@ -43,6 +46,12 @@ tech changes will usually be stripped from release notes for the public
     -   Are now stored as proper shapes in the DB
     -   Will migrate along with other shapes on DB upgrades (old templates could become broken)
     -   Can be linked with other systems (e.g. custom-data, notes, ...)
+-   Notes
+    -   No longer hard-linked to 1 particular location
+        -   Can be linked to multiple locations or no location (global/local concept is removed)
+    -   List filters have been redesigned to be mure useful
+        -   Many preferences have been removed as a result
+    -   [tech] tags are now stored in their own tables instead of being a json array on notes
 -   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)
 -   [tech] upgraded pydantic from 1.x to 2.x
 
@@ -56,6 +65,7 @@ tech changes will usually be stripped from release notes for the public
 -   Undoing a shape removal causing the related group to be removed (i.e. last shape of the group)
 -   Cutting a rotated polygon would be wrong on refresh
 -   Resizing a rotated polygon did not correctly recalculate center, causing sudden shifts on move
+-   Note creation not going straight to edit mode in some cases
 
 ## [2025.3]
 

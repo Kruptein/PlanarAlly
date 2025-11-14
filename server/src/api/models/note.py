@@ -28,6 +28,17 @@ class ApiNoteShape(TypeIdModel):
     shape_id: str = Field(json_schema_extra={"typeId": "GlobalId"})
 
 
+class ApiNoteRoom(TypeIdModel):
+    roomCreator: str
+    roomName: str
+    locationId: int | None
+    locationName: str | None
+
+
+class ApiNoteRoomLink(ApiNoteRoom):
+    note: str = Field(json_schema_extra={"typeId": "NoteId"})
+
+
 class ApiNote(TypeIdModel):
     uuid: str = Field(json_schema_extra={"typeId": "NoteId"})
     creator: str
@@ -36,7 +47,6 @@ class ApiNote(TypeIdModel):
     tags: list[str]
     showOnHover: bool
     showIconOnShape: bool
-    isRoomNote: bool
-    location: int | None
+    rooms: list[ApiNoteRoom]
     access: list[ApiNoteAccess]
     shapes: list[str] = Field(json_schema_extra={"typeId": "GlobalId"})

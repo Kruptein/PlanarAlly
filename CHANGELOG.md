@@ -26,6 +26,8 @@ tech changes will usually be stripped from release notes for the public
 -   Notes:
     -   Campaigns tab (see more general note changes below)
     -   Create can be confirmed with the enter key
+-   Added OIDC Authentication to Client and Server, based on original changes from JatinVasman PR
+    -   This uses Authorization Code Flow with optional PKCE
 
 ### Changed
 

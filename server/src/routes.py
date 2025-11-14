@@ -22,6 +22,8 @@ def __replace_config_data(data: bytes) -> bytes:
         data = data.replace(b'name="PA-signup" content="true"', b'name="PA-signup" content="false"')
     if not config.mail or not config.mail.enabled:
         data = data.replace(b'name="PA-mail" content="true"', b'name="PA-mail" content="false"')
+    # Replace the PA-auth meta tag based on enabled authentication methods
+    data = data.replace(b'name="PA-auth" content="local"', ('name="PA-auth" content="'+ " ".join(config.general.authentication_methods) +'"').encode())
     return data
 
 
@@ -70,6 +72,9 @@ main_app.router.add_get(f"{subpath}/api/version", version.get_version)
 main_app.router.add_get(f"{subpath}/api/changelog", version.get_changelog)
 main_app.router.add_get(f"{subpath}/api/notifications", notifications.collect)
 main_app.router.add_post(f"{subpath}/api/mod/upload", mods.upload)
+main_app.router.add_get(f"{subpath}/api/oidc/providers", auth.oidc_providers)
+main_app.router.add_post(f"{subpath}/api/oidc/login", auth.oidc_login)
+main_app.router.add_get(f"{subpath}/api/oidc/callback/{{provider}}", auth.oidc_callback)
 
 TAIL_REGEX = "/{tail:(?!api).*}"
 if "dev" in sys.argv:

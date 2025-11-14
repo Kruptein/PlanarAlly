@@ -19,7 +19,6 @@ SAVE_VERSION = 110
 import asyncio
 from collections import defaultdict
 import json
-import logging
 import secrets
 import shutil
 import sys
@@ -33,10 +32,8 @@ from .db.db import db as ACTIVE_DB
 from .db.models.constants import Constants
 from .thumbnail import generate_thumbnail_for_asset
 from .utils import ASSETS_DIR, FILE_DIR, SAVE_PATH, OldVersionException, UnknownVersionException, get_asset_hash_subpath
-
-logger: logging.Logger = logging.getLogger("PlanarAllyServer")
-logger.setLevel(logging.INFO)
-
+# Import logger to retain configuration settings
+from .logs import logger
 
 def get_save_version(db: SqliteExtDatabase):
     return db.execute_sql("SELECT save_version FROM constants").fetchone()[0]
@@ -55,7 +52,6 @@ def create_new_db(db: SqliteExtDatabase, version: int):
         secret_token=secrets.token_bytes(32),
         api_token=secrets.token_hex(32),
     )
-
 
 def check_existence() -> bool:
     if not SAVE_PATH.exists():

@@ -7,20 +7,32 @@ from .utils import FILE_DIR
 
 # SETUP LOGGING
 
+config = cfg()
+
+# Initialize the main logger destination
 logger = logging.getLogger("PlanarAllyServer")
-logger.setLevel(logging.INFO)
-file_handler = RotatingFileHandler(
-    str(FILE_DIR / "planarallyserver.log"),
-    maxBytes=cfg().general.max_log_size_in_bytes,
-    backupCount=cfg().general.max_log_backups,
-)
-file_handler.setLevel(logging.INFO)
+# Set the logging level based on configuration
+logger.setLevel(config.logging.level)
+# Define the log message format
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)")
-file_handler.setFormatter(formatter)
-stream_handler = logging.StreamHandler(sys.stdout)
-stream_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
+
+# Initialize the stream handler for logging to stdout if enabled, always at least log to stdout even if no destinations are set
+if "stdout" in config.logging.destinations or not config.logging.destinations:
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(stream_handler)
+
+# Initialize the file handler for logging
+if "file" in config.logging.destinations:
+    # Check the logging file path from configuration to see if its absolute
+    log_file_path = config.logging.file_path
+    if not log_file_path.startswith("/") and not log_file_path[1:3] == ":\\":  # Windows drive letter check
+        log_file_path = str(FILE_DIR / log_file_path)
+    maxBytes = config.logging.max_log_size_in_bytes or config.general.max_log_size_in_bytes
+    backupCount = config.logging.max_log_backups or config.general.max_log_backups
+    file_handler = RotatingFileHandler(filename=log_file_path, maxBytes=maxBytes, backupCount=backupCount)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):

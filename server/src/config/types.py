@@ -66,6 +66,17 @@ class AssetsConfig(ConfigModel):
     max_single_asset_size_in_bytes: int = 0
     max_total_asset_size_in_bytes: int = 0
 
+class LoggingConfig(ConfigModel):
+    # Enable logging to a file 
+    destinations: list[Literal["stdout", "file"]] = ["stdout", "file"]
+    # The log file path
+    file_path: str = "planarally.log"
+    # The Log Level
+    level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    # These settings are used for log rotating,
+    # see https://docs.python.org/3/library/logging.handlers.html#logging.handlers.RotatingFileHandler for details
+    max_log_size_in_bytes: int = 200_000
+    max_log_backups: int = 5
 
 class GeneralConfig(ConfigModel):
     # Location of the save file
@@ -90,10 +101,15 @@ class GeneralConfig(ConfigModel):
 
     # These settings are used for log rotating,
     # see https://docs.python.org/3/library/logging.handlers.html#logging.handlers.RotatingFileHandler for details
-    max_log_size_in_bytes: int = 200_000
-    max_log_backups: int = 5
+    # Retiring this for a dedicated logging section
+    max_log_size_in_bytes: int | None = None
+    max_log_backups: int | None = None
 
     admin_user: str | None = None
+
+    # Authentication options (local = built-in username/password, oidc = OpenID Connect)
+    #  Both methods can be enabled at the same time
+    authentication_methods: list[Literal["local", "oidc"]] = ["local"]
 
 
 class MailConfig(ConfigModel):
@@ -126,6 +142,25 @@ class StatsConfig(ConfigModel):
     # The base URL to send stats to
     stats_url: str = "https://stats.planarally.io"
 
+class OidcConfig(ConfigModel):
+    # The display name for this OIDC provider
+    display_name: str 
+    # The id of the provider
+    provider_id: str 
+    # The OIDC Client ID to use for authentication
+    client_id: str 
+    # The OIDC Client Secret to use for authentication
+    client_secret: str 
+    # The OIDC Discovery URL used to fetch provider configuration
+    discovery_url: str 
+    # Whether to use PKCE (Proof Key for Code Exchange) during authentication
+    pkce: bool = True
+    # The list of scopes to request during authentication (normally you shouldn't need to change this)
+    scopes: list[str] = ["openid", "email", "profile"]
+    # The claim to use as the username
+    username_claim: str = "preferred_username"
+    # The claim to use as the email
+    email_claim: str = "email"
 
 class ServerConfig(ConfigModel):
     general: GeneralConfig = GeneralConfig()
@@ -133,3 +168,5 @@ class ServerConfig(ConfigModel):
     webserver: WebserverConfig = WebserverConfig()
     stats: StatsConfig = StatsConfig()
     mail: MailConfig | None = None
+    logging: LoggingConfig = LoggingConfig()
+    oidc: list[OidcConfig] = []

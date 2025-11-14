@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onBeforeMount } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
@@ -31,6 +31,13 @@ const resetPending = ref(false);
 const showLanguageDropdown = ref(false);
 const allowRegister = (document.querySelector("meta[name='PA-signup']")?.getAttribute("content") ?? "true") === "true";
 const hasMail = (document.querySelector("meta[name='PA-mail']")?.getAttribute("content") ?? "true") === "true";
+const authMethods = (document.querySelector("meta[name='PA-auth']")?.getAttribute("content") ?? "local").split(" ");
+const providers = ref<Array<{ display_name: string; provider_id: string }>>([]);
+if (!authMethods.includes("local")) {
+    // If local authentication is disabled
+    // then we can only do OIDC login so the only valid mode is Login
+    mode.value = Mode.Login;
+}
 
 function getStaticImg(img: string): string {
     return baseAdjust(`/static/img/${img}`);
@@ -97,6 +104,40 @@ async function resetPassword(): Promise<void> {
         toast.error(t("auth.login.resetPasswordFailed"));
     }
 }
+
+async function fetchOidcProviders(): Promise<void> {
+    const response = await http.get("/api/oidc/providers");
+    if (response.ok) {
+        const data = (await response.json()) as { providers: Array<{ display_name: string; provider_id: string }>};
+        providers.value.push(...data.providers);
+    } else {
+        toast.error(await getErrorReason(response));
+    }
+}
+
+async function loginOIDC(providerId: string): Promise<void> {
+    const loginResponse = await http.postJson("/api/oidc/login", {
+        provider_name: providerId
+    });
+    if (loginResponse.ok) {
+        const loginData = (await loginResponse.json()) as { authorization_url: string };
+        // Check if the value is valid
+        if (loginData.authorization_url) {
+            window.location.href = loginData.authorization_url;
+        } else {
+            toast.error("Invalid authorization URL received from server.");
+        }
+    } else {
+        toast.error(await getErrorReason(loginResponse));
+    }
+}
+
+onBeforeMount(async () => {
+    if (authMethods.includes("oidc")) {
+        await fetchOidcProviders();
+    }
+});
+
 </script>
 
 <template>
@@ -125,7 +166,7 @@ async function resetPassword(): Promise<void> {
                             <LanguageDropdown v-if="showLanguageDropdown" id="language-dropdown" />
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div v-if="authMethods.includes('local')" class="form-row">
                         <label for="username">{{ t("common.username") }}</label>
                         <input
                             id="username"
@@ -136,7 +177,7 @@ async function resetPassword(): Promise<void> {
                             autofocus
                         />
                     </div>
-                    <div class="form-row">
+                    <div v-if="authMethods.includes('local')" class="form-row">
                         <div style="display: flex; flex-direction: column; gap: 0.5rem">
                             <label for="password">{{ t("common.password") }}</label>
                             <span v-if="hasMail" class="forgot-password note" @click="mode = Mode.ForgotPassword">
@@ -151,14 +192,24 @@ async function resetPassword(): Promise<void> {
                             required
                         />
                     </div>
-                    <button type="submit" @click="login">
+                    <button v-if="authMethods.includes('local')" type="submit" @click="login">
                         <img :src="getStaticImg('check_small.svg')" />
                         {{ t("auth.login.login") }}
                     </button>
-                    <button v-if="allowRegister" type="button" @click="mode = Mode.Register">
+                    <button v-if="allowRegister && authMethods.includes('local')" type="button" @click="mode = Mode.Register">
                         <img :src="getStaticImg('plus.svg')" />
                         {{ t("auth.login.register") }}
                     </button>
+                    <div v-if="authMethods.includes('oidc')">
+                        <div style="text-align: center; margin-bottom: 1rem;">{{ t("auth.login.oidc_login") }}</div>
+                        <div id="oidc-buttons">
+                            <div v-for="item in providers" :key="item.provider_id">
+                                <button type="button" @click="loginOIDC(item.provider_id)">
+                                    {{ t("auth.login.oidc_with") }} {{ item.display_name }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </template>
                 <template v-else-if="mode === Mode.Register">
                     <div id="title">

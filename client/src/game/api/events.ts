@@ -97,7 +97,7 @@ socket.on("Board.Locations.Set", (locationInfo: ApiLocationCore[]) => {
 
 socket.on("Location.Loaded", async () => await modEvents.locationLoaded());
 
-socket.on("Board.Floor.Set", (floor: ApiFloor) => {
+socket.on("Board.Floor.Set", async (floor: ApiFloor) => {
     // It is important that this condition is evaluated before the async addFloor call.
     // The very first floor that arrives is the one we want to select
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
@@ -106,7 +106,7 @@ socket.on("Board.Floor.Set", (floor: ApiFloor) => {
         console.log(
             `Adding floor ${floor.name} [${floor.layers.reduce((acc, cur) => acc + cur.shapes.length, 0)} shapes]`,
         );
-    addServerFloor(floor);
+    await addServerFloor(floor);
     if (debugLayers) console.log("Done.");
 
     if (selectFloor) {

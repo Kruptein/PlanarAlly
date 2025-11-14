@@ -14,7 +14,6 @@ from ....db.models.circular_token import CircularToken
 from ....db.models.floor import Floor
 from ....db.models.layer import Layer
 from ....db.models.location import Location
-from ....db.models.note import Note
 from ....db.models.player_room import PlayerRoom
 from ....db.models.rect import Rect
 from ....db.models.shape import Shape
@@ -61,9 +60,8 @@ async def get_shape(sid: str, shape_id: str):
     pr: PlayerRoom = game_state.get(sid)
 
     shape = Shape.get_by_id(shape_id)
-    notes = Note.get_for_shape(shape_id, pr)
 
-    return {"shape": transform_shape(shape, pr), "notes": notes}
+    return {"shape": transform_shape(shape, pr)}
 
 
 @sio.on("Shape.Add", namespace=GAME_NS)

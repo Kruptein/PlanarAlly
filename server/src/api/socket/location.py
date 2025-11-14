@@ -219,12 +219,6 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     # 7. Load Notes
 
-    # await _send_game(
-    #     "Notes.Set",
-    #     Note.get_for_player(pr),
-    #     room=sid,
-    # )
-
     # 8. Load Markers
 
     await _send_game(

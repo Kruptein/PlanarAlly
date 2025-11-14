@@ -25,6 +25,7 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
     custom_data = [c.as_pydantic() for c in shape.custom_data]
     trackers = [t.as_pydantic() for t in tracker_query]
     auras = [a.as_pydantic() for a in aura_query]
+    notes = [n.note.as_pydantic() for n in shape.notes]
     # Subtype
     shape_model = ApiCoreShape(
         uuid=shape.uuid,
@@ -65,5 +66,6 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         cell_fill_colour=shape.cell_fill_colour,
         cell_stroke_colour=shape.cell_stroke_colour,
         cell_stroke_width=shape.cell_stroke_width,
+        notes=notes,
     )
     return shape.subtype.as_pydantic(shape_model)

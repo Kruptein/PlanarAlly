@@ -178,9 +178,9 @@ function runImportSystems(
     return shape;
 }
 
-export function loadFromServer(serverShape: ApiShape, floor: FloorId, layer: LayerName): CompactForm {
+export async function loadFromServer(serverShape: ApiShape, floor: FloorId, layer: LayerName): Promise<CompactForm> {
     const id = reserveLocalId(serverShape.uuid);
-    return createCompactFromServerData(serverShape, id, floor, layer);
+    return await createCompactFromServerData(serverShape, id, floor, layer);
 }
 
 export function createOnServer(compact: CompactForm, asTemplate: boolean): void {
@@ -369,6 +369,7 @@ function createServerDataFromCompact(compact: CompactForm): ApiShape {
         is_locked: false,
         owners: [],
         trackers: [],
+        notes: [],
         auras: [],
         odd_hex_orientation: false,
         size: 0,
@@ -421,12 +422,12 @@ function createServerDataFromCompact(compact: CompactForm): ApiShape {
     return serverShape;
 }
 
-function createCompactFromServerData(
+async function createCompactFromServerData(
     serverShape: ApiShape,
     id: LocalId,
     floor: FloorId,
     layer: LayerName,
-): CompactForm {
+): Promise<CompactForm> {
     const options: Partial<ServerShapeOptions> =
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         Object.fromEntries(JSON.parse(serverShape.options));
@@ -479,9 +480,11 @@ function createCompactFromServerData(
         systems: {},
     };
 
-    for (const [name, system] of getShapeSystems()) {
-        compact.systems[name] = system.fromServerShape?.(serverShape, options);
-    }
+    await Promise.all(
+        getShapeSystems().map(async ([name, system]) => {
+            compact.systems[name] = await system.fromServerShape?.(serverShape, options);
+        }),
+    );
 
     return compact;
 }

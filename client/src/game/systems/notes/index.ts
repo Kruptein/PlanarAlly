@@ -1,6 +1,6 @@
 import type { DeepReadonly } from "vue";
 
-import type { ApiNote } from "../../../apiTypes";
+import type { ApiCoreShape, ApiNote } from "../../../apiTypes";
 import { Vector, addP, toGP } from "../../../core/geometry";
 import type { LocalId } from "../../../core/id";
 import { registerSystem } from "../../../core/systems";
@@ -65,8 +65,9 @@ class NoteSystem implements ShapeSystem<NoteId[]> {
         return raw.shapeNotes.get1(_id) ?? [];
     }
 
-    fromServerShape(): NoteId[] {
-        return [];
+    async fromServerShape(serverShape: ApiCoreShape): Promise<NoteId[]> {
+        await Promise.all(serverShape.notes.map(this.loadNote.bind(this)));
+        return serverShape.notes.map((note) => note.uuid);
     }
 
     // BEHAVIOUR

@@ -22,7 +22,7 @@ import { addShape, moveFloor, moveLayer } from "../../../temp";
 import { initiativeStore } from "../../../ui/initiative/state";
 import { socket } from "../../socket";
 
-socket.on("Shape.Set", (data: ApiShapeWithLayer) => {
+socket.on("Shape.Set", async (data: ApiShapeWithLayer) => {
     const { shape: apiShape, layer, floor } = data;
     // hard reset a shape
     const uuid = apiShape.uuid;
@@ -36,7 +36,7 @@ socket.on("Shape.Set", (data: ApiShapeWithLayer) => {
         old.layer?.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
     }
     const floorId = floorSystem.getFloor({ name: floor })!.id;
-    const shape = addShape(loadFromServer(apiShape, floorId, layer), SyncMode.NO_SYNC, "load", deps);
+    const shape = addShape(await loadFromServer(apiShape, floorId, layer), SyncMode.NO_SYNC, "load", deps);
 
     if (shape && isActive) {
         selectedSystem.push(shape.id);
@@ -45,16 +45,16 @@ socket.on("Shape.Set", (data: ApiShapeWithLayer) => {
     }
 });
 
-socket.on("Shape.Add", (data: ApiShapeWithLayer) => {
+socket.on("Shape.Add", async (data: ApiShapeWithLayer) => {
     const floorId = floorSystem.getFloor({ name: data.floor })!.id;
-    addShape(loadFromServer(data.shape, floorId, data.layer), SyncMode.NO_SYNC, "load");
+    addShape(await loadFromServer(data.shape, floorId, data.layer), SyncMode.NO_SYNC, "load");
     initiativeStore._forceUpdate();
 });
 
-socket.on("Shapes.Add", (shapes: ApiShapeWithLayer[]) => {
+socket.on("Shapes.Add", async (shapes: ApiShapeWithLayer[]) => {
     for (const data of shapes) {
         const floorId = floorSystem.getFloor({ name: data.floor })!.id;
-        addShape(loadFromServer(data.shape, floorId, data.layer), SyncMode.NO_SYNC, "load");
+        addShape(await loadFromServer(data.shape, floorId, data.layer), SyncMode.NO_SYNC, "load");
     }
     initiativeStore._forceUpdate();
 });

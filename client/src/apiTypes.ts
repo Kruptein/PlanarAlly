@@ -114,6 +114,29 @@ export interface ApiAura {
   angle: number;
   direction: number;
 }
+export interface ApiNote {
+  uuid: NoteId;
+  creator: string;
+  title: string;
+  text: string;
+  tags: string[];
+  showOnHover: boolean;
+  showIconOnShape: boolean;
+  rooms: ApiNoteRoom[];
+  access: ApiNoteAccess[];
+  shapes: GlobalId[];
+}
+export interface ApiNoteRoom {
+  roomCreator: string;
+  roomName: string;
+  locationId: number | null;
+  locationName: string | null;
+}
+export interface ApiNoteAccess {
+  name: string;
+  can_edit: boolean;
+  can_view: boolean;
+}
 export interface ApiAssetRemoveShare {
   asset: AssetId;
   user: string;
@@ -205,6 +228,7 @@ export interface ApiCoreShape {
   cell_fill_colour: string | null;
   cell_stroke_colour: string | null;
   cell_stroke_width: number | null;
+  notes: ApiNote[];
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
@@ -315,29 +339,6 @@ export interface ApiModMeta {
   description: string;
   hash: string;
   hasCss: boolean;
-}
-export interface ApiNote {
-  uuid: NoteId;
-  creator: string;
-  title: string;
-  text: string;
-  tags: string[];
-  showOnHover: boolean;
-  showIconOnShape: boolean;
-  rooms: ApiNoteRoom[];
-  access: ApiNoteAccess[];
-  shapes: GlobalId[];
-}
-export interface ApiNoteRoom {
-  roomCreator: string;
-  roomName: string;
-  locationId: number | null;
-  locationName: string | null;
-}
-export interface ApiNoteAccess {
-  name: string;
-  can_edit: boolean;
-  can_view: boolean;
 }
 export interface ApiNoteAccessEdit extends ApiNoteAccess {
   note: NoteId;

@@ -2,6 +2,7 @@ from pydantic import Field
 
 from ..aura import ApiAura
 from ..helpers import TypeIdModel
+from ..note import ApiNote
 from ..shape.custom_data import ApiShapeCustomData
 from ..tracker import ApiTracker
 from .owner import ApiShapeOwner
@@ -47,3 +48,4 @@ class ApiCoreShape(TypeIdModel):
     cell_fill_colour: str | None
     cell_stroke_colour: str | None
     cell_stroke_width: int | None
+    notes: list[ApiNote]

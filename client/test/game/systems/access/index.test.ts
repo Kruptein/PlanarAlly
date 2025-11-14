@@ -63,10 +63,10 @@ describe("Access System", () => {
         removeOwnedTokenSpy.mockClear();
     });
     describe("inform", () => {
-        it("should update $state if active", () => {
+        it("should update $state if active", async () => {
             // setup
-            const id = generateTestLocalId();
-            const id2 = generateTestLocalId();
+            const id = await generateTestLocalId();
+            const id2 = await generateTestLocalId();
             accessSystem.loadState(id);
             //test
             accessSystem.import(
@@ -97,10 +97,10 @@ describe("Access System", () => {
         });
     });
     describe("getDefault", () => {
-        it("should return DEFAULT_ACCESS when configured as such", () => {
+        it("should return DEFAULT_ACCESS when configured as such", async () => {
             // setup
-            const id = generateTestLocalId();
-            const id2 = generateTestLocalId();
+            const id = await generateTestLocalId();
+            const id2 = await generateTestLocalId();
             accessSystem.import(id, toAccessMap({ default: DEFAULT_ACCESS, extra: [] }), "load");
             accessSystem.import(
                 id2,
@@ -114,10 +114,10 @@ describe("Access System", () => {
             expect(accessSystem.getDefault(id)).toBe(DEFAULT_ACCESS);
             expect(accessSystem.getDefault(id2)).toBe(DEFAULT_ACCESS);
         });
-        it("should return the correct default access when configured", () => {
+        it("should return the correct default access when configured", async () => {
             // setup
-            const id = generateTestLocalId();
-            const id2 = generateTestLocalId();
+            const id = await generateTestLocalId();
+            const id2 = await generateTestLocalId();
             const id1Default = { edit: true, movement: false, vision: true };
             const id2Default = { edit: false, movement: true, vision: false };
 
@@ -142,17 +142,17 @@ describe("Access System", () => {
         let id4: LocalId;
         let id5: LocalId;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             // Shape 1: Only some default access rights
             // Shape 2: Full access rights for a specific user
             // Shape 3: Mixed default & specific access rights
             // Shape 4: No access rights
             // Shape 5: Player with only edit access rights
-            id = generateTestLocalId();
-            id2 = generateTestLocalId();
-            id3 = generateTestLocalId();
-            id4 = generateTestLocalId();
-            id5 = generateTestLocalId();
+            id = await generateTestLocalId();
+            id2 = await generateTestLocalId();
+            id3 = await generateTestLocalId();
+            id4 = await generateTestLocalId();
+            id5 = await generateTestLocalId();
 
             const id1Default = { edit: true, movement: false, vision: true };
             const id2Default = { edit: false, movement: true, vision: false };
@@ -386,17 +386,17 @@ describe("Access System", () => {
         });
     });
     describe("getAccess", () => {
-        it("should return undefined if access was not configured for the shape.", () => {
-            const id = generateTestLocalId();
+        it("should return undefined if access was not configured for the shape.", async () => {
+            const id = await generateTestLocalId();
             expect(accessSystem.getAccess(id, "some user")).toBeUndefined();
         });
-        it("should return undefined if access was not given for a specific user.", () => {
-            const id = generateTestLocalId();
+        it("should return undefined if access was not given for a specific user.", async () => {
+            const id = await generateTestLocalId();
             accessSystem.import(id, toAccessMap({ default: DEFAULT_ACCESS, extra: [] }), "load");
             expect(accessSystem.getAccess(id, "some user")).toBeUndefined();
         });
-        it("should return the access for a specific user if it was added", () => {
-            const id = generateTestLocalId();
+        it("should return the access for a specific user if it was added", async () => {
+            const id = await generateTestLocalId();
             const access: AccessConfig = { vision: true, movement: false, edit: true };
             accessSystem.import(
                 id,
@@ -407,9 +407,9 @@ describe("Access System", () => {
         });
     });
     describe("addAccess", () => {
-        it("should error out if the user already has access", () => {
+        it("should error out if the user already has access", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             const access: AccessConfig = { edit: false, movement: false, vision: true };
             accessSystem.import(
                 id,
@@ -422,9 +422,9 @@ describe("Access System", () => {
             expect(emitSpy).not.toBeCalled();
             expect(addOwnedTokenSpy).not.toBeCalled();
         });
-        it("should add a new user to the system", () => {
+        it("should add a new user to the system", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             const someUserAccess: AccessConfig = { edit: false, movement: false, vision: true };
             const newUserAccess: AccessConfig = { edit: false, movement: true, vision: true };
             accessSystem.import(
@@ -445,9 +445,9 @@ describe("Access System", () => {
             expect(accessSystem.getDefault(id)).toBe(DEFAULT_ACCESS);
             expect(accessSystem.getAccess(id, "some user")).toBe(someUserAccess);
         });
-        it("should not emit if SyncTo is not server", () => {
+        it("should not emit if SyncTo is not server", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             const someUserAccess: AccessConfig = { edit: false, movement: false, vision: true };
             const newUserAccess: AccessConfig = { edit: false, movement: true, vision: true };
             accessSystem.import(
@@ -465,10 +465,10 @@ describe("Access System", () => {
             expect(emitSpy).not.toBeCalled();
             expect(addOwnedTokenSpy).not.toBeCalled();
         });
-        it("should update $state", () => {
+        it("should update $state", async () => {
             // setup
-            const id = generateTestLocalId();
-            const id2 = generateTestLocalId();
+            const id = await generateTestLocalId();
+            const id2 = await generateTestLocalId();
             const someUserAccess: AccessConfig = { edit: false, movement: false, vision: true };
             const newUserAccess: AccessConfig = { edit: false, movement: true, vision: true };
             accessSystem.import(
@@ -496,24 +496,24 @@ describe("Access System", () => {
         });
     });
     describe("updateAccess", () => {
-        it("should error if the shape is not known to the system", () => {
+        it("should error if the shape is not known to the system", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.updateAccess(id, "some user", { edit: true }, SERVER_SYNC);
             // test
             expect(errorSpy).toBeCalled();
         });
-        it("should error if the user has no access to the shape", () => {
+        it("should error if the user has no access to the shape", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.import(id, toAccessMap({ default: DEFAULT_ACCESS, extra: [] }), "load");
             accessSystem.updateAccess(id, "some user", { edit: true }, SERVER_SYNC);
             // test
             expect(errorSpy).toBeCalled();
         });
-        it("should update default state", () => {
+        it("should update default state", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.import(id, toAccessMap({ default: DEFAULT_ACCESS, extra: [] }), "load");
             // test
             expect(accessSystem.getDefault(id)).toEqual({ edit: false, movement: false, vision: false });
@@ -522,9 +522,9 @@ describe("Access System", () => {
             expect(errorSpy).not.toBeCalled();
             expect(emitSpy).toBeCalled();
         });
-        it("should update user state", () => {
+        it("should update user state", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.import(
                 id,
                 toAccessMap({
@@ -540,9 +540,9 @@ describe("Access System", () => {
             expect(errorSpy).not.toBeCalled();
             expect(emitSpy).toBeCalled();
         });
-        it("should update $state", () => {
+        it("should update $state", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.import(
                 id,
                 toAccessMap({
@@ -567,24 +567,24 @@ describe("Access System", () => {
         });
     });
     describe("removeAccess", () => {
-        it("should error if the shape is not known to the system", () => {
+        it("should error if the shape is not known to the system", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             // test
             expect(errorSpy).toBeCalled();
         });
-        it("should error if the user has no access to the shape", () => {
+        it("should error if the user has no access to the shape", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.import(id, toAccessMap({ default: DEFAULT_ACCESS, extra: [] }), "load");
             accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             // test
             expect(errorSpy).toBeCalled();
         });
-        it("should remove the user state", () => {
+        it("should remove the user state", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.import(
                 id,
                 toAccessMap({
@@ -600,9 +600,9 @@ describe("Access System", () => {
             expect(errorSpy).not.toBeCalled();
             expect(emitSpy).toBeCalled();
         });
-        it("should update $state", () => {
+        it("should update $state", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.import(
                 id,
                 toAccessMap({
@@ -619,15 +619,15 @@ describe("Access System", () => {
         });
     });
     describe("getOwners", () => {
-        it("should return an empty list if the shape is not known to the system", () => {
+        it("should return an empty list if the shape is not known to the system", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             // test
             expect([...accessSystem.getOwners(id)].length).toBe(0);
         });
-        it("should return an empty list if no owners are associated with the shape", () => {
+        it("should return an empty list if no owners are associated with the shape", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.import(
                 id,
                 toAccessMap({
@@ -639,9 +639,9 @@ describe("Access System", () => {
             // test
             expect([...accessSystem.getOwners(id)].length).toBe(0);
         });
-        it("should return all owners associated with the shape", () => {
+        it("should return all owners associated with the shape", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.import(
                 id,
                 toAccessMap({
@@ -657,15 +657,15 @@ describe("Access System", () => {
         });
     });
     describe("getOwnersFull", () => {
-        it("should return an empty list if the shape is not known to the system", () => {
+        it("should return an empty list if the shape is not known to the system", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             // test
             expect(accessSystem.getOwnersFull(id).length).toBe(0);
         });
-        it("should return an empty list if no owners are associated with the shape", () => {
+        it("should return an empty list if no owners are associated with the shape", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.import(
                 id,
                 toAccessMap({
@@ -677,9 +677,9 @@ describe("Access System", () => {
             // test
             expect(accessSystem.getOwnersFull(id).length).toBe(0);
         });
-        it("should return all owners associated with the shape", () => {
+        it("should return all owners associated with the shape", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             accessSystem.import(
                 id,
                 toAccessMap({

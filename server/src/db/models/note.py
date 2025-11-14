@@ -1,6 +1,6 @@
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
-from peewee import JOIN, ForeignKeyField, TextField
+from peewee import ForeignKeyField, TextField
 
 from ...api.models.note import ApiNote
 from ..base import BaseDbModel
@@ -9,11 +9,7 @@ from .note_access import NoteAccess
 from .note_room import NoteRoom
 from .note_shape import NoteShape
 from .note_tag import NoteTag
-from .shape_room_view import ShapeRoomView
 from .user import User
-
-if TYPE_CHECKING:
-    from .player_room import PlayerRoom
 
 
 class Note(BaseDbModel):
@@ -49,56 +45,3 @@ class Note(BaseDbModel):
             rooms=rooms,
             shapes=[s.shape.uuid for s in self.shapes],
         )
-
-    @classmethod
-    def __access_query_filter(cls, pr: "PlayerRoom"):
-        return (
-            # Global
-            (
-                (NoteRoom.id >> None)  # type: ignore
-                & (
-                    # Note owner or specific access (w/o default access)
-                    (Note.creator == pr.player) | ((NoteAccess.user == pr.player) & NoteAccess.can_view)
-                )
-            )
-            | (
-                # Local
-                ((NoteRoom.room == pr.room) | (ShapeRoomView.room_id == pr.room.id))  # type: ignore
-                & (
-                    # Note owner or specific access
-                    (Note.creator == pr.player)
-                    | (
-                        ((NoteAccess.user >> None) | (NoteAccess.user == pr.player))  # type: ignore
-                        & NoteAccess.can_view
-                    )
-                )
-            )
-        )
-
-    @classmethod
-    def get_for_shape(cls, shape_id: str, pr: "PlayerRoom") -> list[ApiNote]:
-        notes = (
-            cls.select()
-            .join(NoteShape, JOIN.INNER)
-            .join(NoteRoom, JOIN.LEFT_OUTER, on=(Note.uuid == NoteRoom.note_id))
-            .join(NoteAccess, JOIN.LEFT_OUTER, on=(Note.uuid == NoteAccess.note_id))
-            .join(ShapeRoomView, JOIN.LEFT_OUTER, on=(NoteShape.shape_id == ShapeRoomView.shape_id))
-            .where((NoteShape.shape_id == shape_id) & cls.__access_query_filter(pr))
-            .group_by(Note.uuid)
-        )
-
-        return [note.as_pydantic() for note in notes]
-
-    @classmethod
-    def get_for_player(cls, pr: "PlayerRoom") -> list[ApiNote]:
-        notes = (
-            cls.select()
-            .join(NoteShape, JOIN.LEFT_OUTER)
-            .join(NoteRoom, JOIN.LEFT_OUTER, on=(Note.uuid == NoteRoom.note_id))
-            .join(NoteAccess, JOIN.LEFT_OUTER, on=(Note.uuid == NoteAccess.note_id))
-            .join(ShapeRoomView, JOIN.LEFT_OUTER, on=(NoteShape.shape_id == ShapeRoomView.shape_id))
-            .where(cls.__access_query_filter(pr))
-            .group_by(Note.uuid)
-        )
-
-        return [note.as_pydantic() for note in notes]

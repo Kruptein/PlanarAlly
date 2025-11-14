@@ -105,7 +105,7 @@ async function loadTemplate(template: AssetTemplateInfo, position: GlobalPoint):
         const { shape, notes } = data;
         await Promise.all(notes.map((note) => noteSystem.loadNote(note)));
         const layer = floorState.currentLayer.value!;
-        const compact = loadFromServer(shape, layer.floor, layer.name);
+        const compact = await loadFromServer(shape, layer.floor, layer.name);
         compact.core.x = position.x;
         compact.core.y = position.y;
         compact.systems.notes = notes.map((note) => note.uuid);

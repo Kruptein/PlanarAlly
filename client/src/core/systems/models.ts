@@ -1,6 +1,7 @@
 import type { ApiCoreShape } from "../../apiTypes";
 import type { ServerShapeOptions } from "../../game/models/shapes";
 import type { LocalId } from "../id";
+import type { MaybePromise } from "../types";
 
 export type SystemClearReason = "full-loading" | "partial-loading" | "leaving" | "logging-out";
 
@@ -33,5 +34,5 @@ export interface ShapeSystem<T> extends System {
 
     // Conversion between compact form data and the server data.
     toServerShape?: (id: LocalId, shape: ApiCoreShape) => void;
-    fromServerShape?: (shape: ApiCoreShape, serverOptions: Partial<ServerShapeOptions>) => T;
+    fromServerShape?: (shape: ApiCoreShape, serverOptions: Partial<ServerShapeOptions>) => MaybePromise<T>;
 }

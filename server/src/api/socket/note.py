@@ -62,6 +62,18 @@ async def get_room(room_creator: str, room_name: str) -> Room | None:
     return Room.get_or_none(creator=creator, name=room_name)
 
 
+@sio.on("Note.Get", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def get_note(sid: str, note_id: str):
+    pr: PlayerRoom = game_state.get(sid)
+    note = Note.get_or_none(uuid=note_id)
+
+    if not note or not can_view(note, pr.player):
+        return None
+
+    return note.as_pydantic()
+
+
 @sio.on("Note.New", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def new_note(sid: str, raw_data: Any):

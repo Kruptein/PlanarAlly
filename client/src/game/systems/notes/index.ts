@@ -13,6 +13,7 @@ import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
 import { noteFromServer } from "./conversion";
 import {
     sendAddNoteTag,
+    sendGetNote,
     sendNewNote,
     sendNoteAccessAdd,
     sendNoteAccessEdit,
@@ -69,6 +70,13 @@ class NoteSystem implements ShapeSystem<NoteId[]> {
     }
 
     // BEHAVIOUR
+
+    async downloadNote(noteId: NoteId): Promise<boolean> {
+        const note = await sendGetNote(noteId);
+        if (note === undefined) return false;
+        await this.loadNote(note);
+        return true;
+    }
 
     async loadNote(apiNote: ApiNote): Promise<ClientNote> {
         const note = await noteFromServer(apiNote);

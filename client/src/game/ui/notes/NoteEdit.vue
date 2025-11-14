@@ -2,6 +2,7 @@
 import { computed, onActivated, ref, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import VueMarkdown from "vue-markdown-render";
+import { useToast } from "vue-toastification";
 
 import type { LocalId } from "../../../core/id";
 import { useModal } from "../../../core/plugins/modals/plugin";
@@ -22,12 +23,18 @@ const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
 const { t } = useI18n();
 const modals = useModal();
+const toast = useToast();
 
 const note = computed(() => noteState.reactive.notes.get(noteState.reactive.currentNote!));
 
-watchEffect(() => {
+onActivated(async () => {
+    if (noteState.reactive.currentNote === undefined) return emit("mode", NoteManagerMode.List);
     if (note.value === undefined) {
-        emit("mode", NoteManagerMode.List);
+        const success = await noteSystem.downloadNote(noteState.reactive.currentNote);
+        if (!success) {
+            emit("mode", NoteManagerMode.List);
+            toast.error("Failed to load note from server");
+        }
     }
 });
 

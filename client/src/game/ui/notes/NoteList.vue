@@ -9,14 +9,12 @@ import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { socket } from "../../api/socket";
 import { getGlobalId, getLocalId } from "../../id";
-import { gameState } from "../../systems/game/state";
 import { noteFromServer } from "../../systems/notes/conversion";
 import { noteState } from "../../systems/notes/state";
 import { NO_FILTER, ACTIVE_FILTER, NO_LINK_FILTER } from "../../systems/notes/types";
 import { type ClientNote, type NoteId, NoteManagerMode, type NoteTag } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
 import { propertiesState } from "../../systems/properties/state";
-import { locationSettingsState } from "../../systems/settings/location/state";
 
 import NoteFilter from "./NoteFilter.vue";
 
@@ -75,7 +73,7 @@ watch(
 
 const debouncedSearch = useDebounceFn(() => void search(), 300);
 
-const realNotes = ref<ClientNote[]>([]);
+const searchResults = ref<ClientNote[]>([]);
 const totalCount = ref(0);
 const loading = ref(false);
 const filterOptions = reactive({
@@ -123,7 +121,7 @@ async function search(): Promise<void> {
             tags: string[];
         },
     ];
-    realNotes.value = await Promise.all(serverNotes.map((n) => noteFromServer(n)));
+    searchResults.value = await Promise.all(serverNotes.map((n) => noteFromServer(n)));
     totalCount.value = count;
 
     filterOptions.locations = filters.locations.sort((a, b) => a.name.localeCompare(b.name));
@@ -134,16 +132,6 @@ async function search(): Promise<void> {
     filterOptions.tags = filters.tags.sort((a, b) => a.localeCompare(b));
     loading.value = false;
 }
-
-const noteArray = computed(() =>
-    // temp-fix for vue iterator method breaking
-    Iterator.from(noteState.reactive.notes.values())
-        .map((n) => ({
-            ...n,
-            shapes: noteState.reactive.shapeNotes.get2(n.uuid) ?? [],
-        }))
-        .toArray(),
-);
 
 function getDefaultFilter<T extends string | number | symbol>(
     key: string,
@@ -179,14 +167,10 @@ const roomFilterOptions = computed(() => {
             {
                 label: "active campaign",
                 value: ACTIVE_FILTER,
-                disabled: noteArray.value.every((n) =>
-                    n.rooms.every((r) => `${r.roomCreator}/${r.roomName}` !== gameState.fullRoomName.value),
-                ),
             },
             {
                 label: "no campaign links",
                 value: NO_LINK_FILTER,
-                disabled: noteArray.value.every((n) => n.rooms.length > 0),
             },
         ],
     };
@@ -206,14 +190,10 @@ const locationFilterOptions = computed(() => {
             {
                 label: "active location",
                 value: ACTIVE_FILTER,
-                disabled: noteArray.value.every((n) =>
-                    n.rooms.every((r) => r.locationId !== locationSettingsState.reactive.activeLocation),
-                ),
             },
             {
                 label: "no location links",
                 value: NO_LINK_FILTER,
-                disabled: noteArray.value.every((n) => n.rooms.every((r) => r.locationId !== null)),
             },
         ],
         search: filterOptions.locations.map((l) => ({ label: l.name, value: l.id })),
@@ -234,12 +214,10 @@ const shapeFilterOptions = computed(() => {
             {
                 label: "has shape(s)",
                 value: ACTIVE_FILTER,
-                disabled: noteArray.value.every((n) => n.shapes.length === 0),
             },
             {
                 label: "no shape(s)",
                 value: NO_LINK_FILTER,
-                disabled: noteArray.value.every((n) => n.shapes.length > 0),
             },
         ],
         search: filterOptions.shapes.map((s) => ({
@@ -270,12 +248,10 @@ const tagFilterOptions = computed(() => {
             {
                 label: "has tag(s)",
                 value: ACTIVE_FILTER,
-                disabled: noteArray.value.every((n) => n.tags.length === 0),
             },
             {
                 label: "no tag(s)",
                 value: NO_LINK_FILTER,
-                disabled: noteArray.value.every((n) => n.tags.length > 0),
             },
         ],
         search: filterOptions.tags.map((t) => ({ label: t, value: t })),
@@ -287,6 +263,8 @@ const tagFilter = ref<(string | symbol)[]>(
 watch(tagFilter, () => {
     saveDefaultFilter("note-tag-filter", tagFilterOptions.value.default, tagFilter.value);
 });
+
+// **** SEARCH TRIGGERS ****
 
 watch([searchFilter], debouncedSearch, {
     immediate: true,
@@ -304,6 +282,8 @@ watch(
 );
 
 watch(currentPage, search);
+
+// **** END ****
 
 function handleClickOutsideDialog(event: MouseEvent): void {
     if (searchOptionsDialog.value) {
@@ -414,7 +394,7 @@ function clearSearchBar(): void {
             </div>
         </div>
     </div>
-    <template v-if="realNotes.length === 0">
+    <template v-if="searchResults.length === 0">
         <div id="no-notes">
             <template v-if="noteState.reactive.notes.size === 0">
                 {{ t("game.ui.notes.NoteList.empty_note") }}
@@ -430,7 +410,7 @@ function clearSearchBar(): void {
             <div class="header">{{ t("game.ui.notes.NoteList.owner") }}</div>
             <div class="header">{{ t("game.ui.notes.NoteList.tags") }}</div>
             <div class="header">{{ t("game.ui.notes.NoteList.actions") }}</div>
-            <template v-for="note of realNotes" :key="note.uuid">
+            <template v-for="note of searchResults" :key="note.uuid">
                 <div class="title" @click="editNote(note.uuid)">{{ note.title }}</div>
                 <div>{{ note.creator === coreStore.state.username ? t("common.you") : note.creator }}</div>
                 <div class="note-tags">

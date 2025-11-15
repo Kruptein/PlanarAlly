@@ -114,7 +114,6 @@ const loading = ref(false);
 const filterOptions = reactive({
     locations: [] as { id: number; name: string }[],
     shapes: [] as { id: LocalId; name: string; src: string }[],
-    tags: [] as string[],
 });
 
 enum DefaultFilter {
@@ -179,7 +178,7 @@ async function updateShapeFilter(): Promise<void> {
 
 async function updateTagFilter(): Promise<void> {
     const filters = (await socket.emitWithAck("Note.Filters.Tag.Get")) as string[];
-    filterOptions.tags = filters.sort((a, b) => a.localeCompare(b));
+    noteState.mutableReactive.filterOptions.tags = filters.sort((a, b) => a.localeCompare(b));
 }
 
 function getDefaultFilter<T extends string | number | symbol>(
@@ -303,7 +302,7 @@ const tagFilterOptions = computed(() => {
                 value: NO_LINK_FILTER,
             },
         ],
-        search: filterOptions.tags.map((t) => ({ label: t, value: t })),
+        search: noteState.reactive.filterOptions.tags.map((t) => ({ label: t, value: t })),
     };
 });
 const tagFilter = ref<(string | symbol)[]>(

@@ -19,6 +19,9 @@ interface ReactiveNoteState {
         shapeFilter: boolean;
         tagFilter: boolean;
     };
+    filterOptions: {
+        tags: string[];
+    };
 
     shapeFilter: LocalId | undefined;
 
@@ -42,6 +45,9 @@ const state = buildState<ReactiveNoteState, NonReactiveNoteState>(
             locationFilter: true,
             shapeFilter: true,
             tagFilter: true,
+        },
+        filterOptions: {
+            tags: [],
         },
 
         shapeFilter: undefined,

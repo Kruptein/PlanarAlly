@@ -566,7 +566,10 @@ async def search_notes(sid: str, raw_data: Any):
             elif location_filter == DefaultNoteFilter.NO_LINK_FILTER:
                 loc_clauses.append(NoteRoom.location_id >> None)  # type: ignore
             elif location_filter == DefaultNoteFilter.ACTIVE_FILTER:
-                loc_clauses.append(NoteRoom.location_id == pr.active_location.id)
+                loc_clauses.append(
+                    (NoteRoom.location_id == pr.active_location.id)
+                    | (ShapeRoomView.location_id == pr.active_location.id)
+                )
             else:
                 loc_clauses.append(NoteRoom.location_id == location_filter)
         if loc_clauses:

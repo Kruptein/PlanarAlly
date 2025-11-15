@@ -1,17 +1,15 @@
 from typing import cast
 
-from peewee import TextField
+from peewee import IntegerField, TextField
 from playhouse.sqlite_ext import SqliteExtDatabase
 
 from ..base import BaseViewModel
 
 
 class ShapeRoomView(BaseViewModel):
-    shape_id: str
-    room_id: str
-
     shape_id = cast(str, TextField())
-    room_id = cast(str, TextField())
+    room_id = cast(str | None, TextField(null=True))
+    location_id = cast(int | None, IntegerField(null=True))
 
     @classmethod
     def create_view(cls, db: SqliteExtDatabase):

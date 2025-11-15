@@ -38,7 +38,7 @@ export interface ILayer {
     pushShapes: (...shapes: IShape[]) => void;
     removeShape: (shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }) => boolean;
     resize: (width: number, height: number) => void;
-    setServerShapes: (shapes: ApiShape[]) => void;
+    setServerShapes: (shapes: ApiShape[]) => Promise<void>;
     setShapes: (...shapes: IShape[]) => void;
     show: () => void;
     size: (options: { includeComposites: boolean; onlyInView: boolean }) => number;

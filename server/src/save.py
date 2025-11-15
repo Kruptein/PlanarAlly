@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 110
+SAVE_VERSION = 111
 
 import asyncio
 from collections import defaultdict
@@ -661,6 +661,13 @@ def upgrade(
                         (note_id, tag_id),
                     )
             db.execute_sql("ALTER TABLE note DROP COLUMN tags")
+    elif version == 110:
+        # Add more columns to ShapeRoomView
+        with db.atomic():
+            db.execute_sql("DROP VIEW shape_room_view")
+            db.execute_sql(
+                "CREATE VIEW shape_room_view AS SELECT shape.uuid as shape_id, room.id as room_id, location.id as location_id FROM shape LEFT JOIN layer ON shape.layer_id = layer.id LEFT JOIN floor ON layer.floor_id = floor.id LEFT JOIN location ON floor.location_id = location.id LEFT JOIN room ON location.room_id = room.id"
+            )
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

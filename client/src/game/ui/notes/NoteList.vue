@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { useDebounceFn } from "@vueuse/core";
+import { computed, onActivated, onDeactivated, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { LocalId } from "../../../core/id";
-import { NO_FILTER } from "../../../core/symbols";
-import { mostReadable } from "../../../core/utils";
+import type { DefaultNoteFilter } from "../../../apiTypes";
+import type { GlobalId, LocalId } from "../../../core/id";
+import { mostReadable, word2color } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
-import { locationStore } from "../../../store/location";
-import { getShape } from "../../id";
-import type { IAsset } from "../../interfaces/shapes/asset";
-import { gameState } from "../../systems/game/state";
+import { socket } from "../../api/socket";
+import { getGlobalId, getLocalId } from "../../id";
 import { noteState } from "../../systems/notes/state";
+import { NO_FILTER, ACTIVE_FILTER, NO_LINK_FILTER } from "../../systems/notes/types";
 import { type NoteId, NoteManagerMode, type NoteTag } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
 import { propertiesState } from "../../systems/properties/state";
-import { locationSettingsState } from "../../systems/settings/location/state";
 
 import NoteFilter from "./NoteFilter.vue";
 
@@ -36,11 +35,20 @@ const searchFilters = reactive({
     author: false,
 });
 
+interface QueryNote {
+    uuid: NoteId;
+    title: string;
+    creator: string;
+    tags: string[];
+}
+
 const searchBar = ref<HTMLInputElement | null>(null);
 const searchOptionsDialog = ref<HTMLDivElement | null>(null);
 const searchFilter = ref("");
 const showSearchFilters = ref(false);
-const searchPage = ref(1);
+const currentPage = ref(1);
+const pageSize = ref(25);
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)));
 
 const shapeFiltered = computed(() => noteState.reactive.shapeFilter !== undefined);
 const shapeName = computed(() => {
@@ -54,15 +62,125 @@ const shapeName = computed(() => {
 //     searchBar.value?.focus();
 // });
 
-const noteArray = computed(() =>
-    // temp-fix for vue iterator method breaking
-    Iterator.from(noteState.reactive.notes.values())
-        .map((n) => ({
-            ...n,
-            shapes: noteState.reactive.shapeNotes.get2(n.uuid) ?? [],
-        }))
-        .toArray(),
+const isOpen = ref(false);
+
+// triggers when switching between modes
+onActivated(() => {
+    if (noteState.reactive.managerOpen) isOpen.value = true;
+});
+
+onDeactivated(() => {
+    isOpen.value = false;
+});
+
+// triggers when toggling the note manager (it's behind a v-show)
+watch(
+    () => noteState.reactive.managerOpen,
+    (open) => {
+        isOpen.value = open;
+    },
 );
+
+watch(
+    [isOpen, () => noteState.reactive.refresh],
+    async ([open, refresh]) => {
+        if (!open || Object.values(refresh).every((v) => !v)) return;
+        const promises = [];
+        if (refresh.searchQuery) promises.push(search());
+        if (refresh.shapeFilter) promises.push(updateShapeFilter());
+        if (refresh.locationFilter) promises.push(updateLocationFilter());
+        if (refresh.tagFilter) promises.push(updateTagFilter());
+
+        await Promise.all(promises);
+
+        noteState.mutableReactive.refresh = {
+            searchQuery: false,
+            locationFilter: false,
+            shapeFilter: false,
+            tagFilter: false,
+        };
+    },
+    {
+        deep: true,
+        immediate: true,
+    },
+);
+
+const debouncedSearch = useDebounceFn(() => void search(), 300);
+
+const searchResults = ref<(Omit<QueryNote, "tags"> & { tags: NoteTag[] })[]>([]);
+const totalCount = ref(0);
+const loading = ref(false);
+const filterOptions = reactive({
+    locations: [] as { id: number; name: string }[],
+    shapes: [] as { id: LocalId; name: string; src: string }[],
+    tags: [] as string[],
+});
+
+enum DefaultFilter {
+    NO_FILTER = "NO_FILTER",
+    ACTIVE_FILTER = "ACTIVE_FILTER",
+    NO_LINK_FILTER = "NO_LINK_FILTER",
+}
+
+function filterToServer<T extends number | string>(value: symbol | T): DefaultNoteFilter | T {
+    if (typeof value !== "symbol") return value;
+    if (value === NO_FILTER) return DefaultFilter.NO_FILTER;
+    if (value === ACTIVE_FILTER) return DefaultFilter.ACTIVE_FILTER;
+    if (value === NO_LINK_FILTER) return DefaultFilter.NO_LINK_FILTER;
+    return DefaultFilter.NO_FILTER;
+}
+
+async function search(): Promise<void> {
+    if (!isOpen.value) return;
+    loading.value = true;
+    const [serverNotes, count] = (await socket.emitWithAck("Note.Search", {
+        search: searchFilter.value,
+        campaign_filter: filterToServer(roomFilter.value[0]!),
+        location_filter: locationFilter.value.map(filterToServer),
+        shape_filter: shapeFilter.value
+            .map((s) => (typeof s !== "symbol" ? getGlobalId(s) : s))
+            .filter((s) => s !== undefined)
+            .map(filterToServer),
+        tag_filter: tagFilter.value.map(filterToServer),
+        search_title: true,
+        search_text: false,
+        search_author: false,
+        page_number: currentPage.value,
+        page_size: pageSize.value,
+    })) as [QueryNote[], number];
+    searchResults.value = await Promise.all(
+        serverNotes.map(async (n) => ({
+            ...n,
+            tags: await Promise.all(n.tags.map(async (t) => ({ name: t, colour: await word2color(t) }))),
+        })),
+    );
+    totalCount.value = count;
+
+    loading.value = false;
+}
+
+async function updateLocationFilter(): Promise<void> {
+    const filters = (await socket.emitWithAck("Note.Filters.Location.Get")) as { id: number; name: string }[];
+    filterOptions.locations = filters.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function updateShapeFilter(): Promise<void> {
+    const filters = (await socket.emitWithAck("Note.Filters.Shape.Get")) as {
+        uuid: GlobalId;
+        name: string;
+        src: string;
+    }[];
+    filterOptions.shapes = filters
+        .map(({ uuid, ...s }) => ({ ...s, id: getLocalId(uuid, false)! }))
+        .filter((s) => s.id !== undefined)
+        .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function updateTagFilter(): Promise<void> {
+    const filters = (await socket.emitWithAck("Note.Filters.Tag.Get")) as string[];
+    filterOptions.tags = filters.sort((a, b) => a.localeCompare(b));
+}
 
 function getDefaultFilter<T extends string | number | symbol>(
     key: string,
@@ -91,102 +209,71 @@ function saveDefaultFilter<T extends string | number | symbol>(
     localStorage.setItem(key, JSON.stringify(indices));
 }
 
-const NO_LINK_FILTER = Symbol("NO_LINK_FILTER");
-const ACTIVE_CAMPAIGN_FILTER = Symbol("ACTIVE_CAMPAIGN_FILTER");
 const roomFilterOptions = computed(() => {
     return {
         default: [
             { label: "(no filter)", value: NO_FILTER },
             {
                 label: "active campaign",
-                value: ACTIVE_CAMPAIGN_FILTER,
-                disabled: noteArray.value.every((n) =>
-                    n.rooms.every((r) => `${r.roomCreator}/${r.roomName}` !== gameState.fullRoomName.value),
-                ),
+                value: ACTIVE_FILTER,
             },
             {
                 label: "no campaign links",
                 value: NO_LINK_FILTER,
-                disabled: noteArray.value.every((n) => n.rooms.length > 0),
             },
         ],
     };
 });
-const roomFilter = ref<(string | symbol)[]>(
-    getDefaultFilter("note-room-filter", roomFilterOptions.value.default, [ACTIVE_CAMPAIGN_FILTER]),
+const roomFilter = ref<symbol[]>(
+    getDefaultFilter("note-room-filter", roomFilterOptions.value.default, [ACTIVE_FILTER]),
 );
 
 watch(roomFilter, () => {
     saveDefaultFilter("note-room-filter", roomFilterOptions.value.default, roomFilter.value);
 });
 
-const ACTIVE_LOCATION_FILTER = Symbol("ACTIVE_LOCATION_FILTER");
 const locationFilterOptions = computed(() => {
     return {
         default: [
             { label: "(no filter)", value: NO_FILTER },
             {
                 label: "active location",
-                value: ACTIVE_LOCATION_FILTER,
-                disabled: noteArray.value.every((n) =>
-                    n.rooms.every((r) => r.locationId !== locationSettingsState.reactive.activeLocation),
-                ),
+                value: ACTIVE_FILTER,
             },
             {
                 label: "no location links",
                 value: NO_LINK_FILTER,
-                disabled: noteArray.value.every((n) => n.rooms.every((r) => r.locationId !== null)),
             },
         ],
-        search: locationStore.activeLocations.value
-            .filter((l) => noteArray.value.some((n) => n.rooms.some((r) => r.locationId === l.id)))
-            .map((l) => ({ label: l.name, value: l.id })),
+        search: filterOptions.locations.map((l) => ({ label: l.name, value: l.id })),
     };
 });
 const locationFilter = ref<(number | symbol)[]>(
-    getDefaultFilter("note-location-filter", locationFilterOptions.value.default, [
-        ACTIVE_LOCATION_FILTER,
-        NO_LINK_FILTER,
-    ]),
+    getDefaultFilter("note-location-filter", locationFilterOptions.value.default, [ACTIVE_FILTER, NO_LINK_FILTER]),
 );
 
 watch(locationFilter, () => {
     saveDefaultFilter("note-location-filter", locationFilterOptions.value.default, locationFilter.value);
 });
 
-const HAS_SHAPE_FILTER = Symbol("HAS_SHAPE_FILTER");
 const shapeFilterOptions = computed(() => {
     return {
         default: [
             { label: "(no filter)", value: NO_FILTER },
             {
                 label: "has shape(s)",
-                value: HAS_SHAPE_FILTER,
-                disabled: noteArray.value.every((n) => n.shapes.length === 0),
+                value: ACTIVE_FILTER,
             },
             {
                 label: "no shape(s)",
                 value: NO_LINK_FILTER,
-                disabled: noteArray.value.every((n) => n.shapes.length > 0),
             },
         ],
-        search: noteState.localShapeNotes.value
-            .entries2()
-            .filter(([, notes]) => noteArray.value.some((n) => notes.includes(n.uuid)))
-            .map(([l]) => {
-                const shape = getShape(l);
-                // we pass by the reactive state, to catch renames made by the client
-                // renames made by another client will not be caught this way though
-                // it feels somewhat overkill to actively load all these shapes just for this
-                const props = propertiesState.reactive.data.get(l) ?? propertiesState.readonly.data.get(l);
-                const url = shape && shape.type === "assetrect" ? (shape as IAsset).src : undefined;
-                return {
-                    label: props?.name ?? "Unknown Shape",
-                    value: l,
-                    icon: url,
-                };
-            })
-            .toArray(),
+        search: filterOptions.shapes.map((s) => ({
+            label: s.name,
+            value: s.id,
+            icon: s.src,
+        })),
     };
 });
 const shapeFilter = ref<(LocalId | symbol)[]>(
@@ -197,7 +284,6 @@ watch(shapeFilter, () => {
     saveDefaultFilter("note-shape-filter", shapeFilterOptions.value.default, shapeFilter.value);
 });
 
-const HAS_TAG_FILTER = Symbol("HAS_SHAPE_FILTER");
 const tagFilterOptions = computed(() => {
     const tagList = new Set<string>();
     for (const [_, note] of noteState.reactive.notes) {
@@ -210,20 +296,14 @@ const tagFilterOptions = computed(() => {
             { label: "(no filter)", value: NO_FILTER },
             {
                 label: "has tag(s)",
-                value: HAS_TAG_FILTER,
-                disabled: noteArray.value.every((n) => n.tags.length === 0),
+                value: ACTIVE_FILTER,
             },
             {
                 label: "no tag(s)",
                 value: NO_LINK_FILTER,
-                disabled: noteArray.value.every((n) => n.tags.length > 0),
             },
         ],
-        search: tagList
-            .values()
-            .filter((name) => noteArray.value.some((n) => n.tags.some((t) => t.name === name)))
-            .map((name) => ({ label: name, value: name }))
-            .toArray(),
+        search: filterOptions.tags.map((t) => ({ label: t, value: t })),
     };
 });
 const tagFilter = ref<(string | symbol)[]>(
@@ -233,88 +313,26 @@ watch(tagFilter, () => {
     saveDefaultFilter("note-tag-filter", tagFilterOptions.value.default, tagFilter.value);
 });
 
-const filteredNotes = computed(() => {
-    const sf = searchFilter.value.trim().toLowerCase();
-    const notes: typeof noteArray.value = [];
+// **** SEARCH TRIGGERS ****
 
-    const _roomFilter = roomFilter.value[0];
-
-    for (const note of noteArray.value) {
-        const roomLinks = note.rooms.filter((r) => `${r.roomCreator}/${r.roomName}` === gameState.fullRoomName.value);
-
-        let match = false;
-        if (_roomFilter === NO_FILTER) match = true;
-        else if (_roomFilter === NO_LINK_FILTER) {
-            if (roomLinks.length === 0) match = true;
-        } else if (roomLinks.length > 0) match = true;
-        if (!match) continue;
-
-        if (_roomFilter === ACTIVE_CAMPAIGN_FILTER) {
-            match = false;
-            if (locationFilter.value.includes(NO_FILTER)) match = true;
-            else if (locationFilter.value.includes(ACTIVE_LOCATION_FILTER)) {
-                if (roomLinks.some((r) => r.locationId === locationSettingsState.reactive.activeLocation)) match = true;
-            } else if (locationFilter.value.includes(NO_LINK_FILTER) && roomLinks.some((r) => r.locationId === null))
-                match = true;
-            else if (roomLinks.some((r) => r.locationId !== null && locationFilter.value.includes(r.locationId)))
-                match = true;
-            if (!match) continue;
-        }
-
-        match = false;
-        if (shapeFiltered.value && note.shapes.some((s) => s === noteState.reactive.shapeFilter)) {
-            match = true;
-        } else if (shapeFilter.value.includes(NO_FILTER)) {
-            match = true;
-        } else if (shapeFilter.value.includes(HAS_SHAPE_FILTER)) {
-            if (note.shapes.length > 0) match = true;
-        } else if (shapeFilter.value.includes(NO_LINK_FILTER)) {
-            if (note.shapes.length === 0) match = true;
-        } else if (note.shapes.some((s) => shapeFilter.value.includes(s))) {
-            match = true;
-        }
-        if (!match) continue;
-
-        match = false;
-        if (tagFilter.value.includes(NO_FILTER)) match = true;
-        else if (tagFilter.value.includes(HAS_TAG_FILTER)) {
-            if (note.tags.length > 0) match = true;
-        }
-        if (tagFilter.value.includes(NO_LINK_FILTER)) {
-            if (note.tags.length === 0) match = true;
-        }
-        if (note.tags.some((t) => tagFilter.value.includes(t.name))) {
-            match = true;
-        }
-        if (!match) continue;
-
-        if (sf.length === 0) {
-            notes.push(note);
-            continue;
-        }
-
-        if (searchFilters.title && note.title.toLowerCase().includes(sf)) {
-            notes.push(note);
-        } else if (searchFilters.text && note.text.toLowerCase().includes(sf)) {
-            notes.push(note);
-        } else if (searchFilters.author && note.creator.toLowerCase().includes(sf)) {
-            notes.push(note);
-        }
-    }
-    return notes;
+watch([searchFilter], debouncedSearch, {
+    immediate: true,
 });
 
-watch(filteredNotes, () => {
-    searchPage.value = 1;
-});
+watch(
+    [roomFilter, locationFilter, shapeFilter, tagFilter, pageSize],
+    async () => {
+        currentPage.value = 1;
+        await search();
+    },
+    {
+        immediate: true,
+    },
+);
 
-const pageSize = 25;
-const visibleNotes = computed(() => {
-    return {
-        notes: filteredNotes.value.slice((searchPage.value - 1) * pageSize, searchPage.value * pageSize),
-        hasNext: filteredNotes.value.length > searchPage.value * pageSize,
-    };
-});
+watch(currentPage, search);
+
+// **** END ****
 
 function handleClickOutsideDialog(event: MouseEvent): void {
     if (searchOptionsDialog.value) {
@@ -331,7 +349,7 @@ function toggleTagInSearch(tag: NoteTag): void {
             tagFilter.value.push(NO_FILTER);
         }
     } else {
-        tagFilter.value.push(tag.name);
+        tagFilter.value = [...tagFilter.value.filter((x) => x !== NO_FILTER), tag.name];
     }
 }
 
@@ -425,9 +443,11 @@ function clearSearchBar(): void {
             </div>
         </div>
     </div>
-    <template v-if="visibleNotes.notes.length === 0">
+    <template v-if="searchResults.length === 0">
         <div id="no-notes">
-            <template v-if="noteState.reactive.notes.size === 0">{{ t("game.ui.notes.NoteList.empty_note") }}</template>
+            <template v-if="noteState.reactive.notes.size === 0">
+                {{ t("game.ui.notes.NoteList.empty_note") }}
+            </template>
             <template v-else>
                 <span>{{ t("game.ui.notes.NoteList.empty_search") }}</span>
             </template>
@@ -439,24 +459,7 @@ function clearSearchBar(): void {
             <div class="header">{{ t("game.ui.notes.NoteList.owner") }}</div>
             <div class="header">{{ t("game.ui.notes.NoteList.tags") }}</div>
             <div class="header">{{ t("game.ui.notes.NoteList.actions") }}</div>
-            <template v-if="visibleNotes.hasNext || searchPage > 1">
-                <div />
-                <div />
-                <div />
-                <div>
-                    <font-awesome-icon
-                        icon="chevron-left"
-                        :style="{ opacity: searchPage > 1 ? 1 : 0.5 }"
-                        @click="searchPage = Math.max(1, searchPage - 1)"
-                    />
-                    <font-awesome-icon
-                        icon="chevron-right"
-                        :style="{ opacity: visibleNotes.hasNext ? 1 : 0.5 }"
-                        @click="if (visibleNotes.hasNext) searchPage += 1;"
-                    />
-                </div>
-            </template>
-            <template v-for="note of visibleNotes.notes" :key="note.uuid">
+            <template v-for="note of searchResults" :key="note.uuid">
                 <div class="title" @click="editNote(note.uuid)">{{ note.title }}</div>
                 <div>{{ note.creator === coreStore.state.username ? t("common.you") : note.creator }}</div>
                 <div class="note-tags">
@@ -488,6 +491,19 @@ function clearSearchBar(): void {
         </div>
     </template>
     <footer>
+        <div style="user-select: none">
+            <font-awesome-icon
+                icon="chevron-left"
+                :class="{ disabled: currentPage === 1 }"
+                @click="currentPage = Math.max(1, currentPage - 1)"
+            />
+            page {{ currentPage }} of {{ totalPages }}
+            <font-awesome-icon
+                icon="chevron-right"
+                :class="{ disabled: currentPage === totalPages }"
+                @click="currentPage = Math.min(totalPages, currentPage + 1)"
+            />
+        </div>
         <div style="flex-grow: 1"></div>
         <div id="new-note-selector" @click="$emit('mode', NoteManagerMode.Create)">
             {{ t("game.ui.menu.MenuBar.new_note")
@@ -736,7 +752,12 @@ header {
 
 footer {
     display: flex;
+    align-items: center;
     margin-top: 2rem;
+
+    .disabled {
+        opacity: 0.5;
+    }
 
     #new-note-selector {
         background-color: lightblue;

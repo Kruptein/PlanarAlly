@@ -13,6 +13,13 @@ interface ReactiveNoteState {
     managerMode: NoteManagerMode;
     currentNote: NoteId | undefined;
 
+    refresh: {
+        searchQuery: boolean;
+        locationFilter: boolean;
+        shapeFilter: boolean;
+        tagFilter: boolean;
+    };
+
     shapeFilter: LocalId | undefined;
 
     notes: Map<NoteId, ClientNote>;
@@ -29,6 +36,13 @@ const state = buildState<ReactiveNoteState, NonReactiveNoteState>(
         managerOpen: false,
         managerMode: NoteManagerMode.List,
         currentNote: undefined,
+
+        refresh: {
+            searchQuery: true,
+            locationFilter: true,
+            shapeFilter: true,
+            tagFilter: true,
+        },
 
         shapeFilter: undefined,
 

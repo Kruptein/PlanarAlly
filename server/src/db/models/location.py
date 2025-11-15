@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 
 class Location(BaseDbModel):
     id: int
+    room_id: int
     floors: SelectSequence["Floor"]
     initiative: list["Initiative"]
     markers: SelectSequence["Marker"]

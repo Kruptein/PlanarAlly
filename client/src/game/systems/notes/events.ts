@@ -1,6 +1,13 @@
 import { POSITION, useToast } from "vue-toastification";
 
-import type { ApiNote, ApiNoteAccessEdit, ApiNoteSetBoolean, ApiNoteSetString, ApiNoteShape } from "../../../apiTypes";
+import type {
+    ApiNote,
+    ApiNoteAccessEdit,
+    ApiNoteRoomLink,
+    ApiNoteSetBoolean,
+    ApiNoteSetString,
+    ApiNoteShape,
+} from "../../../apiTypes";
 import SingleButtonToastVue from "../../../core/components/toasts/SingleButtonToast.vue";
 import { coreStore } from "../../../store/core";
 import { socket } from "../../api/socket";
@@ -12,10 +19,6 @@ import { popoutNote } from "./ui";
 import { noteSystem } from ".";
 
 const toast = useToast();
-
-socket.on("Notes.Set", async (notes: ApiNote[]) => {
-    await Promise.all(notes.map((note) => noteSystem.newNote(note, false)));
-});
 
 socket.on("Note.Add", async (data: ApiNote) => {
     await noteSystem.newNote(data, false);
@@ -87,4 +90,12 @@ socket.on("Note.ShowOnHover.Set", (data: ApiNoteSetBoolean) => {
 
 socket.on("Note.ShowIconOnShape.Set", (data: ApiNoteSetBoolean) => {
     noteSystem.setShowIconOnShape(data.uuid, data.value, false);
+});
+
+socket.on("Note.Room.Link", (data: ApiNoteRoomLink) => {
+    noteSystem.linkToRoom(data.note, data.roomCreator, data.roomName, data.locationId, data.locationName, false);
+});
+
+socket.on("Note.Room.Unlink", (data: ApiNoteRoomLink) => {
+    noteSystem.removeRoomLink(data.note, data.roomCreator, data.roomName, data.locationId, false);
 });

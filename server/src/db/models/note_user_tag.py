@@ -12,7 +12,9 @@ if TYPE_CHECKING:
 
 
 class NoteUserTag(BaseDbModel):
+    id: int
     note_tags: SelectSequence["NoteTag"]
+    user_id: int
 
     user = cast("User", ForeignKeyField(User, backref="note_tags", on_delete="CASCADE"))
     tag = cast(str, TextField())

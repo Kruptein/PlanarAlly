@@ -22,6 +22,7 @@ export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumb
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
+export type DefaultNoteFilter = "NO_FILTER" | "ACTIVE_FILTER" | "NO_LINK_FILTER";
 export type InitiativeDirection = -1 | 0 | 1;
 
 export interface ApiAsset {
@@ -112,6 +113,29 @@ export interface ApiAura {
   border_colour: string;
   angle: number;
   direction: number;
+}
+export interface ApiNote {
+  uuid: NoteId;
+  creator: string;
+  title: string;
+  text: string;
+  tags: string[];
+  showOnHover: boolean;
+  showIconOnShape: boolean;
+  rooms: ApiNoteRoom[];
+  access: ApiNoteAccess[];
+  shapes: GlobalId[];
+}
+export interface ApiNoteRoom {
+  roomCreator: string;
+  roomName: string;
+  locationId: number | null;
+  locationName: string | null;
+}
+export interface ApiNoteAccess {
+  name: string;
+  can_edit: boolean;
+  can_view: boolean;
 }
 export interface ApiAssetRemoveShare {
   asset: AssetId;
@@ -204,6 +228,7 @@ export interface ApiCoreShape {
   cell_fill_colour: string | null;
   cell_stroke_colour: string | null;
   cell_stroke_width: number | null;
+  notes: ApiNote[];
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
@@ -315,34 +340,23 @@ export interface ApiModMeta {
   hash: string;
   hasCss: boolean;
 }
-export interface ApiNote {
-  uuid: NoteId;
-  creator: string;
-  title: string;
-  text: string;
-  tags: string[];
-  showOnHover: boolean;
-  showIconOnShape: boolean;
-  rooms: ApiNoteRoom[];
-  access: ApiNoteAccess[];
-  shapes: GlobalId[];
-}
-export interface ApiNoteRoom {
-  roomCreator: string;
-  roomName: string;
-  locationId: number | null;
-  locationName: string | null;
-}
-export interface ApiNoteAccess {
-  name: string;
-  can_edit: boolean;
-  can_view: boolean;
-}
 export interface ApiNoteAccessEdit extends ApiNoteAccess {
   note: NoteId;
 }
 export interface ApiNoteRoomLink extends ApiNoteRoom {
   note: NoteId;
+}
+export interface ApiNoteSearch {
+  search: string;
+  campaign_filter: DefaultNoteFilter;
+  location_filter: (DefaultNoteFilter | number)[];
+  shape_filter: (DefaultNoteFilter | string)[];
+  tag_filter: (DefaultNoteFilter | string)[];
+  search_title: boolean;
+  search_text: boolean;
+  search_author: boolean;
+  page_number: number;
+  page_size: number;
 }
 export interface ApiNoteSetBoolean {
   uuid: NoteId;

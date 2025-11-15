@@ -39,36 +39,36 @@ describe("Aura System", () => {
         emitSpy.mockClear();
     });
     describe("get", () => {
-        it("should return undefined if the shape does not exist", () => {
+        it("should return undefined if the shape does not exist", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             const auraId = generateTestAuraId();
             // test
             expect(auraSystem.get(id, auraId, false)).toBeUndefined();
             expect(auraSystem.get(id, auraId, true)).toBeUndefined();
         });
-        it("should return undefined if the aura does not exist", () => {
+        it("should return undefined if the aura does not exist", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             const auraId = generateTestAuraId();
             auraSystem.importLate(id, [], "load");
             // test
             expect(auraSystem.get(id, auraId, false)).toBeUndefined();
             expect(auraSystem.get(id, auraId, true)).toBeUndefined();
         });
-        it("should return the aura if it exists", () => {
+        it("should return the aura if it exists", async () => {
             // setup
-            const id = generateTestLocalId(generateTestShape({ floor: "test" }));
+            const id = await generateTestLocalId(await generateTestShape({ floor: "test" }));
             const aura = generateTestAura();
             auraSystem.importLate(id, [aura], "load");
             // test
             expect(auraSystem.get(id, aura.uuid, false)).toMatchObject(aura);
             expect(auraSystem.get(id, aura.uuid, true)).toMatchObject(aura);
         });
-        it("should correctly work for variants", () => {
+        it("should correctly work for variants", async () => {
             // setup
-            const id = generateTestLocalId(generateTestShape({ floor: "test" }));
-            const id2 = generateTestLocalId();
+            const id = await generateTestLocalId(await generateTestShape({ floor: "test" }));
+            const id2 = await generateTestLocalId();
             const aura = generateTestAura();
             compositeState.addComposite(id, { id: id2, name: "variant" }, false);
             auraSystem.importLate(id, [aura], "load");
@@ -78,16 +78,16 @@ describe("Aura System", () => {
         });
     });
     describe("getAll", () => {
-        it("should return an empty list if the shape is not known", () => {
+        it("should return an empty list if the shape is not known", async () => {
             // setup
-            const id = generateTestLocalId();
+            const id = await generateTestLocalId();
             // test
             expect(auraSystem.getAll(id, false)).toEqual([]);
             expect(auraSystem.getAll(id, true)).toEqual([]);
         });
-        it("should return all auras associated with the shape when vision access is granted", () => {
+        it("should return all auras associated with the shape when vision access is granted", async () => {
             // setup
-            const id = generateTestLocalId(generateTestShape({ floor: "test" }));
+            const id = await generateTestLocalId(await generateTestShape({ floor: "test" }));
             accessSystem.import(id, toAccessMap({ default: { edit: false, movement: false, vision: true } }), "load");
             const aura = generateTestAura();
             auraSystem.importLate(id, [aura], "load");
@@ -97,9 +97,9 @@ describe("Aura System", () => {
             expect(auraSystem.getAll(id, false)).toEqual([aura, aura2]);
             expect(auraSystem.getAll(id, true)).toEqual([aura, aura2]);
         });
-        it("should return the correct auras associated with the shape when vision access is not granted", () => {
+        it("should return the correct auras associated with the shape when vision access is not granted", async () => {
             // setup
-            const id = generateTestLocalId(generateTestShape({ floor: "test" }));
+            const id = await generateTestLocalId(await generateTestShape({ floor: "test" }));
             const aura = generateTestAura();
             const aura2 = generateTestAura({ visible: false, visionSource: false });
             const aura3 = generateTestAura({ visible: false, visionSource: true });
@@ -109,11 +109,11 @@ describe("Aura System", () => {
             expect(auraSystem.getAll(id, false)).toEqual([aura, aura4]);
             expect(auraSystem.getAll(id, true)).toEqual([aura, aura4]);
         });
-        it("should correctly work for variants", () => {
+        it("should correctly work for variants", async () => {
             // setup
-            const id = generateTestLocalId(generateTestShape({ floor: "test" }));
+            const id = await generateTestLocalId(await generateTestShape({ floor: "test" }));
             accessSystem.import(id, toAccessMap({ default: { edit: false, movement: false, vision: true } }), "load");
-            const id2 = generateTestLocalId();
+            const id2 = await generateTestLocalId();
             accessSystem.import(id2, toAccessMap({ default: { edit: false, movement: false, vision: true } }), "load");
             compositeState.addComposite(id, { id: id2, name: "variant" }, false);
             const aura = generateTestAura();
@@ -126,10 +126,10 @@ describe("Aura System", () => {
         });
     });
     describe("add", () => {
-        it("should add the aura to the system", () => {
+        it("should add the aura to the system", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({ active: false, visionSource: true });
             auraSystem.importLate(id, [], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
@@ -141,10 +141,10 @@ describe("Aura System", () => {
             expect(emitSpy).not.toBeCalled();
         });
 
-        it("should inform the server if SyncTo is set", () => {
+        it("should inform the server if SyncTo is set", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({ active: false, visionSource: true });
             auraSystem.importLate(id, [], "load");
             // test
@@ -153,10 +153,10 @@ describe("Aura System", () => {
             expect(emitSpy).toBeCalled();
         });
 
-        it("should invalidate the shape if the aura is active", () => {
+        it("should invalidate the shape if the aura is active", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({ active: true, visionSource: false });
             auraSystem.importLate(id, [], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
@@ -168,10 +168,10 @@ describe("Aura System", () => {
             expect(emitSpy).not.toBeCalled();
         });
 
-        it("should add the aura to the vision system if the aura is active and a vision source", () => {
+        it("should add the aura to the vision system if the aura is active and a vision source", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({ active: true, visionSource: true });
             auraSystem.importLate(id, [], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
@@ -184,10 +184,10 @@ describe("Aura System", () => {
         });
     });
     describe("update", () => {
-        it("should update the aura", () => {
+        it("should update the aura", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({
                 active: false,
                 visionSource: true,
@@ -227,10 +227,10 @@ describe("Aura System", () => {
             expect(emitSpy).not.toBeCalled();
         });
 
-        it("should inform the server if SyncTo is set", () => {
+        it("should inform the server if SyncTo is set", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({
                 active: false,
                 visionSource: true,
@@ -251,10 +251,10 @@ describe("Aura System", () => {
             expect(emitSpy).toBeCalled();
         });
 
-        it("should invalidate the shape if it is and stays active", () => {
+        it("should invalidate the shape if it is and stays active", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({
                 active: true,
                 visionSource: true,
@@ -276,10 +276,10 @@ describe("Aura System", () => {
             expect(emitSpy).not.toBeCalled();
         });
 
-        it("should add to the visionState if it becomes active", () => {
+        it("should add to the visionState if it becomes active", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({
                 active: false,
                 visionSource: true,
@@ -300,10 +300,10 @@ describe("Aura System", () => {
             expect(emitSpy).not.toBeCalled();
         });
 
-        it("should add to the visionState if it becomes a vision source", () => {
+        it("should add to the visionState if it becomes a vision source", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({
                 active: true,
                 visionSource: false,
@@ -325,10 +325,10 @@ describe("Aura System", () => {
             expect(emitSpy).not.toBeCalled();
         });
 
-        it("should remove from the visionState if it becomes inactive", () => {
+        it("should remove from the visionState if it becomes inactive", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({
                 active: true,
                 visionSource: false,
@@ -350,10 +350,10 @@ describe("Aura System", () => {
             expect(emitSpy).not.toBeCalled();
         });
 
-        it("should remove from the visionState if it's no longer a vision source", () => {
+        it("should remove from the visionState if it's no longer a vision source", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({
                 active: true,
                 visionSource: true,
@@ -376,10 +376,10 @@ describe("Aura System", () => {
         });
     });
     describe("remove", () => {
-        it("should remove the aura from the system", () => {
+        it("should remove the aura from the system", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({ active: false, visionSource: true });
             auraSystem.importLate(id, [aura], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
@@ -390,10 +390,10 @@ describe("Aura System", () => {
             expect(removeVisionSpy).not.toBeCalled();
         });
 
-        it("should inform the server if SyncTo is set", () => {
+        it("should inform the server if SyncTo is set", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({ active: false, visionSource: true });
             auraSystem.importLate(id, [aura], "load");
             // test
@@ -402,10 +402,10 @@ describe("Aura System", () => {
             expect(emitSpy).toBeCalled();
         });
 
-        it("should invalidate the shape if the aura was active", () => {
+        it("should invalidate the shape if the aura was active", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({ active: true, visionSource: false });
             auraSystem.importLate(id, [aura], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");
@@ -417,10 +417,10 @@ describe("Aura System", () => {
             expect(emitSpy).not.toBeCalled();
         });
 
-        it("should remove the aura from the vision system if the aura was active and a vision source", () => {
+        it("should remove the aura from the vision system if the aura was active and a vision source", async () => {
             // setup
-            const shape = generateTestShape({ floor: "test" });
-            const id = generateTestLocalId(shape);
+            const shape = await generateTestShape({ floor: "test" });
+            const id = await generateTestLocalId(shape);
             const aura = generateTestAura({ active: true, visionSource: true });
             auraSystem.importLate(id, [aura], "load");
             const invalidateSpy = vi.spyOn(shape, "invalidate");

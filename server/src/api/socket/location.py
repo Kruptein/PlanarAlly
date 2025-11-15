@@ -19,7 +19,6 @@ from ...db.models.location_options import LocationOptions
 from ...db.models.location_user_option import LocationUserOption
 from ...db.models.marker import Marker
 from ...db.models.mod_room import ModRoom
-from ...db.models.note import Note
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.shape import Shape
@@ -219,12 +218,6 @@ async def load_location(sid: str, location: Location, *, complete=False):
         await _send_game("Initiative.Set", initiative_data.as_pydantic(), room=sid)
 
     # 7. Load Notes
-
-    await _send_game(
-        "Notes.Set",
-        Note.get_for_player(pr),
-        room=sid,
-    )
 
     # 8. Load Markers
 

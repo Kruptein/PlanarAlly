@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from .line import Line
     from .polygon import Polygon
     from .rect import Rect
+    from .note_shape import NoteShape
     from .shape_custom_data import ShapeCustomData
     from .shape_data_block import ShapeDataBlock
     from .shape_owner import ShapeOwner
@@ -47,6 +48,7 @@ class Shape(BaseDbModel):
     character_id: int | None
     data_blocks: SelectSequence["ShapeDataBlock"]
     custom_data: SelectSequence["ShapeCustomData"]
+    notes: SelectSequence["NoteShape"]
 
     uuid = cast(str, TextField(primary_key=True))
     layer = cast(

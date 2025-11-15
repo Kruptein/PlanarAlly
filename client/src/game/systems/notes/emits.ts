@@ -6,7 +6,9 @@ import type {
     ApiNoteShape,
     ApiNoteRoomLink,
 } from "../../../apiTypes";
-import { wrapSocket } from "../../api/socket";
+import { wrapSocket, wrapSocketWithDataAck } from "../../api/socket";
+
+import type { NoteId } from "./types";
 
 export const sendNewNote = wrapSocket<ApiNote>("Note.New");
 export const sendRemoveNote = wrapSocket<string>("Note.Remove");
@@ -23,3 +25,5 @@ export const sendNoteSetShowOnHover = wrapSocket<ApiNoteSetBoolean>("Note.ShowOn
 export const sendNoteSetShowIconOnShape = wrapSocket<ApiNoteSetBoolean>("Note.ShowIconOnShape.Set");
 export const sendNoteRoomLink = wrapSocket<ApiNoteRoomLink>("Note.Room.Link");
 export const sendNoteRoomUnlink = wrapSocket<ApiNoteRoomLink>("Note.Room.Unlink");
+
+export const sendGetNote = wrapSocketWithDataAck<NoteId, ApiNote | undefined>("Note.Get");

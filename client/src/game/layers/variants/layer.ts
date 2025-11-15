@@ -263,7 +263,7 @@ export class Layer implements ILayer {
         this.updateView();
     }
 
-    setServerShapes(shapes: ApiShape[]): void {
+    async setServerShapes(shapes: ApiShape[]): Promise<void> {
         if (this.isActiveLayer) selectedSystem.clear(); // TODO: Fix keeping selection on those items that are not moved.
         // We need to ensure composites are added after all their variants have been added
         const composites = [];
@@ -271,14 +271,14 @@ export class Layer implements ILayer {
             if (serverShape.type_ === "togglecomposite") {
                 composites.push(serverShape);
             } else {
-                this.setServerShape(serverShape);
+                await this.setServerShape(serverShape);
             }
         }
-        for (const composite of composites) this.setServerShape(composite);
+        for (const composite of composites) await this.setServerShape(composite);
     }
 
-    private setServerShape(serverShape: ApiShape): void {
-        const compact = loadFromServer(serverShape, this.floor, this.name);
+    private async setServerShape(serverShape: ApiShape): Promise<void> {
+        const compact = await loadFromServer(serverShape, this.floor, this.name);
         instantiateCompactForm(compact, "load", (shape) => {
             let invalidate = InvalidationMode.NO;
             if (visionState.state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {

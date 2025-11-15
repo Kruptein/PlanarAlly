@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { useDebounceFn } from "@vueuse/core";
-import { computed, onActivated, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, onActivated, onDeactivated, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { ApiNote, DefaultNoteFilter } from "../../../apiTypes";
+import type { DefaultNoteFilter } from "../../../apiTypes";
 import type { GlobalId, LocalId } from "../../../core/id";
-import { mostReadable } from "../../../core/utils";
+import { mostReadable, word2color } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { socket } from "../../api/socket";
 import { getGlobalId, getLocalId } from "../../id";
-import { noteFromServer } from "../../systems/notes/conversion";
 import { noteState } from "../../systems/notes/state";
 import { NO_FILTER, ACTIVE_FILTER, NO_LINK_FILTER } from "../../systems/notes/types";
-import { type ClientNote, type NoteId, NoteManagerMode, type NoteTag } from "../../systems/notes/types";
+import { type NoteId, NoteManagerMode, type NoteTag } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
 import { propertiesState } from "../../systems/properties/state";
 
@@ -36,6 +35,13 @@ const searchFilters = reactive({
     author: false,
 });
 
+interface QueryNote {
+    uuid: NoteId;
+    title: string;
+    creator: string;
+    tags: string[];
+}
+
 const searchBar = ref<HTMLInputElement | null>(null);
 const searchOptionsDialog = ref<HTMLDivElement | null>(null);
 const searchFilter = ref("");
@@ -56,24 +62,53 @@ const shapeName = computed(() => {
 //     searchBar.value?.focus();
 // });
 
+const isOpen = ref(false);
+
 // triggers when switching between modes
-onActivated(async () => {
-    await search();
+onActivated(() => {
+    if (noteState.reactive.managerOpen) isOpen.value = true;
+});
+
+onDeactivated(() => {
+    isOpen.value = false;
 });
 
 // triggers when toggling the note manager (it's behind a v-show)
 watch(
     () => noteState.reactive.managerOpen,
-    async (open) => {
-        if (open) {
-            await search();
-        }
+    (open) => {
+        isOpen.value = open;
+    },
+);
+
+watch(
+    [isOpen, () => noteState.reactive.refresh],
+    async ([open, refresh]) => {
+        if (!open || Object.values(refresh).every((v) => !v)) return;
+        const promises = [];
+        if (refresh.searchQuery) promises.push(search());
+        if (refresh.shapeFilter) promises.push(updateShapeFilter());
+        if (refresh.locationFilter) promises.push(updateLocationFilter());
+        if (refresh.tagFilter) promises.push(updateTagFilter());
+
+        await Promise.all(promises);
+
+        noteState.mutableReactive.refresh = {
+            searchQuery: false,
+            locationFilter: false,
+            shapeFilter: false,
+            tagFilter: false,
+        };
+    },
+    {
+        deep: true,
+        immediate: true,
     },
 );
 
 const debouncedSearch = useDebounceFn(() => void search(), 300);
 
-const searchResults = ref<ClientNote[]>([]);
+const searchResults = ref<(Omit<QueryNote, "tags"> & { tags: NoteTag[] })[]>([]);
 const totalCount = ref(0);
 const loading = ref(false);
 const filterOptions = reactive({
@@ -97,8 +132,9 @@ function filterToServer<T extends number | string>(value: symbol | T): DefaultNo
 }
 
 async function search(): Promise<void> {
+    if (!isOpen.value) return;
     loading.value = true;
-    const [serverNotes, count, filters] = (await socket.emitWithAck("Note.Search", {
+    const [serverNotes, count] = (await socket.emitWithAck("Note.Search", {
         search: searchFilter.value,
         campaign_filter: filterToServer(roomFilter.value[0]!),
         location_filter: locationFilter.value.map(filterToServer),
@@ -112,25 +148,38 @@ async function search(): Promise<void> {
         search_author: false,
         page_number: currentPage.value,
         page_size: pageSize.value,
-    })) as [
-        ApiNote[],
-        number,
-        {
-            shapes: { uuid: GlobalId; name: string; src: string }[];
-            locations: { id: number; name: string }[];
-            tags: string[];
-        },
-    ];
-    searchResults.value = await Promise.all(serverNotes.map((n) => noteFromServer(n)));
+    })) as [QueryNote[], number];
+    searchResults.value = await Promise.all(
+        serverNotes.map(async (n) => ({
+            ...n,
+            tags: await Promise.all(n.tags.map(async (t) => ({ name: t, colour: await word2color(t) }))),
+        })),
+    );
     totalCount.value = count;
 
-    filterOptions.locations = filters.locations.sort((a, b) => a.name.localeCompare(b.name));
-    filterOptions.shapes = filters.shapes
+    loading.value = false;
+}
+
+async function updateLocationFilter(): Promise<void> {
+    const filters = (await socket.emitWithAck("Note.Filters.Location.Get")) as { id: number; name: string }[];
+    filterOptions.locations = filters.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function updateShapeFilter(): Promise<void> {
+    const filters = (await socket.emitWithAck("Note.Filters.Shape.Get")) as {
+        uuid: GlobalId;
+        name: string;
+        src: string;
+    }[];
+    filterOptions.shapes = filters
         .map(({ uuid, ...s }) => ({ ...s, id: getLocalId(uuid, false)! }))
         .filter((s) => s.id !== undefined)
         .sort((a, b) => a.name.localeCompare(b.name));
-    filterOptions.tags = filters.tags.sort((a, b) => a.localeCompare(b));
-    loading.value = false;
+}
+
+async function updateTagFilter(): Promise<void> {
+    const filters = (await socket.emitWithAck("Note.Filters.Tag.Get")) as string[];
+    filterOptions.tags = filters.sort((a, b) => a.localeCompare(b));
 }
 
 function getDefaultFilter<T extends string | number | symbol>(

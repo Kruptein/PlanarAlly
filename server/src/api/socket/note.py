@@ -536,6 +536,7 @@ async def search_notes(sid: str, raw_data: Any):
         .join(NoteShape, JOIN.LEFT_OUTER, on=(Note.uuid == NoteShape.note_id))
         .join(NoteTag, JOIN.LEFT_OUTER, on=(Note.uuid == NoteTag.note_id))
         .join(ShapeRoomView, JOIN.LEFT_OUTER, on=(NoteShape.shape_id == ShapeRoomView.shape_id))
+        .join(User, on=(Note.creator_id == User.id))
     )
 
     access_direct = (Note.creator == pr.player) | ((NoteAccess.user == pr.player) & (NoteAccess.can_view == True))  # noqa: E712
@@ -611,6 +612,40 @@ async def search_notes(sid: str, raw_data: Any):
     notes_query = notes_query.group_by(Note.uuid)
     page_query = notes_query.paginate(data.page_number, data.page_size)
 
+    return [
+        [
+            {
+                "uuid": note.uuid,
+                "title": note.title,
+                "creator": note.creator.name,
+                "tags": [tag.tag.tag for tag in note.tags],
+            }
+            for note in page_query
+        ],
+        notes_query.count(),
+    ]
+
+
+@sio.on("Note.Filters.Location.Get", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def get_location_filters(sid: str):
+    pr: PlayerRoom = game_state.get(sid)
+
+    location_options_query = (
+        Location.select(Location.id, Location.name)
+        .where(Location.room_id == pr.room.id)
+        .where(fn.EXISTS(NoteRoom.select().where(NoteRoom.location_id == Location.id)))
+        .dicts()
+    )
+
+    return list(location_options_query)
+
+
+@sio.on("Note.Filters.Shape.Get", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def get_shape_filters(sid: str):
+    pr: PlayerRoom = game_state.get(sid)
+
     shape_options_query = (
         NoteShape.select(Shape.uuid, Shape.name, AssetRect.src)
         .join(Shape, on=(NoteShape.shape_id == Shape.uuid))
@@ -621,21 +656,14 @@ async def search_notes(sid: str, raw_data: Any):
         .dicts()
     )
 
-    location_options_query = (
-        Location.select(Location.id, Location.name)
-        .where(Location.room_id == pr.room.id)
-        .where(fn.EXISTS(NoteRoom.select().where(NoteRoom.location_id == Location.id)))
-        .dicts()
-    )
+    return list(shape_options_query)
+
+
+@sio.on("Note.Filters.Tag.Get", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def get_tag_filters(sid: str):
+    pr: PlayerRoom = game_state.get(sid)
 
     tag_options_query = NoteUserTag.select().where(NoteUserTag.user_id == pr.player.id)
 
-    return [
-        [note.as_pydantic() for note in page_query],
-        notes_query.count(),
-        {
-            "locations": list(location_options_query),
-            "shapes": list(shape_options_query),
-            "tags": [tag.tag for tag in tag_options_query],
-        },
-    ]
+    return [tag.tag for tag in tag_options_query]

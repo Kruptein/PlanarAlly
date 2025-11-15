@@ -13,6 +13,7 @@ from .user import User
 
 
 class Note(BaseDbModel):
+    creator_id: int
     access: SelectSequence["NoteAccess"]
     rooms: SelectSequence["NoteRoom"]
     shapes: SelectSequence["NoteShape"]

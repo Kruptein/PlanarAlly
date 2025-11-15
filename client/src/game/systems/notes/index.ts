@@ -95,53 +95,57 @@ class NoteSystem implements ShapeSystem<NoteId[]> {
             this.hookupShape(note, shape);
         }
         if (sync) sendNewNote(apiNote);
+        $.refresh.searchQuery = true;
     }
 
     setTitle(noteId: NoteId, title: string, sync: boolean): void {
         const note = $.notes.get(noteId);
-        if (note === undefined) return;
-        note.title = title;
-        if (sync) {
-            sendSetNoteTitle({
-                uuid: noteId,
-                value: title,
-            });
+        if (note !== undefined) {
+            note.title = title;
+            if (sync) {
+                sendSetNoteTitle({
+                    uuid: noteId,
+                    value: title,
+                });
+            }
         }
+        $.refresh.searchQuery = true;
     }
 
     setText(noteId: NoteId, text: string, sync: boolean, syncAfterDelay: boolean = false): void {
         const note = $.notes.get(noteId);
-        if (note === undefined) return;
+        if (note !== undefined) {
+            // Ensure any existing timeout is cleared,
+            // so that we don't override a sync with a stale value
+            const timeoutId = readonly.syncTimeouts.get(noteId);
+            if (timeoutId !== undefined) {
+                window.clearTimeout(timeoutId);
+                mutable.syncTimeouts.delete(noteId);
+            }
 
-        // Ensure any existing timeout is cleared,
-        // so that we don't override a sync with a stale value
-        const timeoutId = readonly.syncTimeouts.get(noteId);
-        if (timeoutId !== undefined) {
-            window.clearTimeout(timeoutId);
-            mutable.syncTimeouts.delete(noteId);
+            // If there was a timeout ongoing, flush it immediately
+            // otherwise only flush if the text actually changed
+            if (sync && (timeoutId !== undefined || note.text !== text)) {
+                sendSetNoteText({
+                    uuid: noteId,
+                    value: text,
+                });
+            } else if (syncAfterDelay) {
+                mutable.syncTimeouts.set(
+                    noteId,
+                    window.setTimeout(() => {
+                        mutable.syncTimeouts.delete(noteId);
+                        sendSetNoteText({
+                            uuid: noteId,
+                            value: text,
+                        });
+                    }, 5_000),
+                );
+            }
+
+            note.text = text;
         }
-
-        // If there was a timeout ongoing, flush it immediately
-        // otherwise only flush if the text actually changed
-        if (sync && (timeoutId !== undefined || note.text !== text)) {
-            sendSetNoteText({
-                uuid: noteId,
-                value: text,
-            });
-        } else if (syncAfterDelay) {
-            mutable.syncTimeouts.set(
-                noteId,
-                window.setTimeout(() => {
-                    mutable.syncTimeouts.delete(noteId);
-                    sendSetNoteText({
-                        uuid: noteId,
-                        value: text,
-                    });
-                }, 5_000),
-            );
-        }
-
-        note.text = text;
+        $.refresh.searchQuery = true;
     }
 
     attachShape(noteId: NoteId, shape: LocalId, sync: boolean): void {
@@ -164,6 +168,8 @@ class NoteSystem implements ShapeSystem<NoteId[]> {
             }
             sendNoteAddShape({ note_id: noteId, shape_id: globalId });
         }
+        $.refresh.searchQuery = true;
+        $.refresh.shapeFilter = true;
     }
 
     // This is a utlity function used during loading of notes
@@ -174,122 +180,155 @@ class NoteSystem implements ShapeSystem<NoteId[]> {
 
     removeShape(noteId: NoteId, shapeId: LocalId, sync: boolean): void {
         const note = $.notes.get(noteId);
-        if (note === undefined) {
+        if (sync && note === undefined) {
             console.error("Tried to attach a shape to a non-existent note");
             return;
         }
-        if (note.shapes.includes(shapeId)) {
-            note.shapes = note.shapes.filter((n) => n !== shapeId);
-        } else {
-            console.error("Tried to remove a shape from a note it's not linked to??");
-            return;
-        }
-
-        $.shapeNotes.deletePair(shapeId, noteId);
-
-        if (note.showIconOnShape) {
-            for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
-                const shape = getShape(iconShape);
-                if (shape?.layer === undefined || shape._parentId !== shapeId) continue;
-                const parent = getShape(shape._parentId);
-                if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true });
-                mutable.iconShapes.set(noteId, mutable.iconShapes.get(noteId)?.filter((id) => id !== shape.id) ?? []);
-            }
-        }
-
-        if (sync) {
-            const globalId = getGlobalId(shapeId);
-            if (globalId === undefined) {
-                console.error("Tried to remove a note from a local-only shape???");
+        if (note !== undefined) {
+            if (note.shapes.includes(shapeId)) {
+                note.shapes = note.shapes.filter((n) => n !== shapeId);
+            } else {
+                console.error("Tried to remove a shape from a note it's not linked to??");
                 return;
             }
-            sendNoteRemoveShape({ note_id: noteId, shape_id: globalId });
+
+            $.shapeNotes.deletePair(shapeId, noteId);
+
+            if (note.showIconOnShape) {
+                for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
+                    const shape = getShape(iconShape);
+                    if (shape?.layer === undefined || shape._parentId !== shapeId) continue;
+                    const parent = getShape(shape._parentId);
+                    if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true });
+                    mutable.iconShapes.set(
+                        noteId,
+                        mutable.iconShapes.get(noteId)?.filter((id) => id !== shape.id) ?? [],
+                    );
+                }
+            }
+
+            if (sync) {
+                const globalId = getGlobalId(shapeId);
+                if (globalId === undefined) {
+                    console.error("Tried to remove a note from a local-only shape???");
+                    return;
+                }
+                sendNoteRemoveShape({ note_id: noteId, shape_id: globalId });
+            }
         }
+        $.refresh.searchQuery = true;
+        $.refresh.shapeFilter = true;
     }
 
     async addTag(noteId: NoteId, tag: string, sync: boolean): Promise<void> {
         const note = $.notes.get(noteId);
-        if (note === undefined) return;
-        note.tags.push({ name: tag, colour: await word2color(tag) });
-        if (sync) {
-            sendAddNoteTag({
-                uuid: noteId,
-                value: tag,
-            });
+        if (note !== undefined) {
+            note.tags.push({ name: tag, colour: await word2color(tag) });
+            if (sync) {
+                sendAddNoteTag({
+                    uuid: noteId,
+                    value: tag,
+                });
+            }
         }
+        $.refresh.searchQuery = true;
+        $.refresh.tagFilter = true;
     }
 
     removeTag(noteId: NoteId, tagName: string, sync: boolean): void {
         const note = $.notes.get(noteId);
-        if (note === undefined) return;
-        note.tags = note.tags.filter((tag) => tag.name !== tagName);
-        if (sync) {
-            sendRemoveNoteTag({
-                uuid: noteId,
-                value: tagName,
-            });
+        if (note !== undefined) {
+            note.tags = note.tags.filter((tag) => tag.name !== tagName);
+            if (sync) {
+                sendRemoveNoteTag({
+                    uuid: noteId,
+                    value: tagName,
+                });
+            }
         }
+        $.refresh.searchQuery = true;
+        $.refresh.tagFilter = true;
     }
 
     removeNote(noteId: NoteId, sync: boolean): void {
         const note = raw.notes.get(noteId);
-        if (note === undefined) return;
-        if (raw.currentNote === noteId) $.currentNote = undefined;
-        $.shapeNotes.delete2(noteId);
-        if (note.showIconOnShape) {
-            for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
-                const shape = getShape(iconShape);
-                if (shape?.layer === undefined) continue;
-                if (shape.parentId === undefined) continue;
-                const parent = getShape(shape.parentId);
-                if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true });
-                mutable.iconShapes.set(noteId, mutable.iconShapes.get(noteId)?.filter((id) => id !== shape.id) ?? []);
+        if (note !== undefined) {
+            if (raw.currentNote === noteId) $.currentNote = undefined;
+            $.shapeNotes.delete2(noteId);
+            if (note.showIconOnShape) {
+                for (const iconShape of readonly.iconShapes.get(noteId) ?? []) {
+                    const shape = getShape(iconShape);
+                    if (shape?.layer === undefined) continue;
+                    if (shape.parentId === undefined) continue;
+                    const parent = getShape(shape.parentId);
+                    if (parent) parent.removeDependentShape(shape.id, { dropShapeId: true });
+                    mutable.iconShapes.set(
+                        noteId,
+                        mutable.iconShapes.get(noteId)?.filter((id) => id !== shape.id) ?? [],
+                    );
+                }
             }
+            $.notes.delete(noteId);
+            if (sync) sendRemoveNote(noteId);
         }
-        $.notes.delete(noteId);
-        if (sync) sendRemoveNote(noteId);
+        $.refresh.searchQuery = true;
     }
 
     addAccess(noteId: NoteId, userName: string, access: { can_view: boolean; can_edit: boolean }, sync: boolean): void {
         const note = $.notes.get(noteId);
-        if (note === undefined) return;
-        const a = note.access.findIndex((a) => a.name === userName);
-        if (a >= 0) {
-            throw new Error(`Duplicate NoteAccess entry ${noteId}-${userName}`);
+        if (note !== undefined) {
+            const a = note.access.findIndex((a) => a.name === userName);
+            if (a >= 0) {
+                throw new Error(`Duplicate NoteAccess entry ${noteId}-${userName}`);
+            }
+            const newAccess = { name: userName, can_edit: access.can_edit, can_view: access.can_view };
+            note.access.push(newAccess);
+            if (sync) {
+                sendNoteAccessAdd({ ...newAccess, note: noteId });
+            }
         }
-        const newAccess = { name: userName, can_edit: access.can_edit, can_view: access.can_view };
-        note.access.push(newAccess);
-        if (sync) {
-            sendNoteAccessAdd({ ...newAccess, note: noteId });
-        }
+        $.refresh.searchQuery = true;
+        $.refresh.tagFilter = true;
+        $.refresh.shapeFilter = true;
+        $.refresh.locationFilter = true;
     }
 
     setAccess(noteId: NoteId, userName: string, access: { can_view: boolean; can_edit: boolean }, sync: boolean): void {
         const note = $.notes.get(noteId);
-        if (note === undefined) return;
-        const a = note.access.find((a) => a.name === userName);
-        if (a === undefined) {
-            if (userName === "default") return this.addAccess(noteId, userName, access, sync);
-            throw new Error(`Unknown NoteAccess ${noteId}-${userName}`);
+        if (note !== undefined) {
+            const a = note.access.find((a) => a.name === userName);
+            if (a === undefined) {
+                if (userName === "default") return this.addAccess(noteId, userName, access, sync);
+                throw new Error(`Unknown NoteAccess ${noteId}-${userName}`);
+            }
+            a.can_view = access.can_view;
+            a.can_edit = access.can_edit;
+            if (sync) {
+                sendNoteAccessEdit({ ...a, note: noteId });
+            }
         }
-        a.can_view = access.can_view;
-        a.can_edit = access.can_edit;
-        if (sync) {
-            sendNoteAccessEdit({ ...a, note: noteId });
-        }
+        $.refresh.searchQuery = true;
+        $.refresh.tagFilter = true;
+        $.refresh.shapeFilter = true;
+        $.refresh.locationFilter = true;
     }
 
     removeAccess(noteId: NoteId, userName: string, sync: boolean): void {
         const note = $.notes.get(noteId);
-        if (note === undefined) return;
-        const a = note.access.findIndex((a) => a.name === userName);
-        if (a < 0) {
-            throw new Error(`Unknown NoteAccess ${noteId}-${userName}`);
+        if (note !== undefined) {
+            const a = note.access.findIndex((a) => a.name === userName);
+            if (a < 0) {
+                throw new Error(`Unknown NoteAccess ${noteId}-${userName}`);
+            }
+            note.access.splice(a, 1);
+            if (sync) {
+                sendNoteAccessRemove({ uuid: noteId, value: userName });
+            }
         }
-        note.access.splice(a, 1);
-        if (sync) {
-            sendNoteAccessRemove({ uuid: noteId, value: userName });
-        }
+        $.refresh.searchQuery = true;
+        $.refresh.tagFilter = true;
+        $.refresh.shapeFilter = true;
+        $.refresh.locationFilter = true;
     }
 
     linkToRoom(
@@ -301,11 +340,14 @@ class NoteSystem implements ShapeSystem<NoteId[]> {
         sync: boolean,
     ): void {
         const note = $.notes.get(noteId);
-        if (note === undefined) return;
-        note.rooms.push({ roomCreator, roomName, locationId, locationName });
-        if (sync) {
-            sendNoteRoomLink({ note: noteId, roomCreator, roomName, locationId, locationName });
+        if (note !== undefined) {
+            note.rooms.push({ roomCreator, roomName, locationId, locationName });
+            if (sync) {
+                sendNoteRoomLink({ note: noteId, roomCreator, roomName, locationId, locationName });
+            }
         }
+        $.refresh.searchQuery = true;
+        $.refresh.locationFilter = true;
     }
 
     removeRoomLink(
@@ -316,13 +358,16 @@ class NoteSystem implements ShapeSystem<NoteId[]> {
         sync: boolean,
     ): void {
         const note = $.notes.get(noteId);
-        if (note === undefined) return;
-        note.rooms = note.rooms.filter(
-            (r) => r.roomCreator !== roomCreator || r.roomName !== roomName || r.locationId !== locationId,
-        );
-        if (sync) {
-            sendNoteRoomUnlink({ note: noteId, roomCreator, roomName, locationId, locationName: null });
+        if (note !== undefined) {
+            note.rooms = note.rooms.filter(
+                (r) => r.roomCreator !== roomCreator || r.roomName !== roomName || r.locationId !== locationId,
+            );
+            if (sync) {
+                sendNoteRoomUnlink({ note: noteId, roomCreator, roomName, locationId, locationName: null });
+            }
         }
+        $.refresh.searchQuery = true;
+        $.refresh.locationFilter = true;
     }
 
     setShowOnHover(noteId: NoteId, showOnHover: boolean, sync: boolean): void {

@@ -17,9 +17,7 @@ When writing migrations make sure that these things are respected:
 SAVE_VERSION = 111
 
 import asyncio
-from collections import defaultdict
 import json
-import logging
 import secrets
 import shutil
 import sys
@@ -33,9 +31,7 @@ from .db.db import db as ACTIVE_DB
 from .db.models.constants import Constants
 from .thumbnail import generate_thumbnail_for_asset
 from .utils import ASSETS_DIR, FILE_DIR, SAVE_PATH, OldVersionException, UnknownVersionException, get_asset_hash_subpath
-
-logger: logging.Logger = logging.getLogger("PlanarAllyServer")
-logger.setLevel(logging.INFO)
+from .logs import logger
 
 
 def get_save_version(db: SqliteExtDatabase):

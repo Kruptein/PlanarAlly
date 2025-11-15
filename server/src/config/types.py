@@ -67,6 +67,25 @@ class AssetsConfig(ConfigModel):
     max_total_asset_size_in_bytes: int = 0
 
 
+class LoggingConfig(ConfigModel):
+    # Enable logging to a file
+    level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+
+
+class StandardOutLoggingConfig(LoggingConfig):
+    mode: Literal["stdout"] = "stdout"
+
+
+class FileLoggingConfig(LoggingConfig):
+    mode: Literal["file"] = "file"
+    # These settings are used for log rotating,
+    # see https://docs.python.org/3/library/logging.handlers.html#logging.handlers.RotatingFileHandler for details
+    max_log_size_in_bytes: int = 200_000
+    max_log_backups: int = 5
+    # The log file path
+    file_path: str = "data/planarally.log"
+
+
 class GeneralConfig(ConfigModel):
     # Location of the save file
     # This is relative to the server root
@@ -87,12 +106,7 @@ class GeneralConfig(ConfigModel):
     # Enable exporting of campaigns
     # If disabled, users will not be able to export campaigns
     enable_export: bool = True
-
-    # These settings are used for log rotating,
-    # see https://docs.python.org/3/library/logging.handlers.html#logging.handlers.RotatingFileHandler for details
-    max_log_size_in_bytes: int = 200_000
-    max_log_backups: int = 5
-
+    # The User identifier that has access to administrative functions
     admin_user: str | None = None
 
 
@@ -132,4 +146,5 @@ class ServerConfig(ConfigModel):
     assets: AssetsConfig = AssetsConfig()
     webserver: WebserverConfig = WebserverConfig()
     stats: StatsConfig = StatsConfig()
+    logging: list[StandardOutLoggingConfig | FileLoggingConfig] = [StandardOutLoggingConfig()]
     mail: MailConfig | None = None

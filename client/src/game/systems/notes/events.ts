@@ -20,10 +20,6 @@ import { noteSystem } from ".";
 
 const toast = useToast();
 
-socket.on("Notes.Set", async (notes: ApiNote[]) => {
-    await Promise.all(notes.map((note) => noteSystem.newNote(note, false)));
-});
-
 socket.on("Note.Add", async (data: ApiNote) => {
     await noteSystem.newNote(data, false);
 

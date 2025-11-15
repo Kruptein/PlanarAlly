@@ -535,6 +535,7 @@ async def search_notes(sid: str, raw_data: Any):
         .join(NoteAccess, JOIN.LEFT_OUTER, on=(Note.uuid == NoteAccess.note_id))
         .join(NoteShape, JOIN.LEFT_OUTER, on=(Note.uuid == NoteShape.note_id))
         .join(NoteTag, JOIN.LEFT_OUTER, on=(Note.uuid == NoteTag.note_id))
+        .join(NoteUserTag, JOIN.LEFT_OUTER, on=(NoteTag.tag_id == NoteUserTag.id))
         .join(ShapeRoomView, JOIN.LEFT_OUTER, on=(NoteShape.shape_id == ShapeRoomView.shape_id))
         .join(User, on=(Note.creator_id == User.id))
     )
@@ -599,7 +600,7 @@ async def search_notes(sid: str, raw_data: Any):
         elif tag_filter == DefaultNoteFilter.ACTIVE_FILTER:
             tag_clauses.append(~(NoteTag.tag >> None))  # type: ignore
         else:
-            tag_clauses.append(NoteTag.tag == tag_filter)  # type: ignore
+            tag_clauses.append(NoteUserTag.tag == tag_filter)  # type: ignore
     if tag_clauses:
         notes_query = notes_query.where(reduce(operator.or_, tag_clauses))
 

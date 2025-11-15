@@ -349,7 +349,7 @@ function toggleTagInSearch(tag: NoteTag): void {
             tagFilter.value.push(NO_FILTER);
         }
     } else {
-        tagFilter.value.push(tag.name);
+        tagFilter.value = [...tagFilter.value.filter((x) => x !== NO_FILTER), tag.name];
     }
 }
 

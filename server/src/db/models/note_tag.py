@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 class NoteTag(BaseDbModel):
     note_id: str
+    tag_id: int
 
     tag = cast(
         "NoteUserTag",

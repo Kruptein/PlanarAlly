@@ -696,6 +696,7 @@
                     "back": "Back to list",
                     "no_tags": "No tags yet.",
                     "add_tag": "Add tag",
+                    "add_new_tag": "Add new tag",
                     "md_aware": "This input is markdown aware!",
                     "shapes": {
                         "linked": "This note is linked to",

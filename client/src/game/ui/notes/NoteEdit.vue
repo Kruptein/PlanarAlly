@@ -19,6 +19,8 @@ import { popoutNote } from "../../systems/notes/ui";
 import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
 
+import NoteTagAdd from "./NoteTagAdd.vue";
+
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
 const { t } = useI18n();
@@ -183,12 +185,6 @@ function setText(event: Event, sync: boolean): void {
     noteSystem.setText(note.value.uuid, (event.target as HTMLTextAreaElement).value, sync, !sync);
 }
 
-async function addTag(): Promise<void> {
-    if (!note.value) return;
-    const answer = await modals.prompt("Enter the name of the tag to add.", "New tag");
-    if (answer !== undefined && answer.length > 0) await noteSystem.addTag(note.value.uuid, answer, true);
-}
-
 function removeTag(tag: string): void {
     if (!note.value || !canEdit.value) return;
     noteSystem.removeTag(note.value.uuid, tag, true);
@@ -349,9 +345,7 @@ function linkToLocation(): void {
                 {{ tag.name }}
             </div>
             <div v-if="note.tags.length === 0">{{ t("game.ui.notes.NoteEdit.no_tags") }}</div>
-            <div v-if="canEdit" :title="t('game.ui.notes.NoteEdit.add_tag')" @click="addTag">
-                <font-awesome-icon icon="plus" />
-            </div>
+            <NoteTagAdd v-if="canEdit" />
         </div>
         <!-- TABS -->
         <div v-if="canEdit" id="tabs">

@@ -26,6 +26,7 @@ tech changes will usually be stripped from release notes for the public
 -   Notes:
     -   Campaigns tab (see more general note changes below)
     -   Create can be confirmed with the enter key
+    -   Tag add now shows a pre-populated list with known tags
 
 ### Changed
 

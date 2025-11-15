@@ -654,7 +654,7 @@ async def get_shape_filters(sid: str):
         .join(Shape, on=(NoteShape.shape_id == Shape.uuid))
         .join(AssetRect, on=(Shape.uuid == AssetRect.shape_id))
         .join(ShapeRoomView, on=(Shape.uuid == ShapeRoomView.shape_id))
-        .where(ShapeRoomView.room_id == pr.room.id)
+        .where(ShapeRoomView.location_id == pr.active_location.id)
         .group_by(NoteShape.shape_id)
         .dicts()
     )

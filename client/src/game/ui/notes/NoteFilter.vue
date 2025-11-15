@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends PropertyKey">
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 
 import { NO_FILTER } from "../../systems/notes/types";
 
@@ -16,12 +16,7 @@ const selected = defineModel<T[]>({ required: true });
 
 const searchQuery = ref("");
 const isOpen = ref(false);
-const arrowCounter = ref(-1);
 const searchInput = ref<HTMLInputElement | null>(null);
-
-watch(searchQuery, () => {
-    arrowCounter.value = -1;
-});
 
 const filteredOptions = computed(() => {
     if (props.options.search === undefined) {
@@ -42,7 +37,6 @@ function openDropdown(): void {
     }
     isOpen.value = true;
     searchQuery.value = "";
-    arrowCounter.value = -1;
     setTimeout(() => {
         searchInput.value?.focus();
     }, 0);
@@ -51,7 +45,6 @@ function openDropdown(): void {
 function closeDropdown(): void {
     isOpen.value = false;
     searchQuery.value = "";
-    arrowCounter.value = -1;
 }
 
 function selectOption(option: T): void {
@@ -108,11 +101,10 @@ function onFocusOut(event: FocusEvent): void {
             <div v-show="isOpen" class="note-filter-menu">
                 <div class="note-filter-options">
                     <div
-                        v-for="(option, index) in options.default"
+                        v-for="option of options.default"
                         :key="option.value"
                         class="note-filter-option"
                         :class="{
-                            'is-active': index === arrowCounter,
                             'is-selected': selected.includes(option.value),
                             'is-disabled': option.disabled,
                         }"
@@ -127,11 +119,10 @@ function onFocusOut(event: FocusEvent): void {
                     </div>
                     <div class="note-filter-options">
                         <div
-                            v-for="(option, index) in filteredOptions"
+                            v-for="option of filteredOptions"
                             :key="option.value"
                             class="note-filter-option"
                             :class="{
-                                'is-active': index === arrowCounter,
                                 'is-selected': selected.includes(option.value),
                             }"
                             @click="selectOption(option.value)"

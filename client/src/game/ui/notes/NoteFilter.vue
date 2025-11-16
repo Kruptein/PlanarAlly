@@ -93,7 +93,7 @@ function onFocusOut(event: FocusEvent): void {
                             ? `${selected.length} selected`
                             : (options.default.find((o) => selected.includes(o.value))?.label ??
                               options.search?.find((o) => selected.includes(o.value))?.label ??
-                              "")
+                              selected[0])
                     }}
                 </span>
                 <font-awesome-icon icon="chevron-down" class="chevron-icon" />

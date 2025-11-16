@@ -6,6 +6,8 @@ import { useModal } from "../../../core/plugins/modals/plugin";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 
+import { customFilterOptions } from "./noteFilters";
+
 const { t } = useI18n();
 const modals = useModal();
 
@@ -13,14 +15,12 @@ const searchQuery = ref("");
 const isOpen = ref(false);
 const searchInput = ref<HTMLInputElement | null>(null);
 
-const options = computed(() => noteState.reactive.filterOptions.tags);
-
 const filteredOptions = computed(() => {
     if (!searchQuery.value.trim()) {
-        return options.value;
+        return customFilterOptions.tags;
     }
     const query = searchQuery.value.toLowerCase();
-    return options.value.filter((option) => option.toLowerCase().includes(query));
+    return customFilterOptions.tags.filter((option) => option.toLowerCase().includes(query));
 });
 
 function openDropdown(): void {

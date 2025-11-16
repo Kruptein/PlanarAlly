@@ -51,6 +51,7 @@ tech changes will usually be stripped from release notes for the public
     -   List filters have been redesigned to be mure useful
         -   Many preferences have been removed as a result
     -   Pagination is now in the bottom left and clearly notes the amount of pages
+    -   Tags in the note edit panel now have a "search" and "remove" action instead of always removing on click
     -   [tech] Searching/Filtering/Pagination is now done on the server
     -   [tech] tags are now stored in their own tables instead of being a json array on notes
 -   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)

@@ -16,6 +16,14 @@ import { popoutNote } from "../../systems/notes/ui";
 import { propertiesState } from "../../systems/properties/state";
 
 import NoteFilter from "./NoteFilter.vue";
+import {
+    customFilterOptions,
+    filters,
+    locationFilterOptions,
+    roomFilterOptions,
+    shapeFilterOptions,
+    tagFilterOptions,
+} from "./noteFilters";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
@@ -135,13 +143,13 @@ async function search(): Promise<void> {
     loading.value = true;
     const [serverNotes, count] = (await socket.emitWithAck("Note.Search", {
         search: searchFilter.value,
-        campaign_filter: filterToServer(roomFilter.value[0]!),
-        location_filter: locationFilter.value.map(filterToServer),
-        shape_filter: shapeFilter.value
+        campaign_filter: filterToServer(filters.rooms[0]!),
+        location_filter: filters.locations.map(filterToServer),
+        shape_filter: filters.shapes
             .map((s) => (typeof s !== "symbol" ? getGlobalId(s) : s))
             .filter((s) => s !== undefined)
             .map(filterToServer),
-        tag_filter: tagFilter.value.map(filterToServer),
+        tag_filter: filters.tags.map(filterToServer),
         search_title: true,
         search_text: false,
         search_author: false,
@@ -178,139 +186,8 @@ async function updateShapeFilter(): Promise<void> {
 
 async function updateTagFilter(): Promise<void> {
     const filters = (await socket.emitWithAck("Note.Filters.Tag.Get")) as string[];
-    noteState.mutableReactive.filterOptions.tags = filters.sort((a, b) => a.localeCompare(b));
+    customFilterOptions.tags = filters.sort((a, b) => a.localeCompare(b));
 }
-
-function getDefaultFilter<T extends string | number | symbol>(
-    key: string,
-    defaultOptions: { label: string; value: T }[],
-    defaultValue: T[],
-): T[] {
-    const value = localStorage.getItem(key);
-    if (value !== null) {
-        let indices: number[] = [];
-        try {
-            indices = JSON.parse(value) as number[];
-            return indices.map((i) => defaultOptions[i]!.value);
-        } catch (error) {
-            return defaultValue;
-        }
-    }
-    return defaultValue;
-}
-
-function saveDefaultFilter<T extends string | number | symbol>(
-    key: string,
-    defaultOptions: { label: string; value: T }[],
-    value: T[],
-): void {
-    const indices = value.map((v) => defaultOptions.findIndex((o) => o.value === v));
-    localStorage.setItem(key, JSON.stringify(indices));
-}
-
-const roomFilterOptions = computed(() => {
-    return {
-        default: [
-            { label: "(no filter)", value: NO_FILTER },
-            {
-                label: "active campaign",
-                value: ACTIVE_FILTER,
-            },
-            {
-                label: "no campaign links",
-                value: NO_LINK_FILTER,
-            },
-        ],
-    };
-});
-const roomFilter = ref<symbol[]>(
-    getDefaultFilter("note-room-filter", roomFilterOptions.value.default, [ACTIVE_FILTER]),
-);
-
-watch(roomFilter, () => {
-    saveDefaultFilter("note-room-filter", roomFilterOptions.value.default, roomFilter.value);
-});
-
-const locationFilterOptions = computed(() => {
-    return {
-        default: [
-            { label: "(no filter)", value: NO_FILTER },
-            {
-                label: "active location",
-                value: ACTIVE_FILTER,
-            },
-            {
-                label: "no location links",
-                value: NO_LINK_FILTER,
-            },
-        ],
-        search: filterOptions.locations.map((l) => ({ label: l.name, value: l.id })),
-    };
-});
-const locationFilter = ref<(number | symbol)[]>(
-    getDefaultFilter("note-location-filter", locationFilterOptions.value.default, [ACTIVE_FILTER, NO_LINK_FILTER]),
-);
-
-watch(locationFilter, () => {
-    saveDefaultFilter("note-location-filter", locationFilterOptions.value.default, locationFilter.value);
-});
-
-const shapeFilterOptions = computed(() => {
-    return {
-        default: [
-            { label: "(no filter)", value: NO_FILTER },
-            {
-                label: "has shape(s)",
-                value: ACTIVE_FILTER,
-            },
-            {
-                label: "no shape(s)",
-                value: NO_LINK_FILTER,
-            },
-        ],
-        search: filterOptions.shapes.map((s) => ({
-            label: s.name,
-            value: s.id,
-            icon: s.src,
-        })),
-    };
-});
-const shapeFilter = ref<(LocalId | symbol)[]>(
-    getDefaultFilter("note-shape-filter", shapeFilterOptions.value.default, [NO_FILTER]),
-);
-
-watch(shapeFilter, () => {
-    saveDefaultFilter("note-shape-filter", shapeFilterOptions.value.default, shapeFilter.value);
-});
-
-const tagFilterOptions = computed(() => {
-    const tagList = new Set<string>();
-    for (const [_, note] of noteState.reactive.notes) {
-        for (const tag of note.tags) {
-            tagList.add(tag.name);
-        }
-    }
-    return {
-        default: [
-            { label: "(no filter)", value: NO_FILTER },
-            {
-                label: "has tag(s)",
-                value: ACTIVE_FILTER,
-            },
-            {
-                label: "no tag(s)",
-                value: NO_LINK_FILTER,
-            },
-        ],
-        search: noteState.reactive.filterOptions.tags.map((t) => ({ label: t, value: t })),
-    };
-});
-const tagFilter = ref<(string | symbol)[]>(
-    getDefaultFilter("note-tag-filter", tagFilterOptions.value.default, [NO_FILTER]),
-);
-watch(tagFilter, () => {
-    saveDefaultFilter("note-tag-filter", tagFilterOptions.value.default, tagFilter.value);
-});
 
 // **** SEARCH TRIGGERS ****
 
@@ -319,12 +196,13 @@ watch([searchFilter], debouncedSearch, {
 });
 
 watch(
-    [roomFilter, locationFilter, shapeFilter, tagFilter, pageSize],
+    [filters, pageSize],
     async () => {
         currentPage.value = 1;
         await search();
     },
     {
+        deep: true,
         immediate: true,
     },
 );
@@ -342,13 +220,13 @@ function handleClickOutsideDialog(event: MouseEvent): void {
 }
 
 function toggleTagInSearch(tag: NoteTag): void {
-    if (tagFilter.value.includes(tag.name)) {
-        tagFilter.value = tagFilter.value.filter((x) => x !== tag.name);
-        if (tagFilter.value.length === 0) {
-            tagFilter.value.push(NO_FILTER);
+    if (filters.tags.includes(tag.name)) {
+        filters.tags = filters.tags.filter((x) => x !== tag.name);
+        if (filters.tags.length === 0) {
+            filters.tags.push(NO_FILTER);
         }
     } else {
-        tagFilter.value = [...tagFilter.value.filter((x) => x !== NO_FILTER), tag.name];
+        filters.tags = [...filters.tags.filter((x) => x !== NO_FILTER), tag.name];
     }
 }
 
@@ -419,22 +297,22 @@ function clearSearchBar(): void {
         </div>
         <div id="search-filters">
             <span style="padding-right: 1rem">{{ t("game.ui.notes.NoteList.filters.title") }}</span>
-            <NoteFilter v-model="roomFilter" label="campaign" :options="roomFilterOptions" :multi-select="false" />
+            <NoteFilter v-model="filters.rooms" label="campaign" :options="roomFilterOptions" :multi-select="false" />
             <NoteFilter
-                v-model="locationFilter"
+                v-model="filters.locations"
                 label="location"
                 :multi-select="true"
                 :options="locationFilterOptions"
-                :disabled="roomFilter.includes(NO_FILTER) || roomFilter.includes(NO_LINK_FILTER)"
+                :disabled="filters.rooms.includes(NO_FILTER) || filters.rooms.includes(NO_LINK_FILTER)"
             />
             <NoteFilter
                 v-show="!shapeFiltered"
-                v-model="shapeFilter"
+                v-model="filters.shapes"
                 label="shape"
                 :options="shapeFilterOptions"
                 :multi-select="true"
             />
-            <NoteFilter v-model="tagFilter" label="tag" :options="tagFilterOptions" :multi-select="true" />
+            <NoteFilter v-model="filters.tags" label="tag" :options="tagFilterOptions" :multi-select="true" />
             <div id="filter-bubbles">
                 <div v-if="shapeName" class="shape-name tag-bubble removable" @click="clearShapeFilter">
                     {{ shapeName }}

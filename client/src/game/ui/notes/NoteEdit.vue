@@ -19,6 +19,7 @@ import { popoutNote } from "../../systems/notes/ui";
 import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
 
+import { filters } from "./noteFilters";
 import NoteTagAdd from "./NoteTagAdd.vue";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
@@ -304,6 +305,14 @@ function linkToLocation(): void {
         true,
     );
 }
+
+function searchTag(tag: string): void {
+    filters.tags = [tag];
+    // force a refresh, filter changes also trigger a search, but it will not complete due to not being open
+    // the refresh is queued
+    noteState.mutableReactive.refresh.searchQuery = true;
+    emit("mode", NoteManagerMode.List);
+}
 </script>
 
 <template>
@@ -340,9 +349,10 @@ function linkToLocation(): void {
                 class="tag"
                 :class="{ edit: canEdit }"
                 :style="{ color: mostReadable(tag.colour), backgroundColor: tag.colour }"
-                @click="removeTag(tag.name)"
             >
-                {{ tag.name }}
+                <span class="tag-text">{{ tag.name }}</span>
+                <font-awesome-icon class="tag-icon" icon="magnifying-glass" @click.stop="searchTag(tag.name)" />
+                <font-awesome-icon v-if="canEdit" class="tag-icon" icon="trash-alt" @click.stop="removeTag(tag.name)" />
             </div>
             <div v-if="note.tags.length === 0">{{ t("game.ui.notes.NoteEdit.no_tags") }}</div>
             <NoteTagAdd v-if="canEdit" />
@@ -360,18 +370,6 @@ function linkToLocation(): void {
                 <font-awesome-icon :icon="tab.icon" />
                 <div>{{ tab.label_text }}</div>
             </div>
-            <!-- <div v-if="canHaveShape(note)">
-                <font-awesome-icon icon="location-dot" />
-                <div class="note-setting-title">Map Link</div>
-                <-- <div v-if="hasShape(note)">
-                    <div>Linked to map.</div>
-                    <div style="font-weight: bold; text-decoration: underline; font-style: italic">Remove link</div>
-                </div>
-                <div v-else>
-                    <span>This note is not linked to a map location.</span>
-                    <span id="link-to-map" @click="$emit('mode', 'map')">Link to map</span>
-                </div> --
-            </div> -->
         </div>
         <div v-if="activeTab === TabLabel.View" id="editor" class="tab-container">
             <VueMarkdown :source="note.text" :options="{ html: true }" />
@@ -519,26 +517,40 @@ header {
 #tags {
     margin: 1rem;
     display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 
     > div {
         position: relative;
-        padding: 0.25rem 0.5rem;
+        padding: 0.375rem 0.625rem;
         border-radius: 1rem;
-        margin-right: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: opacity 0.2s;
+
+        .tag-text {
+            flex-shrink: 0;
+        }
+
+        .tag-icon {
+            display: none;
+            font-size: 0.75em;
+            padding: 0.125rem;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            opacity: 0.8;
+
+            &:hover {
+                opacity: 1;
+                background-color: rgba(0, 0, 0, 0.1);
+            }
+        }
 
         &.edit.tag:hover {
-            cursor: pointer;
-
-            &::after {
-                content: "\00D7";
-                position: absolute;
-                color: red;
-                font-size: 20px;
-                font-weight: bold;
-                cursor: pointer;
-                top: -8px;
-                right: -4px;
-                pointer-events: auto;
+            .tag-icon {
+                display: block;
             }
         }
     }

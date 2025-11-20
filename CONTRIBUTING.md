@@ -8,10 +8,20 @@ PlanarAlly consists of a client and a server component. If you want to run a dev
 
 This project uses the gitflow branching strategy. This means that the master branch is intended for releases only. All pull requests should be done on the development branch.
 
-When making a pull request, make sure the code is formatted properly.
+### Format & Lint
 
-For the server you can run `black .` in the server folder,
-for the client you can run `npm run lint` in the client folder.
+All code is required to be formatted and linted before it can be merged. To format and lint the server you need to run
+
+```bash
+uv run ruff format src
+uv run ruff check src
+```
+To format and lint the client code you need to run
+
+```bash
+npm run format
+npm run lint
+```
 
 ## Server
 
@@ -21,23 +31,26 @@ Install python >=3.6 (a virtual environment is recommended) and install all the 
 
 ### Example install
 
-Lines 2 and 3 are optional. Replace `python` with `python3` if the default is not py3.
+This project uses uv to manage its dependencies and run the server so to begin you will need to install UV from its offical site. 
+
+> This project uses Python 3 so if your default python is not 2 use python3
 
 ```
 cd server
-python -m venv env
-source env/bin/activate
-pip install -r requirements.txt
+uv venv 
+# If not activated automatically (or to activate it later)
+source .venv/bin/activate 
+uv sync
 ```
 
 Change the server.cfg file to what you wish to use and you can start the webserver with a simple
 
-`python planarserver.py`
+`uv run planarserver.py serve`
 
 The above command will start the server in production mode. This expects build js artifacts to be created and available to the server. (These can be created by building a production version of the client).
 To use the server together with a development version of the client instead use:
 
-`python planarserver.py dev`
+`uv run planarserver.py serve dev`
 
 If both server and client are running you can launch PA by visiting http://localhost:8000
 
@@ -45,9 +58,9 @@ It is strongly recommended to also install the devdependencies ('requirements-de
 
 ## Client
 
-The client is written in typescript, editing the javascript file directly is strongly discouraged and any pull request that only changes the js file will also be declined.
+The client is written in typescript, editing the javascript file directly is strongly discouraged and any pull request that only changes the js file will also be declined. 
 
-To get the client side up and running you'll need to install the dependencies with
+Ensure you have the correct version of NPM installed (typically latest LTS). You can verify that by checking in the github actions [pull_request.yaml](.github/workflows/pull_request.yaml#65) To get the client side up and running you'll need to install the dependencies with
 
 `npm i`
 
@@ -57,7 +70,7 @@ To build a production version use:
 
 To build a development version use:
 
-`npm run serve`
+`npm run dev`
 
 ### Target version
 

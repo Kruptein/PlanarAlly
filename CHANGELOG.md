@@ -27,7 +27,10 @@ tech changes will usually be stripped from release notes for the public
     -   Campaigns tab (see more general note changes below)
     -   Create can be confirmed with the enter key
     -   Tag add now shows a pre-populated list with known tags
-
+-   Logging:
+    -   Enabling configuration of the logger via a new logging section
+    -   Allows for multiple logging file streams at different levels
+    
 ### Changed
 
 -   Initiative

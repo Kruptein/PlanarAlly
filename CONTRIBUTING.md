@@ -29,32 +29,42 @@ All code of the server is located in the `server` folder at the root level of th
 The server infrastructure runs on aiohttp, a python async webframework.
 Install python >=3.6 (a virtual environment is recommended) and install all the dependencies.
 
-### Example install
+### Install & Setup
 
-This project uses uv to manage its dependencies and run the server so to begin you will need to install UV from its offical site. 
+This project uses uv to manage its dependencies and run the server so to begin you will need to install UV from its official site. UV will automatically create the virtual environment so you only need to run the application to get going. Optionally you can run `uv sync` in the server directory to install the dependencies.
 
-> This project uses Python 3 so if your default python is not 2 use python3
+> This project uses Python 3 so ensure that python and UV are running with the correct version.
 
+You can create a config.toml in the server/data directory to change settings. You can find the configuration values at the [PlanarAlly Site](https://www.planarally.io/server/management/configuration/)
+
+You can change the host & port configuration in the config.toml to adjust for your application needs. For example
+
+```toml
+[webserver.connection]
+type = "hostport"
+host = "0.0.0.0"
+port = 8000
 ```
-cd server
-uv venv 
-# If not activated automatically (or to activate it later)
-source .venv/bin/activate 
-uv sync
+
+### Running the server
+
+You can run the server in either development or production mode. In development mode, requests are redirected to the Vite server, enabling real-time updates while building the client application. In production mode, the server instead serves the static assets generated from the client build.
+
+#### Production
+
+The command will start the server in production mode. This expects build js artifacts to be created and available to the server. (These can be created by building a production version of the client).
+
+```bash
+uv run planarserver.py
 ```
 
-Change the server.cfg file to what you wish to use and you can start the webserver with a simple
+#### Development
 
-`uv run planarserver.py serve`
-
-The above command will start the server in production mode. This expects build js artifacts to be created and available to the server. (These can be created by building a production version of the client).
 To use the server together with a development version of the client instead use:
 
-`uv run planarserver.py serve dev`
+`uv run planarserver.py dev`
 
-If both server and client are running you can launch PA by visiting http://localhost:8000
-
-It is strongly recommended to also install the devdependencies ('requirements-dev.txt) as this contains the formatter that is used for PA.
+You will need to then start the client app. Then you will want to launch your browser at the host & port for the PA server (**not the client**). By default that will be: http://localhost:8000
 
 ## Client
 
@@ -78,7 +88,7 @@ As mentioned in the client and server steps, there's a difference between the de
 
 ### The result
 
-To actually view and interact with the result whether you use the development or the production version you simply need to browse to your localhost at port 8000 (by default).
+To actually view and interact with the client app regardless of if you use the development or the production version. You will need to browse to your localhost at port 8000 (by default).
 
 # Translation
 

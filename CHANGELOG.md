@@ -71,6 +71,7 @@ tech changes will usually be stripped from release notes for the public
 -   Cutting a rotated polygon would be wrong on refresh
 -   Resizing a rotated polygon did not correctly recalculate center, causing sudden shifts on move
 -   Note creation not going straight to edit mode in some cases
+-   Account settings text overlapping on smaller viewport widths
 
 ## [2025.3]
 

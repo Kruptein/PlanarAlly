@@ -4,6 +4,9 @@ import { floorState } from "../../systems/floors/state";
 import { positionState } from "../../systems/position/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
+import { g2l, g2lz } from "../../../core/conversions";
+import { toGP } from "../../../core/geometry";
+import type { GlobalPoint } from "../../../core/geometry";
 
 import { Layer } from "./layer";
 
@@ -94,6 +97,30 @@ export class GridLayer extends Layer implements IGridLayer {
                 ctx.strokeStyle = playerSettingsState.raw.gridColour.value;
                 ctx.lineWidth = 1;
                 ctx.stroke();
+            }
+            const showOrigin = true;// CRAFITMARK: WARN: Debug value;
+            console.log(`x,y: ${positionState.readonly.panX},${positionState.readonly.panY}`);
+            if (showOrigin) {
+                // Get Info
+                const ctx = this.ctx;
+                const centerLocal = g2l({x:0,y:0});
+                const radius = g2lz(20);
+                console.log(`centerLocal: ${centerLocal.x},${centerLocal.y}`)
+                const state = positionState.readonly;
+                const pixelRatio = playerSettingsState.devicePixelRatio.value;
+                // Push settings
+                const oldFillStyle = ctx.fillStyle;
+                ctx.setTransform(pixelRatio, 0, 0, pixelRatio, centerLocal.x * pixelRatio, centerLocal.y * pixelRatio);
+                // Draw
+                ctx.fillStyle = "rgb(255,0,0)";
+                ctx.moveTo(0, 0);
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                // Pop setting changes
+                ctx.resetTransform();
+                ctx.fillStyle = oldFillStyle;
             }
             this.valid = true;
         }

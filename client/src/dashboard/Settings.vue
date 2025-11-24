@@ -126,11 +126,19 @@ async function deleteAccount(): Promise<void> {
             </div>
         </template>
         <div class="entry">
-            <div><button class="go" @click="changePassword">{{ changePasswordText }}</button></div>
-            <div><button v-if="showPasswordFields" class="go" @click="hidePasswordChange">{{ t("common.cancel") }}</button></div>
+            <div>
+                <button class="go" @click="changePassword">{{ changePasswordText }}</button>
+            </div>
+            <div>
+                <button v-if="showPasswordFields" class="go" @click="hidePasswordChange">
+                    {{ t("common.cancel") }}
+                </button>
+            </div>
         </div>
         <div class="entry">
-            <div><button class="go" @click="deleteAccount">{{ t("settings.AccountSettings.delete_account") }}</button></div>
+            <div>
+                <button class="go" @click="deleteAccount">{{ t("settings.AccountSettings.delete_account") }}</button>
+            </div>
         </div>
     </div>
 </template>
@@ -183,7 +191,8 @@ async function deleteAccount(): Promise<void> {
             flex-shrink: 1;
         }
         /* type= for specificity */
-        > input, input[type="password"] {
+        > input,
+        input[type="password"] {
             width: 310px;
         }
         padding: 1rem;

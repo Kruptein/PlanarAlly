@@ -1,11 +1,11 @@
+import { g2l, g2lz } from "../../../core/conversions";
+import { toGP } from "../../../core/geometry";
 import { DEFAULT_HEX_RADIUS, DEFAULT_GRID_SIZE, SQRT3, GridType } from "../../../core/grid";
 import type { IGridLayer } from "../../interfaces/layers/grid";
 import { floorState } from "../../systems/floors/state";
 import { positionState } from "../../systems/position/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
-import { g2l, g2lz } from "../../../core/conversions";
-import { toGP } from "../../../core/geometry";
 
 import { Layer } from "./layer";
 

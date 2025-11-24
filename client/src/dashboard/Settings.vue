@@ -173,7 +173,18 @@ async function deleteAccount(): Promise<void> {
 
     .entry {
         display: grid;
-        grid-template-columns: 20em 0.4fr;
+        /* Avoiding global state here and making it based on the element-specific size requires something like https://github.com/Kelin2025/vue-responsive-components */
+        @media (min-width: 1201px) {
+            grid-template-columns: 20em 0.4fr;
+        }
+        @media (max-width: 1200px) {
+            /*grid-template-columns: 346px;*/
+            grid-template-columns: 70%;
+            /* type= for specificity */
+            > input, input[type="password"] {
+                width: 100%;
+            }
+        }
         padding: 1rem;
 
         label {

@@ -126,11 +126,11 @@ async function deleteAccount(): Promise<void> {
             </div>
         </template>
         <div class="entry">
-            <button v-if="showPasswordFields" class="go" @click="hidePasswordChange">{{ t("common.cancel") }}</button>
-            <button class="go" @click="changePassword">{{ changePasswordText }}</button>
+            <div><button class="go" @click="changePassword">{{ changePasswordText }}</button></div>
+            <div><button v-if="showPasswordFields" class="go" @click="hidePasswordChange">{{ t("common.cancel") }}</button></div>
         </div>
         <div class="entry">
-            <button class="go" @click="deleteAccount">{{ t("settings.AccountSettings.delete_account") }}</button>
+            <div><button class="go" @click="deleteAccount">{{ t("settings.AccountSettings.delete_account") }}</button></div>
         </div>
     </div>
 </template>
@@ -172,18 +172,19 @@ async function deleteAccount(): Promise<void> {
     }
 
     .entry {
-        display: grid;
-        /* Avoiding global state here and making it based on the element-specific size requires something like https://github.com/Kelin2025/vue-responsive-components */
-        @media (min-width: 1201px) {
-            grid-template-columns: 20em 0.4fr;
+        display: flex;
+        flex: 1 1.5;
+        flex-direction: row;
+        flex-wrap: wrap;
+
+        > :first-child {
+            flex-grow: 1;
+            max-width: 300px;
+            flex-shrink: 1;
         }
-        @media (max-width: 1200px) {
-            /*grid-template-columns: 346px;*/
-            grid-template-columns: 70%;
-            /* type= for specificity */
-            > input, input[type="password"] {
-                width: 100%;
-            }
+        /* type= for specificity */
+        > input, input[type="password"] {
+            width: 310px;
         }
         padding: 1rem;
 

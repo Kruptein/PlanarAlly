@@ -172,17 +172,14 @@ async function deleteAccount(): Promise<void> {
     }
 
     .entry {
-        display: flex;
+        display: grid;
+        grid-template-columns: 20em 0.4fr;
         padding: 1rem;
-        align-items: center;
 
         label {
-            width: 10vw;
             font-size: 2em;
         }
-
         input {
-            width: 20vw;
             height: 3rem;
             font-size: 1.5em;
             padding: 0 1rem;
@@ -191,48 +188,6 @@ async function deleteAccount(): Promise<void> {
                 color: white;
                 background: none;
                 border: none;
-            }
-        }
-
-        .logo {
-            width: 4vw;
-            height: 4vw;
-            position: relative;
-
-            img {
-                width: 4vw;
-                height: 4vw;
-                position: absolute;
-                border-radius: 3vw;
-            }
-
-            &::before {
-                content: "";
-                background-color: white;
-                position: absolute;
-                width: 4vw;
-                height: 4vw;
-                border-radius: 3vw;
-            }
-
-            > .edit {
-                display: none;
-            }
-
-            &:hover > .edit {
-                position: absolute;
-
-                background-color: rgba(43, 43, 43, 0.6);
-                height: 4vw;
-                width: 4vw;
-                border-radius: 3vw;
-
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-size: 1.5vw;
-
-                cursor: pointer;
             }
         }
     }

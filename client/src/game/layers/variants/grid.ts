@@ -98,14 +98,12 @@ export class GridLayer extends Layer implements IGridLayer {
                 ctx.lineWidth = 1;
                 ctx.stroke();
             }
-            const showOrigin = true;// CRAFITMARK: WARN: Debug value;
-            console.log(`x,y: ${positionState.readonly.panX},${positionState.readonly.panY}`);
+            const showOrigin = true; // CRAFITMARK: WARN: Debug value;
             if (showOrigin) {
                 // Get Info
                 const ctx = this.ctx;
-                const centerLocal = g2l({x:0,y:0});
+                const centerLocal = g2l({ x: 0, y: 0 });
                 const radius = g2lz(20);
-                console.log(`centerLocal: ${centerLocal.x},${centerLocal.y}`)
                 const state = positionState.readonly;
                 const pixelRatio = playerSettingsState.devicePixelRatio.value;
                 // Push settings

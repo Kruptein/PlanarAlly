@@ -6,7 +6,6 @@ import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
-import type { GlobalPoint } from "../../../core/geometry";
 
 import { Layer } from "./layer";
 
@@ -102,9 +101,8 @@ export class GridLayer extends Layer implements IGridLayer {
             if (showOrigin) {
                 // Get Info
                 const ctx = this.ctx;
-                const centerLocal = g2l({ x: 0, y: 0 });
+                const centerLocal = g2l(toGP(0, 0));
                 const radius = g2lz(20);
-                const state = positionState.readonly;
                 const pixelRatio = playerSettingsState.devicePixelRatio.value;
                 // Push settings
                 const oldFillStyle = ctx.fillStyle;

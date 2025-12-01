@@ -15,7 +15,7 @@ npm install
 This requires the server to be ran in development mode as well.
 
 ```
-npm run serve
+npm run dev
 ```
 
 If both server and client are running you can launch PA by visiting http://localhost:8000

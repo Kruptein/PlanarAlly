@@ -30,7 +30,7 @@ tech changes will usually be stripped from release notes for the public
 -   Logging:
     -   Enabling configuration of the logger via a new logging section
     -   Allows for multiple logging file streams at different levels
-    
+
 ### Changed
 
 -   Initiative
@@ -57,6 +57,7 @@ tech changes will usually be stripped from release notes for the public
     -   Tags in the note edit panel now have a "search" and "remove" action instead of always removing on click
     -   [tech] Searching/Filtering/Pagination is now done on the server
     -   [tech] tags are now stored in their own tables instead of being a json array on notes
+-   Campaign creator can no longer change their own role or kick themselves
 -   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)
 -   [tech] upgraded pydantic from 1.x to 2.x
 

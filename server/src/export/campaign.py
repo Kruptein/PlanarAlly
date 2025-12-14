@@ -39,7 +39,10 @@ from ..db.models.location_user_option import LocationUserOption
 from ..db.models.marker import Marker
 from ..db.models.note import Note
 from ..db.models.note_access import NoteAccess
+from ..db.models.note_room import NoteRoom
 from ..db.models.note_shape import NoteShape
+from ..db.models.note_tag import NoteTag
+from ..db.models.note_user_tag import NoteUserTag
 from ..db.models.player_room import PlayerRoom
 from ..db.models.polygon import Polygon
 from ..db.models.rect import Rect
@@ -860,21 +863,30 @@ class CampaignMigrator:
                     PlayerRoom.create(**player_data)
 
     def migrate_notes(self, room: Room):
-        with self.from_db.bind_ctx([Note, NoteAccess, NoteShape]):
-            for note in Note.filter(room=room):
+        with self.from_db.bind_ctx([Note, NoteAccess, NoteRoom, NoteShape, NoteTag, NoteUserTag]):
+            for note in Note.select().join(NoteRoom).where(NoteRoom.room == room):
                 note_data = model_to_dict(note, recurse=False)
                 new_uuid = uuid.uuid4()
                 note_data["uuid"] = new_uuid
                 note_data["creator"] = self.user_mapping.get(note_data["creator"])
 
-                # This is in principle optional, but we're specifically filtering on room notes
-                note_data["room"] = self.room_mapping[room.id]
-
-                if note_data["location"]:
-                    note_data["location"] = self.location_mapping[note_data["location"]]
-
                 with self.to_db.bind_ctx([Note]):
                     Note.create(**note_data)
+
+                for note_room in note.rooms:
+                    if note_room.room.id not in self.room_mapping:
+                        continue
+
+                    note_room_data = model_to_dict(note_room, recurse=False)
+                    del note_room_data["id"]
+
+                    note_room_data["note"] = new_uuid
+                    note_room_data["room"] = self.room_mapping[note_room.room.id]
+                    if note_room.location:
+                        note_room_data["location"] = self.location_mapping[note_room.location.id]
+
+                    with self.to_db.bind_ctx([NoteRoom]):
+                        NoteRoom.create(**note_room_data)
 
                 for access in note.access:
                     access_data = model_to_dict(access, recurse=False)
@@ -888,6 +900,9 @@ class CampaignMigrator:
                         NoteAccess.create(**access_data)
 
                 for shape in note.shapes:
+                    if shape.shape.uuid not in self._shape_mapping:
+                        continue
+
                     shape_data = model_to_dict(shape, recurse=False)
                     del shape_data["id"]
                     shape_data["note"] = new_uuid
@@ -899,3 +914,29 @@ class CampaignMigrator:
 
                     with self.to_db.bind_ctx([NoteShape]):
                         NoteShape.create(**shape_data)
+
+                user_tag_mapping = {}
+
+                for note_tag in note.tags:
+                    tag_data = model_to_dict(note_tag, recurse=False)
+                    del tag_data["id"]
+
+                    if note_tag.tag.id not in user_tag_mapping:
+                        user_tag_data = model_to_dict(note_tag.tag, recurse=False)
+                        del user_tag_data["id"]
+
+                        user_tag_data["user"] = self.user_mapping.get(note_tag.tag.user.id)
+                        if user_tag_data["user"] is None:
+                            continue
+
+                        with self.to_db.bind_ctx([NoteUserTag]):
+                            nut, _ = NoteUserTag.get_or_create(**user_tag_data)
+                            user_tag_mapping[note_tag.tag.id] = nut
+
+                        tag_data["tag"] = user_tag_mapping[note_tag.tag.id]
+
+                    tag_data["note"] = new_uuid
+                    tag_data["tag"] = user_tag_mapping[note_tag.tag.id]
+
+                    with self.to_db.bind_ctx([NoteTag]):
+                        NoteTag.create(**tag_data)

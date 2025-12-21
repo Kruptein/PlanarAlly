@@ -33,7 +33,7 @@ class ApiOptionalAura(AuraRef):
     visible: bool | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     name: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     value: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
-    dim: int | MISSING = Field(json_schema_extra={"missing": True})
+    dim: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     colour: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     active: bool | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     border_colour: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})

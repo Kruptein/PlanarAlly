@@ -37,6 +37,8 @@ export interface ILayer {
     moveShapeOrder: (shape: IShape, destinationIndex: number, sync: SyncMode) => void;
     pushShapes: (...shapes: IShape[]) => void;
     removeShape: (shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }) => boolean;
+    enterLayer: (shape: IShape) => void;
+    exitLayer: (shape: IShape) => void;
     resize: (width: number, height: number) => void;
     setServerShapes: (shapes: ApiShape[]) => Promise<void>;
     setShapes: (...shapes: IShape[]) => void;

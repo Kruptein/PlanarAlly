@@ -275,8 +275,12 @@ export abstract class Shape implements IShape {
         for (const { shape } of this._dependentShapes) {
             shape.setLayer(floor, layer);
         }
+        if (this.floorId !== undefined && this.layerName !== undefined) {
+            this.layer?.exitLayer(this);
+        }
         this.floorId = floor;
         this.layerName = layer;
+        this.layer?.enterLayer(this);
     }
 
     getPositionRepresentation(): { angle: number; points: [number, number][] } {

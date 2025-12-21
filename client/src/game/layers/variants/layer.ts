@@ -191,6 +191,10 @@ export class Layer implements ILayer {
         }
     }
 
+    // Utility functions to do cleanup in case of layer move
+    enterLayer(_shape: IShape): void {}
+    exitLayer(_shape: IShape): void {}
+
     addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode): void {
         shape.setLayer(this.floor, this.name);
 

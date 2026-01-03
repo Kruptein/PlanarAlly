@@ -24,7 +24,7 @@ class Initiative(BaseDbModel):
     def as_pydantic(self):
         data = json.loads(self.data)
         for el in data:
-            if el["initiative"] is None:
+            if "initiative" not in el or el["initiative"] is None:
                 el["initiative"] = MISSING
         return ApiInitiative(
             location=self.location.id,

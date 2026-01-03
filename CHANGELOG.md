@@ -74,6 +74,7 @@ tech changes will usually be stripped from release notes for the public
 -   Note creation not going straight to edit mode in some cases
 -   Account settings text overlapping on smaller viewport widths
 -   Moving special hide/reveal shapes from the fow layer could lead to a niche bug
+-   Rotation slider not showing current value in text input on component load
 
 ## [2025.3]
 

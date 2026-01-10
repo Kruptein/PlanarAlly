@@ -1,7 +1,7 @@
 import asyncio
 import io
 from datetime import datetime
-from typing import Dict, List, Optional, cast
+from typing import cast
 
 from aiohttp import web
 from aiohttp_security import check_authorized
@@ -158,7 +158,7 @@ async def export(request: web.Request):
     roomname = request.match_info["roomname"]
 
     if creator == user.name:
-        room: Optional[Room] = Room.get_or_none(name=roomname, creator=user)
+        room: Room | None = Room.get_or_none(name=roomname, creator=user)
         if room is None:
             return web.HTTPBadRequest()
 
@@ -197,13 +197,13 @@ class ImportData(TypedDict):
     lock: asyncio.Lock
     running: bool
     totalLength: int
-    chunks: List[Optional[bytes]]
-    sid: Optional[str]
+    chunks: list[bytes | None]
+    sid: str | None
     takeOverName: bool
     name: str
 
 
-import_mapping: Dict[str, ImportData] = {}
+import_mapping: dict[str, ImportData] = {}
 
 
 async def import_info(request: web.Request):
@@ -281,7 +281,7 @@ async def import_chunk(request: web.Request):
                 await asyncio.create_task(
                     import_campaign(
                         user,
-                        io.BytesIO(b"".join(cast(List[bytes], chunks))),
+                        io.BytesIO(b"".join(cast(list[bytes], chunks))),
                         sid=sid,
                         name=import_mapping[name]["name"],
                         take_over_name=import_mapping[name]["takeOverName"],

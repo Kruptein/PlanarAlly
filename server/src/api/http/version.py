@@ -1,14 +1,13 @@
 import os
 import subprocess
-from typing import List, Optional
 
 from aiohttp import web
 
 from ...utils import FILE_DIR
 
-release_version: Optional[str]
-env_version: Optional[str]
-changelog: Optional[List[str]]
+release_version: str | None
+env_version: str | None
+changelog: list[str] | None
 
 try:
     with open(FILE_DIR / "VERSION", "r") as version_file:

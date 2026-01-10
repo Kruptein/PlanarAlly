@@ -1,9 +1,11 @@
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
+from pydantic_core import MISSING
 
 from ..common import PositionTuple
 from ..helpers import TypeIdModel
+from .custom_data import *
 from .options import *
 from .owner import *
 from .position import *
@@ -17,32 +19,42 @@ if TYPE_CHECKING:
 ApiShape = ApiShapeSubType
 
 
-class ApiShapeWithLayerInfo(TypeIdModel):
+class ApiShapeCore(TypeIdModel):
     shape: ApiShape
+
+
+class ApiShapeWithLayer(ApiShapeCore):
     floor: str
-    layer: str = Field(..., typeId="LayerName")
+    layer: str = Field(json_schema_extra={"typeId": "LayerName"})
 
 
-class ShapeAdd(ApiShapeWithLayerInfo):
+class ApiShapeWithLayerAndTemporary(ApiShapeWithLayer):
     temporary: bool
 
 
+class ApiTemplateShape(ApiShapeCore):
+    template: bool
+
+
+ShapeAdd = ApiShapeWithLayerAndTemporary | ApiTemplateShape
+
+
 class TemporaryShapes(TypeIdModel):
-    uuids: list[str] = Field(typeId="GlobalId")
+    uuids: list[str] = Field(json_schema_extra={"typeId": "GlobalId"})
     temporary: bool
 
 
 class ShapeFloorChange(TypeIdModel):
-    uuids: list[str] = Field(typeId="GlobalId")
+    uuids: list[str] = Field(json_schema_extra={"typeId": "GlobalId"})
     floor: str
 
 
 class ShapeLayerChange(ShapeFloorChange):
-    layer: str = Field(typeId="LayerName")
+    layer: str = Field(json_schema_extra={"typeId": "LayerName"})
 
 
 class ShapeOrder(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
     index: int
     temporary: bool
 
@@ -50,42 +62,48 @@ class ShapeOrder(TypeIdModel):
 class ShapeLocationMoveTarget(PositionTuple):
     location: int
     floor: str
-    layer: str | None = Field(typeId="LayerName", noneAsNull=True)
+    layer: str | MISSING = Field(default=MISSING, json_schema_extra={"typeId": "LayerName", "missing": True})
 
 
 class ShapeLocationMove(TypeIdModel):
-    shapes: list[str] = Field(typeId="GlobalId")
+    shapes: list[str] = Field(json_schema_extra={"typeId": "GlobalId"})
     target: ShapeLocationMoveTarget
 
 
 class ShapeTextValueSet(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
     text: str
     temporary: bool
 
 
 class ShapeRectSizeUpdate(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
-    w: int
-    h: int
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    w: float
+    h: float
     temporary: bool
 
 
 class ShapeCircleSizeUpdate(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
-    r: int
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    r: float
     temporary: bool
 
 
 class ShapeTextSizeUpdate(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
     font_size: int
     temporary: bool
 
 
 class ShapeAssetImageSet(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
     src: str
+
+
+class ShapeTemplateAdd(TypeIdModel):
+    assetId: int = Field(json_schema_extra={"typeId": "AssetId"})
+    shapeId: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    name: str
 
 
 # todo: This can probably be removed in favor of the very similar SpawnInfo

@@ -1,5 +1,5 @@
 import uuid
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 from peewee import BooleanField, ForeignKeyField, TextField
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 class Room(BaseDbModel):
     id: int
-    logo_id: Optional[int]
+    logo_id: int | None
     players: SelectSequence["PlayerRoom"]
     locations: SelectSequence["Location"]
     default_options: LocationOptions
@@ -48,5 +48,5 @@ class Room(BaseDbModel):
             "logo": logo,
         }
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         indexes = ((("name", "creator"), True),)

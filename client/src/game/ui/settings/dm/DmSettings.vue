@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -20,6 +20,8 @@ const emit = defineEmits<(e: "close" | "focus") => void>();
 defineProps<{ modalIndex: ModalIndex }>();
 
 const { t } = useI18n();
+
+const activeTab = ref(DmSettingCategory.Admin);
 
 const visible = computed({
     get() {
@@ -84,7 +86,13 @@ const tabs = computed(() => [
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :tabs="tabs" @focus="$emit('focus')" @close="close">
+    <PanelModal
+        v-model:visible="visible"
+        v-model:selection="activeTab"
+        :tabs="tabs"
+        @focus="$emit('focus')"
+        @close="close"
+    >
         <template #title>{{ t("game.ui.settings.dm.DmSettings.dm_settings") }}</template>
     </PanelModal>
 </template>

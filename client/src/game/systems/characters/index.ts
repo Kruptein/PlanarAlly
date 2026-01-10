@@ -4,10 +4,10 @@ import type { ApiCharacter } from "../../../apiTypes";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { find } from "../../../core/iter";
 import { registerSystem } from "../../../core/systems";
-import type { ShapeSystem } from "../../../core/systems";
-import type { SystemClearReason } from "../../../core/systems/models";
+import type { System, SystemClearReason } from "../../../core/systems/models";
 import { getGlobalId, getLocalId, getVisualShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
+import type { IToggleComposite } from "../../interfaces/shapes/toggleComposite";
 import { selectedState } from "../selected/state";
 
 import type { CharacterId } from "./models";
@@ -15,8 +15,8 @@ import { characterState } from "./state";
 
 const { mutable, readonly, mutableReactive: $ } = characterState;
 
-class CharacterSystem implements ShapeSystem {
-    // BEHAVIOUR
+class CharacterSystem implements System {
+    // CORE
 
     clear(reason: SystemClearReason): void {
         $.activeCharacterId = undefined;
@@ -26,12 +26,7 @@ class CharacterSystem implements ShapeSystem {
         }
     }
 
-    // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, characterId: CharacterId): void {
-        if (selectedState.raw.selected.has(id)) $.activeCharacterId = characterId;
-    }
-
-    drop(_id: LocalId): void {}
+    // REACTIVE
 
     loadState(id: LocalId): void {
         $.activeCharacterId = find(readonly.characters.entries(), ([, char]) => char.shapeId === getGlobalId(id))?.[0];
@@ -40,6 +35,8 @@ class CharacterSystem implements ShapeSystem {
     dropState(): void {
         $.activeCharacterId = undefined;
     }
+
+    // BEHAVIOUR
 
     addCharacter(character: ApiCharacter): void {
         $.characterIds.add(character.id);
@@ -78,7 +75,7 @@ class CharacterSystem implements ShapeSystem {
 }
 
 export const characterSystem = new CharacterSystem();
-registerSystem("characters", characterSystem, true, characterState);
+registerSystem("characters", characterSystem, false, characterState);
 
 function checkSelectedForCharacterState(shapeId: LocalId | undefined): void {
     if (shapeId) characterSystem.loadState(shapeId);

@@ -1,6 +1,6 @@
 import type { LocalId } from "../id";
 
-import type { SystemClearReason } from "./models";
+import type { ShapeSystem, System, SystemClearReason } from "./models";
 
 export const SYSTEMS: Record<string, System> = {};
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -22,8 +22,8 @@ export function registerSystem(
 }
 
 export function dropFromSystems(id: LocalId): void {
-    for (const [key, system] of Object.entries(SYSTEMS)) {
-        if (SHAPE_SYSTEMS.has(key)) (system as ShapeSystem).drop(id);
+    for (const system of Object.values(SYSTEMS)) {
+        system.drop?.(id);
     }
 }
 
@@ -33,11 +33,8 @@ export function clearSystems(reason: SystemClearReason): void {
     }
 }
 
-export interface System {
-    clear: (reason: SystemClearReason) => void;
-}
-
-export interface ShapeSystem extends System {
-    drop: (id: LocalId) => void;
-    inform: (id: LocalId, data: any) => void;
+export function getShapeSystems(): [string, ShapeSystem<unknown>][] {
+    return Object.entries(SYSTEMS)
+        .filter(([key]) => SHAPE_SYSTEMS.has(key))
+        .map(([key, system]) => [key, system as ShapeSystem<unknown>]);
 }

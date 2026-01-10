@@ -1,6 +1,5 @@
 import secrets
 from datetime import datetime, timedelta
-from typing import Dict
 
 from ..app import app
 from ..db.models.user import User
@@ -11,7 +10,7 @@ class AuthState(State[User]):
     def __init__(self) -> None:
         super().__init__(None)
         # reset_tokens[token] = (user_id, expiration)
-        self.reset_tokens: Dict[str, tuple[int, datetime]] = {}
+        self.reset_tokens: dict[str, tuple[int, datetime]] = {}
 
     def get_user(self, sid: str) -> User:
         return self._sid_map[sid]

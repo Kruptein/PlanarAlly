@@ -10,11 +10,14 @@ from ....logs import logger
 from ...models.shape import ApiShape
 
 
-def create_shape(data: ApiShape, *, layer: Layer):
+def create_shape(data: ApiShape, *, layer: Layer | None):
     with db.atomic():
         # Shape itself
-        data_dict = data.dict()
-        index = layer.shapes.count()
+        data_dict = data.model_dump()
+        if layer:
+            index = layer.shapes.count()
+        else:
+            index = 0
         data_dict["layer"] = layer
         shape = Shape.create(index=index, **reduce_data_to_model(Shape, data_dict))
         # Subshape
@@ -39,9 +42,9 @@ def create_shape(data: ApiShape, *, layer: Layer):
             )
         # Trackers
         for tracker in data.trackers:
-            Tracker.create(**reduce_data_to_model(Tracker, tracker.dict()))
+            Tracker.create(**reduce_data_to_model(Tracker, tracker.model_dump()))
         # Auras
         for aura in data.auras:
-            Aura.create(**reduce_data_to_model(Aura, aura.dict()))
+            Aura.create(**reduce_data_to_model(Aura, aura.model_dump()))
 
         return shape

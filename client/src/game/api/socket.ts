@@ -18,7 +18,7 @@ export function getClientId(): ClientId {
     return socket.id as ClientId;
 }
 
-export const { wrapSocket } = generateSocketHelpers(socket);
+export const { wrapSocket, wrapSocketWithDataAck } = generateSocketHelpers(socket);
 
 // setInterval(() => {
 //     const start = performance.now();

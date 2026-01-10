@@ -59,7 +59,7 @@ onMounted(async () => {
         await modals.confirm(
             "Failed to join session",
             "It was not possible to join the game session. This might be because the DM has locked the session.",
-            { showNo: false, yes: "Ok" },
+            { showNo: false, yes: t("ok") },
         );
     }
 

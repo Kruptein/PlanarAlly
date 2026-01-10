@@ -1,6 +1,6 @@
 import hashlib
 import tarfile
-from typing import Any, List
+from typing import Any
 
 from aiohttp import web
 
@@ -236,8 +236,8 @@ def cleanup_assets(assets: list[ApiAsset]):
             cleanup_assets(asset.children)
 
 
-def get_safe_members(members: List[tarfile.TarInfo]) -> List[tarfile.TarInfo]:
-    safe_members: List[tarfile.TarInfo] = []
+def get_safe_members(members: list[tarfile.TarInfo]) -> list[tarfile.TarInfo]:
+    safe_members: list[tarfile.TarInfo] = []
     for member in members:
         if member.islnk() or member.issym():
             continue
@@ -374,7 +374,6 @@ async def assetmgmt_search(sid: str, query: str, include_shared_assets: bool):
     if include_shared_assets:
         assets = []
         for asset in Asset.get_all_assets(user):
-            print(asset.name)
             if query in asset.name.lower():
                 assets.append(asset)
     else:

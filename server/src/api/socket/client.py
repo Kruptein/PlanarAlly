@@ -12,15 +12,10 @@ from ...db.models.user_options import UserOptions
 from ...models.role import Role
 from ...state.game import game_state
 from ..helpers import _send_game
-from ..models.client import (
-    ClientMove,
-    ClientPosition,
-    ClientViewport,
-    TempClientPosition,
-    Viewport,
-)
+from ..models.client import ClientMove, ClientPosition, ClientViewport, TempClientPosition, Viewport
 from ..models.client.activeLayer import ClientActiveLayerSet
 from ..models.client.offset import ClientOffsetSet
+from ..models.helpers import missing_to_none
 
 
 @sio.on("Client.Options.Default.Set", namespace=GAME_NS)
@@ -137,8 +132,12 @@ async def set_offset(sid: str, raw_data: Any):
     viewport = game_state.client_viewports.get(data.client)
 
     if viewport is not None:
-        viewport.offset_x = data.x or viewport.offset_x or None
-        viewport.offset_y = data.y or viewport.offset_y or None
+        new_offset_x = missing_to_none(data.x) or viewport.offset_x or None
+        if new_offset_x is not None:
+            viewport.offset_x = new_offset_x
+        new_offset_y = missing_to_none(data.y) or viewport.offset_y or None
+        if new_offset_y is not None:
+            viewport.offset_y = new_offset_y
     else:
         print("Unknown client viewport")
 

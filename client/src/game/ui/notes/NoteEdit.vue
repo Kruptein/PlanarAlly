@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watchEffect } from "vue";
+import { computed, onActivated, ref, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import VueMarkdown from "vue-markdown-render";
+import { useToast } from "vue-toastification";
 
 import type { LocalId } from "../../../core/id";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { mostReadable } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
-import { getVisualShape } from "../../id";
+import { socket } from "../../api/socket";
+import { getVisualShape, knownId } from "../../id";
 import { setCenterPosition } from "../../position";
+import { gameState } from "../../systems/game/state";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 import { type ClientNote, NoteManagerMode } from "../../systems/notes/types";
@@ -16,16 +19,25 @@ import { popoutNote } from "../../systems/notes/ui";
 import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
 
+import { filters } from "./noteFilters";
+import NoteTagAdd from "./NoteTagAdd.vue";
+
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
 const { t } = useI18n();
 const modals = useModal();
+const toast = useToast();
 
 const note = computed(() => noteState.reactive.notes.get(noteState.reactive.currentNote!));
 
-watchEffect(() => {
+onActivated(async () => {
+    if (noteState.reactive.currentNote === undefined) return emit("mode", NoteManagerMode.List);
     if (note.value === undefined) {
-        emit("mode", NoteManagerMode.List);
+        const success = await noteSystem.downloadNote(noteState.reactive.currentNote);
+        if (!success) {
+            emit("mode", NoteManagerMode.List);
+            toast.error("Failed to load note from server");
+        }
     }
 });
 
@@ -41,7 +53,10 @@ const canEdit = computed(() => {
 const localShapenotes = computed(() =>
     note.value === undefined
         ? []
-        : (noteState.reactive.shapeNotes.get2(note.value.uuid)?.map((s) => ({ ...getProperties(s), id: s })) ?? []),
+        : (noteState.reactive.shapeNotes
+              .get2(note.value.uuid)
+              ?.map((s) => ({ ...getProperties(s), id: s }))
+              ?.filter((s) => knownId(s.id)) ?? []),
 );
 
 const showOnHover = computed({
@@ -67,6 +82,7 @@ enum TabLabel {
     Edit = "edit",
     Access = "access",
     Shapes = "shapes",
+    Campaigns = "campaigns",
     Triggers = "triggers & visuals",
     Map = "map",
 }
@@ -121,6 +137,13 @@ const tabs = computed(
                 visible: canEdit.value,
                 title: t("game.ui.notes.NoteEdit.tab_label.shapes_title"),
             },
+            {
+                label: TabLabel.Campaigns,
+                label_text: t("game.ui.notes.NoteEdit.tab_label.campaigns"),
+                icon: "link",
+                visible: canEdit.value,
+                title: t("game.ui.notes.NoteEdit.tab_label.campaigns_title"),
+            },
             // { label: TabLabel.Map, icon: "location-dot", visible: false },
         ] as Tab[],
 );
@@ -136,7 +159,7 @@ watchEffect(() => {
 const accessLevels = computed(() => {
     if (note.value === undefined) return [];
     // For global notes, there is no default access so just return the access levels with a filter
-    if (!note.value.isRoomNote) return note.value.access.filter((a) => a.name !== defaultAccessName);
+    if (note.value.rooms.length === 0) return note.value.access.filter((a) => a.name !== defaultAccessName);
     // For local notes, add a default access level and make sure it's first
     // It's possible that a specific config for the default access level is set, so we need to check for that
     const access = [];
@@ -148,7 +171,7 @@ const accessLevels = computed(() => {
     return [defaultAccess, ...access];
 });
 
-onBeforeMount(() => {
+onActivated(() => {
     if (noteState.reactive.currentNote === undefined) emit("mode", NoteManagerMode.List);
     if ((note.value?.text ?? "").trim().length === 0) activeTabIndex.value = 1;
 });
@@ -161,12 +184,6 @@ function setTitle(event: Event): void {
 function setText(event: Event, sync: boolean): void {
     if (!note.value) return;
     noteSystem.setText(note.value.uuid, (event.target as HTMLTextAreaElement).value, sync, !sync);
-}
-
-async function addTag(): Promise<void> {
-    if (!note.value) return;
-    const answer = await modals.prompt("Enter the name of the tag to add.", "New tag");
-    if (answer !== undefined && answer.length > 0) await noteSystem.addTag(note.value.uuid, answer, true);
 }
 
 function removeTag(tag: string): void {
@@ -231,6 +248,71 @@ function removeShape(shape: LocalId): void {
     if (!note.value) return;
     noteSystem.removeShape(note.value.uuid, shape, true);
 }
+
+const sortedRooms = computed(() => {
+    if (note.value === undefined) return [];
+    return note.value.rooms.toSorted(
+        (a, b) =>
+            a.roomCreator.localeCompare(b.roomCreator) ||
+            a.roomName.localeCompare(b.roomName) ||
+            (a.locationName ?? "").localeCompare(b.locationName ?? ""),
+    );
+});
+
+const loadedRooms = ref<{ creator: string; name: string }[]>([]);
+const roomLinkOptions = computed(() => {
+    if (loadedRooms.value.length === 0)
+        return [
+            {
+                creator: gameState.fullRoomName.value.split("/")[0]!,
+                name: gameState.fullRoomName.value.split("/").slice(1).join("/"),
+            },
+        ];
+    return loadedRooms.value;
+});
+const newRoomLink = ref(roomLinkOptions.value[0]!);
+
+async function loadRooms(): Promise<void> {
+    if (loadedRooms.value.length > 0) return;
+    const rooms = (await socket.emitWithAck("Room.List")) as { creator: string; name: string }[];
+    loadedRooms.value = rooms.sort((a, b) => a.creator.localeCompare(b.creator) || a.name.localeCompare(b.name));
+}
+
+watch(newRoomLink, () => (loadedLocations.value = []));
+
+const loadedLocations = ref<{ id: number; name: string }[]>([]);
+async function loadLocations(): Promise<void> {
+    if (loadedLocations.value.length > 0) return;
+    const locations = (await socket.emitWithAck(
+        "Room.Locations.List",
+        `${newRoomLink.value.creator}/${newRoomLink.value.name}`,
+    )) as {
+        id: number;
+        name: string;
+    }[];
+    loadedLocations.value = locations.sort((a, b) => a.name.localeCompare(b.name));
+}
+const newLocationLink = ref(loadedLocations.value[0] ?? null);
+
+function linkToLocation(): void {
+    if (!note.value) return;
+    noteSystem.linkToRoom(
+        note.value.uuid,
+        newRoomLink.value.creator,
+        newRoomLink.value.name,
+        newLocationLink.value?.id ?? null,
+        newLocationLink.value?.name ?? null,
+        true,
+    );
+}
+
+function searchTag(tag: string): void {
+    filters.tags = [tag];
+    // force a refresh, filter changes also trigger a search, but it will not complete due to not being open
+    // the refresh is queued
+    noteState.mutableReactive.refresh.searchQuery = true;
+    emit("mode", NoteManagerMode.List);
+}
 </script>
 
 <template>
@@ -267,14 +349,13 @@ function removeShape(shape: LocalId): void {
                 class="tag"
                 :class="{ edit: canEdit }"
                 :style="{ color: mostReadable(tag.colour), backgroundColor: tag.colour }"
-                @click="removeTag(tag.name)"
             >
-                {{ tag.name }}
+                <span class="tag-text">{{ tag.name }}</span>
+                <font-awesome-icon class="tag-icon" icon="magnifying-glass" @click.stop="searchTag(tag.name)" />
+                <font-awesome-icon v-if="canEdit" class="tag-icon" icon="trash-alt" @click.stop="removeTag(tag.name)" />
             </div>
             <div v-if="note.tags.length === 0">{{ t("game.ui.notes.NoteEdit.no_tags") }}</div>
-            <div v-if="canEdit" :title="t('game.ui.notes.NoteEdit.add_tag')" @click="addTag">
-                <font-awesome-icon icon="plus" />
-            </div>
+            <NoteTagAdd v-if="canEdit" />
         </div>
         <!-- TABS -->
         <div v-if="canEdit" id="tabs">
@@ -289,18 +370,6 @@ function removeShape(shape: LocalId): void {
                 <font-awesome-icon :icon="tab.icon" />
                 <div>{{ tab.label_text }}</div>
             </div>
-            <!-- <div v-if="canHaveShape(note)">
-                <font-awesome-icon icon="location-dot" />
-                <div class="note-setting-title">Map Link</div>
-                <-- <div v-if="hasShape(note)">
-                    <div>Linked to map.</div>
-                    <div style="font-weight: bold; text-decoration: underline; font-style: italic">Remove link</div>
-                </div>
-                <div v-else>
-                    <span>This note is not linked to a map location.</span>
-                    <span id="link-to-map" @click="$emit('mode', 'map')">Link to map</span>
-                </div> --
-            </div> -->
         </div>
         <div v-if="activeTab === TabLabel.View" id="editor" class="tab-container">
             <VueMarkdown :source="note.text" :options="{ html: true }" />
@@ -339,7 +408,9 @@ function removeShape(shape: LocalId): void {
                 <span v-if="localShapenotes.length > 0">
                     {{ t("game.ui.notes.NoteEdit.shapes.listed") }}
                 </span>
-                <button @click="addShape">{{ t("game.ui.notes.NoteEdit.shapes.add") }}</button>
+                <button class="button" style="margin-left: 1rem" @click="addShape">
+                    {{ t("game.ui.notes.NoteEdit.shapes.add") }}
+                </button>
             </div>
             <div v-for="shape of localShapenotes" :key="shape.id" @click="navigateToShape(shape.id)">
                 <font-awesome-icon icon="location-dot" :title="t('game.ui.notes.NoteEdit.shapes.go_to_map')" />
@@ -351,6 +422,43 @@ function removeShape(shape: LocalId): void {
                     @click.stop="removeShape(shape.id)"
                 />
             </div>
+        </div>
+        <div v-else-if="activeTab === TabLabel.Campaigns" id="note-campaigns" class="tab-container">
+            <div id="campaign-headers">
+                <div>Campaign</div>
+                <div>Location</div>
+                <div>Action(s)</div>
+            </div>
+            <template
+                v-for="{ roomCreator, roomName, locationId, locationName } of sortedRooms"
+                :key="`${roomCreator}-${roomName}-${locationId}`"
+            >
+                <div>{{ roomCreator }}/{{ roomName }}</div>
+                <div v-if="locationId !== null">
+                    {{ locationName ?? "Unknown" }}
+                </div>
+                <div v-else></div>
+                <font-awesome-icon
+                    icon="trash-alt"
+                    style="justify-self: center"
+                    :title="t('game.ui.notes.NoteEdit.shapes.remove')"
+                    @click="noteSystem.removeRoomLink(note!.uuid, roomCreator, roomName, locationId, true)"
+                />
+            </template>
+            <div style="margin: 0.5rem; grid-column: 1/-1"></div>
+            <select v-model="newRoomLink" @click="loadRooms">
+                <option v-for="room of roomLinkOptions" :key="`${room.creator}-${room.name}`" :value="room">
+                    {{ room.creator }}/{{ room.name }}
+                </option>
+            </select>
+            <select v-model="newLocationLink" @click="loadLocations">
+                <option v-for="location of loadedLocations" :key="location.id" :value="location">
+                    {{ location.name }}
+                </option>
+            </select>
+            <button class="button" @click="linkToLocation">
+                {{ t("common.link") }}
+            </button>
         </div>
         <div v-else id="note-triggers" class="tab-container">
             <label for="note-trigger-icon">
@@ -409,26 +517,40 @@ header {
 #tags {
     margin: 1rem;
     display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 
     > div {
         position: relative;
-        padding: 0.25rem 0.5rem;
+        padding: 0.375rem 0.625rem;
         border-radius: 1rem;
-        margin-right: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: opacity 0.2s;
+
+        .tag-text {
+            flex-shrink: 0;
+        }
+
+        .tag-icon {
+            display: none;
+            font-size: 0.75em;
+            padding: 0.125rem;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            opacity: 0.8;
+
+            &:hover {
+                opacity: 1;
+                background-color: rgba(0, 0, 0, 0.1);
+            }
+        }
 
         &.edit.tag:hover {
-            cursor: pointer;
-
-            &::after {
-                content: "\00D7";
-                position: absolute;
-                color: red;
-                font-size: 20px;
-                font-weight: bold;
-                cursor: pointer;
-                top: -8px;
-                right: -4px;
-                pointer-events: auto;
+            .tag-icon {
+                display: block;
             }
         }
     }
@@ -576,18 +698,22 @@ header {
             }
         }
     }
+}
 
-    button {
-        background-color: lightblue;
-        border: solid 2px lightblue;
-        border-width: 1px;
-        border-radius: 1rem;
-        padding: 0.5rem 0.75rem;
-        margin-left: 1rem;
+#note-campaigns {
+    display: grid;
+    width: fit-content;
+    grid-template-columns: 1fr minmax(auto, 7.5rem) auto;
+    row-gap: 0.5rem;
+    column-gap: 1.5rem;
 
-        &:hover {
-            cursor: pointer;
-            background-color: rgba(173, 216, 230, 0.5);
+    #campaign-headers {
+        display: contents;
+
+        > div {
+            font-weight: bold;
+            border-bottom: solid 1px black;
+            margin-bottom: 0.5rem;
         }
     }
 }
@@ -597,5 +723,18 @@ header {
     grid-template-columns: 1fr auto;
     width: fit-content;
     gap: 0.5rem;
+}
+
+.button {
+    background-color: lightblue;
+    border: solid 2px lightblue;
+    border-width: 1px;
+    border-radius: 1rem;
+    padding: 0.5rem 0.75rem;
+
+    &:hover {
+        cursor: pointer;
+        background-color: rgba(173, 216, 230, 0.5);
+    }
 }
 </style>

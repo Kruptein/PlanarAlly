@@ -16,6 +16,8 @@ server/static/temp/**
 venv/
 env/
 server/.python-version
+# This should be symlinked from the server folder if needed
+/pyrightconfig.json
 
 # PyInstaller
 server/dist/**

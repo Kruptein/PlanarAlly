@@ -1,5 +1,5 @@
 import { registerSystem } from "../../../core/systems";
-import type { System } from "../../../core/systems";
+import type { System } from "../../../core/systems/models";
 import type { FloorId } from "../../models/floor";
 import type { ClientSettingCategory } from "../../ui/settings/client/categories";
 

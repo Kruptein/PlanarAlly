@@ -1,5 +1,3 @@
-import { exportShapeData } from "..";
-import type { ApiTextShape } from "../../../apiTypes";
 import { g2lz, l2gz } from "../../../core/conversions";
 import { addP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
@@ -10,8 +8,9 @@ import { sendTextUpdate } from "../../api/emits/shape/text";
 import { getGlobalId } from "../../id";
 import type { IText } from "../../interfaces/shapes/text";
 import { getProperties } from "../../systems/properties/state";
-import type { ShapeProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/types";
 import { Shape } from "../shape";
+import type { CompactShapeCore, TextCompactCore } from "../transformations";
 import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
@@ -39,8 +38,14 @@ export class Text extends Shape implements IText {
 
     readonly isClosed = true;
 
-    asDict(): ApiTextShape {
-        return { ...exportShapeData(this), text: this.text, font_size: this.fontSize, angle: this.angle };
+    asCompact(): TextCompactCore {
+        return { text: this.text, font_size: this.fontSize };
+    }
+
+    fromCompact(core: CompactShapeCore, subShape: TextCompactCore): void {
+        super.fromCompact(core, subShape);
+        this.text = subShape.text;
+        this.fontSize = subShape.font_size;
     }
 
     updatePoints(): void {

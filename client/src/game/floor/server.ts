@@ -15,7 +15,7 @@ import { groupSystem } from "../systems/groups";
 import { groupToClient } from "../systems/groups/models";
 import { visionState } from "../vision/state";
 
-export function addServerFloor(serverFloor: ApiFloor): void {
+export async function addServerFloor(serverFloor: ApiFloor): Promise<void> {
     const floor: Floor = {
         id: floorSystem.generateFloorId(),
         name: serverFloor.name,
@@ -32,8 +32,8 @@ export function addServerFloor(serverFloor: ApiFloor): void {
     let fowLayer: ApiLayer | undefined;
     for (const layer of serverFloor.layers) {
         if (layer.name === LayerName.Lighting) fowLayer = layer;
-        else addServerLayer(layer, floor);
-        if (layer.name === LayerName.Vision) addServerLayer(fowLayer!, floor);
+        else await addServerLayer(layer, floor);
+        if (layer.name === LayerName.Vision) await addServerLayer(fowLayer!, floor);
     }
 
     visionState.recalculateVision(floorId);
@@ -42,7 +42,7 @@ export function addServerFloor(serverFloor: ApiFloor): void {
     recalculateZIndices();
 }
 
-function addServerLayer(layerInfo: ApiLayer, floor: Floor): void {
+async function addServerLayer(layerInfo: ApiLayer, floor: Floor): Promise<void> {
     const canvas = createCanvas(layerInfo.name);
 
     const layerName = layerInfo.name;
@@ -84,5 +84,5 @@ function addServerLayer(layerInfo: ApiLayer, floor: Floor): void {
     }
 
     // Load layer shapes
-    layer.setServerShapes(layerInfo.shapes);
+    await layer.setServerShapes(layerInfo.shapes);
 }

@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Literal, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from peewee import ForeignKeyField, TextField
 from typing_extensions import Self, TypedDict
@@ -10,9 +10,13 @@ from ..typed import SelectSequence
 from .asset_share import AssetShare
 from .user import User
 
+if TYPE_CHECKING:
+    from .shape import Shape
+    from .shape_template import ShapeTemplate
+
 
 class FileStructure(TypedDict):
-    __files: List["FileStructureElement"]
+    __files: list["FileStructureElement"]
 
 
 class FileStructureElement(TypedDict):
@@ -21,30 +25,31 @@ class FileStructureElement(TypedDict):
     hash: str
 
 
-AssetStructure = Union[FileStructure, Dict[str, "AssetStructure"]]
+AssetStructure = FileStructure | dict[str, "AssetStructure"]
 
 
 class Asset(BaseDbModel):
     id: int
     parent_id: int
     shares: SelectSequence["AssetShare"]
+    shapes: SelectSequence["Shape"]
+    templates: SelectSequence["ShapeTemplate"]
 
     owner = cast(User, ForeignKeyField(User, backref="assets", on_delete="CASCADE"))
     parent = cast(
-        Optional["Asset"],
+        "Asset | None",
         ForeignKeyField("self", backref="children", null=True, on_delete="CASCADE"),
     )
     name = cast(str, TextField())
-    file_hash = cast(Optional[str], TextField(null=True))
-    options = cast(Optional[str], TextField(null=True))
+    file_hash = cast(str | None, TextField(null=True))
 
     def __repr__(self):
         return f"<Asset {self.owner.name} - {self.name}>"
 
-    def get_options(self) -> Dict[str, Any]:
+    def get_options(self) -> dict[str, Any]:
         return dict(json.loads(self.options or "[]"))
 
-    def set_options(self, options: Dict[str, Any]) -> None:
+    def set_options(self, options: dict[str, Any]) -> None:
         self.options = json.dumps([[k, v] for k, v in options.items()])
 
     def get_child(self, name: str) -> "Asset | None":

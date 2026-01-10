@@ -42,7 +42,7 @@ async def new_initiative_effect(sid: str, raw_data: Any):
 
         for initiative in json_data:
             if initiative["shape"] == data.actor:
-                initiative["effects"].append(data.effect.dict())
+                initiative["effects"].append(data.effect.model_dump())
 
         location_data.data = json.dumps(json_data)
         location_data.save()

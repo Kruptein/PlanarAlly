@@ -12,4 +12,4 @@ class Text(ShapeType):
     font_size = cast(int, IntegerField())
 
     def as_pydantic(self, shape: ApiCoreShape):
-        return ApiTextShape(**shape.dict(), text=self.text, font_size=self.font_size)
+        return ApiTextShape(**shape.model_dump(), text=self.text, font_size=self.font_size)

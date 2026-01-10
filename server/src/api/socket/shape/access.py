@@ -12,12 +12,8 @@ from ....models.role import Role
 from ....state.game import game_state
 from ....transform.to_api.shape import transform_shape
 from ...helpers import _send_game
-from ...models.shape import ApiShapeWithLayerInfo
-from ...models.shape.owner import (
-    ApiDefaultShapeOwner,
-    ApiDeleteShapeOwner,
-    ApiShapeOwner,
-)
+from ...models.shape import ApiShapeWithLayer
+from ...models.shape.owner import ApiDefaultShapeOwner, ApiDeleteShapeOwner, ApiShapeOwner
 from ..constants import GAME_NS
 
 
@@ -61,7 +57,7 @@ async def add_shape_owner(sid: str, raw_data: Any):
         for sid, tpr in game_state.get_t(player=target_user, active_location=pr.active_location):
             await _send_game(
                 "Shape.Set",
-                ApiShapeWithLayerInfo(
+                ApiShapeWithLayer(
                     shape=transform_shape(shape, tpr),
                     floor=layer.floor.name,
                     layer=layer.name,
@@ -115,7 +111,7 @@ async def update_shape_owner(sid: str, raw_data: Any):
     for tsid, tpr in game_state.get_t(player=target_user, active_location=pr.active_location):
         await _send_game(
             "Shape.Set",
-            ApiShapeWithLayerInfo(
+            ApiShapeWithLayer(
                 shape=transform_shape(shape, tpr),
                 floor=layer.floor.name,
                 layer=layer.name,
@@ -163,7 +159,7 @@ async def delete_shape_owner(sid: str, raw_data: Any):
     for tsid, tpr in game_state.get_t(player=target_user, active_location=pr.active_location):
         await _send_game(
             "Shape.Set",
-            ApiShapeWithLayerInfo(
+            ApiShapeWithLayer(
                 shape=transform_shape(shape, tpr),
                 floor=layer.floor.name,
                 layer=layer.name,
@@ -204,7 +200,7 @@ async def update_default_shape_owner(sid: str, raw_data: Any):
     for sid, player_room in game_state.get_t(active_location=pr.active_location, skip_sid=sid):
         await _send_game(
             "Shape.Set",
-            ApiShapeWithLayerInfo(
+            ApiShapeWithLayer(
                 shape=transform_shape(shape, player_room),
                 floor=layer.floor.name,
                 layer=layer.name,

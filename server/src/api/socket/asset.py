@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
@@ -9,12 +9,7 @@ from ...db.models.player_room import PlayerRoom
 from ...logs import logger
 from ...models.role import Role
 from ...state.game import game_state
-from ..helpers import _send_game
-from ..models.asset.options import (
-    AssetOptionsInfoFail,
-    AssetOptionsInfoSuccess,
-    AssetOptionsSet,
-)
+from ..models.asset.options import AssetOptionsInfoFail, AssetOptionsInfoSuccess, AssetOptionsSet, AssetTemplateInfo
 
 
 @sio.on("Asset.Options.Get", namespace=GAME_NS)
@@ -26,14 +21,15 @@ async def get_asset_options(sid: str, asset_id: int):
         logger.warning(f"{pr.player.name} attempted to request asset options")
         return
 
-    asset: Optional[Asset] = Asset.get_or_none(id=asset_id)
+    asset: Asset | None = Asset.get_or_none(id=asset_id)
 
     if asset is None:
         options = AssetOptionsInfoFail(success=False, error="AssetNotFound")
     else:
-        options = AssetOptionsInfoSuccess(success=True, name=asset.name, options=asset.options)
+        templates = [AssetTemplateInfo(name=template.name, id=template.shape_id) for template in asset.templates]
+        options = AssetOptionsInfoSuccess(success=True, name=asset.name, templates=templates)
 
-    await _send_game("Asset.Options.Info", options, room=sid)
+    return options
 
 
 @sio.on("Asset.Options.Set", namespace=GAME_NS)

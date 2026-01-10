@@ -33,4 +33,7 @@ const state = buildState<GameState>({
 export const gameState = {
     ...state,
     isDmOrFake: computed(() => state.reactive.isDm || state.reactive.isFakePlayer),
+    fullRoomName: computed(() => {
+        return `${state.reactive.roomCreator}/${state.reactive.roomName}`;
+    }),
 };

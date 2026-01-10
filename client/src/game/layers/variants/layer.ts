@@ -9,7 +9,7 @@ import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types"
 import { callbackProvider } from "../../../core/utils";
 import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
-import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../../api/emits/shape/core";
+import { sendRemoveShapes, sendShapeOrder } from "../../api/emits/shape/core";
 import { dropId, getGlobalId, getVisualShape } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
@@ -19,7 +19,7 @@ import { addOperation } from "../../operations/undo";
 import { drawAuras } from "../../rendering/auras";
 import { drawTear } from "../../rendering/basic";
 import { drawCells } from "../../rendering/grid";
-import { createShapeFromDict } from "../../shapes/create";
+import { createOnServer, fromSystemForm, instantiateCompactForm, loadFromServer } from "../../shapes/transformations";
 import { BoundingRect } from "../../shapes/variants/simple/boundingRect";
 import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
@@ -191,6 +191,10 @@ export class Layer implements ILayer {
         }
     }
 
+    // Utility functions to do cleanup in case of layer move
+    enterLayer(_shape: IShape): void {}
+    exitLayer(_shape: IShape): void {}
+
     addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode): void {
         shape.setLayer(this.floor, this.name);
 
@@ -206,13 +210,11 @@ export class Layer implements ILayer {
 
         shape.invalidatePoints();
 
+        // We delay compact generation as we don't want to do it for no_sync shapes
+        let compact;
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
-            sendShapeAdd({
-                shape: shape.asDict(),
-                floor: shape.floor!.name,
-                layer: shape.layer!.name,
-                temporary: sync === SyncMode.TEMP_SYNC,
-            });
+            compact = fromSystemForm(shape.id);
+            createOnServer(compact, sync);
         }
         if (invalidate !== InvalidationMode.NO) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
 
@@ -224,10 +226,10 @@ export class Layer implements ILayer {
             selectedSystem.push(shape.id);
         }
 
-        if (sync === SyncMode.FULL_SYNC) {
+        if (sync === SyncMode.FULL_SYNC && compact !== undefined) {
             addOperation({
                 type: "shapeadd",
-                shapes: [shape.asDict()],
+                shapes: [compact],
                 floor: shape.floor!.name,
                 layerName: shape.layer!.name,
             });
@@ -265,7 +267,7 @@ export class Layer implements ILayer {
         this.updateView();
     }
 
-    setServerShapes(shapes: ApiShape[]): void {
+    async setServerShapes(shapes: ApiShape[]): Promise<void> {
         if (this.isActiveLayer) selectedSystem.clear(); // TODO: Fix keeping selection on those items that are not moved.
         // We need to ensure composites are added after all their variants have been added
         const composites = [];
@@ -273,22 +275,21 @@ export class Layer implements ILayer {
             if (serverShape.type_ === "togglecomposite") {
                 composites.push(serverShape);
             } else {
-                this.setServerShape(serverShape);
+                await this.setServerShape(serverShape);
             }
         }
-        for (const composite of composites) this.setServerShape(composite);
+        for (const composite of composites) await this.setServerShape(composite);
     }
 
-    private setServerShape(serverShape: ApiShape): void {
-        const shape = createShapeFromDict(serverShape, this.floor, this.name);
-        if (shape === undefined) {
-            return;
-        }
-        let invalidate = InvalidationMode.NO;
-        if (visionState.state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
-            invalidate = InvalidationMode.WITH_LIGHT;
-        }
-        this.addShape(shape, SyncMode.NO_SYNC, invalidate);
+    private async setServerShape(serverShape: ApiShape): Promise<void> {
+        const compact = await loadFromServer(serverShape, this.floor, this.name);
+        instantiateCompactForm(compact, "load", (shape) => {
+            let invalidate = InvalidationMode.NO;
+            if (visionState.state.mode === VisibilityMode.TRIANGLE_ITERATIVE) {
+                invalidate = InvalidationMode.WITH_LIGHT;
+            }
+            this.addShape(shape, SyncMode.NO_SYNC, invalidate);
+        });
     }
 
     removeShape(shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }): boolean {
@@ -460,12 +461,20 @@ export class Layer implements ILayer {
                                 const ray = Ray.fromPoints(shape.center, bboxCenter);
                                 const { hit, min } = bbox.containsRay(ray);
                                 if (hit) {
+                                    const drawSize = 60;
                                     let target = ray.get(min);
                                     const modifiedRay = new Ray(g2l(ray.get(min)), ray.direction);
                                     drawTear(modifiedRay, { fillColour: playerSettingsState.raw.rulerColour.value });
                                     target = ray.getPointAtDistance(l2gz(68), min);
-                                    shape.draw(ctx, false, { center: target, width: 60, height: 60 });
-                                    positionSystem.setTokenDirection(token, g2l(target));
+                                    const localTarget = g2l(target);
+                                    ctx.save();
+                                    ctx.beginPath();
+                                    ctx.arc(localTarget.x, localTarget.y, drawSize / 2, 0, Math.PI * 2, true);
+                                    ctx.closePath();
+                                    ctx.clip();
+                                    shape.draw(ctx, false, { center: target, width: drawSize, height: drawSize });
+                                    ctx.restore();
+                                    positionSystem.setTokenDirection(token, localTarget);
                                     found = true;
                                 }
                             }

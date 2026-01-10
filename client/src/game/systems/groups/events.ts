@@ -17,7 +17,7 @@ socket.on("Group.Create", (data: ApiGroup) => {
 socket.on("Group.Join", (data: GroupJoin) => {
     groupSystem.addGroupMembers(
         data.group_id,
-        data.members.map((m) => ({ badge: m.badge, uuid: getLocalId(m.uuid)! })),
+        data.members.map((m) => ({ badge: m.badge, id: getLocalId(m.uuid)! })),
         false,
     );
 });

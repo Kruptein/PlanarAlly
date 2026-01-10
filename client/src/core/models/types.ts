@@ -1,7 +1,8 @@
 export enum SyncMode {
     NO_SYNC,
-    TEMP_SYNC,
+    TEMP_SYNC, // temporary sync
     FULL_SYNC,
+    TEMPLATE_SYNC,
 }
 
 export enum InvalidationMode {

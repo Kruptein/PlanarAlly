@@ -1,5 +1,6 @@
-from typing import Dict, Set
+from typing import Set
 
+from ..logs import logger
 from ..api.models.client import Viewport
 from ..api.socket.constants import GAME_NS
 from ..app import app, sio
@@ -11,8 +12,8 @@ from . import State
 class GameState(State[PlayerRoom]):
     def __init__(self) -> None:
         super().__init__(GAME_NS)
-        self.client_temporaries: Dict[str, Set[str]] = {}
-        self.client_viewports: Dict[str, Viewport] = {}
+        self.client_temporaries: dict[str, Set[str]] = {}
+        self.client_viewports: dict[str, Viewport] = {}
 
     def get_user(self, sid: str) -> User:
         return self._sid_map[sid].player
@@ -39,7 +40,11 @@ class GameState(State[PlayerRoom]):
         self.client_temporaries[sid].add(uid)
 
     def remove_temp(self, sid: str, uid: str) -> None:
-        self.client_temporaries[sid].remove(uid)
+        try:
+            self.client_temporaries[sid].remove(uid)
+        except KeyError:
+            logger.warning(f"Attempt to remove unknown temporary shape {uid} from client {sid}")
+            return
 
 
 game_state = GameState()

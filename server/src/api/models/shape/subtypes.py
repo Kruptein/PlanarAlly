@@ -19,7 +19,7 @@ class ApiAssetRectShape(ApiBaseRectShape):
 
 class ApiCircleShape(ApiCoreShape):
     radius: float
-    viewing_angle: float | None = Field(..., noneAsNull=True)
+    viewing_angle: float | None
 
 
 class ApiCircularTokenShape(ApiCircleShape):
@@ -45,12 +45,12 @@ class ApiLineShape(ApiCoreShape):
 
 
 class ToggleVariant(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
     name: str
 
 
 class ApiToggleCompositeShape(ApiCoreShape):
-    active_variant: str | None = Field(..., typeId="GlobalId", nonAsNull=True)
+    active_variant: str = Field(json_schema_extra={"typeId": "GlobalId"})
     variants: list[ToggleVariant]
 
 

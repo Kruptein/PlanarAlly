@@ -8,7 +8,8 @@
         "ru": "Русский",
         "dk": "Dansk",
         "es": "Español",
-        "it": "Italiano"
+        "it": "Italiano",
+        "fr": "Français"
     },
     "assetManager": {
         "AssetContextMenu": {
@@ -95,7 +96,12 @@
         "apply": "Apply",
         "type": "Type",
         "background": "Background",
-        "mods": "Mods"
+        "mods": "Mods",
+        "ok": "Ok",
+        "link": "Link"
+    },
+    "errors": {
+        "shape-order-mismatch": "An inconsistency in the shape order was detected on the server. This has been automatically corrected. Please refresh the page to ensure you're seeing the correct order."
     },
     "assets": {
         "add_shortcut": "Add shortcut",
@@ -157,6 +163,7 @@
             },
             "initiative": {
                 "new_effect": "New effect",
+                "add_effect": "Add effect",
                 "add_timed_effect": "Add timed effect",
                 "toggle_group": "Toggle individual / group initiative",
                 "delete_init": "Delete initiative",
@@ -167,9 +174,20 @@
                 "reset_round": "Reset rounds/turns",
                 "next": "Next",
                 "previous": "Previous",
+                "next_round": "Next round",
+                "previous_round": "Previous round",
                 "clear": "Clear initiatives",
+                "clear_entries": "Clear entries",
                 "change_sort": "Change sorting",
-                "settings": "Settings"
+                "settings": "Settings",
+                "remove_group_msg": "Are you sure you wish to remove this group from the initiative order?",
+                "clear_entries_msg": "Are you sure you wish to clear all initiative entries?",
+                "clear_initiatives_msg": "Are you sure you wish to clear all initiative numbers?",
+                "empty_initiative": "No visible entries",
+                "infinite_toggle": "Infinite?",
+                "infinite_toggle_hint": "Should the effect have infinite duration?",
+                "effect_duration_hint": "Number of rounds this effect will last",
+                "effect_name_hint": "Name of the effect"
             },
             "menu": {
                 "LocationBar": {
@@ -286,6 +304,19 @@
                         "light_source": "Light source",
                         "angle": "Angle",
                         "display_on_token": "Display on token"
+                    },
+                    "customData": {
+                        "customData": "Custom Data",
+                        "addBranch": "Add Branch",
+                        "addElement": "Add Element",
+                        "nameConflictTitle": "Name Conflict",
+                        "nameConflictText": "The name you entered already exists. Please enter a different name.",
+                        "newBranchPrompt": "What name should this branch have?",
+                        "noChildren": "Here you can add custom data for this shape.\n\nThis can be used to have a rudimentary character sheet,\nbut it can also be used by tracker, auras and the dice system!",
+                        "removeBranchTitle": "Remove Branch",
+                        "removeBranchPrompt": "Are you sure you want to remove this branch and all its children?",
+                        "removeElementTitle": "Remove Element",
+                        "removeElementPrompt": "Are you sure you want to remove this element?"
                     }
                 },
                 "SelectionInfo": {
@@ -379,8 +410,8 @@
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "ENTER {creator}/{room} TO CONFIRM CAMPAIGN REMOVAL.",
                         "deleting_session": "DELETING CAMPAIGN",
-                        "unlock_NBSP_Session_NBSP": "Unlock Campaign ",
-                        "lock_NBSP_Session_NBSP": "Lock Campaign ",
+                        "unlock_NBSP_Session_NBSP": "Unlock Campaign",
+                        "lock_NBSP_Session_NBSP": "Lock Campaign",
                         "unlock_this_session": "Unlock this campaign",
                         "lock_this_session": "Lock this campaign",
                         "kick": "Kick",
@@ -388,7 +419,7 @@
                         "invite_code": "Invite code",
                         "invitation_url": "Invitation URL:",
                         "refresh_invitation_code": "Refresh invitation code",
-                        "danger_NBSP_zone": "Danger Zone",
+                        "danger_NBSP_zone": "Danger Zone",
                         "dm_access_only": "(DM access only)",
                         "remove_session": "Remove Campaign",
                         "delete_session": "Delete this Campaign"
@@ -610,10 +641,13 @@
                     "title": "Title:",
                     "title_placeholder": "New note...",
                     "type": "Type:",
-                    "local_note_title": "Local note",
-                    "local_note_body": "A note that is relevant to the current campaign only. This is the most common kind of type and should be used for most cases.",
-                    "global_note_title": "Global note",
-                    "global_note_body": "A note that will be visible in all campaigns. This is a special type that can be used to note down information on common things like monster stats thare are used in multiple campaigns."
+                    "type_description": "(This can be modified later; a note can also be linked to multiple campaigns or locations.)",
+                    "campaign_note_title": "Campaign note",
+                    "campaign_note_body": "A note that is relevant to the current campaign in its entirety. Commonly used for things like lore and worldbuilding or personal notes.",
+                    "location_note_title": "Location specific note",
+                    "location_note_body": "A note that is relevant to the current location only. Commonly used for notes that are not relevant to other locations. (e.g. special rules, info on hidden rooms, etc.)",
+                    "no_link_note_title": "No link note",
+                    "no_link_note_body": "A note that is not linked to any campaign or location. Commonly used for asset templates or generic system rules (e.g. monster stats, condition rules, roll tables, etc.)"
                 },
                 "NoteDialog": {
                     "show": "show",
@@ -662,6 +696,7 @@
                     "back": "Back to list",
                     "no_tags": "No tags yet.",
                     "add_tag": "Add tag",
+                    "add_new_tag": "Add new tag",
                     "md_aware": "This input is markdown aware!",
                     "shapes": {
                         "linked": "This note is linked to",
@@ -672,6 +707,10 @@
                         "add": "Add a shape",
                         "go_to_map": "Go to shape on the map",
                         "remove": "Remove shape link"
+                    },
+                    "campaigns": {
+                        "link_to_current_campaign": "Link to current campaign",
+                        "link_to_current_location": "Link to current location"
                     },
                     "show_icon": "Show note icon on shape",
                     "show_icon_title": "Checking this will render a special icon in the bottom-left of a shape on the map. This can be useful to remind yourself of an important note",
@@ -688,7 +727,9 @@
                         "access_title": "Configure access rights",
                         "shapes": "shapes",
                         "shapes_title": "See which shapes are linked to this note",
-                        "access": "access"
+                        "access": "access",
+                        "campaigns": "campaigns",
+                        "campaigns_title": "See which campaigns and locations are linked to this note"
                     }
                 },
                 "note_types": {

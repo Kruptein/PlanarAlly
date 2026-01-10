@@ -1,15 +1,8 @@
 import json
-from typing import TYPE_CHECKING, Any, Dict, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
-from peewee import (
-    BooleanField,
-    FloatField,
-    ForeignKeyField,
-    IntegerField,
-    SmallIntegerField,
-    TextField,
-)
+from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, SmallIntegerField, TextField
 
 from ...api.models.common import PositionTuple
 from ..base import BaseDbModel
@@ -28,6 +21,8 @@ if TYPE_CHECKING:
     from .line import Line
     from .polygon import Polygon
     from .rect import Rect
+    from .note_shape import NoteShape
+    from .shape_custom_data import ShapeCustomData
     from .shape_data_block import ShapeDataBlock
     from .shape_owner import ShapeOwner
     from .shape_type import ShapeType
@@ -52,6 +47,8 @@ class Shape(BaseDbModel):
     shape_variants: SelectSequence["CompositeShapeAssociation"]
     character_id: int | None
     data_blocks: SelectSequence["ShapeDataBlock"]
+    custom_data: SelectSequence["ShapeCustomData"]
+    notes: SelectSequence["NoteShape"]
 
     uuid = cast(str, TextField(primary_key=True))
     layer = cast(
@@ -61,7 +58,7 @@ class Shape(BaseDbModel):
     type_ = cast(str, TextField())
     x = cast(float, FloatField())
     y = cast(float, FloatField())
-    name = cast(Optional[str], TextField(null=True))
+    name = cast(str | None, TextField(null=True))
     name_visible = cast(bool, BooleanField(default=False))
     fill_colour = cast(str, TextField(default="#000"))
     stroke_colour = cast(str, TextField(default="#fff"))
@@ -69,7 +66,7 @@ class Shape(BaseDbModel):
     movement_obstruction = cast(bool, BooleanField(default=False))
     draw_operator = cast(str, TextField(default="source-over"))
     index = cast(int, IntegerField())
-    options = cast(Optional[str], TextField(null=True))
+    options = cast(str | None, TextField(null=True))
     badge = cast(int, IntegerField(default=1))
     show_badge = cast(bool, BooleanField(default=False))
     default_edit_access = cast(bool, BooleanField(default=False))
@@ -81,11 +78,11 @@ class Shape(BaseDbModel):
     angle = cast(float, FloatField(default=0))
     stroke_width = cast(int, IntegerField(default=2))
     asset = cast(
-        Optional[Asset],
+        Asset | None,
         ForeignKeyField(Asset, backref="shapes", null=True, default=None, on_delete="SET NULL"),
     )
     group = cast(
-        Optional[Group],
+        Group | None,
         ForeignKeyField(Group, backref="members", null=True, default=None, on_delete="SET NULL"),
     )
     ignore_zoom_size = cast(bool, BooleanField(default=False))
@@ -111,10 +108,10 @@ class Shape(BaseDbModel):
         else:
             return self.name
 
-    def get_options(self) -> Dict[str, Any]:
+    def get_options(self) -> dict[str, Any]:
         return dict(json.loads(self.options or "[]"))
 
-    def set_options(self, options: Dict[str, Any]) -> None:
+    def set_options(self, options: dict[str, Any]) -> None:
         self.options = json.dumps([[k, v] for k, v in options.items()])
 
     @property

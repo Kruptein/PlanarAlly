@@ -1,18 +1,29 @@
 <script setup lang="ts">
-import { type DeepReadonly, computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { useDebounceFn } from "@vueuse/core";
+import { computed, onActivated, onDeactivated, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { filter, map } from "../../../core/iter";
-import { mostReadable } from "../../../core/utils";
+import type { DefaultNoteFilter } from "../../../apiTypes";
+import type { GlobalId, LocalId } from "../../../core/id";
+import { mostReadable, word2color } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
-import { locationStore } from "../../../store/location";
+import { socket } from "../../api/socket";
+import { getGlobalId, getLocalId } from "../../id";
 import { noteState } from "../../systems/notes/state";
-import { NoteManagerMode, type ClientNote, type NoteTag } from "../../systems/notes/types";
+import { NO_FILTER, ACTIVE_FILTER, NO_LINK_FILTER } from "../../systems/notes/types";
+import { type NoteId, NoteManagerMode, type NoteTag } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
 import { propertiesState } from "../../systems/properties/state";
-import { locationSettingsState } from "../../systems/settings/location/state";
 
-import TagAutoCompleteSearch from "./TagAutoCompleteSearch.vue";
+import NoteFilter from "./NoteFilter.vue";
+import {
+    customFilterOptions,
+    filters,
+    locationFilterOptions,
+    roomFilterOptions,
+    shapeFilterOptions,
+    tagFilterOptions,
+} from "./noteFilters";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
@@ -26,31 +37,26 @@ onUnmounted(() => {
     document.removeEventListener("pointerdown", handleClickOutsideDialog);
 });
 
-const noteTypes = ["global", "local", "all"] as const;
-const selectedNoteTypes = ref<(typeof noteTypes)[number]>(
-    (localStorage.getItem("note-display-type") as (typeof noteTypes)[number]) ?? "local",
-);
-watch(selectedNoteTypes, () => {
-    localStorage.setItem("note-display-type", selectedNoteTypes.value);
-});
-
 const searchFilters = reactive({
     title: true,
     text: false,
     author: false,
-    activeLocation: true,
-    includeArchivedLocations: false,
-    notesWithShapes: true,
-    globalIfLocalShape: false,
 });
+
+interface QueryNote {
+    uuid: NoteId;
+    title: string;
+    creator: string;
+    tags: string[];
+}
 
 const searchBar = ref<HTMLInputElement | null>(null);
 const searchOptionsDialog = ref<HTMLDivElement | null>(null);
-const searchTags = ref<NoteTag[]>([]);
 const searchFilter = ref("");
 const showSearchFilters = ref(false);
-const showTagSearch = ref(false);
-const searchPage = ref(1);
+const currentPage = ref(1);
+const pageSize = ref(25);
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)));
 
 const shapeFiltered = computed(() => noteState.reactive.shapeFilter !== undefined);
 const shapeName = computed(() => {
@@ -64,94 +70,146 @@ const shapeName = computed(() => {
 //     searchBar.value?.focus();
 // });
 
-const availableTags = computed(() => {
-    const tagList = new Map<string, NoteTag>();
-    for (const [_, note] of noteState.reactive.notes) {
-        for (const tag of note.tags) {
-            tagList.set(tag.name, tag);
-        }
-    }
-    return Array.from(tagList, ([name, value]) => value).sort((a, b) => a.name.localeCompare(b.name));
+const isOpen = ref(false);
+
+// triggers when switching between modes
+onActivated(() => {
+    if (noteState.reactive.managerOpen) isOpen.value = true;
 });
 
-const noteArray = computed(() => {
-    let it: Iterable<DeepReadonly<ClientNote>> = noteState.reactive.notes.values();
-    if (!searchFilters.includeArchivedLocations) {
-        it = filter(it, (n) => !locationStore.archivedLocations.value.some((l) => l.id === n.location));
-    }
-    const it2 = map(it, (n) => ({
-        ...n,
-        shapes: noteState.reactive.shapeNotes.get2(n.uuid) ?? [],
-    }));
-    return Array.from(it2);
+onDeactivated(() => {
+    isOpen.value = false;
 });
 
-function containsSearchTags(note: (typeof noteArray.value)[number]): boolean {
-    for (const tag of searchTags.value) {
-        if (!note.tags.some((t) => t.name === tag.name)) {
-            return false;
-        }
-    }
-    return true;
+// triggers when toggling the note manager (it's behind a v-show)
+watch(
+    () => noteState.reactive.managerOpen,
+    (open) => {
+        isOpen.value = open;
+    },
+);
+
+watch(
+    [isOpen, () => noteState.reactive.refresh],
+    async ([open, refresh]) => {
+        if (!open || Object.values(refresh).every((v) => !v)) return;
+        const promises = [];
+        if (refresh.searchQuery) promises.push(search());
+        if (refresh.shapeFilter) promises.push(updateShapeFilter());
+        if (refresh.locationFilter) promises.push(updateLocationFilter());
+        if (refresh.tagFilter) promises.push(updateTagFilter());
+
+        await Promise.all(promises);
+
+        noteState.mutableReactive.refresh = {
+            searchQuery: false,
+            locationFilter: false,
+            shapeFilter: false,
+            tagFilter: false,
+        };
+    },
+    {
+        deep: true,
+        immediate: true,
+    },
+);
+
+const debouncedSearch = useDebounceFn(() => void search(), 300);
+
+const searchResults = ref<(Omit<QueryNote, "tags"> & { tags: NoteTag[] })[]>([]);
+const totalCount = ref(0);
+const loading = ref(false);
+const filterOptions = reactive({
+    locations: [] as { id: number; name: string }[],
+    shapes: [] as { id: LocalId; name: string; src: string }[],
+});
+
+enum DefaultFilter {
+    NO_FILTER = "NO_FILTER",
+    ACTIVE_FILTER = "ACTIVE_FILTER",
+    NO_LINK_FILTER = "NO_LINK_FILTER",
 }
 
-const filteredNotes = computed(() => {
-    const sf = searchFilter.value.trim().toLowerCase();
-    const searchLocal = selectedNoteTypes.value !== "global";
-    const searchGlobal = selectedNoteTypes.value !== "local";
-    const locationId = locationSettingsState.reactive.activeLocation;
-    const notes: typeof noteArray.value = [];
-    for (const note of noteArray.value) {
-        if (shapeFiltered.value) {
-            if (!note.shapes.some((s) => s === noteState.reactive.shapeFilter)) {
-                continue;
-            }
-        } else {
-            if (!searchFilters.notesWithShapes && note.shapes.length > 0) continue;
-            if (!note.isRoomNote) {
-                if (!searchGlobal) {
-                    if (!searchFilters.globalIfLocalShape || note.shapes.length === 0) {
-                        continue;
-                    }
-                }
-            } else {
-                if (!searchLocal || (searchFilters.activeLocation && locationId !== note.location)) {
-                    continue;
-                }
-            }
-        }
+function filterToServer<T extends number | string>(value: symbol | T): DefaultNoteFilter | T {
+    if (typeof value !== "symbol") return value;
+    if (value === NO_FILTER) return DefaultFilter.NO_FILTER;
+    if (value === ACTIVE_FILTER) return DefaultFilter.ACTIVE_FILTER;
+    if (value === NO_LINK_FILTER) return DefaultFilter.NO_LINK_FILTER;
+    return DefaultFilter.NO_FILTER;
+}
 
-        if (!containsSearchTags(note)) {
-            continue;
-        }
+async function search(): Promise<void> {
+    if (!isOpen.value) return;
+    loading.value = true;
+    const [serverNotes, count] = (await socket.emitWithAck("Note.Search", {
+        search: searchFilter.value,
+        campaign_filter: filterToServer(filters.rooms[0]!),
+        location_filter: filters.locations.map(filterToServer),
+        shape_filter: filters.shapes
+            .map((s) => (typeof s !== "symbol" ? getGlobalId(s) : s))
+            .filter((s) => s !== undefined)
+            .map(filterToServer),
+        tag_filter: filters.tags.map(filterToServer),
+        search_title: true,
+        search_text: false,
+        search_author: false,
+        page_number: currentPage.value,
+        page_size: pageSize.value,
+    })) as [QueryNote[], number];
+    searchResults.value = await Promise.all(
+        serverNotes.map(async (n) => ({
+            ...n,
+            tags: await Promise.all(n.tags.map(async (t) => ({ name: t, colour: await word2color(t) }))),
+        })),
+    );
+    totalCount.value = count;
 
-        if (sf.length === 0) {
-            notes.push(note);
-            continue;
-        }
+    loading.value = false;
+}
 
-        if (searchFilters.title && note.title.toLowerCase().includes(sf)) {
-            notes.push(note);
-        } else if (searchFilters.text && note.text.toLowerCase().includes(sf)) {
-            notes.push(note);
-        } else if (searchFilters.author && note.creator.toLowerCase().includes(sf)) {
-            notes.push(note);
-        }
-    }
-    return notes;
+async function updateLocationFilter(): Promise<void> {
+    const filters = (await socket.emitWithAck("Note.Filters.Location.Get")) as { id: number; name: string }[];
+    filterOptions.locations = filters.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function updateShapeFilter(): Promise<void> {
+    const filters = (await socket.emitWithAck("Note.Filters.Shape.Get")) as {
+        uuid: GlobalId;
+        name: string;
+        src: string;
+    }[];
+    filterOptions.shapes = filters
+        .map(({ uuid, ...s }) => ({ ...s, id: getLocalId(uuid, false)! }))
+        .filter((s) => s.id !== undefined)
+        .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function updateTagFilter(): Promise<void> {
+    const filters = (await socket.emitWithAck("Note.Filters.Tag.Get")) as string[];
+    customFilterOptions.tags = filters.sort((a, b) => a.localeCompare(b));
+}
+
+// **** SEARCH TRIGGERS ****
+
+watch([searchFilter], debouncedSearch, {
+    immediate: true,
 });
 
-watch(filteredNotes, () => {
-    searchPage.value = 1;
-});
+watch(
+    [filters, pageSize],
+    async () => {
+        currentPage.value = 1;
+        await search();
+    },
+    {
+        deep: true,
+        immediate: true,
+    },
+);
 
-const pageSize = 25;
-const visibleNotes = computed(() => {
-    return {
-        notes: filteredNotes.value.slice((searchPage.value - 1) * pageSize, searchPage.value * pageSize),
-        hasNext: filteredNotes.value.length > searchPage.value * pageSize,
-    };
-});
+watch(currentPage, search);
+
+// **** END ****
 
 function handleClickOutsideDialog(event: MouseEvent): void {
     if (searchOptionsDialog.value) {
@@ -162,15 +220,17 @@ function handleClickOutsideDialog(event: MouseEvent): void {
 }
 
 function toggleTagInSearch(tag: NoteTag): void {
-    const tempArray = searchTags.value.filter((x) => x.name !== tag.name);
-    if (tempArray.length === searchTags.value.length) {
-        searchTags.value.push(tag);
+    if (filters.tags.includes(tag.name)) {
+        filters.tags = filters.tags.filter((x) => x !== tag.name);
+        if (filters.tags.length === 0) {
+            filters.tags.push(NO_FILTER);
+        }
     } else {
-        searchTags.value = tempArray;
+        filters.tags = [...filters.tags.filter((x) => x !== NO_FILTER), tag.name];
     }
 }
 
-function editNote(noteId: string): void {
+function editNote(noteId: NoteId): void {
     noteState.mutableReactive.currentNote = noteId;
     emit("mode", NoteManagerMode.Edit);
 }
@@ -194,11 +254,6 @@ function clearSearchBar(): void {
     </header>
     <div id="notes-search" :class="shapeFiltered ? 'disabled' : ''">
         <div id="search-bar">
-            <select v-show="!shapeFiltered" id="kind-selector" v-model="selectedNoteTypes">
-                <option v-for="type in noteTypes" :key="type" :value="type">
-                    {{ t(`game.ui.notes.note_types.${type}`) }}
-                </option>
-            </select>
             <font-awesome-icon icon="magnifying-glass" @click="searchBar?.focus()" />
             <div id="search-field">
                 <input
@@ -238,97 +293,38 @@ function clearSearchBar(): void {
                         <label for="note-search-author">{{ t("game.ui.notes.NoteList.filter.author") }}</label>
                     </div>
                 </fieldset>
-                <fieldset :disabled="selectedNoteTypes === 'global' || shapeFiltered">
-                    <legend>{{ t("game.ui.notes.NoteList.filter.local_locations") }}</legend>
-                    <div>
-                        <input
-                            id="note-search-active-location"
-                            v-model="searchFilters.activeLocation"
-                            type="checkbox"
-                        />
-                        <label
-                            for="note-search-active-location"
-                            :title="t('game.ui.notes.NoteList.filter.active_location_title')"
-                        >
-                            {{ t("game.ui.notes.NoteList.filter.active_location") }}
-                        </label>
-                    </div>
-                    <div>
-                        <input
-                            id="note-search-archived"
-                            v-model="searchFilters.includeArchivedLocations"
-                            type="checkbox"
-                        />
-                        <label for="note-search-archived">
-                            {{ t("game.ui.notes.NoteList.filter.archived_location") }}
-                        </label>
-                    </div>
-                </fieldset>
-                <div></div>
-                <fieldset :disabled="selectedNoteTypes === 'global' || shapeFiltered">
-                    <legend>{{ t("game.ui.notes.NoteList.filter.local_shapes") }}</legend>
-                    <div>
-                        <input id="note-search-shapes" v-model="searchFilters.notesWithShapes" type="checkbox" />
-                        <label for="note-search-shapes">{{ t("game.ui.notes.NoteList.filter.note_with_shape") }}</label>
-                    </div>
-                    <div>
-                        <input
-                            id="note-search-global-if-local-shape"
-                            v-model="searchFilters.globalIfLocalShape"
-                            type="checkbox"
-                        />
-                        <label
-                            for="note-search-global-if-local-shape"
-                            :title="t('game.ui.notes.NoteList.filter.global_note_title')"
-                        >
-                            {{ t("game.ui.notes.NoteList.filter.global_note") }}
-                        </label>
-                    </div>
-                </fieldset>
             </div>
         </div>
         <div id="search-filters">
             <span style="padding-right: 1rem">{{ t("game.ui.notes.NoteList.filters.title") }}</span>
+            <NoteFilter v-model="filters.rooms" label="campaign" :options="roomFilterOptions" :multi-select="false" />
+            <NoteFilter
+                v-model="filters.locations"
+                label="location"
+                :multi-select="true"
+                :options="locationFilterOptions"
+                :disabled="filters.rooms.includes(NO_FILTER) || filters.rooms.includes(NO_LINK_FILTER)"
+            />
+            <NoteFilter
+                v-show="!shapeFiltered"
+                v-model="filters.shapes"
+                label="shape"
+                :options="shapeFilterOptions"
+                :multi-select="true"
+            />
+            <NoteFilter v-model="filters.tags" label="tag" :options="tagFilterOptions" :multi-select="true" />
             <div id="filter-bubbles">
                 <div v-if="shapeName" class="shape-name tag-bubble removable" @click="clearShapeFilter">
                     {{ shapeName }}
                 </div>
-                <div
-                    v-for="tag of searchTags"
-                    :key="tag.name"
-                    :style="{ color: mostReadable(tag.colour), backgroundColor: tag.colour }"
-                    class="tag-bubble removable"
-                    @click="toggleTagInSearch(tag)"
-                >
-                    {{ tag.name }}
-                </div>
             </div>
-            <TagAutoCompleteSearch
-                v-show="showTagSearch"
-                id="tag-search-bar"
-                :placeholder="t('game.ui.notes.NoteList.filters.tag_placeholder')"
-                :options="availableTags"
-                @picked="toggleTagInSearch"
-            />
-            <font-awesome-icon
-                v-if="showTagSearch"
-                id="tag-search-show"
-                icon="minus"
-                :title="t('game.ui.notes.NoteList.filters.hide_title')"
-                @click="showTagSearch = false"
-            />
-            <font-awesome-icon
-                v-else
-                id="tag-search-hide"
-                icon="plus"
-                :title="t('game.ui.notes.NoteList.filters.show_title')"
-                @click="showTagSearch = true"
-            />
         </div>
     </div>
-    <template v-if="visibleNotes.notes.length === 0">
+    <template v-if="searchResults.length === 0">
         <div id="no-notes">
-            <template v-if="noteState.reactive.notes.size === 0">{{ t("game.ui.notes.NoteList.empty_note") }}</template>
+            <template v-if="noteState.reactive.notes.size === 0">
+                {{ t("game.ui.notes.NoteList.empty_note") }}
+            </template>
             <template v-else>
                 <span>{{ t("game.ui.notes.NoteList.empty_search") }}</span>
             </template>
@@ -340,24 +336,7 @@ function clearSearchBar(): void {
             <div class="header">{{ t("game.ui.notes.NoteList.owner") }}</div>
             <div class="header">{{ t("game.ui.notes.NoteList.tags") }}</div>
             <div class="header">{{ t("game.ui.notes.NoteList.actions") }}</div>
-            <template v-if="visibleNotes.hasNext || searchPage > 1">
-                <div />
-                <div />
-                <div />
-                <div>
-                    <font-awesome-icon
-                        icon="chevron-left"
-                        :style="{ opacity: searchPage > 1 ? 1 : 0.5 }"
-                        @click="searchPage = Math.max(1, searchPage - 1)"
-                    />
-                    <font-awesome-icon
-                        icon="chevron-right"
-                        :style="{ opacity: visibleNotes.hasNext ? 1 : 0.5 }"
-                        @click="if (visibleNotes.hasNext) searchPage += 1;"
-                    />
-                </div>
-            </template>
-            <template v-for="note of visibleNotes.notes" :key="note.uuid">
+            <template v-for="note of searchResults" :key="note.uuid">
                 <div class="title" @click="editNote(note.uuid)">{{ note.title }}</div>
                 <div>{{ note.creator === coreStore.state.username ? t("common.you") : note.creator }}</div>
                 <div class="note-tags">
@@ -389,6 +368,19 @@ function clearSearchBar(): void {
         </div>
     </template>
     <footer>
+        <div style="user-select: none">
+            <font-awesome-icon
+                icon="chevron-left"
+                :class="{ disabled: currentPage === 1 }"
+                @click="currentPage = Math.max(1, currentPage - 1)"
+            />
+            page {{ currentPage }} of {{ totalPages }}
+            <font-awesome-icon
+                icon="chevron-right"
+                :class="{ disabled: currentPage === totalPages }"
+                @click="currentPage = Math.min(totalPages, currentPage + 1)"
+            />
+        </div>
         <div style="flex-grow: 1"></div>
         <div id="new-note-selector" @click="$emit('mode', NoteManagerMode.Create)">
             {{ t("game.ui.menu.MenuBar.new_note")
@@ -515,11 +507,12 @@ header {
         }
     }
     > #search-filters {
-        margin: 0 1rem 0;
+        padding: 0.5rem 1rem;
         display: flex;
         flex-direction: row;
+        flex-wrap: wrap;
+        row-gap: 0.5rem;
         align-items: center;
-        min-height: 2.7rem;
         border-bottom: solid 2px black;
 
         > #filter-bubbles {
@@ -541,17 +534,6 @@ header {
                 flex: 0 1 auto;
                 word-break: break-word;
             }
-        }
-        > #tag-search-bar {
-            flex: 2 1 0;
-            height: 1.5rem;
-            min-width: 8rem;
-        }
-
-        > #tag-search-show,
-        > #tag-search-hide {
-            flex: 0 0 auto;
-            margin: 0 0.5rem;
         }
     }
 }
@@ -647,7 +629,12 @@ header {
 
 footer {
     display: flex;
+    align-items: center;
     margin-top: 2rem;
+
+    .disabled {
+        opacity: 0.5;
+    }
 
     #new-note-selector {
         background-color: lightblue;

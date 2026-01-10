@@ -115,7 +115,7 @@ async function chooseTarget(): Promise<void> {
             await modals.confirm(
                 t("game.ui.selection.ShapeContext.no_spawn_set_title"),
                 t("game.ui.selection.ShapeContext.no_spawn_set_text"),
-                { showNo: false, yes: "Ok" },
+                { showNo: false, yes: t("ok") },
             );
             return;
         case 1:

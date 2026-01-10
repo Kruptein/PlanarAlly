@@ -1,25 +1,24 @@
-import { exportShapeData, loadShapeData } from "..";
-import type { ApiPolygonShape } from "../../../apiTypes";
 import { g2l, g2lz, toDegrees } from "../../../core/conversions";
 import { Vector, addP, getAngleBetween, getDistanceToSegment, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { equalPoints, filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
-import { uuidv4 } from "../../../core/utils";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { getColour } from "../../colour";
-import { getGlobalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerShapeOptions } from "../../models/shapes";
-import type { AuraId } from "../../systems/auras/models";
 import { positionState } from "../../systems/position/state";
 import { getProperties } from "../../systems/properties/state";
-import type { ShapeProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/types";
 import { VisionBlock } from "../../systems/properties/types";
-import type { TrackerId } from "../../systems/trackers/models";
 import { visionState } from "../../vision/state";
 import { Shape } from "../shape";
+import {
+    fromSystemForm,
+    instantiateCompactForm,
+    type CompactShapeCore,
+    type PolygonCompactCore,
+} from "../transformations";
 import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
@@ -91,21 +90,19 @@ export class Polygon extends Shape implements IShape {
         return filterEqualPoints(this.vertices);
     }
 
-    asDict(): ApiPolygonShape {
+    asCompact(): PolygonCompactCore {
         return {
-            ...exportShapeData(this),
-            vertices: JSON.stringify(this._vertices.map((v) => toArrayP(v))),
+            vertices: this._vertices.map((v) => toArrayP(v)),
             open_polygon: this.openPolygon,
             line_width: this.lineWidth[0]!,
         };
     }
 
-    fromDict(data: ApiPolygonShape, options: Partial<ServerShapeOptions>): void {
-        super.fromDict(data, options);
-        const vertices = JSON.parse(data.vertices) as [number, number][];
-        this._vertices = vertices.map((v) => toGP(v));
-        this.openPolygon = data.open_polygon;
-        this.lineWidth = [data.line_width];
+    fromCompact(core: CompactShapeCore, subShape: PolygonCompactCore): void {
+        super.fromCompact(core, subShape);
+        this._vertices = subShape.vertices.map((v) => toGP(v));
+        this.openPolygon = subShape.open_polygon;
+        this.lineWidth = [subShape.line_width];
     }
 
     getBoundingBox(delta = 0): BoundingRect {
@@ -142,6 +139,20 @@ export class Polygon extends Shape implements IShape {
     updatePoints(): void {
         const center = this.center;
         this._points = this.vertices.map((point) => this.invalidatePoint(point, center));
+    }
+
+    /**
+     * This normalizes the polygon back to an angle of 0.
+     * Some operations (e.g. resizing) don't work correctly in angled-mode if we want to keep the center up to date.
+     * By first normalizing the angle, all operations work as expected.
+     */
+    private normalizeAngle(): void {
+        if (this.angle === 0) return;
+        this._refPoint = rotateAroundPoint(this._refPoint, this.center, this.angle);
+        for (let i = 0; i < this._vertices.length; i++) {
+            this._vertices[i] = rotateAroundPoint(this._vertices[i]!, this.center, this.angle);
+        }
+        this.angle = 0;
     }
 
     draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
@@ -221,8 +232,10 @@ export class Polygon extends Shape implements IShape {
     }
 
     resize(resizePoint: number, point: GlobalPoint): number {
-        if (resizePoint === 0) this._refPoint = rotateAroundPoint(point, this.center, -this.angle);
-        else this._vertices[resizePoint - 1] = rotateAroundPoint(point, this.center, -this.angle);
+        this.normalizeAngle();
+        if (resizePoint === 0) this._refPoint = point;
+        else this._vertices[resizePoint - 1] = point;
+        this._center = this.__center();
         this.invalidatePoints();
         return resizePoint;
     }
@@ -249,43 +262,39 @@ export class Polygon extends Shape implements IShape {
             this._vertices = this._vertices.slice(0, lastVertex);
             this._vertices.push(nearVertex!);
 
-            const newPolygon = new Polygon(nearVertex!, newVertices);
-            const uuid = getGlobalId(newPolygon.id)!;
-            // make sure we copy over all the same properties but retain the correct uuid and vertices
-            const oldDict = this.asDict();
-            newPolygon.setLayer(this.floorId!, this.layerName!);
-            loadShapeData(newPolygon, {
-                ...oldDict,
-                angle: 0,
-                uuid,
-                trackers: oldDict.trackers.map((t) => ({ ...t, uuid: uuidv4() as unknown as TrackerId })),
-                auras: oldDict.auras.map((a) => ({ ...a, uuid: uuidv4() as unknown as AuraId })),
+            const compact = fromSystemForm(this.id);
+            compact.core.angle = 0;
+            instantiateCompactForm(compact, "duplicate", (shape) => {
+                const polygon = shape as Polygon;
+                polygon._refPoint = rotateAroundPoint(nearVertex!, oldCenter, this.angle);
+                polygon._vertices = newVertices.map((v) => rotateAroundPoint(v, oldCenter, this.angle));
+                polygon._center = polygon.__center();
+
+                const props = getProperties(this.id)!;
+
+                this.layer?.addShape(
+                    polygon,
+                    SyncMode.FULL_SYNC,
+                    props.blocksVision !== VisionBlock.No ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
+                );
             });
-            newPolygon._refPoint = rotateAroundPoint(nearVertex!, oldCenter, this.angle);
-            newPolygon._vertices = newVertices.map((v) => rotateAroundPoint(v, oldCenter, this.angle));
-            newPolygon._center = newPolygon.__center();
 
-            const props = getProperties(this.id)!;
-
-            this.layer?.addShape(
-                newPolygon,
-                SyncMode.FULL_SYNC,
-                props.blocksVision !== VisionBlock.No ? InvalidationMode.WITH_LIGHT : InvalidationMode.NORMAL,
-            );
-
+            this.normalizeAngle();
             this.invalidatePoints();
 
             // Do the OG shape update AFTER sending the new polygon or there might (depending on network)
             // be a couple of frames where the new polygon is not shown and the old one is already cut
             // potentially showing hidden stuff
             if (!this.preventSync) sendShapePositionUpdate([this], false);
+
+            console.log(this.center, this.refPoint, this.points, this.vertices);
         }
     }
 
     pushPoint(point: GlobalPoint, options?: { simplifyEnd?: boolean }): void {
         this._vertices.push(point);
-        this._points.push(this.invalidatePoint(point, this.center));
-        this.layer?.updateSectors(this.id, this.getAuraAABB());
+        this._center = this.__center();
+        this.invalidatePoints();
         if (options?.simplifyEnd === true) this.simplifyEnd();
     }
 

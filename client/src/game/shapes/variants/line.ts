@@ -1,5 +1,3 @@
-import { exportShapeData } from "..";
-import type { ApiLineShape } from "../../../apiTypes";
 import { g2l, g2lx, g2ly, g2lz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
@@ -8,8 +6,9 @@ import { rotateAroundPoint } from "../../../core/math";
 import { getColour } from "../../colour";
 import type { IShape } from "../../interfaces/shape";
 import { getProperties } from "../../systems/properties/state";
-import type { ShapeProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/types";
 import { Shape } from "../shape";
+import type { CompactShapeCore, LineCompactCore } from "../transformations";
 import type { SHAPE_TYPE } from "../types";
 
 import { BoundingRect } from "./simple/boundingRect";
@@ -60,8 +59,14 @@ export class Line extends Shape implements IShape {
         super.setPositionRepresentation(position);
     }
 
-    asDict(): ApiLineShape {
-        return { ...exportShapeData(this), x2: this.endPoint.x, y2: this.endPoint.y, line_width: this.lineWidth };
+    asCompact(): LineCompactCore {
+        return { x2: this.endPoint.x, y2: this.endPoint.y, line_width: this.lineWidth };
+    }
+
+    fromCompact(core: CompactShapeCore, subShape: LineCompactCore): void {
+        super.fromCompact(core, subShape);
+        this.endPoint = toGP(subShape.x2, subShape.y2);
+        this.lineWidth = subShape.line_width;
     }
 
     updatePoints(): void {

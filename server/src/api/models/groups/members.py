@@ -4,5 +4,5 @@ from ..helpers import TypeIdModel
 
 
 class GroupMemberBadge(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
     badge: int

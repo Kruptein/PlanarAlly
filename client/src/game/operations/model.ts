@@ -1,7 +1,7 @@
-import type { ApiShape } from "../../apiTypes";
 import type { GlobalPoint } from "../../core/geometry";
 import type { LocalId } from "../../core/id";
 import type { LayerName } from "../models/floor";
+import type { CompactForm } from "../shapes/transformations";
 
 export type Operation =
     | FloorMoveOperation
@@ -71,7 +71,7 @@ interface LayerMoveOperation {
 
 interface ShapeRemoveOperation {
     type: "shaperemove";
-    shapes: ApiShape[];
+    shapes: CompactForm[];
     floor: string;
     layerName: LayerName;
 }
@@ -80,7 +80,7 @@ interface ShapeRemoveOperation {
 
 interface ShapeAddOperation {
     type: "shapeadd";
-    shapes: ApiShape[];
+    shapes: CompactForm[];
     floor: string;
     layerName: LayerName;
 }

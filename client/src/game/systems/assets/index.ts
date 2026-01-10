@@ -1,6 +1,6 @@
 import type { AssetId } from "../../../assets/models";
 import { registerSystem } from "../../../core/systems";
-import type { System } from "../../../core/systems";
+import type { System } from "../../../core/systems/models";
 
 import { sendAssetShortcutAdd, sendAssetShortcutRemove } from "./emits";
 import { assetGameState } from "./state";

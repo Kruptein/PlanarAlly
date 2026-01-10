@@ -7,7 +7,7 @@ import type { LocalId } from "../../../core/id";
 import { filter, map } from "../../../core/iter";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
-import type { System } from "../../../core/systems";
+import type { System } from "../../../core/systems/models";
 import { setLocalStorageObject } from "../../../localStorageHelpers";
 import { sendMoveClient, sendOffset, sendViewport } from "../../api/emits/client";
 import { getClientId } from "../../api/socket";

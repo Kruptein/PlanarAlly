@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, Optional, Union, overload
+from typing import TYPE_CHECKING, Callable, overload
 
 import socketio
 
@@ -15,4 +15,4 @@ class TypedAsyncServer(socketio.AsyncServer):
         @overload
         def on(self, event: str, *, namespace: str, handler: Callable) -> None: ...
 
-        def on(self, event: str, *, namespace: str, handler: Optional[Callable] = None) -> Union[Callable, None]: ...
+        def on(self, event: str, *, namespace: str, handler: Callable | None = None) -> Callable | None: ...  # pyright: ignore [reportIncompatibleMethodOverride]

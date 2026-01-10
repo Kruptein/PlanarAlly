@@ -1,7 +1,6 @@
 import base64
 import hashlib
 import json
-from typing import List
 
 from typing_extensions import TypedDict
 
@@ -21,7 +20,7 @@ class Coord(TypedDict):
 
 class DDraftPortal(TypedDict):
     position: Coord
-    bounds: List[Coord]
+    bounds: list[Coord]
     rotation: int
     closed: bool
     freestanding: bool
@@ -36,8 +35,8 @@ class DDraftResolution(TypedDict):
 class DDraftData(TypedDict):
     format: str
     resolution: DDraftResolution
-    line_of_sight: List[Coord]
-    portals: List[DDraftPortal]
+    line_of_sight: list[Coord]
+    portals: list[DDraftPortal]
     image: str
 
 

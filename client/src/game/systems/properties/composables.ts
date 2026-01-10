@@ -2,7 +2,8 @@ import { computed, type ComputedRef, type DeepReadonly } from "vue";
 
 import { selectedState } from "../selected/state";
 
-import { propertiesState, type ShapeProperties } from "./state";
+import { propertiesState } from "./state";
+import { type ShapeProperties } from "./types";
 
 export function useShapeProps(): ComputedRef<DeepReadonly<ShapeProperties> | undefined> {
     return computed(() => {

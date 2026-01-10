@@ -1,5 +1,5 @@
 import { registerSystem } from "../../../../core/systems";
-import type { System } from "../../../../core/systems";
+import type { System } from "../../../../core/systems/models";
 import { sendRoomClientOptions } from "../../../api/emits/client";
 import { Colour, registerColour, updateFogColour } from "../../../colour";
 import { LayerName } from "../../../models/floor";

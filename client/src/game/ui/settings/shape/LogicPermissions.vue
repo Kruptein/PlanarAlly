@@ -1,8 +1,9 @@
 <script lang="ts" setup>
+import type { SortableEvent } from "sortablejs";
 import { watch } from "vue";
 import type { DeepReadonly } from "vue";
+import { VueDraggable } from "vue-draggable-plus";
 import { useI18n } from "vue-i18n";
-import draggable from "vuedraggable";
 
 import Modal from "../../../../core/components/modals/Modal.vue";
 import { useModal } from "../../../../core/plugins/modals/plugin";
@@ -24,14 +25,6 @@ const emit = defineEmits<{
     (e: "close"): void;
 }>();
 
-// We have multiple sortables
-// when moving a value from one to the other we get a 'deleted' and 'added' event
-// the first event received will however be the intermediate state and we don't want to emit that
-// so we keep track of pending actions in this set
-// side-note: the order _seems_ deterministic in that it always first sends added and then deleted
-//            but this might be an implementation detail that changes when upgrading the sortable dependency
-const pendingEvents = new Set<string>();
-
 let permissions = copyPermissions(props.permissions);
 
 watch(
@@ -39,28 +32,22 @@ watch(
     () => (permissions = copyPermissions(props.permissions)),
 );
 
-interface SortableChanged<T> {
-    added?: { element: T; newIndex: number };
-    moved?: { element: T; newIndex: number; oldIndex: number };
-    removed?: { element: T; oldIndex: number };
-}
+function onEnd(event: SortableEvent): void {
+    const realEvent = event as SortableEvent & { data: string };
+    const toName = realEvent.to.dataset.name;
+    const fromName = realEvent.from.dataset.name;
+    const toList =
+        toName === "enabled" ? permissions.enabled : toName === "disabled" ? permissions.disabled : permissions.request;
+    const fromList =
+        fromName === "enabled"
+            ? permissions.enabled
+            : fromName === "disabled"
+              ? permissions.disabled
+              : permissions.request;
 
-function change(change: Event & SortableChanged<string>, target: "enabled" | "request" | "disabled"): void {
-    const _target =
-        target === "enabled" ? permissions.enabled : target === "disabled" ? permissions.disabled : permissions.request;
-    if (change.added) {
-        _target.splice(change.added.newIndex, 0, change.added.element);
-        if (pendingEvents.has(change.added.element)) emit("update:permissions", permissions);
-        else pendingEvents.add(change.added.element);
-    } else if (change.removed) {
-        _target.splice(change.removed.oldIndex, 1);
-        if (pendingEvents.has(change.removed.element)) emit("update:permissions", permissions);
-        else pendingEvents.add(change.removed.element);
-    } else if (change.moved) {
-        _target.splice(change.moved.oldIndex, 1);
-        _target.splice(change.moved.newIndex, 0, change.moved.element);
-        emit("update:permissions", permissions);
-    }
+    fromList.splice(realEvent.oldIndex!, 1);
+    toList.splice(realEvent.newIndex!, 0, realEvent.data);
+    emit("update:permissions", permissions);
 }
 
 async function add(target: "enabled" | "request" | "disabled"): Promise<void> {
@@ -110,51 +97,50 @@ function hideModal(): void {
             <span class="condition-header">{{ t("game.ui.selection.edit_dialog.logic.permissions.request") }}</span>
             <span class="condition-header">{{ t("game.ui.selection.edit_dialog.logic.permissions.disabled") }}</span>
 
-            <draggable
+            <VueDraggable
                 class="condition-sorter"
                 :model-value="props.permissions.enabled.filter((x) => x !== null)"
                 group="door"
-                item-key="uuid"
-                @change="change($event, 'enabled')"
+                data-name="enabled"
+                @end="onEnd"
             >
-                <template #item="{ element }: { element: string }">
-                    <div>{{ element }}</div>
-                </template>
-
-                <template #footer>
-                    <div @click="add('enabled')">{{ t("common.add") }}</div>
-                </template>
-            </draggable>
-            <draggable
+                <div v-for="element of props.permissions.enabled.filter((x) => x !== null)" :key="element">
+                    {{ element }}
+                </div>
+            </VueDraggable>
+            <VueDraggable
                 class="condition-sorter"
                 :model-value="props.permissions.request.filter((x) => x !== null)"
                 group="door"
-                item-key="uuid"
-                @change="change($event, 'request')"
+                data-name="request"
+                @end="onEnd"
             >
-                <template #item="{ element }: { element: string }">
-                    <div>{{ element }}</div>
-                </template>
+                <div v-for="element of props.permissions.request.filter((x) => x !== null)" :key="element">
+                    {{ element }}
+                </div>
 
                 <template #footer>
                     <div @click="add('request')">{{ t("common.add") }}</div>
                 </template>
-            </draggable>
-            <draggable
+            </VueDraggable>
+            <VueDraggable
                 class="condition-sorter"
                 :model-value="props.permissions.disabled.filter((x) => x !== null)"
                 group="door"
-                item-key="uuid"
-                @change="change($event, 'disabled')"
+                data-name="disabled"
+                @end="onEnd"
             >
-                <template #item="{ element }: { element: string }">
-                    <div>{{ element }}</div>
-                </template>
+                <div v-for="element of props.permissions.disabled.filter((x) => x !== null)" :key="element">
+                    {{ element }}
+                </div>
 
                 <template #footer>
                     <div @click="add('disabled')">{{ t("common.add") }}</div>
                 </template>
-            </draggable>
+            </VueDraggable>
+            <div class="condition-footer" @click="add('enabled')">{{ t("common.add") }}</div>
+            <div class="condition-footer" @click="add('request')">{{ t("common.add") }}</div>
+            <div class="condition-footer" @click="add('disabled')">{{ t("common.add") }}</div>
         </div>
     </Modal>
 </template>
@@ -177,7 +163,7 @@ function hideModal(): void {
 
 .modal-body {
     display: grid;
-    grid-template-columns: [enabled] 60px [request] 60px [disabled] 60px [end];
+    grid-template-columns: [enabled] 70px [request] 70px [disabled] 70px [end];
     grid-column-gap: 5px;
     align-items: start;
     justify-content: space-around;
@@ -190,11 +176,16 @@ function hideModal(): void {
         font-weight: bold;
         text-decoration: underline;
         margin-bottom: 10px;
+        text-align: center;
     }
 
     .condition-sorter {
         display: flex;
         flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 2rem;
+        height: 100%;
 
         > div {
             margin-bottom: 5px;
@@ -203,16 +194,15 @@ function hideModal(): void {
                 cursor: grab;
                 font-style: italic;
             }
-
-            &:last-child {
-                font-style: italic;
-                margin-top: 5px;
-
-                &:hover {
-                    cursor: pointer;
-                    font-weight: bold;
-                }
-            }
+        }
+    }
+    .condition-footer {
+        border-top: solid 1px black;
+        padding: 5px 2px;
+        text-align: center;
+        &:hover {
+            cursor: pointer;
+            font-weight: bold;
         }
     }
 }

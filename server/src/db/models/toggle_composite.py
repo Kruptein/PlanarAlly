@@ -1,4 +1,4 @@
-from typing import Optional, cast
+from typing import cast
 
 from peewee import TextField
 
@@ -14,7 +14,7 @@ class ToggleComposite(ShapeType):
     Toggle shapes are composites that have multiple variants but only show one at a time.
     """
 
-    active_variant = cast(Optional[str], TextField(null=True))
+    active_variant = cast(str | None, TextField(null=True))
 
     @staticmethod
     def post_create(subshape, **kwargs):
@@ -23,7 +23,7 @@ class ToggleComposite(ShapeType):
 
     def as_pydantic(self, shape: ApiCoreShape) -> ApiShape:
         return ApiToggleCompositeShape(
-            **shape.dict(),
+            **shape.model_dump(),
             active_variant=self.active_variant,
             variants=[ToggleVariant(uuid=sv.variant.uuid, name=sv.name) for sv in self.shape.shape_variants],
         )

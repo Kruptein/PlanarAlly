@@ -25,7 +25,10 @@ async def connect(sid, environ):
         await _send_game("redirect", "/", room=sid)
         return
 
-    ref = {k.split("=")[0]: k.split("=")[1] for k in unquote(environ["QUERY_STRING"]).strip().split("&")}
+    # note: ensure that the & split happens before the unquote
+    # or campaign names with & will not work
+    query_elements = [unquote(k) for k in environ["QUERY_STRING"].strip().split("&")]
+    ref = {k.split("=")[0]: k.split("=")[1] for k in query_elements}
     try:
         room = Room.select().join(User).where((Room.name == ref["room"]) & (User.name == ref["user"]))[0]
     except IndexError:

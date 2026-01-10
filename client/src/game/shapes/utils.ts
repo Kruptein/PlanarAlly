@@ -1,22 +1,12 @@
-import type {
-    ApiAura,
-    ApiPolygonShape,
-    ApiShape,
-    ApiShapeOwner,
-    ApiToggleCompositeShape,
-    ApiTracker,
-} from "../../apiTypes";
-import { subtractP, Vector } from "../../core/geometry";
+import { addP, subtractP, Vector } from "../../core/geometry";
 import type { GlobalId } from "../../core/id";
 import { SyncMode, InvalidationMode } from "../../core/models/types";
-import { uuidv4 } from "../../core/utils";
 import { sendRemoveShapes } from "../api/emits/shape/core";
-import { getGlobalId, getLocalId } from "../id";
+import { getGlobalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import type { LayerName } from "../models/floor";
 import { addOperation } from "../operations/undo";
 import { accessSystem } from "../systems/access";
-import type { AuraId } from "../systems/auras/models";
 import { clipboardSystem } from "../systems/clipboard";
 import { clipboardState } from "../systems/clipboard/state";
 import { floorSystem } from "../systems/floors";
@@ -26,20 +16,21 @@ import { positionSystem } from "../systems/position";
 import { getProperties } from "../systems/properties/state";
 import { VisionBlock } from "../systems/properties/types";
 import { selectedSystem } from "../systems/selected";
-import type { TrackerId } from "../systems/trackers/models";
 import { TriangulationTarget, VisibilityMode, visionState } from "../vision/state";
 
-import { createShapeFromDict } from "./create";
+import type { CompactForm } from "./transformations";
+import { fromSystemForm, instantiateCompactForm } from "./transformations";
 
 export function copyShapes(): void {
     if (!selectedSystem.hasSelection) return;
-    const clipboard: ApiShape[] = [];
+    const clipboard: CompactForm[] = [];
     for (const shape of selectedSystem.get({ includeComposites: true })) {
         if (!accessSystem.hasAccessTo(shape.id, "edit")) continue;
+        // todo: check if we can delay this to the paste phase, to prevent over-eager group creation
         if (groupSystem.getGroupId(shape.id) === undefined) {
             groupSystem.createNewGroupForShapes([shape.id]);
         }
-        clipboard.push(shape.asDict());
+        clipboard.push(fromSystemForm(shape.id));
     }
     clipboardSystem.setClipboard(clipboard);
     clipboardSystem.setClipboardPosition(positionSystem.screenCenter);
@@ -61,109 +52,28 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     }
 
     const shapeMap = new Map<GlobalId, GlobalId>();
-    const composites: ApiToggleCompositeShape[] = [];
-    const serverShapes: ApiShape[] = [];
+    const compactShapes = clipboardState.raw.clipboard as CompactForm[];
 
-    const groupShapes: Record<string, GlobalId[]> = {};
-
-    for (const clip of clipboardState.mutableReactive.clipboard) {
-        const newShape: ApiShape = Object.assign({}, clip, {
-            auras: [],
-            owners: [],
-            trackers: [],
-        });
-        newShape.uuid = uuidv4();
-        newShape.x = clip.x + offset.x;
-        newShape.y = clip.y + offset.y;
-
-        shapeMap.set(clip.uuid, newShape.uuid);
-
-        if (clip.type_ === "polygon") {
-            const polygon = clip as ApiPolygonShape;
-            const vertices = JSON.parse(polygon.vertices) as [number, number][];
-            (newShape as ApiPolygonShape).vertices = JSON.stringify(
-                vertices.map((p) => [p[0] + offset.x, p[1] + offset.y]),
-            );
-        }
-
-        // Trackers
-        newShape.trackers = [];
-        for (const tracker of clip.trackers) {
-            const newTracker: ApiTracker = {
-                ...tracker,
-                uuid: uuidv4() as unknown as TrackerId,
-            };
-            newShape.trackers.push(newTracker);
-        }
-
-        // Auras
-        newShape.auras = [];
-        for (const aura of clip.auras) {
-            const newAura: ApiAura = {
-                ...aura,
-                uuid: uuidv4() as unknown as AuraId,
-            };
-            newShape.auras.push(newAura);
-        }
-
-        // Owners
-        newShape.owners = [];
-        for (const owner of clip.owners) {
-            const newOwner: ApiShapeOwner = {
-                ...owner,
-                shape: newShape.uuid,
-            };
-            newShape.owners.push(newOwner);
-        }
-
-        // Badge
-        if (clip.group !== null) {
-            // group join needs to happen after shape creation
-            newShape.group = null;
-            if (!(clip.group in groupShapes)) {
-                groupShapes[clip.group] = [];
-            }
-            groupShapes[clip.group]!.push(newShape.uuid);
-        }
-        if (clip.type_ === "togglecomposite") {
-            composites.push(newShape as ApiToggleCompositeShape);
-        } else {
-            serverShapes.push(newShape);
-        }
-    }
-
-    for (const composite of composites) {
-        if (composite.active_variant === null) continue;
-        serverShapes.push({
-            ...composite,
-            active_variant: shapeMap.get(composite.active_variant)!,
-            variants: composite.variants.map((v) => ({ ...v, uuid: shapeMap.get(v.uuid)! })),
-        } as ApiToggleCompositeShape); // make sure it's added after the regular shapes
-    }
-
-    // Finalize
-    for (const serverShape of serverShapes) {
-        const shape = createShapeFromDict(serverShape, layer.floor, layer.name);
-        if (shape === undefined) continue;
-
-        layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
-
-        if (!(shape.options.skipDraw ?? false)) {
-            selectedSystem.push(shape.id);
-        }
-    }
-
-    for (const [group, shapes] of Object.entries(groupShapes)) {
-        groupSystem.addGroupMembers(
-            group,
-            shapes.map((uuid) => ({ uuid: getLocalId(uuid)! })),
-            true,
+    for (const clip of compactShapes.sort((a, b) =>
+        a.core.type_ === b.core.type_ ? 0 : a.core.type_ === "togglecomposite" ? 1 : -1,
+    )) {
+        const newShape = instantiateCompactForm(
+            clip,
+            "duplicate",
+            (shape) => {
+                shape.refPoint = addP(shape.refPoint, offset);
+                layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+            },
+            shapeMap,
         );
+        if (newShape === undefined) continue;
+
+        shapeMap.set(clip.core.uuid, getGlobalId(newShape.id)!);
+
+        if (!(newShape.options.skipDraw ?? false)) {
+            selectedSystem.push(newShape.id);
+        }
     }
-    // const groupShape = groupShapes.find((s) => s.uuid === shape.uuid);
-    //     if (groupShape !== undefined) {
-    //         addGroupMembers(groupShape.group, [{ uuid: groupShape.uuid }], true);
-    //     }
 
     layer.invalidate(false);
     return selectedSystem.get({ includeComposites: false });
@@ -174,7 +84,7 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode, invalida
     if (sync === SyncMode.FULL_SYNC) {
         addOperation({
             type: "shaperemove",
-            shapes: shapes.map((s) => s.asDict()),
+            shapes: shapes.map((s) => fromSystemForm(s.id)),
             floor: shapes[0]!.floor!.name,
             layerName: shapes[0]!.layer!.name,
         });

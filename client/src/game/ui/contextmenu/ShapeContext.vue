@@ -8,20 +8,19 @@ import ContextMenu from "../../../core/components/contextMenu/ContextMenu.vue";
 import type { Section } from "../../../core/components/contextMenu/types";
 import type { LocalId } from "../../../core/id";
 import { defined, guard, map } from "../../../core/iter";
-import { SyncMode } from "../../../core/models/types";
+import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../store/activeShape";
 import { locationStore } from "../../../store/location";
-import { requestAssetOptions, sendAssetOptions } from "../../api/emits/asset";
 import { requestSpawnInfo } from "../../api/emits/location";
+import { sendShapeTemplateAdd } from "../../api/emits/shape/asset";
 import { sendShapePositionUpdate, sendShapesMove } from "../../api/emits/shape/core";
 import { getGlobalId, getShape } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
 import { compositeState } from "../../layers/state";
-import type { AssetOptions } from "../../models/asset";
 import type { Floor, LayerName } from "../../models/floor";
-import { toTemplate } from "../../shapes/templates";
+import { fromSystemForm, instantiateCompactForm } from "../../shapes/transformations";
 import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
 import { sendCreateCharacter } from "../../systems/characters/emits";
@@ -31,7 +30,6 @@ import { gameState } from "../../systems/game/state";
 import { groupSystem } from "../../systems/groups";
 import { markerSystem } from "../../systems/markers";
 import { markerState } from "../../systems/markers/state";
-import { noteState } from "../../systems/notes/state";
 import { NoteManagerMode } from "../../systems/notes/types";
 import { openNoteManager } from "../../systems/notes/ui";
 import { playerSystem } from "../../systems/players";
@@ -211,7 +209,7 @@ async function setLocation(newLocation: number): Promise<boolean> {
             await modals.confirm(
                 t("game.ui.selection.ShapeContext.no_spawn_set_title"),
                 t("game.ui.selection.ShapeContext.no_spawn_set_text"),
-                { showNo: false, yes: "Ok" },
+                { showNo: false, yes: t("ok") },
             );
             return true;
         case 1:
@@ -269,40 +267,72 @@ const canBeSaved = computed(() =>
     ),
 );
 
-async function saveTemplate(): Promise<boolean> {
-    const shape = selectedSystem.get({ includeComposites: false })[0];
-    if (shape === undefined) return false;
+function saveTemplate(): boolean {
+    const ogShape = selectedSystem.get({ includeComposites: false })[0];
+    if (ogShape === undefined) return false;
 
-    let assetOptions: AssetOptions = {
-        version: "0",
-        shape: shape.type,
-        templates: { default: {} },
-    };
-    if (shape.assetId !== undefined) {
-        const response = await requestAssetOptions(shape.assetId);
-        if (response.success && response.options) assetOptions = response.options;
+    if (ogShape.assetId !== undefined) {
+        // const response = await requestAssetOptions(shape.assetId);
+        // if (response.success && response.options) assetOptions = response.options;
     } else {
         console.warn("Templates are currently only supported for shapes with existing asset relations.");
         return false;
     }
-    const choices = Object.keys(assetOptions.templates);
-    try {
-        const selection = await modals.selectionBox(t("game.ui.templates.save"), choices, {
-            defaultButton: t("game.ui.templates.overwrite"),
-            customButton: t("game.ui.templates.create_new"),
-        });
-        if (selection === undefined || selection.length === 0) return false;
-        const notes = noteState.raw.shapeNotes.get1(shape.id);
-        if (notes !== undefined) {
-            shape.options.templateNoteIds = notes.map((n) => n);
-        } else if (shape.options.templateNoteIds !== undefined) {
-            delete shape.options.templateNoteIds;
-        }
-        assetOptions.templates[selection[0]!] = toTemplate(shape.asDict());
-        sendAssetOptions(shape.assetId, assetOptions);
-    } catch {
-        // no-op ; action cancelled
-    }
+
+    // When creating a template, we need to create a new shape from the original shape,
+    // to ensure that all systems are hooked up correctly to this shape, we add it to the game,
+    // and TEMPLATE_SYNC it to the server, ensuring that we don't actually save the layer/floor
+    // afterwards we delete it from the game
+
+    const name = window.prompt("Enter a name for the template");
+    if (name === null || name.trim() === "") return false;
+
+    const ogCompact = fromSystemForm(ogShape.id);
+    const newShape = instantiateCompactForm(ogCompact, "create", (shape) => {
+        ogShape.layer?.addShape(shape, SyncMode.TEMPLATE_SYNC, InvalidationMode.NO);
+    });
+    if (newShape === undefined) return false;
+
+    const shapeId = getGlobalId(newShape.id)!;
+
+    deleteShapes([newShape], SyncMode.NO_SYNC, false);
+
+    sendShapeTemplateAdd({
+        assetId: ogShape.assetId,
+        shapeId,
+        name,
+    });
+
+    // let assetOptions: AssetOptions = {
+    //     version: "0",
+    //     shape: shape.type,
+    //     templates: { default: {} },
+    // };
+    // if (shape.assetId !== undefined) {
+    //     const response = await requestAssetOptions(shape.assetId);
+    //     if (response.success && response.options) assetOptions = response.options;
+    // } else {
+    //     console.warn("Templates are currently only supported for shapes with existing asset relations.");
+    //     return false;
+    // }
+    // const choices = Object.keys(assetOptions.templates);
+    // try {
+    //     const selection = await modals.selectionBox(t("game.ui.templates.save"), choices, {
+    //         defaultButton: t("game.ui.templates.overwrite"),
+    //         customButton: t("game.ui.templates.create_new"),
+    //     });
+    //     if (selection === undefined || selection.length === 0) return false;
+    //     const notes = noteState.raw.shapeNotes.get1(shape.id);
+    //     if (notes !== undefined) {
+    //         shape.options.templateNoteIds = notes.map((n) => n);
+    //     } else if (shape.options.templateNoteIds !== undefined) {
+    //         delete shape.options.templateNoteIds;
+    //     }
+    //     assetOptions.templates[selection[0]!] = toTemplate(createServerDataFromCompact(fromSystemForm(shape.id)));
+    //     sendAssetOptions(shape.assetId, assetOptions);
+    // } catch {
+    //     // no-op ; action cancelled
+    // }
     return true;
 }
 
@@ -376,7 +406,7 @@ async function mergeGroups(): Promise<boolean> {
     );
     if (keepBadges === undefined) return false;
     let targetGroup: string | undefined;
-    const membersToMove: { uuid: LocalId; badge?: number }[] = [];
+    const membersToMove: { id: LocalId; badge?: number }[] = [];
     for (const shape of selectedSystem.get({ includeComposites: false })) {
         const groupId = groupSystem.getGroupId(shape.id);
         if (groupId !== undefined) {
@@ -386,7 +416,7 @@ async function mergeGroups(): Promise<boolean> {
                 continue;
             } else {
                 const badge = groupSystem.getBadge(shape.id);
-                membersToMove.push({ uuid: shape.id, badge: keepBadges ? badge : undefined });
+                membersToMove.push({ id: shape.id, badge: keepBadges ? badge : undefined });
             }
         }
     }
@@ -413,7 +443,7 @@ function enlargeGroup(): boolean {
     if (shape?.groupId !== undefined) {
         groupSystem.addGroupMembers(
             shape.groupId,
-            selection.filter((s) => s.groupId === undefined).map((s) => ({ uuid: s.id })),
+            selection.filter((s) => s.groupId === undefined).map((s) => ({ id: s.id })),
             true,
         );
     }

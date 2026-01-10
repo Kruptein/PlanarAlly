@@ -1,8 +1,9 @@
-import type { ApiGroup } from "../../../apiTypes";
+import type { ApiCoreShape, ApiGroup } from "../../../apiTypes";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { UI_SYNC } from "../../../core/models/types";
-import { registerSystem, type ShapeSystem } from "../../../core/systems";
+import { registerSystem } from "../../../core/systems";
+import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { uuidv4 } from "../../../core/utils";
 import { getGlobalId, getShape } from "../../id";
 import { propertiesSystem } from "../properties";
@@ -20,10 +21,12 @@ import { groupState } from "./state";
 
 const { mutableReactive: $, mutable, readonly } = groupState;
 
-class GroupSystem implements ShapeSystem {
-    // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, data: { groupId: string | undefined; badge: number }): void {
-        mutable.shapeData.set(id, data);
+class GroupSystem implements ShapeSystem<{ groupId: string | undefined; badge: number }> {
+    // CORE
+
+    clear(): void {
+        this.dropState();
+        mutable.removedGroupCache.clear();
     }
 
     drop(id: LocalId): void {
@@ -33,6 +36,40 @@ class GroupSystem implements ShapeSystem {
             $.groupInfo = undefined;
         }
     }
+
+    import(id: LocalId, data: { groupId: string | undefined; badge: number }, mode: SystemInformMode): void {
+        if (data.groupId === undefined) return;
+
+        if (mode !== "load") {
+            if (!readonly.groups.has(data.groupId)) {
+                const oldGroup = mutable.removedGroupCache.get(data.groupId);
+                if (oldGroup) {
+                    this.addNewGroup(oldGroup, true);
+                } else {
+                    console.error(`Group ${data.groupId} not found, skipping shape import for ${id}`);
+                    return;
+                }
+            }
+        }
+        // sync happens in the layerAdd already, so not necessary here
+        this.addGroupMembers(data.groupId, [{ id, badge: undefined }], false);
+    }
+
+    export(id: LocalId): { groupId: string | undefined; badge: number } {
+        return mutable.shapeData.get(id) ?? { groupId: undefined, badge: 0 };
+    }
+
+    toServerShape(id: LocalId, shape: ApiCoreShape): void {
+        const data = this.export(id);
+        shape.group = data.groupId ?? null;
+        shape.badge = data.badge;
+    }
+
+    fromServerShape(data: ApiCoreShape): { groupId: string | undefined; badge: number } {
+        return { groupId: data.group ?? undefined, badge: data.badge };
+    }
+
+    // REACTIVE
 
     loadState(id: LocalId): void {
         $.activeId = id;
@@ -57,10 +94,6 @@ class GroupSystem implements ShapeSystem {
     dropState(): void {
         $.activeId = undefined;
         $.groupInfo = undefined;
-    }
-
-    clear(): void {
-        this.dropState();
     }
 
     // END OF ACTIVE SHAPE STUFF
@@ -94,7 +127,7 @@ class GroupSystem implements ShapeSystem {
         this.addNewGroup(group, true);
         this.addGroupMembers(
             group.uuid,
-            shapes.map((s) => ({ uuid: s, badge: keepBadges ? this.getBadge(s) : undefined })),
+            shapes.map((s) => ({ id: s, badge: keepBadges ? this.getBadge(s) : undefined })),
             true,
         );
     }
@@ -106,6 +139,7 @@ class GroupSystem implements ShapeSystem {
         }
         if (sync) sendRemoveGroup(groupId);
 
+        mutable.removedGroupCache.set(groupId, mutable.groups.get(groupId)!);
         mutable.groups.delete(groupId);
         mutable.groupMembers.delete(groupId);
 
@@ -121,10 +155,10 @@ class GroupSystem implements ShapeSystem {
         return members ?? new Set();
     }
 
-    addGroupMembers(groupId: string, members: { uuid: LocalId; badge?: number }[], sync: boolean): void {
+    addGroupMembers(groupId: string, members: { id: LocalId; badge?: number }[], sync: boolean): void {
         const newMembers: { uuid: GlobalId; badge: number }[] = [];
         for (const member of members) {
-            const uuid = getGlobalId(member.uuid);
+            const uuid = getGlobalId(member.id);
             if (uuid === undefined) continue;
 
             if (member.badge === undefined) {
@@ -132,19 +166,15 @@ class GroupSystem implements ShapeSystem {
             }
 
             newMembers.push({ badge: member.badge, uuid });
-            const memberGroupId = this.getGroupId(member.uuid);
+            const memberGroupId = this.getGroupId(member.id);
             if (groupId !== memberGroupId) {
                 if (memberGroupId !== undefined) {
-                    mutable.groupMembers.get(memberGroupId)?.delete(member.uuid);
+                    mutable.groupMembers.get(memberGroupId)?.delete(member.id);
                 }
-                if (!mutable.shapeData.has(member.uuid)) {
-                    this.inform(member.uuid, { groupId, badge: member.badge });
-                } else {
-                    mutable.shapeData.set(member.uuid, { groupId, badge: member.badge });
-                }
+                mutable.shapeData.set(member.id, { groupId, badge: member.badge });
                 // todo: invalidate(true) shape
             }
-            mutable.groupMembers.get(groupId)?.add(member.uuid);
+            mutable.groupMembers.get(groupId)?.add(member.id);
         }
 
         if ($.groupInfo?.uuid === groupId) {
@@ -305,4 +335,4 @@ class GroupSystem implements ShapeSystem {
 }
 
 export const groupSystem = new GroupSystem();
-registerSystem("groups", groupSystem, false, groupState);
+registerSystem("groups", groupSystem, true, groupState);

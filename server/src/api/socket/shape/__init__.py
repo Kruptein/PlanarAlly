@@ -433,6 +433,7 @@ async def move_shapes(sid: str, raw_data: Any):
         if shape.composite_parent:
             parent = shape.composite_parent[0].parent
             shape = Shape.get_by_id(parent.subtype.active_variant)
+            print(f"Parent found for {shape.uuid}")
 
         layer = target_layer
         if shape.layer:

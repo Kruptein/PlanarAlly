@@ -7,7 +7,6 @@ import { registerSystem } from "../../../core/systems";
 import type { System, SystemClearReason } from "../../../core/systems/models";
 import { getGlobalId, getLocalId, getVisualShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import type { IToggleComposite } from "../../interfaces/shapes/toggleComposite";
 import { selectedState } from "../selected/state";
 
 import type { CharacterId } from "./models";

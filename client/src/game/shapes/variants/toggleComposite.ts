@@ -161,7 +161,7 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         this.resetVariants(this.active_variant);
         this.active_variant = variant;
 
-        const props = getProperties(newVariant.id);
+        const props = getProperties(newVariant.id)!;
 
         if (newVariant.floorId !== undefined) {
             if (props.blocksMovement)

@@ -8,7 +8,6 @@ import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { coreStore } from "../../../store/core";
 import { getGlobalId, getShape, getBaseShapeId } from "../../id";
-import { compositeState } from "../../layers/state";
 import { initiativeStore } from "../../ui/initiative/state";
 import { floorSystem } from "../floors";
 import { gameState } from "../game/state";

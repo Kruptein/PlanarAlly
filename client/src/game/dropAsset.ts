@@ -14,7 +14,6 @@ import { i18n } from "../i18n";
 import { requestAssetOptions } from "./api/emits/asset";
 import { fetchFullShape, sendShapesMove } from "./api/emits/shape/core";
 import { getLocalId, getVisualShape } from "./id";
-import { compositeState } from "./layers/state";
 import { moveShapes } from "./operations/movement";
 import { loadFromServer } from "./shapes/transformations";
 import { Asset } from "./shapes/variants/asset";

@@ -75,6 +75,7 @@ tech changes will usually be stripped from release notes for the public
 -   Account settings text overlapping on smaller viewport widths
 -   Moving special hide/reveal shapes from the fow layer could lead to a niche bug
 -   Rotation slider not showing current value in text input on component load
+-   Shapes snapping to square grid sometimes offset from grid
 
 ## [2025.3]
 

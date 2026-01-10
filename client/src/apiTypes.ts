@@ -25,6 +25,11 @@ export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumb
 export type DefaultNoteFilter = "NO_FILTER" | "ACTIVE_FILTER" | "NO_LINK_FILTER";
 export type InitiativeDirection = -1 | 0 | 1;
 
+export interface ApiShapeSize {
+    x: number;
+    y: number;
+}
+
 export interface ApiAsset {
   id: AssetId;
   name: string;
@@ -223,7 +228,8 @@ export interface ApiCoreShape {
   auras: ApiAura[];
   character: CharacterId | null;
   odd_hex_orientation: boolean;
-  size: number;
+  size_x: number;
+  size_y: number;
   show_cells: boolean;
   cell_fill_colour: string | null;
   cell_stroke_colour: string | null;
@@ -810,6 +816,10 @@ export interface ShapeTemplateAdd {
   assetId: AssetId;
   shapeId: GlobalId;
   name: string;
+}
+export interface ShapeSetSizeValue  {
+    shape: GlobalId;
+    value: ApiShapeSize;
 }
 export interface ShapeTextSizeUpdate {
   uuid: GlobalId;

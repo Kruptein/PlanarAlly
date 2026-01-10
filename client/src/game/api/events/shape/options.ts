@@ -3,6 +3,7 @@ import type {
     ShapeSetIntegerValue,
     ShapeSetOptionalStringValue,
     ShapeSetStringValue,
+    ShapeSetSizeValue,
 } from "../../../../apiTypes";
 import type { GlobalId, LocalId } from "../../../../core/id";
 import { UI_SYNC } from "../../../../core/models/types";
@@ -45,10 +46,7 @@ socket.on(
     wrapSystemCall<ShapeSetBooleanValue>(propertiesSystem.setOddHexOrientation.bind(propertiesSystem)),
 );
 
-socket.on(
-    "Shape.Options.Size.Set",
-    wrapSystemCall<ShapeSetIntegerValue>(propertiesSystem.setSize.bind(propertiesSystem)),
-);
+socket.on("Shape.Options.Size.Set", wrapSystemCall<ShapeSetSizeValue>(propertiesSystem.setSize.bind(propertiesSystem)));
 
 socket.on(
     "Shape.Options.ShowCells.Set",

@@ -24,6 +24,7 @@ import {
     sendShapeSetStrokeColour,
 } from "../../api/emits/shape/options";
 import { getGlobalId, getShape } from "../../id";
+import type { ShapeSize } from "../../interfaces/shape";
 import { doorSystem } from "../logic/door";
 import { selectedState } from "../selected/state";
 
@@ -280,19 +281,20 @@ class PropertiesSystem implements ShapeSystem<Partial<ShapeProperties>> {
         _shape.invalidate(!_shape.triggersVisionRecalc);
     }
 
-    setSize(id: LocalId, size: number, syncTo: Sync): void {
+    setSize(id: LocalId, size: ShapeSize, syncTo: Sync): void {
         const shape = mutable.data.get(id);
         if (shape === undefined) {
             return console.error("[Properties.setSize] Unknown local shape.");
         }
 
-        if (size < 0) size = 0;
+        if (size.x < 0) size.x = 0;
+        if (size.y < 0) size.y = 0;
 
         shape.size = size;
 
         if (syncTo.server) {
             const shape = getGlobalId(id);
-            if (shape) sendShapeSetSize({ shape, value: size });
+            if (shape) sendShapeSetSize({ shape, value: { x: size.x, y: size.y } });
         }
 
         const d = $.data.get(id);

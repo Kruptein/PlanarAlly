@@ -1,3 +1,5 @@
+import type { ShapeSize } from "../../interfaces/shape";
+
 // Order is important
 export enum VisionBlock {
     No,
@@ -19,7 +21,7 @@ export interface ShapeProperties {
     isDefeated: boolean;
     isLocked: boolean;
     // grid related
-    size: number; // if 0, infer size
+    size: ShapeSize; // if 0, infer size
     showCells: boolean;
     cellFillColour?: string;
     cellStrokeColour?: string;
@@ -39,7 +41,8 @@ export interface ServerShapeProperties {
     is_defeated: boolean;
     is_locked: boolean;
     // grid related
-    size: number; // if 0, infer size
+    size_x: number; // if 0, infer size
+    size_y: number; // if 0, infer size
     show_cells: boolean;
     cell_fill_colour: string | null;
     cell_stroke_colour: string | null;

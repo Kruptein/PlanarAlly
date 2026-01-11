@@ -21,7 +21,7 @@ export interface ShapeProperties {
     isDefeated: boolean;
     isLocked: boolean;
     // grid related
-    size: ShapeSize; // if 0, infer size
+    size: ShapeSize; // if x and y are 0, infer size
     showCells: boolean;
     cellFillColour?: string;
     cellStrokeColour?: string;

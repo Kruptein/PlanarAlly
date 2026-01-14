@@ -77,6 +77,7 @@ tech changes will usually be stripped from release notes for the public
 -   Moving special hide/reveal shapes from the fow layer could lead to a niche bug
 -   Rotation slider not showing current value in text input on component load
 -   Shapes snapping to square grid sometimes offset from grid
+-   DDraft files no longer being uploadable to the asset manager
 
 ## [2025.3]
 

@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 112
+SAVE_VERSION = 113
 
 import asyncio
 import json
@@ -680,6 +680,17 @@ def upgrade(
                 'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size_x", "size_y", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size", "size", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width" FROM _shape_111'
             )
             db.execute_sql("DROP TABLE _shape_111")
+    elif version == 112:
+        # Change text font size from int to float
+        with db.atomic():
+            db.execute_sql("CREATE TEMPORARY TABLE _text_112 AS SELECT * FROM text")
+            db.execute_sql("DROP TABLE text")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "text" ("shape_id" TEXT NOT NULL PRIMARY KEY, "text" TEXT NOT NULL, "font_size" REAL NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'INSERT INTO "text" ("shape_id", "text", "font_size") SELECT "shape_id", "text", "font_size" FROM _text_112'
+            )
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

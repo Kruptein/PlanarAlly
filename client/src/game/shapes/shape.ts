@@ -16,7 +16,7 @@ import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
 import { generateLocalId, dropId } from "../id";
 import type { ILayer } from "../interfaces/layer";
-import type { IShape } from "../interfaces/shape";
+import type { IShape, ShapeSize } from "../interfaces/shape";
 import { LayerName } from "../models/floor";
 import type { Floor, FloorId } from "../models/floor";
 import type { ShapeOptions } from "../models/shapes";
@@ -339,15 +339,16 @@ export abstract class Shape implements IShape {
         return subtractP(point, mid).normalize();
     }
 
-    getSize(gridType: GridType): number {
+    getSize(gridType: GridType): ShapeSize {
         const props = getProperties(this.id)!;
-        if (props.size !== 0) return props.size;
+        if (props.size.x !== 0) return props.size;
 
         const bbox = this.getAABB();
-        const s = Math.max(getCellCountFromWidth(bbox.w, gridType), getCellCountFromHeight(bbox.h, gridType));
+        const x = getCellCountFromWidth(bbox.w, gridType);
+        const y = getCellCountFromHeight(bbox.h, gridType);
         const cutoff = gridType === GridType.Square ? 0.25 : 0.125;
         const customRound = (n: number): number => (n % 1 >= cutoff ? Math.ceil(n) : Math.floor(n));
-        return Math.max(1, customRound(s));
+        return { x: Math.max(1, customRound(x)), y: Math.max(1, customRound(y)) };
     }
 
     snapToGrid(): void {

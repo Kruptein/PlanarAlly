@@ -93,7 +93,8 @@ class Shape(BaseDbModel):
         ForeignKeyField(Character, backref="shapes", null=True, default=None, on_delete="SET NULL"),
     )
     odd_hex_orientation = cast(bool, BooleanField(default=False))
-    size = cast(int, IntegerField(default=0))
+    size_x = cast(int, IntegerField(default=0))
+    size_y = cast(int, IntegerField(default=0))
     show_cells = cast(bool, BooleanField(default=False))
     cell_fill_colour = cast(str, TextField(null=True, default=None))
     cell_stroke_colour = cast(str, TextField(null=True, default=None))

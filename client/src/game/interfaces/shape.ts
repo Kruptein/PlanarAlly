@@ -16,6 +16,11 @@ export interface SimpleShape {
     get center(): GlobalPoint;
 }
 
+export interface ShapeSize {
+    x: number;
+    y: number;
+}
+
 export interface IShape extends SimpleShape {
     readonly id: LocalId;
     readonly type: SHAPE_TYPE;
@@ -28,7 +33,7 @@ export interface IShape extends SimpleShape {
     updatePoints: () => void;
     resetVisionIteration: () => void;
 
-    getSize: (gridType: GridType) => number;
+    getSize: (gridType: GridType) => ShapeSize;
 
     contains: (point: GlobalPoint, nearbyThreshold?: number) => boolean;
 

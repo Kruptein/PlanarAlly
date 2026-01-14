@@ -60,6 +60,7 @@ tech changes will usually be stripped from release notes for the public
 -   Campaign creator can no longer change their own role or kick themselves
 -   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)
 -   [tech] upgraded pydantic from 1.x to 2.x
+-   Square grids now have distinct x and y size values
 
 ### Fixed
 
@@ -75,6 +76,7 @@ tech changes will usually be stripped from release notes for the public
 -   Account settings text overlapping on smaller viewport widths
 -   Moving special hide/reveal shapes from the fow layer could lead to a niche bug
 -   Rotation slider not showing current value in text input on component load
+-   Shapes snapping to square grid sometimes offset from grid
 
 ## [2025.3]
 

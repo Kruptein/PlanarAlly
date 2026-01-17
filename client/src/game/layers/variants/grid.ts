@@ -1,4 +1,3 @@
-import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import { DEFAULT_HEX_RADIUS, DEFAULT_GRID_SIZE, SQRT3, GridType } from "../../../core/grid";
 import type { IGridLayer } from "../../interfaces/layers/grid";
@@ -11,7 +10,7 @@ import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
 import { Layer } from "./layer";
 
 export class GridLayer extends Layer implements IGridLayer {
-    originIcon: FontAwesomeIcon = new FontAwesomeIcon({ prefix: "fas", iconName: "sticky-note" }, toGP(-10, -10), 20) // 20 == width
+    originIcon: FontAwesomeIcon = new FontAwesomeIcon({ prefix: "fas", iconName: "map-pin" }, toGP(-5, -16), 10, { svgDisplayOverrides: { fill: "red", stroke: "black", strokeWidth: "10" } }) // 20 == width
 
     invalidate(): void {
         this.valid = false;
@@ -103,7 +102,8 @@ export class GridLayer extends Layer implements IGridLayer {
             const showOrigin = true; // CRAFTIMARK: WARN: Debug value;
             if (showOrigin) {
                 const ctx = this.ctx;
-                this.originIcon.draw(ctx, true);
+                // Pop setting changes
+                this.originIcon.draw(ctx, false);
             }
             this.valid = true;
         }

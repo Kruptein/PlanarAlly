@@ -6,10 +6,13 @@ import { floorState } from "../../systems/floors/state";
 import { positionState } from "../../systems/position/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
+import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
 
 import { Layer } from "./layer";
 
 export class GridLayer extends Layer implements IGridLayer {
+    originIcon: FontAwesomeIcon = new FontAwesomeIcon({ prefix: "fas", iconName: "sticky-note" }, toGP(-10, -10), 20) // 20 == width
+
     invalidate(): void {
         this.valid = false;
     }
@@ -21,6 +24,7 @@ export class GridLayer extends Layer implements IGridLayer {
 
     draw(_doClear?: boolean): void {
         if (!this.valid) {
+            this.clear();
             if (locationSettingsState.raw.useGrid.value) {
                 const activeFowFloor = floorState.currentFloor.value!.id;
 
@@ -30,7 +34,6 @@ export class GridLayer extends Layer implements IGridLayer {
                     this.canvas.style.display = "none";
 
                 const ctx = this.ctx;
-                this.clear();
                 ctx.beginPath();
 
                 const state = positionState.readonly;
@@ -97,26 +100,10 @@ export class GridLayer extends Layer implements IGridLayer {
                 ctx.lineWidth = 1;
                 ctx.stroke();
             }
-            const showOrigin = true; // CRAFITMARK: WARN: Debug value;
+            const showOrigin = true; // CRAFTIMARK: WARN: Debug value;
             if (showOrigin) {
-                // Get Info
                 const ctx = this.ctx;
-                const centerLocal = g2l(toGP(0, 0));
-                const radius = g2lz(20);
-                const pixelRatio = playerSettingsState.devicePixelRatio.value;
-                // Push settings
-                const oldFillStyle = ctx.fillStyle;
-                ctx.setTransform(pixelRatio, 0, 0, pixelRatio, centerLocal.x * pixelRatio, centerLocal.y * pixelRatio);
-                // Draw
-                ctx.fillStyle = "rgb(255,0,0)";
-                ctx.moveTo(0, 0);
-                ctx.beginPath();
-                ctx.arc(0, 0, radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-                // Pop setting changes
-                ctx.resetTransform();
-                ctx.fillStyle = oldFillStyle;
+                this.originIcon.draw(ctx, true);
             }
             this.valid = true;
         }

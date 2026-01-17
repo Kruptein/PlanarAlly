@@ -20,6 +20,7 @@ function getFaBlobUrl(iconDef: IconDefinition): string {
     path.setAttribute("stroke-width", "20");
     const blob = new Blob([svg.outerHTML], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
+    console.log(url);
     faBlobs.set(name, url);
     return url;
 }
@@ -37,7 +38,6 @@ export class FontAwesomeIcon extends Asset implements IAsset {
         const iconDef = findIconDefinition(icon);
         const h = w * (iconDef.icon[1] / iconDef.icon[0]);
         image.src = getFaBlobUrl(iconDef);
-
         super(image, topleft, w, h, { isSnappable: false, ...options });
     }
 }

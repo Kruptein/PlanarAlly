@@ -145,6 +145,7 @@ export abstract class Shape implements IShape {
         this._parentId = options?.parentId;
 
         if (properties !== undefined) propertiesSystem.import(this.id, properties, "load");
+        else propertiesSystem.import(this.id, {}, "load");
     }
 
     abstract __center(): GlobalPoint;

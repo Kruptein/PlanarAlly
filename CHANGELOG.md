@@ -78,6 +78,9 @@ tech changes will usually be stripped from release notes for the public
 -   Rotation slider not showing current value in text input on component load
 -   Shapes snapping to square grid sometimes offset from grid
 -   DDraft files no longer being uploadable to the asset manager
+-   Variant switching can be performed by a user with edit access
+-   Access privileges are shared between variants
+-   Variant creation failed
 
 ## [2025.3]
 

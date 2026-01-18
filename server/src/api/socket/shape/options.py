@@ -20,6 +20,7 @@ from ...models.shape.options import (
     ShapeSetPermissionValue,
     ShapeSetStringValue,
     ShapeSetTeleportLocationValue,
+    ShapeSetSizeValue,
 )
 from ...models.tracker import ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove
 from ..constants import GAME_NS
@@ -112,7 +113,7 @@ async def set_odd_hex_orientation(sid: str, raw_data: Any):
 @sio.on("Shape.Options.Size.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_size(sid: str, raw_data: Any):
-    data = ShapeSetIntegerValue(**raw_data)
+    data = ShapeSetSizeValue(**raw_data)
 
     pr: PlayerRoom = game_state.get(sid)
 
@@ -120,7 +121,8 @@ async def set_size(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    shape.size = data.value
+    shape.size_x = data.value.x
+    shape.size_y = data.value.y
     shape.save()
 
     await _send_game(

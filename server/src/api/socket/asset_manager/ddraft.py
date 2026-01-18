@@ -48,10 +48,11 @@ async def handle_ddraft_file(upload_data: ApiAssetUpload, data: bytes, sid: str)
     sh = hashlib.sha1(image)
     hashname = sh.hexdigest()
 
-    full_hash_path = get_asset_hash_subpath(hashname)
+    full_path = ASSETS_DIR / get_asset_hash_subpath(hashname)
 
-    if not (ASSETS_DIR / full_hash_path).exists():
-        with open(ASSETS_DIR / full_hash_path, "wb") as f:
+    if not full_path.exists():
+        full_path.parent.mkdir(exist_ok=True, parents=True)
+        with open(full_path, "wb") as f:
             f.write(image)
 
     template = {

@@ -91,7 +91,7 @@ class ShapeCircleSizeUpdate(TypeIdModel):
 
 class ShapeTextSizeUpdate(TypeIdModel):
     uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
-    font_size: int
+    font_size: float
     temporary: bool
 
 

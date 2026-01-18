@@ -43,7 +43,8 @@ class ApiCoreShape(TypeIdModel):
     auras: list[ApiAura]
     character: int | None = Field(json_schema_extra={"typeId": "CharacterId"})
     odd_hex_orientation: bool
-    size: int
+    size_x: int
+    size_y: int
     show_cells: bool
     cell_fill_colour: str | None
     cell_stroke_colour: str | None

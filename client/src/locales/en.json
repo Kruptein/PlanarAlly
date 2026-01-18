@@ -294,6 +294,8 @@
                         "appearance": "Appearance",
                         "infer_size": "Infer size",
                         "size": "Size",
+                        "width": "Width",
+                        "height": "Height",
                         "show_cells": "Show cells",
                         "hex_settings": "Hex Settings",
                         "odd_hex_orientation": "Odd Hex Orientation"

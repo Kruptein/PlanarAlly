@@ -3,11 +3,12 @@ import { type GlobalPoint, subtractP, addP, toGP } from "../../core/geometry";
 import { DEFAULT_GRID_SIZE, DEFAULT_HEX_RADIUS, GridType, getCellCenter } from "../../core/grid";
 import { getHexNeighbour, getHexVertexVector } from "../../core/grid/hex";
 import type { AxialCoords } from "../../core/grid/types";
+import type { ShapeSize } from "../interfaces/shape";
 
 export function drawCells(
     ctx: CanvasRenderingContext2D,
     center: GlobalPoint,
-    size: number,
+    size: ShapeSize,
     grid: { type: GridType; oddHexOrientation: boolean; radius?: number },
     style?: { fill?: string; stroke?: string; strokeWidth?: number },
 ): void {
@@ -21,7 +22,7 @@ export function drawCells(
 function drawSquarePolygon(
     ctx: CanvasRenderingContext2D,
     center: GlobalPoint,
-    size: number,
+    size: ShapeSize,
     radius?: number,
     style?: { fill?: string; stroke?: string; strokeWidth?: number },
 ): void {
@@ -33,14 +34,14 @@ function drawSquarePolygon(
 
     const localRadius = g2lz(radius);
     const localCenter = g2l(center);
-    const x0 = localCenter.x - localRadius * size;
-    const y0 = localCenter.y - localRadius * size;
+    const x0 = localCenter.x - localRadius * size.x;
+    const y0 = localCenter.y - localRadius * size.y;
 
     ctx.beginPath();
     ctx.moveTo(x0, y0);
-    ctx.lineTo(x0 + localRadius * size * 2, y0);
-    ctx.lineTo(x0 + localRadius * size * 2, y0 + localRadius * size * 2);
-    ctx.lineTo(x0, y0 + localRadius * size * 2);
+    ctx.lineTo(x0 + localRadius * size.x * 2, y0);
+    ctx.lineTo(x0 + localRadius * size.x * 2, y0 + localRadius * size.y * 2);
+    ctx.lineTo(x0, y0 + localRadius * size.y * 2);
     ctx.closePath();
 
     ctx.stroke();
@@ -50,7 +51,7 @@ function drawSquarePolygon(
 function drawHexPolygon(
     ctx: CanvasRenderingContext2D,
     center: GlobalPoint,
-    size: number,
+    size: ShapeSize,
     grid: { type: GridType; oddHexOrientation: boolean; radius?: number },
     style?: { fill?: string; stroke?: string; strokeWidth?: number },
 ): void {
@@ -58,7 +59,8 @@ function drawHexPolygon(
     ctx.strokeStyle = style?.stroke ?? "rgba(225, 0, 0, 0.8)";
     ctx.lineWidth = style?.strokeWidth ?? 5;
 
-    const vertices = createHex(center, size, grid).map((p) => g2l(p));
+    const maxSize = Math.max(size.x, size.y);
+    const vertices = createHex(center, maxSize, grid).map((p) => g2l(p));
 
     ctx.beginPath();
     for (const [i, vertex] of vertices.entries()) {

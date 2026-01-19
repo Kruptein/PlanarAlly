@@ -13,10 +13,10 @@ import { compositeState } from "../game/layers/state";
 import type { FloorId } from "../game/models/floor";
 import type { ShapeOptions } from "../game/models/shapes";
 import type { SHAPE_TYPE } from "../game/shapes/types";
+import { accessSystem } from "../game/systems/access";
 import { floorSystem } from "../game/systems/floors";
 import { selectedState } from "../game/systems/selected/state";
 import { visionState } from "../game/vision/state";
-import { accessSystem } from "../game/systems/access";
 
 interface ActiveShapeState {
     id?: LocalId;

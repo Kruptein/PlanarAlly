@@ -17,17 +17,15 @@ import { getLocalId, getVisualShape } from "./id";
 import { moveShapes } from "./operations/movement";
 import { loadFromServer } from "./shapes/transformations";
 import { Asset } from "./shapes/variants/asset";
+import { accessSystem } from "./systems/access";
 import type { CharacterId } from "./systems/characters/models";
 import { characterState } from "./systems/characters/state";
 import { floorState } from "./systems/floors/state";
 import { noteSystem } from "./systems/notes";
+import { playerSystem } from "./systems/players";
 import { locationSettingsState } from "./systems/settings/location/state";
 import { addShape, selectionBoxFunction } from "./temp";
 import { handleDropFF } from "./ui/firefox";
-
-import { accessSystem } from "./systems/access";
-import { accessState } from "./systems/access/state";
-import { playerSystem } from "./systems/players";
 
 export async function handleDropEvent(event: DragEvent): Promise<void> {
     if (event === null || event.dataTransfer === null) return;
@@ -183,7 +181,12 @@ export async function dropAsset(
                 })[0];
             }
 
-            accessSystem.addAccess(asset.id, playerSystem.getCurrentPlayer()!.name, { edit: true, movement: true, vision: true }, UI_SYNC);
+            accessSystem.addAccess(
+                asset.id,
+                playerSystem.getCurrentPlayer()!.name,
+                { edit: true, movement: true, vision: true },
+                UI_SYNC,
+            );
 
             layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 

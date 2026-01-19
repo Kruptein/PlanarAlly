@@ -15,8 +15,6 @@ from ..models.asset.options import AssetOptionsInfoFail, AssetOptionsInfoSuccess
 @sio.on("Asset.Options.Get", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def get_asset_options(sid: str, asset_id: int):
-    pr: PlayerRoom = game_state.get(sid)
-
     asset: Asset | None = Asset.get_or_none(id=asset_id)
 
     if asset is None:

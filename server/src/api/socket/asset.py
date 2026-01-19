@@ -17,10 +17,6 @@ from ..models.asset.options import AssetOptionsInfoFail, AssetOptionsInfoSuccess
 async def get_asset_options(sid: str, asset_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
-    if pr.role != Role.DM:
-        logger.warning(f"{pr.player.name} attempted to request asset options")
-        return
-
     asset: Asset | None = Asset.get_or_none(id=asset_id)
 
     if asset is None:

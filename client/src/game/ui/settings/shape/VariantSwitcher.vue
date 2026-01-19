@@ -6,7 +6,7 @@ import { assetState } from "../../../../assets/state";
 import { getImageSrcFromHash } from "../../../../assets/utils";
 import { cloneP } from "../../../../core/geometry";
 import type { LocalId } from "../../../../core/id";
-import { FULL_SYNC, InvalidationMode, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
+import { FULL_SYNC, InvalidationMode, SERVER_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { dropAsset } from "../../../dropAsset";
@@ -87,18 +87,17 @@ async function addVariant(): Promise<void> {
         toast.error("Something went wrong trying to add this variant.");
         return;
     }
-
     let parent = compositeParent.value;
     if (parent === undefined) {
         parent = new ToggleComposite(cloneP(shape.refPoint), shape.id, [{ id: shape.id, name: "base variant" }]);
-        shape.layer?.addShape(parent, SyncMode.FULL_SYNC, InvalidationMode.NO);
         for (const [user, access] of accessState.readonly.access.get(vState.id!) ?? []) {
             if (user === DEFAULT_ACCESS_SYMBOL) {
-                accessSystem.updateAccess(parent.id, user, access, SERVER_SYNC);
+                accessSystem.updateAccess(parent.id, user, access, UI_SYNC);
             } else {
-                accessSystem.addAccess(parent.id, user, access, SERVER_SYNC);
+                accessSystem.addAccess(parent.id, user, access, UI_SYNC);
             }
         }
+        shape.layer?.addShape(parent, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
     parent.addVariant(newShape.id, name, true);
     parent.setActiveVariant(newShape.id, true);

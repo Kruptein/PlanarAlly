@@ -7,7 +7,7 @@ import { l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
 import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../core/grid";
 import { baseAdjust } from "../core/http";
-import { SyncMode, InvalidationMode } from "../core/models/types";
+import { SyncMode, InvalidationMode, UI_SYNC } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
 
@@ -24,6 +24,10 @@ import { noteSystem } from "./systems/notes";
 import { locationSettingsState } from "./systems/settings/location/state";
 import { addShape, selectionBoxFunction } from "./temp";
 import { handleDropFF } from "./ui/firefox";
+
+import { accessSystem } from "./systems/access";
+import { accessState } from "./systems/access/state";
+import { playerSystem } from "./systems/players";
 
 export async function handleDropEvent(event: DragEvent): Promise<void> {
     if (event === null || event.dataTransfer === null) return;
@@ -178,6 +182,8 @@ export async function dropAsset(
                     snapDistance: Number.MAX_VALUE,
                 })[0];
             }
+
+            accessSystem.addAccess(asset.id, playerSystem.getCurrentPlayer()!.name, { edit: true, movement: true, vision: true }, UI_SYNC);
 
             layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 

@@ -46,7 +46,6 @@ export class ToggleComposite extends Shape implements IToggleComposite {
             compositeState.addComposite(this.id, variant, false);
         }
         this.resetVariants(...this._variants.map((v) => v.id));
-        this.setActiveVariant(this.active_variant, false);
     }
 
     readonly isClosed = true;

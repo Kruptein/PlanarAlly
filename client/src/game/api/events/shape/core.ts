@@ -10,7 +10,7 @@ import type {
 import type { GlobalId } from "../../../../core/id";
 import { SyncMode } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { getLocalId, getShapeFromGlobal } from "../../../id";
+import { getLocalId, getShapeFromGlobal, getVisualShapeId, getVisualShape } from "../../../id";
 import type { ICircle } from "../../../interfaces/shapes/circle";
 import type { IRect } from "../../../interfaces/shapes/rect";
 import { loadFromServer } from "../../../shapes/transformations";
@@ -27,7 +27,8 @@ socket.on("Shape.Set", async (data: ApiShapeWithLayer) => {
     // hard reset a shape
     const uuid = apiShape.uuid;
     const old = getShapeFromGlobal(uuid);
-    const isActive = activeShapeStore.state.id === getLocalId(uuid);
+    const oldVisualId = getVisualShapeId(old.id);
+    const isActive = activeShapeStore.state.id === oldVisualId;
     const hasEditDialogOpen = isActive && activeShapeStore.state.showEditDialog;
     let deps = undefined;
     if (old) {
@@ -39,8 +40,8 @@ socket.on("Shape.Set", async (data: ApiShapeWithLayer) => {
     const shape = addShape(await loadFromServer(apiShape, floorId, layer), SyncMode.NO_SYNC, "load", deps);
 
     if (shape && isActive) {
-        selectedSystem.push(shape.id);
-        activeShapeStore.setActiveShape(shape);
+        selectedSystem.push(getVisualShapeId(shape.id));
+        activeShapeStore.setActiveShape(getVisualShape(shape.id));
         if (hasEditDialogOpen) activeShapeStore.setShowEditDialog(true);
     }
 });

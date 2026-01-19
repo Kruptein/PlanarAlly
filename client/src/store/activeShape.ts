@@ -16,6 +16,7 @@ import type { SHAPE_TYPE } from "../game/shapes/types";
 import { floorSystem } from "../game/systems/floors";
 import { selectedState } from "../game/systems/selected/state";
 import { visionState } from "../game/vision/state";
+import { accessSystem } from "../game/systems/access";
 
 interface ActiveShapeState {
     id?: LocalId;
@@ -152,6 +153,7 @@ class ActiveShapeStore extends Store<ActiveShapeState> {
             const composite = getShape(this._state.parentUuid) as IToggleComposite;
             this._state.variants = composite.variants.map((v) => ({ ...v }));
         }
+        accessSystem.loadState(shape.id);
     }
 
     clear(): void {

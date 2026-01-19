@@ -112,12 +112,13 @@ export function getVisualShape(local: LocalId): IShape | undefined {
     return shape;
 }
 
-/*
+
 export function getVisualShapeId(local: LocalId): LocalId {
     const shape = getVisualShape(local);
     return shape !== undefined ? shape.id : local;
 }
 
+/*
 export function getBaseShape(local: LocalId): IShape | undefined {
     const parent = compositeState.getCompositeParent(local);
     if (parent !== undefined) return parent;

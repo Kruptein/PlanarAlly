@@ -95,11 +95,12 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
     // REACTIVE
 
     loadState(id: LocalId): void {
-        $.id = id;
+        const baseId = getBaseShapeId(id);
+        $.id = baseId;
         $.defaultAccess = { ...DEFAULT_ACCESS };
         $.playerAccess.clear();
 
-        const accessMap = mutable.access.get(id);
+        const accessMap = mutable.access.get(baseId);
 
         if (accessMap !== undefined) {
             for (const [user, access] of accessMap) {

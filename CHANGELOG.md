@@ -61,6 +61,10 @@ tech changes will usually be stripped from release notes for the public
 -   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)
 -   [tech] upgraded pydantic from 1.x to 2.x
 -   Square grids now have distinct x and y size values
+-   Variants
+    -   Players may now add variants to shapes they have edit access to
+    -   Players may now swap between variants of shapes they have edit access to
+    -   [tech] Variants' access permissions are now based on the permissions of the parent shape only
 
 ### Fixed
 
@@ -78,9 +82,6 @@ tech changes will usually be stripped from release notes for the public
 -   Rotation slider not showing current value in text input on component load
 -   Shapes snapping to square grid sometimes offset from grid
 -   DDraft files no longer being uploadable to the asset manager
--   Variant switching can be performed by a user with edit access
--   Access privileges are shared between variants
--   Variant creation failed
 
 ## [2025.3]
 

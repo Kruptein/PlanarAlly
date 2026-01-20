@@ -45,7 +45,7 @@ class PlayerSystem implements System {
         players: string[],
         location: number,
         sync: boolean,
-        targetPosition?: { x: number; y: number },
+        targetPosition?: { x: number; y: number; floor?: string },
     ): void {
         for (const player of $.players.values()) {
             if (players.includes(player.name)) {

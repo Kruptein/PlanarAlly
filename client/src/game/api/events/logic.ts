@@ -39,6 +39,7 @@ socket.on("Logic.Request", async (data: LogicRequestInfo) => {
     } else {
         const tpId = getLocalId(data.request.fromZone);
         if (tpId === undefined) return;
+        console.log("HERE IN HANDLER");
 
         const canUse = teleportZoneSystem.canUse(tpId, data.requester);
 

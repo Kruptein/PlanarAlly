@@ -78,6 +78,7 @@ tech changes will usually be stripped from release notes for the public
 -   Rotation slider not showing current value in text input on component load
 -   Shapes snapping to square grid sometimes offset from grid
 -   DDraft files no longer being uploadable to the asset manager
+-   Moving shapes with keyboard keys while ruler was enabled on select tool would move shapes twice as far
 
 ## [2025.3]
 

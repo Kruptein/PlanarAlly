@@ -7,7 +7,7 @@ import { useI18n } from "vue-i18n";
 import Modal from "../../../core/components/modals/Modal.vue";
 import RollingCounter from "../../../core/components/RollingCounter.vue";
 import { baseAdjust } from "../../../core/http";
-import type { GlobalId, LocalId } from "../../../core/id";
+import type { GlobalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { getTarget, getValue } from "../../../core/utils";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
@@ -56,8 +56,12 @@ const showEffectsFor = ref<number | null>(null);
 const hasVisibleActor = computed(() => initiativeStore.state.locationData.some((actor) => canSee(actor)));
 
 const owns = (actorId?: GlobalId): boolean => initiativeStore.owns(actorId);
-const toggleOption = (index: number, option: "isVisible" | "isGroup"): void =>
+const toggleOption = (actor: InitiativeData, index: number, option: "isVisible" | "isGroup"): void => {
+    if (option === "isGroup") {
+        toggleGroupHighlight(actor, !actor.isGroup);
+    }
     initiativeStore.toggleOption(index, option);
+};
 
 onMounted(() => {
     initiativeStore.show(false, false);
@@ -212,12 +216,31 @@ function removeEffect(shape: GlobalId, index: number): void {
     if (initiativeStore.owns(shape)) initiativeStore.removeEffect(shape, index, true);
 }
 
-function toggleHighlight(actorId: LocalId | undefined, show: boolean): void {
-    if (actorId === undefined) return;
+function toggleGroupHighlight(actor: InitiativeData, show: boolean): void {
+    // switch between highlighting all group members or just the entry's shape
+    if (actor.localId === undefined) return;
+    const shape = getShape(actor.localId);
+    if (shape === undefined) return;
+    if (shape.showHighlight) {
+        const groupId = groupSystem.getGroupId(actor.localId);
+        let shapeArray: Iterable<IShape> = [];
+        if (groupId !== undefined) {
+            shapeArray = map(groupSystem.getGroupMembers(groupId), (m) => getShape(m)!);
+        }
+        for (const sh of shapeArray) {
+            if (sh.id === actor.localId) continue;
+            sh.showHighlight = show;
+            sh.layer?.invalidate(true);
+        }
+    }
+}
+
+function toggleHighlight(actor: InitiativeData, show: boolean): void {
+    if (actor.localId === undefined) return;
     let shapeArray: Iterable<IShape>;
-    const groupId = groupSystem.getGroupId(actorId);
-    if (groupId === undefined) {
-        const shape = getShape(actorId);
+    const groupId = groupSystem.getGroupId(actor.localId);
+    if (groupId === undefined || !actor.isGroup) {
+        const shape = getShape(actor.localId);
         if (shape === undefined) return;
         shapeArray = [shape];
     } else {
@@ -342,8 +365,8 @@ function n(e: any): number {
                                                     initiativeStore.state.editLock !== undefined &&
                                                     initiativeStore.state.editLock !== actor.globalId,
                                             }"
-                                            @mouseenter="toggleHighlight(actor.localId, true)"
-                                            @mouseleave="toggleHighlight(actor.localId, false)"
+                                            @mouseenter="toggleHighlight(actor, true)"
+                                            @mouseleave="toggleHighlight(actor, false)"
                                         >
                                             <div
                                                 v-if="owns(actor.globalId)"
@@ -385,7 +408,7 @@ function n(e: any): number {
                                                         class="actor-icon-button"
                                                         :class="{ disabled: !owns(actor.globalId) }"
                                                         :title="t('common.toggle_public_private')"
-                                                        @click="toggleOption(index, 'isVisible')"
+                                                        @click="toggleOption(actor, index, 'isVisible')"
                                                     >
                                                         <font-awesome-icon
                                                             icon="eye"
@@ -399,7 +422,7 @@ function n(e: any): number {
                                                         class="actor-icon-button"
                                                         :class="{ disabled: !owns(actor.globalId) }"
                                                         :title="t('game.ui.initiative.toggle_group')"
-                                                        @click="toggleOption(index, 'isGroup')"
+                                                        @click="toggleOption(actor, index, 'isGroup')"
                                                     >
                                                         <font-awesome-icon
                                                             icon="users"

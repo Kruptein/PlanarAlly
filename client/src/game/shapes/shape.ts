@@ -144,7 +144,9 @@ export abstract class Shape implements IShape {
         this.isSnappable = options?.isSnappable ?? true;
         this._parentId = options?.parentId;
 
-        if (properties !== undefined) propertiesSystem.import(this.id, properties, "load");
+        // properties system is the only system that requires knowledge about all shapes
+        // (it basically does not properly handle interactions with shapes it doesn't know about)
+        propertiesSystem.import(this.id, properties ?? {}, "load");
     }
 
     abstract __center(): GlobalPoint;

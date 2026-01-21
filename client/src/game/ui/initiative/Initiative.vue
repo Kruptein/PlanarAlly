@@ -168,6 +168,11 @@ function getName(actor: InitiativeData): string {
     return "?";
 }
 
+function getGroupIndex(actor: InitiativeData): string {
+    if (actor.localId === undefined) return "";
+    return groupSystem.getBadgeCharacters(actor.localId);
+}
+
 async function removeInitiative(actor: InitiativeData): Promise<void> {
     if (actor.isGroup) {
         const result = await loadConfirmationDialog(t("game.ui.initiative.remove_group_msg"));
@@ -250,6 +255,24 @@ function toggleHighlight(actor: InitiativeData, show: boolean): void {
         sh.showHighlight = show;
         sh.layer?.invalidate(true);
     }
+}
+
+function isGroupMember(actor: InitiativeData): boolean {
+    if (actor.isGroup) return false
+    if (actor.localId === undefined) return false;
+    const groupId = groupSystem.getGroupId(actor.localId);
+    if (groupId === undefined) return false;
+    return true;
+}
+
+function shouldShowBadge(actor: InitiativeData): boolean {
+    if (!isGroupMember(actor)) return false;
+    if (actor.localId === undefined) return false;
+    const shape = getShape(actor.localId);
+    if (shape === undefined) return false;
+    const props = propertiesState.reactive.data.get(actor.localId);
+    if (props === undefined) return false;
+    return props.showBadge;
 }
 
 function hasImage(actor: InitiativeData): boolean {
@@ -388,6 +411,9 @@ function n(e: any): number {
                                                     class="initiative-portrait-content"
                                                     alt=""
                                                 />
+                                                <div v-if="shouldShowBadge(actor)" class="group-badge">
+                                                    <div>{{ getGroupIndex(actor) }}</div>
+                                                </div>
                                             </div>
                                             <div v-else :title="getName(actor)" class="initiative-portrait">
                                                 <div class="initiative-portrait-border"></div>
@@ -397,6 +423,9 @@ function n(e: any): number {
                                                         style="cursor: auto"
                                                         class="large-icon"
                                                     />
+                                                    <div v-if="shouldShowBadge(actor)" class="group-badge">
+                                                        <div>{{ getGroupIndex(actor) }}</div>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="actor-info-cluster">
@@ -787,6 +816,29 @@ function n(e: any): number {
             z-index: -1;
             border-radius: 0.3rem;
         }
+        .group-badge {
+            position: absolute;
+            border-radius: 1em;
+            min-width: 20px;
+            max-width: 50px;
+            height: 20px;
+            right: 0;
+            bottom: 0;
+            font-size: 14pt;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            background: black;
+            color: white;
+            font-weight: bold;
+            padding: 0;
+            overflow: hidden;
+            > div {
+                font-family: Arial, sans-serif;
+                padding: 0 5px;
+            }
+        }
+
     }
     .initiative-portrait-content {
         min-height: 50px;

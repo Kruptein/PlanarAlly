@@ -258,7 +258,7 @@ function toggleHighlight(actor: InitiativeData, show: boolean): void {
 }
 
 function isGroupMember(actor: InitiativeData): boolean {
-    if (actor.isGroup) return false
+    if (actor.isGroup) return false;
     if (actor.localId === undefined) return false;
     const groupId = groupSystem.getGroupId(actor.localId);
     if (groupId === undefined) return false;
@@ -838,7 +838,6 @@ function n(e: any): number {
                 padding: 0 5px;
             }
         }
-
     }
     .initiative-portrait-content {
         min-height: 50px;

@@ -41,6 +41,7 @@ import { computeVisibility } from "../vision/te";
 import type { CompactShapeCore, CompactSubShapeCore } from "./transformations";
 import type { DepShape, SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/simple/boundingRect";
+import { calculateDelta } from "../drag";
 
 export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
@@ -230,7 +231,7 @@ export abstract class Shape implements IShape {
         return this._visionPath;
     }
 
-    onLayerAdd(): void {}
+    onLayerAdd(): void { }
 
     // POSITION
 
@@ -356,7 +357,12 @@ export abstract class Shape implements IShape {
         const gridType = locationSettingsState.raw.gridType.value;
         const size = this.getSize(gridType);
 
-        this.center = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
+
+        const newCenter = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
+        const snapDelta = subtractP(newCenter, this.center);
+        const shrinkDelta = true; // Weird/incorrect snapping behavior when shrink = false
+        const cappedDelta = calculateDelta(snapDelta, this, shrinkDelta);
+        this.center = addP(this.center, cappedDelta);
 
         this.invalidate(false);
     }

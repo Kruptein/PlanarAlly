@@ -31,6 +31,7 @@ import { GridModeLabelFormat } from "../../systems/settings/players/models";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
+import { add } from "lodash";
 
 export enum RulerFeatures {
     All,
@@ -198,7 +199,19 @@ class RulerTool extends Tool implements ITool {
         const xdiff = Math.abs(end.x - start.x);
         const ydiff = Math.abs(end.y - start.y);
 
+        const usePF2ERuler = true; // CRAFTIMARK: WARN: DEBUG VALUE
         let cellDistance = cells.length;
+        if (usePF2ERuler) {
+            let addedHalfsquarePreviously = true
+            for (let i = 1; i < cells.length; i++) {
+                if (isDiagonal(cells[i - 1], cells[i])) {
+                    if (!addedHalfsquarePreviously) {
+                        cellDistance += 1;
+                    }
+                    addedHalfsquarePreviously = !addedHalfsquarePreviously;
+                }
+            }
+        }
         let unitDistance = cellDistance;
         if (!this.gridMode.value) {
             unitDistance =
@@ -323,7 +336,7 @@ class RulerTool extends Tool implements ITool {
             })
             // this throws if we request cb multiple times before a draw has completed
             // we don't care about that, so we just catch it and ignore it
-            .catch(() => {});
+            .catch(() => { });
     }
 
     // HELPERS
@@ -346,5 +359,13 @@ class RulerTool extends Tool implements ITool {
         this.previousCellDistance = 0;
     }
 }
+
+// Assumes cell1 and cell2 are square cells and are 1 cell away from each other
+function isDiagonal(cell1: GlobalPoint | undefined, cell2: GlobalPoint | undefined): boolean {
+    if (cell1 === undefined || cell2 === undefined) return false;
+
+    return !(cell1.x === cell2.x || cell1.y === cell2.y);
+}
+
 
 export const rulerTool = new RulerTool();

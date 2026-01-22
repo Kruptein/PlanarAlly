@@ -359,8 +359,7 @@ export abstract class Shape implements IShape {
         const newCenter = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
         if (isOnTokenLayer) {
             const snapDelta = subtractP(newCenter, this.center);
-            const shrinkDelta = true; // Weird/incorrect snapping behavior when shrink = false
-            const cappedDelta = calculateDelta(snapDelta, this, shrinkDelta);
+            const cappedDelta = calculateDelta(snapDelta, this, true);
             this.center = addP(this.center, cappedDelta);
         } else {
             this.center = newCenter;

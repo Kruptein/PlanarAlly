@@ -7,7 +7,7 @@ import { useI18n } from "vue-i18n";
 import Modal from "../../../core/components/modals/Modal.vue";
 import RollingCounter from "../../../core/components/RollingCounter.vue";
 import { baseAdjust } from "../../../core/http";
-import type { GlobalId, LocalId } from "../../../core/id";
+import type { GlobalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { getTarget, getValue } from "../../../core/utils";
 import { sendRequestInitiatives } from "../../api/emits/initiative";
@@ -56,8 +56,12 @@ const showEffectsFor = ref<number | null>(null);
 const hasVisibleActor = computed(() => initiativeStore.state.locationData.some((actor) => canSee(actor)));
 
 const owns = (actorId?: GlobalId): boolean => initiativeStore.owns(actorId);
-const toggleOption = (index: number, option: "isVisible" | "isGroup"): void =>
+const toggleOption = (actor: InitiativeData, index: number, option: "isVisible" | "isGroup"): void => {
+    if (option === "isGroup") {
+        toggleGroupHighlight(actor, !actor.isGroup);
+    }
     initiativeStore.toggleOption(index, option);
+};
 
 onMounted(() => {
     initiativeStore.show(false, false);
@@ -164,6 +168,11 @@ function getName(actor: InitiativeData): string {
     return "?";
 }
 
+function getGroupIndex(actor: InitiativeData): string {
+    if (actor.localId === undefined) return "";
+    return groupSystem.getBadgeCharacters(actor.localId);
+}
+
 async function removeInitiative(actor: InitiativeData): Promise<void> {
     if (actor.isGroup) {
         const result = await loadConfirmationDialog(t("game.ui.initiative.remove_group_msg"));
@@ -212,12 +221,31 @@ function removeEffect(shape: GlobalId, index: number): void {
     if (initiativeStore.owns(shape)) initiativeStore.removeEffect(shape, index, true);
 }
 
-function toggleHighlight(actorId: LocalId | undefined, show: boolean): void {
-    if (actorId === undefined) return;
+function toggleGroupHighlight(actor: InitiativeData, show: boolean): void {
+    // switch between highlighting all group members or just the entry's shape
+    if (actor.localId === undefined) return;
+    const shape = getShape(actor.localId);
+    if (shape === undefined) return;
+    if (shape.showHighlight) {
+        const groupId = groupSystem.getGroupId(actor.localId);
+        let shapeArray: Iterable<IShape> = [];
+        if (groupId !== undefined) {
+            shapeArray = map(groupSystem.getGroupMembers(groupId), (m) => getShape(m)!);
+        }
+        for (const sh of shapeArray) {
+            if (sh.id === actor.localId) continue;
+            sh.showHighlight = show;
+            sh.layer?.invalidate(true);
+        }
+    }
+}
+
+function toggleHighlight(actor: InitiativeData, show: boolean): void {
+    if (actor.localId === undefined) return;
     let shapeArray: Iterable<IShape>;
-    const groupId = groupSystem.getGroupId(actorId);
-    if (groupId === undefined) {
-        const shape = getShape(actorId);
+    const groupId = groupSystem.getGroupId(actor.localId);
+    if (groupId === undefined || !actor.isGroup) {
+        const shape = getShape(actor.localId);
         if (shape === undefined) return;
         shapeArray = [shape];
     } else {
@@ -227,6 +255,24 @@ function toggleHighlight(actorId: LocalId | undefined, show: boolean): void {
         sh.showHighlight = show;
         sh.layer?.invalidate(true);
     }
+}
+
+function isGroupMember(actor: InitiativeData): boolean {
+    if (actor.isGroup) return false;
+    if (actor.localId === undefined) return false;
+    const groupId = groupSystem.getGroupId(actor.localId);
+    if (groupId === undefined) return false;
+    return true;
+}
+
+function shouldShowBadge(actor: InitiativeData): boolean {
+    if (!isGroupMember(actor)) return false;
+    if (actor.localId === undefined) return false;
+    const shape = getShape(actor.localId);
+    if (shape === undefined) return false;
+    const props = propertiesState.reactive.data.get(actor.localId);
+    if (props === undefined) return false;
+    return props.showBadge;
 }
 
 function hasImage(actor: InitiativeData): boolean {
@@ -342,8 +388,8 @@ function n(e: any): number {
                                                     initiativeStore.state.editLock !== undefined &&
                                                     initiativeStore.state.editLock !== actor.globalId,
                                             }"
-                                            @mouseenter="toggleHighlight(actor.localId, true)"
-                                            @mouseleave="toggleHighlight(actor.localId, false)"
+                                            @mouseenter="toggleHighlight(actor, true)"
+                                            @mouseleave="toggleHighlight(actor, false)"
                                         >
                                             <div
                                                 v-if="owns(actor.globalId)"
@@ -365,6 +411,9 @@ function n(e: any): number {
                                                     class="initiative-portrait-content"
                                                     alt=""
                                                 />
+                                                <div v-if="shouldShowBadge(actor)" class="group-badge">
+                                                    <div>{{ getGroupIndex(actor) }}</div>
+                                                </div>
                                             </div>
                                             <div v-else :title="getName(actor)" class="initiative-portrait">
                                                 <div class="initiative-portrait-border"></div>
@@ -374,6 +423,9 @@ function n(e: any): number {
                                                         style="cursor: auto"
                                                         class="large-icon"
                                                     />
+                                                    <div v-if="shouldShowBadge(actor)" class="group-badge">
+                                                        <div>{{ getGroupIndex(actor) }}</div>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="actor-info-cluster">
@@ -385,7 +437,7 @@ function n(e: any): number {
                                                         class="actor-icon-button"
                                                         :class="{ disabled: !owns(actor.globalId) }"
                                                         :title="t('common.toggle_public_private')"
-                                                        @click="toggleOption(index, 'isVisible')"
+                                                        @click="toggleOption(actor, index, 'isVisible')"
                                                     >
                                                         <font-awesome-icon
                                                             icon="eye"
@@ -399,7 +451,7 @@ function n(e: any): number {
                                                         class="actor-icon-button"
                                                         :class="{ disabled: !owns(actor.globalId) }"
                                                         :title="t('game.ui.initiative.toggle_group')"
-                                                        @click="toggleOption(index, 'isGroup')"
+                                                        @click="toggleOption(actor, index, 'isGroup')"
                                                     >
                                                         <font-awesome-icon
                                                             icon="users"
@@ -763,6 +815,28 @@ function n(e: any): number {
             left: 0;
             z-index: -1;
             border-radius: 0.3rem;
+        }
+        .group-badge {
+            position: absolute;
+            border-radius: 1em;
+            min-width: 20px;
+            max-width: 50px;
+            height: 20px;
+            right: 0;
+            bottom: 0;
+            font-size: 14pt;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            background: black;
+            color: white;
+            font-weight: bold;
+            padding: 0;
+            overflow: hidden;
+            > div {
+                font-family: Arial, sans-serif;
+                padding: 0 5px;
+            }
         }
     }
     .initiative-portrait-content {

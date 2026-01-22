@@ -98,14 +98,14 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
 
     const target = {
         location: targetLocation,
+        floor,
         x: center.x,
         y: center.y,
-        floor: floor,
     };
 
     sendShapesMove({
         shapes: shapes.map((s) => getGlobalId(s)!),
-        target: { layer: layer, ...target },
+        target: { layer, ...target },
     });
     const { location, ...position } = target;
     if (locationSettingsState.raw.movePlayerOnTokenChange.value) {

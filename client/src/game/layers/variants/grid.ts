@@ -6,11 +6,14 @@ import { positionState } from "../../systems/position/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
+import type { SvgDisplayOverrides } from "../../shapes/variants/fontAwesomeIcon";
 
 import { Layer } from "./layer";
 
 export class GridLayer extends Layer implements IGridLayer {
-    originIcon: FontAwesomeIcon = new FontAwesomeIcon({ prefix: "fas", iconName: "map-pin" }, toGP(-5, -16), 10, { svgDisplayOverrides: { fill: "red", stroke: "black", strokeWidth: "10" } }) // 20 == width
+    displayOverrides: SvgDisplayOverrides = { fill: "rgba(255,0,0,0.4)", stroke: "black", strokeWidth: "10" };
+    originIcon: FontAwesomeIcon = new FontAwesomeIcon({ prefix: "fas", iconName: "location-dot" }, toGP(0,0), 40, { svgDisplayOverrides: this.displayOverrides })
+    originIconSize = { width: 30, height: 40 };
 
     invalidate(): void {
         this.valid = false;
@@ -24,6 +27,13 @@ export class GridLayer extends Layer implements IGridLayer {
     draw(_doClear?: boolean): void {
         if (!this.valid) {
             this.clear();
+            const showOrigin = true; // CRAFTIMARK: WARN: Debug value;
+            if (showOrigin) {
+                const ctx = this.ctx;
+                const state = positionState.readonly;
+                console.log(state.zoom)
+                this.originIcon.draw(ctx, false, { center: toGP(0,-20/state.zoom), width: this.originIconSize.width, height: this.originIconSize.height });
+            }
             if (locationSettingsState.raw.useGrid.value) {
                 const activeFowFloor = floorState.currentFloor.value!.id;
 
@@ -98,12 +108,6 @@ export class GridLayer extends Layer implements IGridLayer {
                 ctx.strokeStyle = playerSettingsState.raw.gridColour.value;
                 ctx.lineWidth = 1;
                 ctx.stroke();
-            }
-            const showOrigin = true; // CRAFTIMARK: WARN: Debug value;
-            if (showOrigin) {
-                const ctx = this.ctx;
-                // Pop setting changes
-                this.originIcon.draw(ctx, false);
             }
             this.valid = true;
         }

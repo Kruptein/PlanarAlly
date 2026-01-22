@@ -4,7 +4,7 @@ import type { GlobalId, LocalId } from "../../../core/id";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import type { SHAPE_TYPE } from "../types";
 
-type SvgDisplayOverrides = {
+export type SvgDisplayOverrides = {
     fill: string;
     stroke: string;
     strokeWidth: string;
@@ -15,7 +15,7 @@ import { Asset } from "./asset";
 const faBlobs = new Map<string, string>();
 
 function getFaBlobUrl(iconDef: IconDefinition, displayOverrides: SvgDisplayOverrides = { fill: "white", stroke: "black", strokeWidth: "20" }): string {
-    const name = `${iconDef.prefix}-${iconDef.iconName}`;
+    const name = `${iconDef.prefix}-${iconDef.iconName}-${displayOverrides.fill}-${displayOverrides.stroke}-${displayOverrides.strokeWidth}`;
     if (faBlobs.has(name)) return faBlobs.get(name)!;
 
     const svg = icon(iconDef).node[0] as SVGElement;

@@ -231,7 +231,7 @@ export abstract class Shape implements IShape {
         return this._visionPath;
     }
 
-    onLayerAdd(): void {}
+    onLayerAdd(): void { }
 
     // POSITION
 
@@ -352,12 +352,12 @@ export abstract class Shape implements IShape {
         return { x: Math.max(1, customRound(x)), y: Math.max(1, customRound(y)) };
     }
 
-    snapToGrid(isOnTokenLayer: boolean = false): void {
+    snapToGrid(checkCollisions: boolean = false): void {
         const props = getProperties(this.id)!;
         const gridType = locationSettingsState.raw.gridType.value;
         const size = this.getSize(gridType);
         const newCenter = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
-        if (isOnTokenLayer) {
+        if (checkCollisions) {
             const snapDelta = subtractP(newCenter, this.center);
             const cappedDelta = calculateDelta(snapDelta, this, true);
             this.center = addP(this.center, cappedDelta);

@@ -86,6 +86,7 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
     const targetShape = tpTargetId === undefined ? undefined : getShape(tpTargetId);
     let center = targetShape?.center;
     let floor = targetShape?.floor?.name;
+    const layer = floorState.currentLayer.value!.name;
 
     if (targetShape === undefined) {
         const shapeInfo = await requestShapeInfo(toZone);
@@ -104,7 +105,7 @@ export async function teleport(fromZone: LocalId, toZone: GlobalId, transfers?: 
 
     sendShapesMove({
         shapes: shapes.map((s) => getGlobalId(s)!),
-        target,
+        target: { layer, ...target },
     });
     const { location, ...position } = target;
     if (locationSettingsState.raw.movePlayerOnTokenChange.value) {

@@ -231,7 +231,7 @@ export abstract class Shape implements IShape {
         return this._visionPath;
     }
 
-    onLayerAdd(): void { }
+    onLayerAdd(): void {}
 
     // POSITION
 

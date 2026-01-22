@@ -26,14 +26,17 @@ import { moveFloor } from "../../temp";
 import { toggleActiveMode, toolMap } from "../../tools/tools";
 
 export async function onKeyDown(event: KeyboardEvent): Promise<void> {
+    let eventConsumed = true;
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // Ctrl-a with a HTMLInputElement or a HTMLTextAreaElement selected - select all the text
         if (event.key === "a" && ctrlOrCmdPressed(event)) event.target.select();
+        eventConsumed = false;
     } else if (
         (event.target instanceof HTMLElement && event.target.contentEditable === "true") ||
         event.target instanceof HTMLSelectElement
     ) {
         // no-op - we're editing a contentEditable element
+        eventConsumed = false;
     } else {
         const navKeys = [
             "ArrowLeft",
@@ -125,8 +128,6 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                     propertiesSystem.setIsDefeated(shape.id, !isDefeated, FULL_SYNC);
                 }
             }
-            event.preventDefault();
-            event.stopPropagation();
         } else if (event.key === "l" && ctrlOrCmdPressed(event)) {
             const selection = selectedSystem.get({ includeComposites: true });
             for (const shape of selection) {
@@ -137,12 +138,8 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                     propertiesSystem.setLocked(shape.id, !isLocked, FULL_SYNC);
                 }
             }
-            event.preventDefault();
-            event.stopPropagation();
         } else if (event.key === "u" && ctrlOrCmdPressed(event)) {
             // Ctrl-u - disable and reenable the Interface
-            event.preventDefault();
-            event.stopPropagation();
             uiSystem.toggleUi();
         } else if (event.key === "0" && ctrlOrCmdPressed(event)) {
             // Ctrl-0 or numpad 0 - Re-center/reset the viewport
@@ -169,18 +166,12 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             pasteShapes();
         } else if (event.key.toLocaleLowerCase() === "z" && event.shiftKey && ctrlOrCmdPressed(event)) {
             await redoOperation();
-            event.preventDefault();
-            event.stopPropagation();
         } else if (event.key === "z" && ctrlOrCmdPressed(event)) {
             await undoOperation();
-            event.preventDefault();
-            event.stopPropagation();
         } else if (event.key === "PageUp" && floorState.raw.floorIndex < floorState.raw.floors.length - 1) {
             // Page Up - Move floor up
             // Alt + Page Up - Move selected shapes floor up
             // Alt + Shift + Page Up - Move selected shapes floor up AND move floor up
-            event.preventDefault();
-            event.stopPropagation();
             const targetFloor = floorState.raw.floors.findIndex(
                 (f, i) => i > floorState.raw.floorIndex && (gameState.raw.isDm || f.playerVisible),
             );
@@ -190,8 +181,6 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // Page Down - Move floor down
             // Alt + Page Down - Move selected shape floor down
             // Alt + Shift + Page Down - Move selected shapes floor down AND move floor down
-            event.preventDefault();
-            event.stopPropagation();
             const maxLength = floorState.raw.floors.length - 1;
             let targetFloor = [...floorState.raw.floors]
                 .reverse()
@@ -202,15 +191,18 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
 
             changeFloor(event, targetFloor);
         } else if (event.key === "Tab") {
-            event.preventDefault();
             toggleActiveMode();
         } else if (event.key === "n") {
-            event.preventDefault();
             toggleNoteManager();
         } else if (event.key === "a") {
-            event.preventDefault();
             toggleAssetManager();
+        } else {
+            eventConsumed = false;
         }
+    }
+    if (eventConsumed) {
+        event.preventDefault();
+        event.stopPropagation();
     }
 }
 

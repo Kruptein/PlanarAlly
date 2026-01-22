@@ -352,16 +352,19 @@ export abstract class Shape implements IShape {
         return { x: Math.max(1, customRound(x)), y: Math.max(1, customRound(y)) };
     }
 
-    snapToGrid(): void {
+    snapToGrid(isOnTokenLayer: boolean = false): void {
         const props = getProperties(this.id)!;
         const gridType = locationSettingsState.raw.gridType.value;
         const size = this.getSize(gridType);
-
         const newCenter = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
-        const snapDelta = subtractP(newCenter, this.center);
-        const shrinkDelta = true; // Weird/incorrect snapping behavior when shrink = false
-        const cappedDelta = calculateDelta(snapDelta, this, shrinkDelta);
-        this.center = addP(this.center, cappedDelta);
+        if (isOnTokenLayer) {
+            const snapDelta = subtractP(newCenter, this.center);
+            const shrinkDelta = true; // Weird/incorrect snapping behavior when shrink = false
+            const cappedDelta = calculateDelta(snapDelta, this, shrinkDelta);
+            this.center = addP(this.center, cappedDelta);
+        } else {
+            this.center = newCenter;
+        }
 
         this.invalidate(false);
     }

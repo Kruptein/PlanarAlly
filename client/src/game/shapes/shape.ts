@@ -14,6 +14,7 @@ import {
 import type { GlobalId, LocalId } from "../../core/id";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
+import { calculateDelta } from "../drag";
 import { generateLocalId, dropId } from "../id";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape, ShapeSize } from "../interfaces/shape";
@@ -41,7 +42,6 @@ import { computeVisibility } from "../vision/te";
 import type { CompactShapeCore, CompactSubShapeCore } from "./transformations";
 import type { DepShape, SHAPE_TYPE } from "./types";
 import { BoundingRect } from "./variants/simple/boundingRect";
-import { calculateDelta } from "../drag";
 
 export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
@@ -231,7 +231,7 @@ export abstract class Shape implements IShape {
         return this._visionPath;
     }
 
-    onLayerAdd(): void { }
+    onLayerAdd(): void {}
 
     // POSITION
 
@@ -356,7 +356,6 @@ export abstract class Shape implements IShape {
         const props = getProperties(this.id)!;
         const gridType = locationSettingsState.raw.gridType.value;
         const size = this.getSize(gridType);
-
 
         const newCenter = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
         const snapDelta = subtractP(newCenter, this.center);

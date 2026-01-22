@@ -12,6 +12,7 @@ class LocationOptions(BaseDbModel):
     unit_size = cast(float | None, FloatField(default=5, null=True))
     unit_size_unit = cast(str | None, TextField(default="ft", null=True))
     use_grid = cast(bool | None, BooleanField(default=True, null=True))
+    use_origin_marker = cast(bool | None, BooleanField(default=False, null=True))
     full_fow = cast(bool | None, BooleanField(default=False, null=True))
     fow_opacity = cast(float | None, FloatField(default=0.3, null=True))
     fow_los = cast(bool | None, BooleanField(default=False, null=True))
@@ -35,6 +36,7 @@ class LocationOptions(BaseDbModel):
             unit_size_unit=None,
             grid_type=None,
             use_grid=None,
+            use_origin_marker=None,
             full_fow=None,
             fow_opacity=None,
             fow_los=None,
@@ -67,6 +69,7 @@ class LocationOptions(BaseDbModel):
             unit_size_unit=self.unit_size_unit,  # type: ignore
             grid_type=self.grid_type,  # type: ignore
             use_grid=self.use_grid,  # type: ignore
+            use_origin_marker=self.use_origin_marker,  # type: ignore
             full_fow=self.full_fow,  # type: ignore
             fow_opacity=self.fow_opacity,  # type: ignore
             fow_los=self.fow_los,  # type: ignore

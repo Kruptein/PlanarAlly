@@ -26,6 +26,7 @@ class LocationSettingsSystem implements System {
             gridType: this.setGridType.bind(this),
             unitSize: this.setUnitSize.bind(this),
             unitSizeUnit: this.setUnitSizeUnit.bind(this),
+            useOriginMarker: this.setUseOriginMarker.bind(this),
             dropRatio: this.setDropRatio.bind(this),
             fullFow: this.setFullFow.bind(this),
             fowLos: this.setFowLos.bind(this),
@@ -136,6 +137,14 @@ class LocationSettingsSystem implements System {
         floorSystem.invalidateAllFloors();
 
         if (sync) sendLocationOption("unit_size_unit", unitSizeUnit, location);
+    }
+
+    setUseOriginMarker(useOriginMarker: boolean | undefined, location: number | undefined, sync: boolean): void {
+        if (!this.setValue($.useOriginMarker, useOriginMarker, location)) return;
+
+        floorSystem.invalidateAllFloors();
+
+        if (sync) sendLocationOption("use_origin_marker", useOriginMarker, location);
     }
 
     setDropRatio(dropRatio: number | undefined, location: number | undefined, sync: boolean): void {

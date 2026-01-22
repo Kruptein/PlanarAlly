@@ -40,6 +40,7 @@ tech changes will usually be stripped from release notes for the public
         -   Allow resizing of initiative list view
         -   Replace popup modal with less intrusive verification check
         -   New UI to add effects to entries
+        -   Add group badges for shapes with badges enabled
         -   [DM] Add button to clear initiative list
         -   [DM] Add previous/next round buttons
     -   Add effects with infinite timespan
@@ -79,6 +80,7 @@ tech changes will usually be stripped from release notes for the public
 -   Shapes snapping to square grid sometimes offset from grid
 -   DDraft files no longer being uploadable to the asset manager
 -   Moving shapes with keyboard keys while ruler was enabled on select tool would move shapes twice as far
+-   Hovering on an initiative entry that is part of a group but not marked as a group entry would highlight all group members
 
 ## [2025.3]
 

@@ -78,6 +78,7 @@ tech changes will usually be stripped from release notes for the public
 -   Moving special hide/reveal shapes from the fow layer could lead to a niche bug
 -   Rotation slider not showing current value in text input on component load
 -   Shapes snapping to square grid sometimes offset from grid
+-   Shapes attempting to snap to a grid square now collide with walls
 -   DDraft files no longer being uploadable to the asset manager
 -   Moving shapes with keyboard keys while ruler was enabled on select tool would move shapes twice as far
 -   Hovering on an initiative entry that is part of a group but not marked as a group entry would highlight all group members

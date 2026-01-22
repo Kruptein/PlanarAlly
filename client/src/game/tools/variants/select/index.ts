@@ -720,7 +720,7 @@ class SelectTool extends Tool implements ISelectTool {
                             });
                         }
 
-                        sel.snapToGrid();
+                        sel.snapToGrid(layer.name === LayerName.Tokens);
 
                         if (props.blocksVision !== VisionBlock.No) {
                             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: sel.id });

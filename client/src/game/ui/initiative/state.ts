@@ -126,9 +126,12 @@ class InitiativeStore extends Store<InitiativeState> {
             else activeTokensBackup = new Set(accessState.raw.activeTokenFilters.get("vision") ?? []);
             this.handleCameraLock();
             this.handleVisionLock();
-        } else {
-            if (activeTokensBackup === undefined) accessSystem.clearActiveVisionTokens();
-            else accessSystem.setActiveVisionTokens(...activeTokensBackup.values());
+        } else if (playerSettingsState.raw.initiativeVisionLock.value) {
+            if (activeTokensBackup === undefined || activeTokensBackup.size === 0) {
+                accessSystem.clearActiveVisionTokens();
+            } else {
+                accessSystem.setActiveVisionTokens(...activeTokensBackup.values());
+            }
         }
     }
 

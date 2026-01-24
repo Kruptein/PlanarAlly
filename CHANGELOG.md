@@ -84,6 +84,7 @@ tech changes will usually be stripped from release notes for the public
 -   Moving shapes with keyboard keys while ruler was enabled on select tool would move shapes twice as far
 -   Hovering on an initiative entry that is part of a group but not marked as a group entry would highlight all group members
 -   Error log about viewports on the server
+-   Toggling initiative off vision lock interactions
 
 ## [2025.3]
 

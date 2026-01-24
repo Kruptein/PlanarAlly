@@ -85,6 +85,7 @@ tech changes will usually be stripped from release notes for the public
 -   Hovering on an initiative entry that is part of a group but not marked as a group entry would highlight all group members
 -   Error log about viewports on the server
 -   Toggling initiative off vision lock interactions
+-   Initiative cog wheel not opening initiative tab in the client settings
 
 ## [2025.3]
 

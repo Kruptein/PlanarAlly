@@ -100,6 +100,14 @@ export function getBaseShapeId(local: LocalId): LocalId {
     return local;
 }
 
+// eslint-disable-next-line import/no-unused-modules
+export function getBaseShape(local: LocalId): IShape | undefined {
+    const parent = compositeState.getCompositeParent(local);
+    if (parent !== undefined) return parent;
+
+    return idMap.get(local);
+}
+
 export function getVisualShape(local: LocalId): IShape | undefined {
     let shape = idMap.get(local);
     const parent = compositeState.getCompositeParent(local);
@@ -114,17 +122,8 @@ export function getVisualShape(local: LocalId): IShape | undefined {
 
 export function getVisualShapeId(local: LocalId): LocalId {
     const shape = getVisualShape(local);
-    return shape !== undefined ? shape.id : local;
+    return shape?.id ?? local;
 }
-
-/*
-export function getBaseShape(local: LocalId): IShape | undefined {
-    const parent = compositeState.getCompositeParent(local);
-    if (parent !== undefined) return parent;
-
-    return idMap.get(local);
-}
-*/
 
 export function getShape(local: LocalId): IShape | undefined {
     return idMap.get(local);

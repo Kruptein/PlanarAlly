@@ -529,7 +529,7 @@ class SelectTool extends Tool implements ISelectTool {
                     }
                 }
 
-                await moveShapes(this.currentSelection, delta, true);
+                await moveShapes(this.currentSelection, delta, { temporary: true });
 
                 if (!this.deltaChanged) {
                     this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);

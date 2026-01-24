@@ -2,6 +2,7 @@ from typing import Any, cast
 
 from peewee import Case
 from pydantic import TypeAdapter
+from pydantic_core import MISSING
 
 from .... import auth
 from ....api.helpers import _send_game
@@ -418,7 +419,7 @@ async def move_shapes(sid: str, raw_data: Any):
     floor = location.floors.where(Floor.name == data.target.floor)[0]
 
     target_layer = None
-    if data.target.layer:
+    if data.target.layer is not MISSING:
         target_layer = floor.layers.where(Layer.name == data.target.layer)[0]
 
     shape_uuids = set()

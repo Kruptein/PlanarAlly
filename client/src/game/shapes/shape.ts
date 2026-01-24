@@ -14,6 +14,7 @@ import {
 import type { GlobalId, LocalId } from "../../core/id";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
+import { calculateDelta } from "../drag";
 import { generateLocalId, dropId } from "../id";
 import type { ILayer } from "../interfaces/layer";
 import type { IShape, ShapeSize } from "../interfaces/shape";
@@ -357,8 +358,14 @@ export abstract class Shape implements IShape {
         const props = getProperties(this.id)!;
         const gridType = locationSettingsState.raw.gridType.value;
         const size = this.getSize(gridType);
-
-        this.center = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
+        const newCenter = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
+        if (this.layerName === LayerName.Tokens) {
+            const snapDelta = subtractP(newCenter, this.center);
+            const cappedDelta = calculateDelta(snapDelta, this, true);
+            this.center = addP(this.center, cappedDelta);
+        } else {
+            this.center = newCenter;
+        }
 
         this.invalidate(false);
     }

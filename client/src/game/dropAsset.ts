@@ -75,7 +75,7 @@ async function dropHelper(
                 }
             }
             if (shape !== undefined && shape.options.skipDraw !== true) {
-                await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
+                await moveShapes([shape], Vector.fromPoints(shape.center, location), { temporary: false });
                 return;
             }
         }

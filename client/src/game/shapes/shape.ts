@@ -354,12 +354,12 @@ export abstract class Shape implements IShape {
         return { x: Math.max(1, customRound(x)), y: Math.max(1, customRound(y)) };
     }
 
-    snapToGrid(checkCollisions: boolean = false): void {
+    snapToGrid(): void {
         const props = getProperties(this.id)!;
         const gridType = locationSettingsState.raw.gridType.value;
         const size = this.getSize(gridType);
         const newCenter = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
-        if (checkCollisions) {
+        if (this.layerName === LayerName.Tokens) {
             const snapDelta = subtractP(newCenter, this.center);
             const cappedDelta = calculateDelta(snapDelta, this, true);
             this.center = addP(this.center, cappedDelta);

@@ -237,8 +237,8 @@ class ClientSystem implements System {
 
     sendViewportInfo(): void {
         if (Number.isNaN(positionState.readonly.zoom)) return;
-        const viewport = this.getViewport()!;
-        sendViewport(viewport);
+        const viewport = this.getViewport();
+        if (viewport) sendViewport(viewport);
     }
 
     updateZoomFactor(): void {

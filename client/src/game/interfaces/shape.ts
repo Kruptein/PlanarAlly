@@ -37,7 +37,7 @@ export interface IShape extends SimpleShape {
 
     contains: (point: GlobalPoint, nearbyThreshold?: number) => boolean;
 
-    snapToGrid: (checkCollisions: boolean) => void;
+    snapToGrid: () => void;
     resizeToGrid: (resizePoint: number, retainAspectRatio: boolean) => void;
     resize: (resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean) => number;
 

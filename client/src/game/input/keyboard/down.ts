@@ -21,6 +21,7 @@ import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
 import { selectedSystem } from "../../systems/selected";
 import { locationSettingsState } from "../../systems/settings/location/state";
+import { playerSettingsState } from "../../systems/settings/players/state";
 import { uiSystem } from "../../systems/ui";
 import { moveFloor } from "../../temp";
 import { toggleActiveMode, toolMap } from "../../tools/tools";
@@ -107,7 +108,10 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 }
                 if (delta.length() === 0) return;
 
-                await moveShapes(selection, delta, false);
+                await moveShapes(selection, delta, {
+                    snapToGrid: playerSettingsState.useSnapping(event),
+                    temporary: false,
+                });
                 (toolMap[ToolName.Select] as ISelectTool).resetRotationHelper();
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.

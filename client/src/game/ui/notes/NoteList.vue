@@ -460,7 +460,7 @@ header {
             width: 100%;
 
             > input {
-                padding: 0.5rem 1rem;
+                padding: 0.25rem 1rem;
                 outline: none;
                 border: none;
                 border-radius: 1rem;

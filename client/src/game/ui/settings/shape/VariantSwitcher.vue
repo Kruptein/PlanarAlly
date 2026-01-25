@@ -6,13 +6,16 @@ import { assetState } from "../../../../assets/state";
 import { getImageSrcFromHash } from "../../../../assets/utils";
 import { cloneP } from "../../../../core/geometry";
 import type { LocalId } from "../../../../core/id";
-import { InvalidationMode, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
+import { FULL_SYNC, InvalidationMode, SERVER_SYNC, SyncMode, UI_SYNC } from "../../../../core/models/types";
 import { useModal } from "../../../../core/plugins/modals/plugin";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { dropAsset } from "../../../dropAsset";
 import { getShape } from "../../../id";
 import { compositeState } from "../../../layers/state";
 import { ToggleComposite } from "../../../shapes/variants/toggleComposite";
+import { accessSystem } from "../../../systems/access";
+import { DEFAULT_ACCESS_SYMBOL } from "../../../systems/access/models";
+import { accessState } from "../../../systems/access/state";
 import { pickAsset } from "../../../systems/assets/ui";
 
 const modals = useModal();
@@ -84,10 +87,16 @@ async function addVariant(): Promise<void> {
         toast.error("Something went wrong trying to add this variant.");
         return;
     }
-
     let parent = compositeParent.value;
     if (parent === undefined) {
         parent = new ToggleComposite(cloneP(shape.refPoint), shape.id, [{ id: shape.id, name: "base variant" }]);
+        for (const [user, access] of accessState.readonly.access.get(vState.id!) ?? []) {
+            if (user === DEFAULT_ACCESS_SYMBOL) {
+                accessSystem.updateAccess(parent.id, user, access, UI_SYNC);
+            } else {
+                accessSystem.addAccess(parent.id, user, access, UI_SYNC);
+            }
+        }
         shape.layer?.addShape(parent, SyncMode.FULL_SYNC, InvalidationMode.NO);
     }
     parent.addVariant(newShape.id, name, true);
@@ -112,7 +121,10 @@ async function removeVariant(): Promise<void> {
     );
     if (remove !== true) return;
 
-    activeShapeStore.removeVariant(vState.id!, SERVER_SYNC);
+    const parent = compositeParent.value;
+    if (parent === undefined) return;
+
+    parent.removeVariant(vState.id!, FULL_SYNC);
 }
 
 const variants = toRef(vState, "variants");

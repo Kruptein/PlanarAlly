@@ -3,7 +3,7 @@ import { computed } from "vue";
 
 import type { LocalId } from "../../core/id";
 import { filter } from "../../core/iter";
-import { getShape } from "../id";
+import { getVisualShape } from "../id";
 import { setCenterPosition } from "../position";
 import { accessState } from "../systems/access/state";
 import { positionState } from "../systems/position/state";
@@ -16,7 +16,7 @@ const tokens = computed(() =>
 );
 
 function center(token: LocalId): void {
-    const shape = getShape(token);
+    const shape = getVisualShape(token);
     if (shape === undefined) return;
 
     setCenterPosition(shape.center);

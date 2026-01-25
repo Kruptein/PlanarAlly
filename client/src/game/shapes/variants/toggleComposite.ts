@@ -46,7 +46,6 @@ export class ToggleComposite extends Shape implements IToggleComposite {
             compositeState.addComposite(this.id, variant, false);
         }
         this.resetVariants(...this._variants.map((v) => v.id));
-        this.setActiveVariant(this.active_variant, false);
     }
 
     readonly isClosed = true;
@@ -88,14 +87,11 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         const shape = getGlobalId(this.id);
         const variantId = getGlobalId(id);
 
+        if (this._variants.length <= 1) return;
+
         if (shape === undefined || variantId === undefined) {
             console.error("Variant globalid mismatch");
             return;
-        }
-
-        if (syncTo.server) sendToggleCompositeRemoveVariant({ shape, variant: variantId });
-        if (syncTo.ui) {
-            if (this.id === activeShapeStore.state.id) activeShapeStore.removeVariant(id, syncTo);
         }
 
         const v = this._variants.findIndex((v) => v.id === id);
@@ -103,9 +99,18 @@ export class ToggleComposite extends Shape implements IToggleComposite {
             console.error("Variant not found during variant removal");
             return;
         }
+
         const newVariant = this._variants[(v + 1) % this._variants.length]!.id;
+        if (id === this.active_variant) {
+            this.setActiveVariant(newVariant, true);
+        }
+
         this._variants.splice(v, 1);
-        this.setActiveVariant(newVariant, true);
+
+        if (syncTo.server) sendToggleCompositeRemoveVariant({ shape, variant: variantId });
+        if (syncTo.ui) {
+            if (this.id === activeShapeStore.state.id) activeShapeStore.removeVariant(id, syncTo);
+        }
 
         const oldVariant = getShape(id)!;
         oldVariant.layer?.removeShape(oldVariant, { sync: SyncMode.FULL_SYNC, recalculate: true, dropShapeId: true });
@@ -156,8 +161,6 @@ export class ToggleComposite extends Shape implements IToggleComposite {
         this.active_variant = variant;
 
         const props = getProperties(newVariant.id)!;
-
-        accessSystem._updateOwnedState(newVariant.id);
 
         if (newVariant.floorId !== undefined) {
             if (props.blocksMovement)

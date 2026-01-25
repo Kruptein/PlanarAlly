@@ -1,5 +1,5 @@
 import { l2g } from "../../core/conversions";
-import { getShape } from "../id";
+import { getVisualShape } from "../id";
 import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
@@ -88,7 +88,7 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
     let foundAnnotation = false;
     if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
         for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
-            const shape = getShape(shapeId);
+            const shape = getVisualShape(shapeId);
             if (shape && shape.floorId === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
                 for (const noteId of notes) {
                     const note = noteState.raw.notes.get(noteId);
@@ -271,7 +271,7 @@ export async function touchMove(event: TouchEvent): Promise<void> {
     let found = false;
     if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
         for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
-            const shape = getShape(shapeId);
+            const shape = getVisualShape(shapeId);
             if (
                 shape &&
                 shape.floorId === floorState.currentFloor.value!.id &&

@@ -63,6 +63,10 @@ tech changes will usually be stripped from release notes for the public
 -   [tech] upgraded pydantic from 1.x to 2.x
 -   Square grids now have distinct x and y size values
 -   Keyboard movement now also snaps to the closest grid cell when snapping is relevant
+-   Variants
+    -   Players may now add variants to shapes they have edit access to
+    -   Players may now swap between variants of shapes they have edit access to
+    -   [tech] Variants' access permissions are now based on the permissions of the parent shape only
 
 ### Fixed
 

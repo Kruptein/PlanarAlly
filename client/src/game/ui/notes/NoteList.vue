@@ -458,14 +458,15 @@ header {
             display: flex;
             align-items: center;
             width: 100%;
+            height: 100%;
 
             > input {
-                padding: 0.25rem 1rem;
+                padding: 0.5rem 1rem;
                 outline: none;
                 border: none;
                 border-radius: 1rem;
                 flex-grow: 1;
-
+                height: 100%;
                 font-size: 1.25em;
             }
             > #clear-button {

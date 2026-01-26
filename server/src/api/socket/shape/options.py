@@ -1,6 +1,8 @@
 import json
 from typing import Any
 
+from pydantic_core import MISSING
+
 from .... import auth
 from ....api.helpers import _send_game
 from ....app import app, sio
@@ -489,7 +491,7 @@ async def update_tracker(sid: str, raw_data: Any):
     tracker = Tracker.get_by_id(data.uuid)
 
     changed_visible = False
-    if data.visible is not None and data.visible != tracker.visible:
+    if data.visible is not MISSING and data.visible != tracker.visible:
         changed_visible = True
 
     # don't use data.model_dump() as it contains a bunch of None's

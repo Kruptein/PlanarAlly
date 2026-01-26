@@ -303,7 +303,6 @@ function lock(globalId: GlobalId): void {
 }
 
 function unlock(): void {
-    console.log("blur");
     if (initiativeStore.state.editLock !== undefined) initiativeStore.unlock();
 }
 

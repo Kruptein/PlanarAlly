@@ -3,7 +3,7 @@ import type { GlobalId, LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { UI_SYNC } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
-import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
+import type { ShapeSystem, SystemClearReason, SystemInformMode } from "../../../core/systems/models";
 import { uuidv4 } from "../../../core/utils";
 import { getGlobalId, getShape } from "../../id";
 import { propertiesSystem } from "../properties";
@@ -24,9 +24,16 @@ const { mutableReactive: $, mutable, readonly } = groupState;
 class GroupSystem implements ShapeSystem<{ groupId: string | undefined; badge: number }> {
     // CORE
 
-    clear(): void {
+    clear(reason: SystemClearReason): void {
         this.dropState();
         mutable.removedGroupCache.clear();
+        mutable.shapeData.clear();
+        if (reason !== "partial-loading") {
+            mutable.groups.clear();
+            for (const group of mutable.groupMembers.values()) {
+                group.clear();
+            }
+        }
     }
 
     drop(id: LocalId): void {
@@ -52,7 +59,7 @@ class GroupSystem implements ShapeSystem<{ groupId: string | undefined; badge: n
             }
         }
         // sync happens in the layerAdd already, so not necessary here
-        this.addGroupMembers(data.groupId, [{ id, badge: undefined }], false);
+        this.addGroupMembers(data.groupId, [{ id, badge: mode === "load" ? data.badge : undefined }], false);
     }
 
     export(id: LocalId): { groupId: string | undefined; badge: number } {

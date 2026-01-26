@@ -192,6 +192,7 @@ class InitiativeStore extends Store<InitiativeState> {
             shape.showHighlight = false;
             shape.layer?.invalidate(true);
         }
+        if (this._state.editLock === globalId) this.unlock();
     }
 
     clearEntries(sync: boolean): void {

@@ -90,6 +90,7 @@ tech changes will usually be stripped from release notes for the public
 -   Error log about viewports on the server
 -   Toggling initiative off vision lock interactions
 -   Initiative cog wheel not opening initiative tab in the client settings
+-   Initiative entries would remain blurred if the focused entry was removed by another player.
 -   Group system not properly cleaning up on location changes
 
 ## [2025.3]

@@ -342,6 +342,12 @@ function openSettings(): void {
     uiSystem.showClientSettings(true);
 }
 
+function inputSubmit(event: Event): void {
+    getTarget(event).blur();
+    event.stopPropagation();
+    event.preventDefault();
+}
+
 // shitty helper because draggable loses all type information :arghfist:
 function n(e: any): number {
     return e as number;
@@ -494,7 +500,7 @@ function n(e: any): number {
                                                 @focus="lock(actor.globalId)"
                                                 @blur="unlock"
                                                 @change="setInitiative(actor.globalId, getValue($event))"
-                                                @keyup.enter="getTarget($event).blur()"
+                                                @keyup.enter="inputSubmit"
                                             />
                                         </div>
                                         <Transition name="effects-expand">
@@ -534,7 +540,7 @@ function n(e: any): number {
                                                             @change="
                                                                 setEffectName(actor.globalId, n(e), getValue($event))
                                                             "
-                                                            @keyup.enter="getTarget($event).blur()"
+                                                            @keyup.enter="inputSubmit"
                                                         />
                                                         <input
                                                             v-if="effect.turns !== null"
@@ -546,7 +552,7 @@ function n(e: any): number {
                                                             @change="
                                                                 setEffectTurns(actor.globalId, n(e), getValue($event))
                                                             "
-                                                            @keyup.enter="getTarget($event).blur()"
+                                                            @keyup.enter="inputSubmit"
                                                         />
                                                         <div v-else class="effect-turn-counter infinite-placeholder">
                                                             &infin;

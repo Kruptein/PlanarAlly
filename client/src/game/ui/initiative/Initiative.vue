@@ -5,6 +5,7 @@ import { type DraggableEvent, VueDraggable } from "vue-draggable-plus";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../../core/components/modals/Modal.vue";
+import ResizingTextArea from "../../../core/components/ResizingTextArea.vue";
 import RollingCounter from "../../../core/components/RollingCounter.vue";
 import { baseAdjust } from "../../../core/http";
 import type { GlobalId } from "../../../core/id";
@@ -525,17 +526,11 @@ function n(e: any): number {
                                                         :key="`${actor.globalId}-${e}`"
                                                         class="initiative-effect-info"
                                                     >
-                                                        <input
+                                                        <ResizingTextArea
                                                             v-model="effect.name"
-                                                            type="text"
-                                                            style="width: 100px"
-                                                            :class="{ disabled: !owns(actor.globalId) }"
                                                             :disabled="!owns(actor.globalId)"
-                                                            @change="
-                                                                setEffectName(actor.globalId, n(e), getValue($event))
-                                                            "
-                                                            @keyup.enter="getTarget($event).blur()"
-                                                        />
+                                                            @change="setEffectName(actor.globalId, n(e), $event)"
+                                                        ></ResizingTextArea>
                                                         <input
                                                             v-if="effect.turns !== null"
                                                             v-model="effect.turns"
@@ -983,7 +978,7 @@ function n(e: any): number {
     display: flex;
     flex-direction: column;
     width: -moz-fit-content;
-    width: 11.1em;
+    width: 15em;
     margin-right: 5px;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
@@ -1015,6 +1010,7 @@ function n(e: any): number {
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
+    padding-left: 5px;
 
     > * {
         border: none;
@@ -1023,10 +1019,27 @@ function n(e: any): number {
         margin: 0 3px;
 
         &:first-child {
-            margin-left: 0;
         }
         &:last-child {
             margin-right: 0;
+        }
+    }
+    > .grow-wrap {
+        display: flex;
+        flex-grow: 1;
+        width: 100%;
+        > textarea {
+            flex-grow: 1;
+            width: 100%;
+            min-height: 1em;
+            height: auto;
+            border: none;
+            resize: none;
+            font-family: inherit;
+            font-size: 11pt;
+            overflow: hidden;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
     }
     > input {

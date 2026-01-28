@@ -91,7 +91,6 @@ function resizeTextArea(element: HTMLElement): void {
         word-wrap: break-word;
         background: rgb(1, 1, 1, 0);
         border-radius: 0.25em;
-        border: none;
         text-align: right;
         padding: 0;
         margin: 0;

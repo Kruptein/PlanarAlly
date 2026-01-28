@@ -18,7 +18,9 @@ watch(
     () => props.visible,
     async (v) => {
         if (v) {
-            await nextTick(() => resizeTextArea(textArea.value));
+            // vue-tsc and eslint disagree on this assertion
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            await nextTick(() => resizeTextArea(textArea.value!));
         }
     },
 );
@@ -27,13 +29,24 @@ const textArea = useTemplateRef("textarea");
 
 onMounted(async () => {
     await nextTick(() => {
-        if (props.visible ?? true) resizeTextArea(textArea.value);
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        if (props.visible ?? true) resizeTextArea(textArea.value!);
     });
 });
 
 const emit = defineEmits<(e: "change", s: string) => void>();
 
 const text = defineModel<string>({ required: true });
+
+watch(
+    () => text.value,
+    async () => {
+        if (props.visible) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            await nextTick(() => resizeTextArea(textArea.value!));
+        }
+    },
+);
 
 function resizeTextArea(element: HTMLElement): void {
     element.style.height = "auto";
@@ -78,6 +91,10 @@ function resizeTextArea(element: HTMLElement): void {
         word-wrap: break-word;
         background: rgb(1, 1, 1, 0);
         border-radius: 0.25em;
+        border: none;
+        text-align: right;
+        padding: 0;
+        margin: 0;
     }
 }
 </style>

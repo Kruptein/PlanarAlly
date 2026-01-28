@@ -1,14 +1,35 @@
 <script setup lang="ts">
+import { nextTick, onMounted, useTemplateRef, watch } from "vue";
+
 import { getTarget, getValue } from "../utils";
 
 const props = withDefaults(
     defineProps<{
         disabled?: boolean;
+        visible?: boolean;
     }>(),
     {
         disabled: false,
+        visible: true,
     },
 );
+
+watch(
+    () => props.visible,
+    async (v) => {
+        if (v) {
+            await nextTick(() => resizeTextArea(textArea.value));
+        }
+    },
+);
+
+const textArea = useTemplateRef("textarea");
+
+onMounted(async () => {
+    await nextTick(() => {
+        if (props.visible ?? true) resizeTextArea(textArea.value);
+    });
+});
 
 const emit = defineEmits<(e: "change", s: string) => void>();
 
@@ -56,6 +77,7 @@ function resizeTextArea(element: HTMLElement): void {
         white-space: pre-wrap;
         word-wrap: break-word;
         background: rgb(1, 1, 1, 0);
+        border-radius: 0.25em;
     }
 }
 </style>

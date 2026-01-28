@@ -529,6 +529,7 @@ function n(e: any): number {
                                                         <ResizingTextArea
                                                             v-model="effect.name"
                                                             :disabled="!owns(actor.globalId)"
+                                                            :visible="initiativeStore.state.showInitiative"
                                                             @change="setEffectName(actor.globalId, n(e), $event)"
                                                         ></ResizingTextArea>
                                                         <input
@@ -1003,6 +1004,20 @@ function n(e: any): number {
         box-shadow: -2px 5px 6px -6px rgba(0, 0, 0, 0.75);
         scrollbar-color: #e1eae5 #82c8a0;
     }
+    > .initiative-effect-info:not(:nth-last-child(1 of .initiative-effect-info)) {
+        position: relative;
+        &::before {
+            position: absolute;
+            content: "";
+            border-bottom: solid 1px black;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            mask-image: linear-gradient(to right, transparent 0%, #000000ff 25%, #000000ff 75%, transparent 95%);
+        }
+    }
+
 }
 
 .initiative-effect-info {
@@ -1018,28 +1033,8 @@ function n(e: any): number {
         text-align: right;
         margin: 0 3px;
 
-        &:first-child {
-        }
         &:last-child {
             margin-right: 0;
-        }
-    }
-    > .grow-wrap {
-        display: flex;
-        flex-grow: 1;
-        width: 100%;
-        > textarea {
-            flex-grow: 1;
-            width: 100%;
-            min-height: 1em;
-            height: auto;
-            border: none;
-            resize: none;
-            font-family: inherit;
-            font-size: 11pt;
-            overflow: hidden;
-            white-space: pre-wrap;
-            word-wrap: break-word;
         }
     }
     > input {

@@ -1006,6 +1006,7 @@ function n(e: any): number {
     }
     > .initiative-effect-info:not(:nth-last-child(1 of .initiative-effect-info)) {
         position: relative;
+        z-index: 1;
         &::before {
             position: absolute;
             content: "";
@@ -1015,6 +1016,7 @@ function n(e: any): number {
             bottom: 0;
             left: 0;
             mask-image: linear-gradient(to right, transparent 0%, #000000ff 25%, #000000ff 75%, transparent 95%);
+            z-index: -1;
         }
     }
 

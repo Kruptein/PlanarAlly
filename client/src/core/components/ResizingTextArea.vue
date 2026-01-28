@@ -14,18 +14,9 @@ const props = withDefaults(
     },
 );
 
-watch(
-    () => props.visible,
-    async (v) => {
-        if (v) {
-            // vue-tsc and eslint disagree on this assertion
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-            await nextTick(() => resizeTextArea(textArea.value!));
-        }
-    },
-);
-
 const textArea = useTemplateRef("textarea");
+const emit = defineEmits<(e: "change", s: string) => void>();
+const text = defineModel<string>({ required: true });
 
 onMounted(async () => {
     await nextTick(() => {
@@ -34,14 +25,21 @@ onMounted(async () => {
     });
 });
 
-const emit = defineEmits<(e: "change", s: string) => void>();
-
-const text = defineModel<string>({ required: true });
-
 watch(
     () => text.value,
     async () => {
         if (props.visible) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            await nextTick(() => resizeTextArea(textArea.value!));
+        }
+    },
+);
+
+watch(
+    () => props.visible,
+    async (v) => {
+        if (v) {
+            // vue-tsc and eslint disagree on this assertion
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             await nextTick(() => resizeTextArea(textArea.value!));
         }

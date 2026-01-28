@@ -1005,21 +1005,11 @@ function n(e: any): number {
         scrollbar-color: #e1eae5 #82c8a0;
     }
     > .initiative-effect-info:not(:nth-last-child(1 of .initiative-effect-info)) {
-        position: relative;
         z-index: 1;
         &::before {
-            position: absolute;
-            content: "";
-            border-bottom: solid 1px black;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            mask-image: linear-gradient(to right, transparent 0%, #000000ff 25%, #000000ff 75%, transparent 95%);
-            z-index: -1;
+            opacity: 1;
         }
     }
-
 }
 
 .initiative-effect-info {
@@ -1028,6 +1018,21 @@ function n(e: any): number {
     justify-content: flex-end;
     align-items: center;
     padding-left: 5px;
+    position: relative;
+    z-index: 1;
+    &::before {
+        position: absolute;
+        content: "";
+        border-bottom: solid 1px rgb(0, 0, 0, 0.25);
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        mask-image: linear-gradient(to right, transparent 0%, #000000ff 15%, #000000ff 95%, transparent 100%);
+        z-index: -1;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
 
     > * {
         border: none;

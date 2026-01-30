@@ -66,14 +66,19 @@ function submitNewEffect(): void {
         <div class="second-row">
             <button class="create-effect-button" tabindex="-1" @click="emit('cancel')">{{ t("common.cancel") }}</button>
             <div class="sub-row-group">
-                <div
-                    :title="t('game.ui.initiative.infinite_toggle_hint')"
-                    class="sub-row-group"
-                    @click="infinite = !infinite"
-                >
-                    <span class="infinite-checkbox-label">{{ t("game.ui.initiative.infinite_toggle") }}</span>
-                    <div style="font-size: 9pt">
-                        <button class="infinite-checkbox" :aria-pressed="infinite" @keydown.tab.stop=""></button>
+                <div class="sub-row-group"></div>
+                <div class="sub-row-group">
+                    <div
+                        class="actor-icon-button"
+                        :title="t('game.ui.initiative.infinite_toggle_hint')"
+                        @click="infinite = !infinite"
+                    >
+                        <font-awesome-icon
+                            icon="infinity"
+                            :style="{
+                                opacity: infinite ? '1.0' : '0.3',
+                            }"
+                        />
                     </div>
                 </div>
                 <button class="create-effect-button" @keydown.tab.stop="" @click="submitNewEffect()">
@@ -100,7 +105,7 @@ function submitNewEffect(): void {
     border-bottom-right-radius: 5px;
     border: solid 2px #82c8a0;
     border-top: none;
-    max-height: 3.4em;
+    max-height: 3.5em;
     align-self: center;
 
     .first-row,
@@ -124,7 +129,16 @@ function submitNewEffect(): void {
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
     user-select: none;
+}
+
+.sub-row-group {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
 }
 
 .effect-input-box {
@@ -147,81 +161,6 @@ function submitNewEffect(): void {
     width: 0;
     flex: 1 1 0;
     margin-left: 2px;
-}
-
-.infinite-checkbox-label:hover + div > .infinite-checkbox,
-.infinite-checkbox:focus,
-.infinite-checkbox:hover {
-    cursor: pointer;
-
-    &::before {
-        box-shadow: 0 0 0.5em #333;
-    }
-
-    &::after {
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='50' fill='rgba(0,0,0,.25)'/%3E%3C/svg%3E");
-        background-size: 30%;
-        background-repeat: no-repeat;
-        background-position: center center;
-    }
-}
-
-.infinite-checkbox-label:hover {
-    cursor: pointer;
-}
-
-.infinite-checkbox {
-    display: block;
-    box-sizing: border-box;
-    border: none;
-    color: inherit;
-    background: none;
-    font: inherit;
-    line-height: inherit;
-    text-align: left;
-    padding: 0.4em 0 0.4em 4em;
-    position: relative;
-    outline: none;
-
-    &::before,
-    &::after {
-        content: "";
-        position: absolute;
-        height: 1.1em;
-        transition: all 0.25s ease;
-    }
-
-    &::before {
-        left: 0.2em;
-        top: -0.25em;
-        width: 2.6em;
-        border: 0.2em solid #767676;
-        background: #767676;
-        border-radius: 1.1em;
-    }
-
-    &::after {
-        left: 0.25em;
-        top: -0.2em;
-        background-color: #fff;
-        background-position: center center;
-        border-radius: 50%;
-        width: 1.1em;
-        border: 0.15em solid #767676;
-    }
-
-    &[aria-pressed="true"] {
-        &::after {
-            left: 1.75em;
-            border-color: #36a829;
-            color: #36a829;
-        }
-
-        &::before {
-            background-color: #36a829;
-            border-color: #36a829;
-        }
-    }
 }
 
 .create-effect-button {
@@ -262,6 +201,34 @@ function submitNewEffect(): void {
     }
     &.disabled {
         border-color: #aaa;
+        opacity: 50%;
+    }
+}
+
+.actor-icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    border-radius: 0.25rem;
+    transition: all 0.1s ease;
+    padding: 0 2px;
+    height: 1.25em;
+    svg {
+        transition: all 0.1s ease;
+    }
+    &:hover:not(.disabled) {
+        transform: scale(105%);
+        cursor: pointer;
+        background-color: rgba(104, 125, 113, 0.5);
+    }
+    &:hover.disabled {
+        cursor: auto;
+    }
+    &:active:not(.disabled) {
+        transform: scale(100%);
+    }
+    &.disabled {
         opacity: 50%;
     }
 }

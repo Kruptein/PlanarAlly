@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { type InitiativeEffect } from "../../models/initiative";
+import { type InitiativeEffect, InitiativeEffectUpdateTiming } from "../../models/initiative";
 
 const emit = defineEmits<{
     (e: "submit", effect: InitiativeEffect): void;
@@ -17,6 +17,7 @@ const defaultTurns = "10";
 const name = ref("");
 const turns = ref<string | null>(defaultTurns);
 const infinite = ref(false);
+const startOfTurn = ref(false);
 
 function validateTurns(): void {
     if (turns.value === null) {
@@ -34,7 +35,7 @@ function getTurns(): string | null {
 }
 
 function submitNewEffect(): void {
-    emit("submit", { name: name.value === "" ? defaultName : name.value, turns: getTurns(), highlightsActor: false });
+    emit("submit", { name: name.value === "" ? defaultName : name.value, turns: getTurns(), highlightsActor: false, updateTiming: startOfTurn.value ? InitiativeEffectUpdateTiming.TurnStart : InitiativeEffectUpdateTiming.TurnEnd });
 }
 </script>
 
@@ -78,6 +79,16 @@ function submitNewEffect(): void {
                             :style="{
                                 opacity: infinite ? '1.0' : '0.3',
                             }"
+                        />
+                    </div>
+                    <div
+                        class="actor-icon-button"
+                        :title="t('game.ui.initiative.start_end_turn_toggle_hint')"
+                        @click="startOfTurn = !startOfTurn"
+                    >
+                        <font-awesome-icon
+                            icon="chevron-right"
+                            :style="{ 'transform': startOfTurn ? 'scale(-1, 1)' : 'scale(1, 1)' }"
                         />
                     </div>
                 </div>
@@ -213,9 +224,10 @@ function submitNewEffect(): void {
     border-radius: 0.25rem;
     transition: all 0.1s ease;
     padding: 0 2px;
+    margin: 0 2px;
     height: 1.25em;
     svg {
-        transition: all 0.1s ease;
+        transition: all 0.2s ease;
     }
     &:hover:not(.disabled) {
         transform: scale(105%);

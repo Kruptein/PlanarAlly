@@ -1,12 +1,18 @@
+from enum import IntEnum
+
 from pydantic import BaseModel, Field
 
 from ..helpers import TypeIdModel
 
+class InitiativeEffectUpdateTiming(IntEnum):
+    TurnEnd = 0
+    TurnStart = 1
 
 class ApiInitiativeEffect(BaseModel):
     name: str
     turns: str | None
     highlightsActor: bool
+    updateTiming: InitiativeEffectUpdateTiming
 
 
 class InitiativeEffectNew(TypeIdModel):

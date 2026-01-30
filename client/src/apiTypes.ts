@@ -24,6 +24,7 @@ export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumb
 
 export type DefaultNoteFilter = "NO_FILTER" | "ACTIVE_FILTER" | "NO_LINK_FILTER";
 export type InitiativeDirection = -1 | 0 | 1;
+export type InitiativeUpdateTiming = 0 | 1;
 
 export interface ApiShapeSize {
     x: number;
@@ -322,6 +323,7 @@ export interface ApiInitiativeEffect {
   name: string;
   turns: string | null;
   highlightsActor: boolean;
+  updateTiming: InitiativeUpdateTiming;
 }
 export interface ApiLocationUserOption {
   pan_x: number;

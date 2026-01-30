@@ -20,7 +20,7 @@ import {
     sendInitiativeWipe,
 } from "../../api/emits/initiative";
 import { getGlobalId, getLocalId, getShape } from "../../id";
-import { type InitiativeData, type InitiativeEffect, InitiativeSort } from "../../models/initiative";
+import { type InitiativeData, type InitiativeEffect, InitiativeEffectUpdateTiming, InitiativeSort } from "../../models/initiative";
 import { InitiativeTurnDirection } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
 import { accessSystem } from "../../systems/access";
@@ -33,12 +33,12 @@ let activeTokensBackup: Set<LocalId> | undefined = undefined;
 
 function getDefaultEffect(): InitiativeEffect {
     const name = i18n.global.t("game.ui.initiative.new_effect");
-    return { name, turns: null, highlightsActor: false };
+    return { name, turns: null, highlightsActor: false, updateTiming: InitiativeEffectUpdateTiming.TurnEnd };
 }
 
 function getDefaultTimedEffect(): InitiativeEffect {
     const name = i18n.global.t("game.ui.initiative.new_effect");
-    return { name, turns: "10", highlightsActor: false };
+    return { name, turns: "10", highlightsActor: false, updateTiming: InitiativeEffectUpdateTiming.TurnEnd };
 }
 
 function updateActorEffects(turnDelta: number, actor: InitiativeData): void {

@@ -71,6 +71,17 @@ function submitNewEffect(): void {
                 <div class="sub-row-group">
                     <div
                         class="actor-icon-button"
+                        :title="t('game.ui.initiative.' + (startOfTurn ? 'start' : 'end') + '_turn_toggle_hint')"
+                        @click="startOfTurn = !startOfTurn"
+                    >
+                        <font-awesome-icon
+                            icon="step-forward"
+                            :style="{ 'transform': startOfTurn ? 'scale(-1, 1)' : 'scale(1, 1)' }"
+                            style="opacity: 0.6"
+                        />
+                    </div>
+                    <div
+                        class="actor-icon-button"
                         :title="t('game.ui.initiative.infinite_toggle_hint')"
                         @click="infinite = !infinite"
                     >
@@ -79,16 +90,6 @@ function submitNewEffect(): void {
                             :style="{
                                 opacity: infinite ? '1.0' : '0.3',
                             }"
-                        />
-                    </div>
-                    <div
-                        class="actor-icon-button"
-                        :title="t('game.ui.initiative.start_end_turn_toggle_hint')"
-                        @click="startOfTurn = !startOfTurn"
-                    >
-                        <font-awesome-icon
-                            icon="chevron-right"
-                            :style="{ 'transform': startOfTurn ? 'scale(-1, 1)' : 'scale(1, 1)' }"
                         />
                     </div>
                 </div>

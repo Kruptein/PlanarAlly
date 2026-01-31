@@ -6,6 +6,7 @@ from ....app import app, sio
 from ....db.db import db
 from ....db.models.initiative import Initiative
 from ....db.models.shape import Shape
+from ....logs import logger
 from ....models.access import has_ownership
 from ....state.game import game_state
 from ...helpers import _send_game

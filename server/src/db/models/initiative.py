@@ -8,8 +8,6 @@ from ...api.models.initiative import ApiInitiative
 from ..base import BaseDbModel
 from .location import Location
 
-from ...logs import logger
-
 __all__ = ["Initiative"]
 
 

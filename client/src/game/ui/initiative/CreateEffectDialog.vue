@@ -35,7 +35,12 @@ function getTurns(): string | null {
 }
 
 function submitNewEffect(): void {
-    emit("submit", { name: name.value === "" ? defaultName : name.value, turns: getTurns(), highlightsActor: false, updateTiming: startOfTurn.value ? InitiativeEffectUpdateTiming.TurnStart : InitiativeEffectUpdateTiming.TurnEnd });
+    emit("submit", {
+        name: name.value === "" ? defaultName : name.value,
+        turns: getTurns(),
+        highlightsActor: false,
+        updateTiming: startOfTurn.value ? InitiativeEffectUpdateTiming.TurnStart : InitiativeEffectUpdateTiming.TurnEnd,
+    });
 }
 </script>
 
@@ -76,7 +81,7 @@ function submitNewEffect(): void {
                     >
                         <font-awesome-icon
                             icon="step-forward"
-                            :style="{ 'transform': startOfTurn ? 'scale(-1, 1)' : 'scale(1, 1)' }"
+                            :style="{ transform: startOfTurn ? 'scale(-1, 1)' : 'scale(1, 1)' }"
                             style="opacity: 0.6"
                         />
                     </div>

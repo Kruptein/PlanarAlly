@@ -20,8 +20,8 @@ import {
     sendInitiativeWipe,
 } from "../../api/emits/initiative";
 import { getGlobalId, getLocalId, getShape } from "../../id";
-import { type InitiativeData, type InitiativeEffect, InitiativeEffectUpdateTiming, InitiativeSort } from "../../models/initiative";
-import { InitiativeTurnDirection } from "../../models/initiative";
+import { type InitiativeData, type InitiativeEffect, InitiativeSort } from "../../models/initiative";
+import { InitiativeTurnDirection, InitiativeEffectUpdateTiming } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
 import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
@@ -41,15 +41,22 @@ function getDefaultTimedEffect(): InitiativeEffect {
     return { name, turns: "10", highlightsActor: false, updateTiming: InitiativeEffectUpdateTiming.TurnEnd };
 }
 
-function updateActorEffects(turnDelta: number, actor: InitiativeData): void {
+function updateActorEffects(turnDelta: number, actor: InitiativeData, timing?: InitiativeEffectUpdateTiming): void {
     if (actor === undefined) return;
 
-    for (let e = actor.effects.length - 1; e >= 0; e--) {
-        if (actor.effects[e]!.turns === null) continue;
-        const turns = +actor.effects[e]!.turns!;
+    const effects =
+        timing !== undefined
+            ? actor.effects.map((value, index) => ({ index, value })).filter((e) => e.value.updateTiming === timing)
+            : actor.effects.map((value, index) => ({ index, value }));
+
+    for (let e = effects.length - 1; e >= 0; e--) {
+        const effect = effects[e]!.value;
+        const index = effects[e]!.index;
+        if (effect.turns === null) continue;
+        const turns = +effect.turns;
         if (isNaN(turns)) continue;
-        if (turns <= 0) actor.effects.splice(e, 1);
-        else actor.effects[e]!.turns = (turns - turnDelta).toString();
+        if (turns <= 0) actor.effects.splice(index, 1);
+        else actor.effects[index]!.turns = (turns - turnDelta).toString();
     }
 }
 
@@ -230,10 +237,21 @@ class InitiativeStore extends Store<InitiativeState> {
         if (turn < 0) turn = 0;
 
         if (options.updateEffects) {
-            const entry = direction === InitiativeTurnDirection.Forward ? this._state.turnCounter : turn;
+            let entry: number;
+            let next: number;
+            if (direction === InitiativeTurnDirection.Forward) {
+                entry = this._state.turnCounter;
+                next = turn;
+            } else {
+                entry = turn;
+                next = this._state.turnCounter;
+            }
 
             const actor = this.getDataSet()[entry];
-            if (actor !== undefined) updateActorEffects(direction, actor);
+            const nextActor = this.getDataSet()[next];
+            if (actor !== undefined) updateActorEffects(direction, actor, InitiativeEffectUpdateTiming.TurnEnd);
+            if (nextActor !== undefined)
+                updateActorEffects(direction, nextActor, InitiativeEffectUpdateTiming.TurnStart);
         }
         this._state.turnCounter = turn;
 

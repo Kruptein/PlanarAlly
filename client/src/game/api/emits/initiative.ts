@@ -5,6 +5,7 @@ import type {
     InitiativeRoundUpdate,
     InitiativeTurnUpdate,
     InitiativeEffectRename,
+    InitiativeEffectTiming,
     InitiativeEffectTurns,
     InitiativeOptionSet,
     InitiativeOrderChange,

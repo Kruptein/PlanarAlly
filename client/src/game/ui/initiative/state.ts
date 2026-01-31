@@ -371,7 +371,12 @@ class InitiativeStore extends Store<InitiativeState> {
         if (sync) sendInitiativeTurnsEffect({ shape: globalId, index, turns });
     }
 
-    setEffectUpdateTiming(globalId: GlobalId, index: number, timing: InitiativeEffectUpdateTiming, sync: boolean): void {
+    setEffectUpdateTiming(
+        globalId: GlobalId,
+        index: number,
+        timing: InitiativeEffectUpdateTiming,
+        sync: boolean,
+    ): void {
         const actor = this.getDataSet().find((i) => i.globalId === globalId);
         if (actor === undefined) return;
 

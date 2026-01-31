@@ -537,16 +537,35 @@ function n(e: any): number {
                                                         <div
                                                             class="effect-icon-button"
                                                             :class="{ disabled: !owns(actor.globalId) }"
-                                                            :title="'Updates at ' + (effect.updateTiming === InitiativeEffectUpdateTiming.TurnStart ? 'start' : 'end') + ' of turn'"
-                                                            @click="changeEffectTiming(actor.globalId, n(e), invertEffectTiming(effect.updateTiming))"
+                                                            :title="
+                                                                'Updates at ' +
+                                                                (effect.updateTiming ===
+                                                                InitiativeEffectUpdateTiming.TurnStart
+                                                                    ? 'start'
+                                                                    : 'end') +
+                                                                ' of turn'
+                                                            "
+                                                            @click="
+                                                                changeEffectTiming(
+                                                                    actor.globalId,
+                                                                    n(e),
+                                                                    invertEffectTiming(effect.updateTiming),
+                                                                )
+                                                            "
                                                         >
                                                             <font-awesome-icon
                                                                 icon="step-forward"
                                                                 :style="{
-                                                                    transform: effect.updateTiming === InitiativeEffectUpdateTiming.TurnStart ? 'scale(-1, 1)' : 'scale(1, 1)',
-                                                                    cursor: !owns(actor.globalId) ? 'default' : 'pointer'
+                                                                    transform:
+                                                                        effect.updateTiming ===
+                                                                        InitiativeEffectUpdateTiming.TurnStart
+                                                                            ? 'scale(-1, 1)'
+                                                                            : 'scale(1, 1)',
+                                                                    cursor: !owns(actor.globalId)
+                                                                        ? 'default'
+                                                                        : 'pointer',
                                                                 }"
-                                                                style="opacity: 0.6;padding:0 2px"
+                                                                style="opacity: 0.6; padding: 0 2px"
                                                             />
                                                         </div>
                                                         <input
@@ -1065,6 +1084,7 @@ function n(e: any): number {
         padding: 0 2px;
     }
     .infinite-placeholder {
+        text-align: right;
         user-select: none;
         font-size: 12pt;
     }

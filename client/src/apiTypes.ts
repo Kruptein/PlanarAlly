@@ -615,7 +615,7 @@ export interface InitiativeEffectRename {
 export interface InitiativeEffectTiming {
   shape: GlobalId;
   index: number;
-  timing: InitiativeTimingUpdate;
+  timing: InitiativeUpdateTiming;
 }
 export interface InitiativeEffectTurns {
   shape: GlobalId;

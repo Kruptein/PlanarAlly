@@ -26,6 +26,10 @@ class InitiativeEffectRename(TypeIdModel):
     index: int
     name: str
 
+class InitiativeEffectTiming(TypeIdModel):
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    index: int
+    timing: InitiativeEffectUpdateTiming
 
 class InitiativeEffectTurns(TypeIdModel):
     shape: str = Field(json_schema_extra={"typeId": "GlobalId"})

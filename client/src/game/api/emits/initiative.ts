@@ -22,6 +22,7 @@ export const sendInitiativeTurnUpdate = wrapSocket<InitiativeTurnUpdate>("Initia
 export const sendInitiativeRoundUpdate = wrapSocket<InitiativeRoundUpdate>("Initiative.Round.Update");
 export const sendInitiativeNewEffect = wrapSocket<InitiativeEffectNew>("Initiative.Effect.New");
 export const sendInitiativeRenameEffect = wrapSocket<InitiativeEffectRename>("Initiative.Effect.Rename");
+export const sendInitiativeTimingEffect = wrapSocket<InitiativeEffectTiming>("Initiative.Effect.Timing");
 export const sendInitiativeTurnsEffect = wrapSocket<InitiativeEffectTurns>("Initiative.Effect.Turns");
 export const sendInitiativeRemoveEffect = wrapSocket<InitiativeEffectRemove>("Initiative.Effect.Remove");
 export const sendInitiativeOptionSet = wrapSocket<InitiativeOptionSet>("Initiative.Option.Set");

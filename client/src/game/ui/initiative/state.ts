@@ -9,6 +9,7 @@ import {
     sendInitiativeRemoveEffect,
     sendInitiativeRenameEffect,
     sendInitiativeRoundUpdate,
+    sendInitiativeTimingEffect,
     sendInitiativeTurnsEffect,
     sendInitiativeTurnUpdate,
     sendInitiativeAdd,
@@ -368,6 +369,17 @@ class InitiativeStore extends Store<InitiativeState> {
 
         effect.turns = turns;
         if (sync) sendInitiativeTurnsEffect({ shape: globalId, index, turns });
+    }
+
+    setEffectUpdateTiming(globalId: GlobalId, index: number, timing: InitiativeEffectUpdateTiming, sync: boolean): void {
+        const actor = this.getDataSet().find((i) => i.globalId === globalId);
+        if (actor === undefined) return;
+
+        const effect = actor.effects[index];
+        if (effect === undefined) return;
+
+        effect.updateTiming = timing;
+        if (sync) sendInitiativeTimingEffect({ shape: globalId, index, timing });
     }
 
     removeEffect(globalId: GlobalId, index: number, sync: boolean): void {

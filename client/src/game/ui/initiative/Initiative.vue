@@ -18,6 +18,7 @@ import {
     type InitiativeData,
     type InitiativeEffect,
     InitiativeEffectMode,
+    InitiativeEffectUpdateTiming,
     InitiativeSort,
     InitiativeTurnDirection,
 } from "../../models/initiative";
@@ -219,6 +220,14 @@ function createEffect(shape: GlobalId, effect: InitiativeEffect): void {
 
 function removeEffect(shape: GlobalId, index: number): void {
     if (initiativeStore.owns(shape)) initiativeStore.removeEffect(shape, index, true);
+}
+
+function invertEffectTiming(timing: InitiativeEffectUpdateTiming): InitiativeEffectUpdateTiming {
+    if (timing === InitiativeEffectUpdateTiming.TurnStart) return InitiativeEffectUpdateTiming.TurnEnd;
+    return InitiativeEffectUpdateTiming.TurnStart;
+}
+function changeEffectTiming(shape: GlobalId, index: number, timing: InitiativeEffectUpdateTiming): void {
+    if (initiativeStore.owns(shape)) initiativeStore.setEffectUpdateTiming(shape, index, timing, true);
 }
 
 function toggleGroupHighlight(actor: InitiativeData, show: boolean): void {
@@ -525,10 +534,25 @@ function n(e: any): number {
                                                         :key="`${actor.globalId}-${e}`"
                                                         class="initiative-effect-info"
                                                     >
+                                                        <div
+                                                            class="effect-icon-button"
+                                                            :class="{ disabled: !owns(actor.globalId) }"
+                                                            :title="'Updates at ' + (effect.updateTiming === InitiativeEffectUpdateTiming.TurnStart ? 'start' : 'end') + ' of turn'"
+                                                            @click="changeEffectTiming(actor.globalId, n(e), invertEffectTiming(effect.updateTiming))"
+                                                        >
+                                                            <font-awesome-icon
+                                                                icon="step-forward"
+                                                                :style="{
+                                                                    transform: effect.updateTiming === InitiativeEffectUpdateTiming.TurnStart ? 'scale(-1, 1)' : 'scale(1, 1)',
+                                                                    cursor: !owns(actor.globalId) ? 'default' : 'pointer'
+                                                                }"
+                                                                style="opacity: 0.6;padding:0 2px"
+                                                            />
+                                                        </div>
                                                         <input
                                                             v-model="effect.name"
                                                             type="text"
-                                                            style="width: 100px"
+                                                            style="width: 150px"
                                                             :class="{ disabled: !owns(actor.globalId) }"
                                                             :disabled="!owns(actor.globalId)"
                                                             @change="
@@ -553,7 +577,7 @@ function n(e: any): number {
                                                         </div>
                                                         <div
                                                             v-if="owns(actor.globalId)"
-                                                            class="actor-icon-button"
+                                                            class="effect-icon-button"
                                                             style="margin-right: 4px"
                                                             :title="t('game.ui.initiative.delete_effect')"
                                                             @click="removeEffect(actor.globalId, n(e))"
@@ -948,6 +972,7 @@ function n(e: any): number {
     }
 }
 
+.effect-icon-button,
 .actor-icon-button {
     display: flex;
     align-items: center;
@@ -974,6 +999,10 @@ function n(e: any): number {
     }
 }
 
+.effect-icon-button {
+    font-size: 11pt;
+}
+
 .blurred {
     filter: blur(5px);
 }
@@ -982,8 +1011,7 @@ function n(e: any): number {
     position: relative;
     display: flex;
     flex-direction: column;
-    width: -moz-fit-content;
-    width: 11.1em;
+    width: 15em;
     margin-right: 5px;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
@@ -1013,15 +1041,10 @@ function n(e: any): number {
 .initiative-effect-info {
     display: flex;
     flex-direction: row;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
 
     > * {
-        border: none;
-        background-color: inherit;
-        text-align: right;
-        margin: 0 3px;
-
         &:first-child {
             margin-left: 0;
         }
@@ -1030,6 +1053,11 @@ function n(e: any): number {
         }
     }
     > input {
+        border: none;
+        background-color: inherit;
+        text-align: right;
+        margin: 0 3px;
+
         font-size: 11pt;
     }
     .effect-turn-counter {

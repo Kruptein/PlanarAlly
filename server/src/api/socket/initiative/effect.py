@@ -14,6 +14,7 @@ from ...models.initiative.effect import (
     InitiativeEffectNew,
     InitiativeEffectRemove,
     InitiativeEffectRename,
+    InitiativeEffectTiming,
     InitiativeEffectTurns,
 )
 from ..constants import GAME_NS
@@ -126,6 +127,40 @@ async def set_initiative_effect_tuns(sid: str, raw_data: Any):
         skip_sid=sid,
     )
 
+@sio.on("Initiative.Effect.Timing", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_initiative_effect_timing(sid: str, raw_data: Any):
+    data = InitiativeEffectTiming(**raw_data)
+
+    pr = game_state.get(sid)
+
+    shape = Shape.get_or_none(uuid=data.shape)
+
+    if shape is None:
+        logger.warning("Attempt to modify initiative effect turns for an unknown shape")
+        return
+
+    if not has_ownership(shape, pr, edit=True):
+        logger.warning(f"{pr.player.name} attempted to create a new initiative effect")
+        return
+
+    location_data = Initiative.get(location=pr.active_location)
+    with db.atomic():
+        json_data = json.loads(location_data.data)
+
+        for initiative in json_data:
+            if initiative["shape"] == data.shape:
+                initiative["effects"][data.index]["updateTiming"] = data.timing
+
+        location_data.data = json.dumps(json_data)
+        location_data.save()
+
+    await _send_game(
+        "Initiative.Effect.Timing",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+    )
 
 @sio.on("Initiative.Effect.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")

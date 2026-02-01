@@ -531,7 +531,7 @@ function n(e: any): number {
                                                             :disabled="!owns(actor.globalId)"
                                                             :visible="initiativeStore.state.showInitiative"
                                                             @change="setEffectName(actor.globalId, n(e), $event)"
-                                                        ></ResizingTextArea>
+                                                        />
                                                         <input
                                                             v-if="effect.turns !== null"
                                                             v-model="effect.turns"

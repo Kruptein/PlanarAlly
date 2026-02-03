@@ -31,7 +31,6 @@ import { GridModeLabelFormat } from "../../systems/settings/players/models";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
-import { add } from "lodash";
 
 export enum RulerFeatures {
     All,
@@ -62,8 +61,11 @@ class RulerTool extends Tool implements ITool {
 
     private currentLength = 0;
     private currentCellDistance = 0;
+    private currentLastCell: GlobalPoint | null = null;
     private previousLength = 0;
     private previousCellDistance = 0;
+    private previousLastCell: GlobalPoint | null = null;
+    private previousDiagonalEndState = false;
 
     get permittedTools(): ToolPermission[] {
         return [{ name: ToolName.Select, features: { enabled: [SelectFeatures.Context] } }];
@@ -74,7 +76,7 @@ class RulerTool extends Tool implements ITool {
         return SyncMode.NO_SYNC;
     }
 
-    private createNewRuler(start: GlobalPoint, end: GlobalPoint): void {
+    private createNewRuler(start: GlobalPoint, end: GlobalPoint, diagonalStartState: boolean = true): void {
         const ruler = new Line(
             start,
             end,
@@ -83,6 +85,7 @@ class RulerTool extends Tool implements ITool {
                 isSnappable: false,
             },
             { strokeColour: [playerSettingsState.raw.rulerColour.value] },
+            diagonalStartState,
         );
         ruler.ignoreZoomSize = true;
 
@@ -199,16 +202,22 @@ class RulerTool extends Tool implements ITool {
         const xdiff = Math.abs(end.x - start.x);
         const ydiff = Math.abs(end.y - start.y);
 
-        const usePF2ERuler = true; // CRAFTIMARK: WARN: DEBUG VALUE
         let cellDistance = cells.length;
+        let isOddDiagonal = ruler.diagonalStartState;
+        const usePF2ERuler = true; // CRAFTIMARK: WARN: DEBUG VALUE
         if (usePF2ERuler) {
-            let addedHalfsquarePreviously = true
+            if (this.previousLastCell !== null && cells.length > 0 && isDiagonal(this.previousLastCell, cells[0])) {
+                if (!isOddDiagonal) {
+                    cellDistance += 1;
+                }
+                isOddDiagonal = !isOddDiagonal;
+            }
             for (let i = 1; i < cells.length; i++) {
                 if (isDiagonal(cells[i - 1], cells[i])) {
-                    if (!addedHalfsquarePreviously) {
+                    if (!isOddDiagonal) {
                         cellDistance += 1;
                     }
-                    addedHalfsquarePreviously = !addedHalfsquarePreviously;
+                    isOddDiagonal = !isOddDiagonal;
                 }
             }
         }
@@ -225,6 +234,8 @@ class RulerTool extends Tool implements ITool {
 
         this.currentLength = unitDistance;
         this.currentCellDistance = cellDistance;
+        this.currentLastCell = cells.length > 0 ? (cells[cells.length - 1] ?? null) : null;
+        this.previousDiagonalEndState = isOddDiagonal;
         unitDistance += this.previousLength;
         cellDistance += this.previousCellDistance;
 
@@ -295,9 +306,10 @@ class RulerTool extends Tool implements ITool {
                 this.registerHighlightedCellDraw(layer);
             }
 
-            this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
+            this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint, this.previousDiagonalEndState);
             this.previousLength += this.currentLength;
             this.previousCellDistance += this.currentCellDistance;
+            this.previousLastCell = this.currentLastCell;
 
             layer.moveShapeOrder(
                 this.text!,
@@ -357,6 +369,8 @@ class RulerTool extends Tool implements ITool {
         this.rulers = [];
         this.previousLength = 0;
         this.previousCellDistance = 0;
+        this.previousLastCell = null;
+        this.previousDiagonalEndState = false;
     }
 }
 

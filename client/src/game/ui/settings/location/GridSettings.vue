@@ -71,7 +71,9 @@ const dropRatio = useLocationSettings("dropRatio", location);
             </div>
         </ResetWrapper>
         <ResetWrapper :global="global" :location="location" setting="useOriginMarker">
-            <label :for="'useOriginMarkerInput-' + location">{{ t("game.ui.settings.GridSettings.use_origin_marker") }}</label>
+            <label :for="'useOriginMarkerInput-' + location">
+                {{ t("game.ui.settings.GridSettings.use_origin_marker") }}
+            </label>
             <div>
                 <input :id="'useOriginMarkerInput-' + location" v-model="useOriginMarker" type="checkbox" />
             </div>

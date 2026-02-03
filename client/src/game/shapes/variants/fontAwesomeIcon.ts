@@ -1,4 +1,5 @@
 import { type IconLookup, findIconDefinition, icon, type IconDefinition } from "@fortawesome/fontawesome-svg-core";
+
 import type { GlobalPoint } from "../../../core/geometry";
 import type { GlobalId, LocalId } from "../../../core/id";
 import type { IAsset } from "../../interfaces/shapes/asset";
@@ -14,7 +15,10 @@ import { Asset } from "./asset";
 
 const faBlobs = new Map<string, string>();
 
-function getFaBlobUrl(iconDef: IconDefinition, displayOverrides: SvgDisplayOverrides = { fill: "white", stroke: "black", strokeWidth: "20" }): string {
+function getFaBlobUrl(
+    iconDef: IconDefinition,
+    displayOverrides: SvgDisplayOverrides = { fill: "white", stroke: "black", strokeWidth: "20" },
+): string {
     const name = `${iconDef.prefix}-${iconDef.iconName}-${displayOverrides.fill}-${displayOverrides.stroke}-${displayOverrides.strokeWidth}`;
     if (faBlobs.has(name)) return faBlobs.get(name)!;
 
@@ -24,7 +28,7 @@ function getFaBlobUrl(iconDef: IconDefinition, displayOverrides: SvgDisplayOverr
     path.setAttribute("fill", displayOverrides.fill);
     path.setAttribute("stroke", displayOverrides.stroke);
     path.setAttribute("stroke-width", displayOverrides.strokeWidth);
-    console.log(svg.outerHTML)
+    console.log(svg.outerHTML);
     const blob = new Blob([svg.outerHTML], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     console.log(url);
@@ -39,7 +43,13 @@ export class FontAwesomeIcon extends Asset implements IAsset {
         icon: IconLookup,
         topleft: GlobalPoint,
         w: number,
-        options?: { id?: LocalId; uuid?: GlobalId; isSnappable?: boolean; parentId?: LocalId; svgDisplayOverrides?: SvgDisplayOverrides },
+        options?: {
+            id?: LocalId;
+            uuid?: GlobalId;
+            isSnappable?: boolean;
+            parentId?: LocalId;
+            svgDisplayOverrides?: SvgDisplayOverrides;
+        },
     ) {
         const image = new Image();
         const iconDef = findIconDefinition(icon);

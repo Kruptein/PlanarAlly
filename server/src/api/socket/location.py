@@ -298,9 +298,9 @@ async def change_location(sid: str, raw_data: Any):
 @sio.on("Location.Options.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_location_options(sid: str, raw_data: Any):
-    print("raw_data: " + str(raw_data)) # CRAFTIDEBUG: WARN: 
+    print("raw_data: " + str(raw_data))  # CRAFTIDEBUG: WARN:
     data = LocationOptionsSet(**raw_data)
-    print("data: " + str(data)) # CRAFTIDEBUG: WARN: 
+    print("data: " + str(data))  # CRAFTIDEBUG: WARN:
 
     pr: PlayerRoom = game_state.get(sid)
 
@@ -308,29 +308,29 @@ async def set_location_options(sid: str, raw_data: Any):
         logger.warning(f"{pr.player.name} attempted to set a room option")
         return
 
-    print("data.location: " + str(data.location)) # CRAFTIDEBUG: WARN: 
+    print("data.location: " + str(data.location))  # CRAFTIDEBUG: WARN:
     if data.location is MISSING:
         options = pr.room.default_options
     else:
         loc = Location.get_by_id(data.location)
-        print("loc: " + str(loc)) # CRAFTIDEBUG: WARN: 
-        print("loc: " + str(loc.options)) # CRAFTIDEBUG: WARN: 
+        print("loc: " + str(loc))  # CRAFTIDEBUG: WARN:
+        print("loc: " + str(loc.options))  # CRAFTIDEBUG: WARN:
         if loc.options is None:
             loc.options = LocationOptions.create_empty()
             loc.save()
         options = loc.options
 
-    print("options: " + str(options)) # CRAFTIDEBUG: WARN: 
+    print("options: " + str(options))  # CRAFTIDEBUG: WARN:
     safe_update_model_from_dict(options, raw_data["options"])  # Don't use .model_dump() here
-    print("new options: " + str(options)) # CRAFTIDEBUG: WARN: 
+    print("new options: " + str(options))  # CRAFTIDEBUG: WARN:
     options.save()
-    print("saved options: " + str(options)) # CRAFTIDEBUG: WARN: 
+    print("saved options: " + str(options))  # CRAFTIDEBUG: WARN:
 
     if data.location is MISSING:
         for sid in game_state.get_sids(skip_sid=sid, room=pr.room):
             await _send_game("Location.Options.Set", raw_data, room=sid)
     else:
-        print("sending data") # CRAFTIDEBUG: WARN: 
+        print("sending data")  # CRAFTIDEBUG: WARN:
         await _send_game(
             "Location.Options.Set",
             raw_data,

@@ -23,23 +23,35 @@ const owned = accessState.hasEditAccess;
 const shape = computed(() => getShape(selectedState.reactive.focus!));
 
 const size = computed(() => {
-    if (shapeProps.value!.size === 0) {
+    if (shapeProps.value!.size.x === 0) {
         return shape.value!.getSize(locationSettingsState.reactive.gridType.value);
     }
     return shapeProps.value!.size;
 });
 
+const maxSizeDim = computed(() => Math.max(size.value.x, size.value.y));
+
 function setInferSize(event: Event): void {
-    _setSize(getChecked(event) ? 0 : size.value);
+    if (getChecked(event)) _setSize(0, 0);
+    else _setSize(size.value.x, size.value.y);
 }
 
 function setSize(event: Event): void {
-    _setSize(parseInt(getValue(event)));
+    const s = parseInt(getValue(event));
+    _setSize(s, s);
 }
 
-function _setSize(size: number): void {
+function setX(event: Event): void {
+    _setSize(parseInt(getValue(event)), size.value.y);
+}
+
+function setY(event: Event): void {
+    _setSize(size.value.x, parseInt(getValue(event)));
+}
+
+function _setSize(x: number, y: number): void {
     if (!owned.value || shape.value === undefined) return;
-    propertiesSystem.setSize(shape.value.id, size, SERVER_SYNC);
+    propertiesSystem.setSize(shape.value.id, { x, y }, SERVER_SYNC);
 }
 
 function setShowCell(event: Event): void {
@@ -85,26 +97,56 @@ function setOddHexOrientation(event: Event): void {
             <input
                 id="shapeselectiondialog-infer-size"
                 type="checkbox"
-                :checked="shapeProps.size === 0"
+                :checked="shapeProps.size.x === 0"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
                 @click="setInferSize"
             />
         </div>
-        <div class="row">
-            <label for="shapeselectiondialog-name">{{ t("game.ui.selection.edit_dialog.grid.size") }}</label>
-            <input
-                id="shapeselectiondialog-name"
-                type="number"
-                :min="1"
-                :step="1"
-                :value="size"
-                style="grid-column: 2/-1; width: 3rem; justify-self: flex-end"
-                :disabled="!owned || shapeProps.size === 0"
-                @change="setSize"
-            />
-        </div>
+        <template v-if="showHexSettings">
+            <div class="row">
+                <label for="shapeselectiondialog-size">{{ t("game.ui.selection.edit_dialog.grid.size") }}</label>
+                <input
+                    id="shapeselectiondialog-size"
+                    type="number"
+                    :min="1"
+                    :step="1"
+                    :value="maxSizeDim"
+                    style="grid-column: 2/-1; width: 3rem; justify-self: flex-end"
+                    :disabled="!owned || shapeProps.size.x === 0"
+                    @change="setSize"
+                />
+            </div>
+        </template>
+        <template v-else>
+            <div class="row">
+                <label for="shapeselectiondialog-width">{{ t("game.ui.selection.edit_dialog.grid.width") }}</label>
+                <input
+                    id="shapeselectiondialog-width"
+                    type="number"
+                    :min="1"
+                    :step="1"
+                    :value="size.x"
+                    style="grid-column: 2/-1; width: 3rem; justify-self: flex-end"
+                    :disabled="!owned || shapeProps.size.x === 0"
+                    @change="setX"
+                />
+            </div>
+            <div class="row">
+                <label for="shapeselectiondialog-height">{{ t("game.ui.selection.edit_dialog.grid.height") }}</label>
+                <input
+                    id="shapeselectiondialog-height"
+                    type="number"
+                    :min="1"
+                    :step="1"
+                    :value="size.y"
+                    style="grid-column: 2/-1; width: 3rem; justify-self: flex-end"
+                    :disabled="!owned || shapeProps.size.y === 0"
+                    @change="setY"
+                />
+            </div>
+        </template>
         <div class="row">
             <label for="shapeselectiondialog-show-cell">{{ t("game.ui.selection.edit_dialog.grid.show_cells") }}</label>
             <input

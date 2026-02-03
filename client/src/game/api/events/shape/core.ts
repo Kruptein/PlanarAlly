@@ -10,7 +10,7 @@ import type {
 import type { GlobalId } from "../../../../core/id";
 import { SyncMode } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { getLocalId, getShapeFromGlobal } from "../../../id";
+import { getLocalId, getShapeFromGlobal, getVisualShapeId, getVisualShape } from "../../../id";
 import type { ICircle } from "../../../interfaces/shapes/circle";
 import type { IRect } from "../../../interfaces/shapes/rect";
 import { loadFromServer } from "../../../shapes/transformations";
@@ -27,10 +27,12 @@ socket.on("Shape.Set", async (data: ApiShapeWithLayer) => {
     // hard reset a shape
     const uuid = apiShape.uuid;
     const old = getShapeFromGlobal(uuid);
-    const isActive = activeShapeStore.state.id === getLocalId(uuid);
+    let isActive = activeShapeStore.state.id === getLocalId(uuid);
     const hasEditDialogOpen = isActive && activeShapeStore.state.showEditDialog;
     let deps = undefined;
     if (old) {
+        const oldVisualId = getVisualShapeId(old.id);
+        isActive = activeShapeStore.state.id === oldVisualId;
         deps = old.dependentShapes;
         old.removeDependentShapes({ dropShapeId: false });
         old.layer?.removeShape(old, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
@@ -39,8 +41,10 @@ socket.on("Shape.Set", async (data: ApiShapeWithLayer) => {
     const shape = addShape(await loadFromServer(apiShape, floorId, layer), SyncMode.NO_SYNC, "load", deps);
 
     if (shape && isActive) {
-        selectedSystem.push(shape.id);
-        activeShapeStore.setActiveShape(shape);
+        let visualShape = getVisualShape(shape.id);
+        if (visualShape === undefined) visualShape = shape;
+        selectedSystem.push(visualShape.id);
+        activeShapeStore.setActiveShape(visualShape);
         if (hasEditDialogOpen) activeShapeStore.setShowEditDialog(true);
     }
 });

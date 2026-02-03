@@ -552,7 +552,7 @@ class DrawTool extends Tool implements ITool {
             let ignore = undefined;
             if (this.ruler) ignore = { shape: this.ruler };
             else if (this.shape) ignore = { shape: this.shape };
-            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, ignore);
+            [endPoint, this.snappedToPoint] = snapToPoint(layer as DeepReadonly<ILayer>, endPoint, ignore);
         } else this.snappedToPoint = false;
 
         if (this.pointer !== undefined) {
@@ -643,7 +643,7 @@ class DrawTool extends Tool implements ITool {
         let endPoint = l2g(lp);
         if (event && playerSettingsState.useSnapping(event)) {
             const ignore = this.shape !== undefined ? { shape: this.shape } : undefined;
-            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, ignore);
+            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()! as DeepReadonly<ILayer>, endPoint, ignore);
         } else this.snappedToPoint = false;
 
         // TODO: handle touch event different than altKey, long press

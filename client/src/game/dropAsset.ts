@@ -7,21 +7,22 @@ import { l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
 import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../core/grid";
 import { baseAdjust } from "../core/http";
-import { SyncMode, InvalidationMode } from "../core/models/types";
+import { SyncMode, InvalidationMode, UI_SYNC } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
 
 import { requestAssetOptions } from "./api/emits/asset";
 import { fetchFullShape, sendShapesMove } from "./api/emits/shape/core";
-import { getLocalId, getShape } from "./id";
-import { compositeState } from "./layers/state";
+import { getLocalId, getVisualShape } from "./id";
 import { moveShapes } from "./operations/movement";
 import { loadFromServer } from "./shapes/transformations";
 import { Asset } from "./shapes/variants/asset";
+import { accessSystem } from "./systems/access";
 import type { CharacterId } from "./systems/characters/models";
 import { characterState } from "./systems/characters/state";
 import { floorState } from "./systems/floors/state";
 import { noteSystem } from "./systems/notes";
+import { playerSystem } from "./systems/players";
 import { locationSettingsState } from "./systems/settings/location/state";
 import { addShape, selectionBoxFunction } from "./temp";
 import { handleDropFF } from "./ui/firefox";
@@ -66,16 +67,9 @@ async function dropHelper(
         const shapeId = getLocalId(character.shapeId, false);
 
         if (shapeId !== undefined) {
-            let shape = getShape(shapeId);
-            // bunch of fuckery to patch toggle composites
-            if (shape !== undefined) {
-                const compositeParent = compositeState.getCompositeParent(shapeId);
-                if (compositeParent !== undefined) {
-                    shape = getShape(compositeParent.activeVariant);
-                }
-            }
+            const shape = getVisualShape(shapeId);
             if (shape !== undefined && shape.options.skipDraw !== true) {
-                await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
+                await moveShapes([shape], Vector.fromPoints(shape.center, location), { temporary: false });
                 return;
             }
         }
@@ -186,6 +180,13 @@ export async function dropAsset(
                     snapDistance: Number.MAX_VALUE,
                 })[0];
             }
+
+            accessSystem.addAccess(
+                asset.id,
+                playerSystem.getCurrentPlayer()!.name,
+                { edit: true, movement: true, vision: true },
+                UI_SYNC,
+            );
 
             layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 

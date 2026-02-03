@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watchEffect } from "vue";
 
 import { toDegrees, toRadians } from "../conversions";
 
@@ -25,19 +25,16 @@ const degreeAngle = computed({
     },
     set(angle: number) {
         radianAngle.value = toRadians(angle);
-        emit("input", angle);
+        emit("input", Math.round(angle));
     },
 });
 
 const left = computed(() => Math.round(radius * Math.cos(radianAngle.value)) + radius / 2);
 const top = computed(() => Math.round(radius * Math.sin(radianAngle.value)) + radius / 2);
 
-watch(
-    () => props.angle,
-    (angle) => {
-        radianAngle.value = toRadians(angle);
-    },
-);
+watchEffect(() => {
+    radianAngle.value = toRadians(props.angle);
+});
 
 function mouseDown(): void {
     if (props.disabled) return;
@@ -46,13 +43,13 @@ function mouseDown(): void {
 
 function mouseUp(): void {
     if (active) {
-        emit("change", toDegrees(radianAngle.value));
+        emit("change", Math.round(toDegrees(radianAngle.value)));
     }
     active = false;
 }
 
 function syncDegreeAngle(): void {
-    emit("change", toDegrees(radianAngle.value));
+    emit("change", Math.round(toDegrees(radianAngle.value)));
 }
 
 function mouseMove(event: MouseEvent): void {
@@ -63,7 +60,7 @@ function mouseMove(event: MouseEvent): void {
         const mPos = { x: event.x - center.x, y: event.y - center.y };
         radianAngle.value = Math.PI / 2 - Math.atan2(radius * mPos.x, radius * mPos.y);
 
-        emit("input", toDegrees(radianAngle.value));
+        emit("input", Math.round(toDegrees(radianAngle.value)));
     }
 }
 </script>
@@ -81,7 +78,13 @@ function mouseMove(event: MouseEvent): void {
             <div class="slider" :style="{ left: `${left}px`, top: `${top}px` }"></div>
         </div>
         <div v-if="showNumberInput">
-            <input v-model.number="degreeAngle" type="number" :disabled="disabled" @change="syncDegreeAngle" />
+            <input
+                v-model.number="degreeAngle"
+                type="text"
+                inputmode="numeric"
+                :disabled="disabled"
+                @change="syncDegreeAngle"
+            />
         </div>
     </div>
 </template>
@@ -96,7 +99,7 @@ function mouseMove(event: MouseEvent): void {
         width: 75px;
     }
 
-    input[type="number"] {
+    input[type="text"] {
         width: 40px;
     }
 

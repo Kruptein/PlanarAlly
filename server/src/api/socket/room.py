@@ -64,7 +64,7 @@ async def kick_player(sid: str, player_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
-        logger.warning(f"{pr.player.name} attempted to refresh the invitation code.")
+        logger.warning(f"{pr.player.name} attempted to kick a player.")
         return
 
     target_pr = PlayerRoom.get_or_none(player=player_id, room=pr.room)
@@ -73,7 +73,7 @@ async def kick_player(sid: str, player_id: int):
 
     creator: User = pr.room.creator
 
-    if pr.player != creator and creator == target_pr.player:
+    if creator == target_pr.player:
         logger.warning(f"{target_pr.player.name} attempted to kick the campaign creator")
         return
 

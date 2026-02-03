@@ -3,6 +3,8 @@ import { dropFromSystems } from "../core/systems";
 import { uuidv4 } from "../core/utils";
 
 import type { IShape } from "./interfaces/shape";
+import type { IToggleComposite } from "./interfaces/shapes/toggleComposite";
+import { compositeState } from "./layers/state";
 
 // Array of GlobalId indexed by localId
 let uuids: GlobalId[] = [];
@@ -91,6 +93,37 @@ export function getLocalId(global: GlobalId, _warn = true): LocalId | undefined 
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).getLocalId = getLocalId;
+
+export function getBaseShapeId(local: LocalId): LocalId {
+    const parent = compositeState.getCompositeParent(local);
+    if (parent !== undefined) return parent.id;
+    return local;
+}
+
+// eslint-disable-next-line import/no-unused-modules
+export function getBaseShape(local: LocalId): IShape | undefined {
+    const parent = compositeState.getCompositeParent(local);
+    if (parent !== undefined) return parent;
+
+    return idMap.get(local);
+}
+
+export function getVisualShape(local: LocalId): IShape | undefined {
+    let shape = idMap.get(local);
+    const parent = compositeState.getCompositeParent(local);
+    if (parent !== undefined && parent.activeVariant !== local) {
+        shape = idMap.get(parent.id);
+    }
+    if (shape !== undefined && shape.type === "togglecomposite") {
+        return idMap.get((shape as IToggleComposite).activeVariant);
+    }
+    return shape;
+}
+
+export function getVisualShapeId(local: LocalId): LocalId {
+    const shape = getVisualShape(local);
+    return shape?.id ?? local;
+}
 
 export function getShape(local: LocalId): IShape | undefined {
     return idMap.get(local);

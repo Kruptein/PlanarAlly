@@ -30,7 +30,7 @@ if not config.logging:
 for log_config in config.logging:
     # Set the root log level to the lowest level among handlers
     # Otherwise it defaults to WARNING and removes lower level logs
-    if level_mapping.get(logger.level, logging.INFO) > level_mapping.get(log_config.level, logging.INFO):
+    if logger.getEffectiveLevel() > level_mapping.get(log_config.level, logging.INFO):
         logger.setLevel(log_config.level)
     match log_config.mode:
         case "stdout":

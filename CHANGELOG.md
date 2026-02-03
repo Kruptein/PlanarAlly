@@ -30,7 +30,7 @@ tech changes will usually be stripped from release notes for the public
 -   Logging:
     -   Enabling configuration of the logger via a new logging section
     -   Allows for multiple logging file streams at different levels
-    
+
 ### Changed
 
 -   Initiative
@@ -40,6 +40,7 @@ tech changes will usually be stripped from release notes for the public
         -   Allow resizing of initiative list view
         -   Replace popup modal with less intrusive verification check
         -   New UI to add effects to entries
+        -   Add group badges for shapes with badges enabled
         -   [DM] Add button to clear initiative list
         -   [DM] Add previous/next round buttons
     -   Add effects with infinite timespan
@@ -57,8 +58,15 @@ tech changes will usually be stripped from release notes for the public
     -   Tags in the note edit panel now have a "search" and "remove" action instead of always removing on click
     -   [tech] Searching/Filtering/Pagination is now done on the server
     -   [tech] tags are now stored in their own tables instead of being a json array on notes
+-   Campaign creator can no longer change their own role or kick themselves
 -   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)
 -   [tech] upgraded pydantic from 1.x to 2.x
+-   Square grids now have distinct x and y size values
+-   Keyboard movement now also snaps to the closest grid cell when snapping is relevant
+-   Variants
+    -   Players may now add variants to shapes they have edit access to
+    -   Players may now swap between variants of shapes they have edit access to
+    -   [tech] Variants' access permissions are now based on the permissions of the parent shape only
 
 ### Fixed
 
@@ -71,6 +79,17 @@ tech changes will usually be stripped from release notes for the public
 -   Cutting a rotated polygon would be wrong on refresh
 -   Resizing a rotated polygon did not correctly recalculate center, causing sudden shifts on move
 -   Note creation not going straight to edit mode in some cases
+-   Account settings text overlapping on smaller viewport widths
+-   Moving special hide/reveal shapes from the fow layer could lead to a niche bug
+-   Rotation slider not showing current value in text input on component load
+-   Shapes snapping to square grid sometimes offset from grid
+-   Shapes attempting to snap to a grid square now collide with walls
+-   DDraft files no longer being uploadable to the asset manager
+-   Moving shapes with keyboard keys while ruler was enabled on select tool would move shapes twice as far
+-   Hovering on an initiative entry that is part of a group but not marked as a group entry would highlight all group members
+-   Error log about viewports on the server
+-   Toggling initiative off vision lock interactions
+-   Initiative cog wheel not opening initiative tab in the client settings
 
 ## [2025.3]
 

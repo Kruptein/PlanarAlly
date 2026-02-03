@@ -36,6 +36,7 @@ import type { AssetId } from "../../assets/models";
 import { toGP } from "../../core/geometry";
 import { baseAdjust } from "../../core/http";
 import type { GlobalId, LocalId } from "../../core/id";
+import { SyncMode } from "../../core/models/types";
 import { getShapeSystems } from "../../core/systems";
 import type { SystemInformMode } from "../../core/systems/models";
 import { uuidv4 } from "../../core/utils";
@@ -183,12 +184,14 @@ export async function loadFromServer(serverShape: ApiShape, floor: FloorId, laye
     return await createCompactFromServerData(serverShape, id, floor, layer);
 }
 
-export function createOnServer(compact: CompactForm, asTemplate: boolean): void {
+export function createOnServer(compact: CompactForm, sync: SyncMode): void {
+    if (sync === SyncMode.NO_SYNC) return;
+
     const uuid = getGlobalId(compact.id);
     if (uuid === undefined) throw new Error("Global ID not found");
     const shape = createServerDataFromCompact(compact);
     let data: ApiShapeAdd;
-    if (asTemplate) {
+    if (sync === SyncMode.TEMPLATE_SYNC) {
         data = {
             shape,
             template: true,
@@ -201,7 +204,7 @@ export function createOnServer(compact: CompactForm, asTemplate: boolean): void 
             shape,
             floor,
             layer: compact.layer,
-            temporary: false,
+            temporary: sync === SyncMode.TEMP_SYNC,
         };
     }
 
@@ -372,7 +375,8 @@ function createServerDataFromCompact(compact: CompactForm): ApiShape {
         notes: [],
         auras: [],
         odd_hex_orientation: false,
-        size: 0,
+        size_x: 0,
+        size_y: 0,
         show_cells: false,
         cell_fill_colour: null,
         cell_stroke_colour: null,

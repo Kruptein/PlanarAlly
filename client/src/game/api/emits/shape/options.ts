@@ -3,6 +3,7 @@ import type {
     ShapeSetIntegerValue,
     ShapeSetOptionalStringValue,
     ShapeSetStringValue,
+    ShapeSetSizeValue,
 } from "../../../../apiTypes";
 import { wrapSocket } from "../../socket";
 
@@ -22,7 +23,7 @@ export const sendShapeSkipDraw = wrapSocket<ShapeSetBooleanValue>("Shape.Options
 export const sendShapeSvgAsset = wrapSocket<ShapeSetOptionalStringValue>("Shape.Options.SvgAsset.Set");
 
 // grid related
-export const sendShapeSetSize = wrapSocket<ShapeSetIntegerValue>("Shape.Options.Size.Set");
+export const sendShapeSetSize = wrapSocket<ShapeSetSizeValue>("Shape.Options.Size.Set");
 export const sendShapeSetShowCells = wrapSocket<ShapeSetBooleanValue>("Shape.Options.ShowCells.Set");
 export const sendShapeSetCellFillColour = wrapSocket<ShapeSetStringValue>("Shape.Options.CellFillColour.Set");
 export const sendShapeSetCellStrokeColour = wrapSocket<ShapeSetStringValue>("Shape.Options.CellStrokeColour.Set");

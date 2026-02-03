@@ -1,5 +1,6 @@
 from typing import Set
 
+from ..logs import logger
 from ..api.models.client import Viewport
 from ..api.socket.constants import GAME_NS
 from ..app import app, sio
@@ -39,7 +40,11 @@ class GameState(State[PlayerRoom]):
         self.client_temporaries[sid].add(uid)
 
     def remove_temp(self, sid: str, uid: str) -> None:
-        self.client_temporaries[sid].remove(uid)
+        try:
+            self.client_temporaries[sid].remove(uid)
+        except KeyError:
+            logger.warning(f"Attempt to remove unknown temporary shape {uid} from client {sid}")
+            return
 
 
 game_state = GameState()

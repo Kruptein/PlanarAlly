@@ -35,7 +35,10 @@ const visible = computed({
 const owned = accessState.hasEditAccess;
 
 watchEffect(() => {
-    const id = selectedState.reactive.focus;
+    let id = selectedState.reactive.focus;
+    if (activeShapeStore.isComposite.value) {
+        id = activeShapeStore.state.parentUuid;
+    }
     if (id !== undefined) {
         accessSystem.loadState(id);
     } else {

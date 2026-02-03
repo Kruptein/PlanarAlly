@@ -35,13 +35,13 @@ class ApiPolygonShape(ApiCoreShape):
 
 class ApiTextShape(ApiCoreShape):
     text: str
-    font_size: int
+    font_size: float
 
 
 class ApiLineShape(ApiCoreShape):
     x2: float
     y2: float
-    line_width: int
+    line_width: float
 
 
 class ToggleVariant(TypeIdModel):

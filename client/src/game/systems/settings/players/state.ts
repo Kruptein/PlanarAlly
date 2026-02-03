@@ -72,7 +72,7 @@ export const playerSettingsState = {
             return state.reactive.gridSize.value;
         }
     }),
-    useSnapping(event: MouseEvent | TouchEvent): boolean {
+    useSnapping(event: MouseEvent | TouchEvent | KeyboardEvent): boolean {
         return state.raw.invertAlt.value === event.altKey;
     },
 };

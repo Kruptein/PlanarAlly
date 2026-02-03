@@ -29,7 +29,7 @@ const DEFAULT_PROPERTIES: () => ShapeProperties = () => ({
     blocksMovement: false,
     blocksVision: VisionBlock.No,
     showBadge: false,
-    size: 0,
+    size: { x: 0, y: 0 },
     showCells: false,
     cellFillColour: "rgba(225, 0, 0, 0.2)",
     cellStrokeColour: "rgba(225, 0, 0, 0.8)",

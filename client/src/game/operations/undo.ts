@@ -92,7 +92,7 @@ async function handleMovement(shapes: ShapeMovementOperation[], direction: "undo
     const fullShapes = shapes.map((s) => getShape(s.uuid)!);
     let delta = Vector.fromPoints(toGP(shapes[0]!.to), toGP(shapes[0]!.from));
     if (direction === "redo") delta = delta.reverse();
-    await moveShapes(fullShapes, delta, false);
+    await moveShapes(fullShapes, delta, { temporary: false });
     (toolMap[ToolName.Select] as ISelectTool).resetRotationHelper();
 }
 

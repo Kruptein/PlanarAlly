@@ -286,7 +286,7 @@ async def change_location(sid: str, raw_data: Any):
             # loading times might vary and we don't want to snap people back when they already move around
             # And it's possible that there are already users on the new location
             # that don't want to be moved to this new position
-            if data.position:
+            if data.position is not MISSING:
                 await sio.emit(
                     "Position.Set",
                     data=data.position,

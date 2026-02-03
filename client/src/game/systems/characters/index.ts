@@ -5,9 +5,8 @@ import type { GlobalId, LocalId } from "../../../core/id";
 import { find } from "../../../core/iter";
 import { registerSystem } from "../../../core/systems";
 import type { System, SystemClearReason } from "../../../core/systems/models";
-import { getGlobalId, getLocalId, getShape } from "../../id";
+import { getGlobalId, getLocalId, getVisualShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import type { IToggleComposite } from "../../interfaces/shapes/toggleComposite";
 import { selectedState } from "../selected/state";
 
 import type { CharacterId } from "./models";
@@ -64,12 +63,7 @@ class CharacterSystem implements System {
         if (shapeId) {
             const localId = getLocalId(shapeId, false);
             if (localId) {
-                const shape = getShape(localId);
-                if (shape === undefined) return undefined;
-                if (shape.type === "togglecomposite") {
-                    return getShape((shape as IToggleComposite).activeVariant);
-                }
-                return shape;
+                return getVisualShape(localId);
             }
         }
     }

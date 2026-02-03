@@ -6,7 +6,6 @@ import { useRoute, useRouter } from "vue-router";
 import InputCopyElement from "../../../../core/components/InputCopyElement.vue";
 import { baseAdjust } from "../../../../core/http";
 import { useModal } from "../../../../core/plugins/modals/plugin";
-import { coreStore } from "../../../../store/core";
 import { sendDeleteRoom, sendRefreshInviteCode } from "../../../api/emits/room";
 import { getRoles } from "../../../models/role";
 import { gameSystem } from "../../../systems/game";
@@ -36,7 +35,6 @@ const invitationUrl = computed(
 );
 
 const creator = computed(() => route.params.creator);
-const username = toRef(coreStore.state, "username");
 
 function refreshInviteCode(): void {
     sendRefreshInviteCode();
@@ -86,10 +84,7 @@ const toggleLock = (): void => gameSystem.setIsLocked(!gameState.raw.isLocked, t
         <div v-for="player of players.values()" :key="player.id" class="row smallrow">
             <div>{{ player.name }}</div>
             <div class="player-actions">
-                <select
-                    :disabled="username !== creator && player.name === creator"
-                    @change="changePlayerRole($event, player.id)"
-                >
+                <select :disabled="player.name === creator" @change="changePlayerRole($event, player.id)">
                     <option
                         v-for="[i, role] of roles.entries()"
                         :key="'role-' + i + '-' + player.id"
@@ -106,10 +101,7 @@ const toggleLock = (): void => gameSystem.setIsLocked(!gameState.raw.isLocked, t
                 >
                     <font-awesome-icon icon="eye" />
                 </div>
-                <div
-                    :style="{ opacity: username !== creator && player.name === creator ? 0.3 : 1.0 }"
-                    @click="kickPlayer(player.id)"
-                >
+                <div :style="{ opacity: player.name === creator ? 0.3 : 1.0 }" @click="kickPlayer(player.id)">
                     {{ t("game.ui.settings.dm.AdminSettings.kick") }}
                 </div>
             </div>

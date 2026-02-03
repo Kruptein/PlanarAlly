@@ -10,7 +10,7 @@ import { callbackProvider } from "../../../core/utils";
 import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
 import { sendRemoveShapes, sendShapeOrder } from "../../api/emits/shape/core";
-import { dropId, getGlobalId, getShape } from "../../id";
+import { dropId, getGlobalId, getVisualShape } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
@@ -191,6 +191,10 @@ export class Layer implements ILayer {
         }
     }
 
+    // Utility functions to do cleanup in case of layer move
+    enterLayer(_shape: IShape): void {}
+    exitLayer(_shape: IShape): void {}
+
     addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode): void {
         shape.setLayer(this.floor, this.name);
 
@@ -210,7 +214,7 @@ export class Layer implements ILayer {
         let compact;
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync) {
             compact = fromSystemForm(shape.id);
-            createOnServer(compact, sync === SyncMode.TEMPLATE_SYNC);
+            createOnServer(compact, sync);
         }
         if (invalidate !== InvalidationMode.NO) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
 
@@ -451,7 +455,7 @@ export class Layer implements ILayer {
                     const bboxCenter = bbox.center;
                     for (const token of accessState.activeTokens.value.get("vision") ?? []) {
                         let found = false;
-                        const shape = getShape(token);
+                        const shape = getVisualShape(token);
                         if (shape !== undefined && shape.floorId === this.floor && shape.type === "assetrect") {
                             if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: false })) {
                                 const ray = Ray.fromPoints(shape.center, bboxCenter);

@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 112
+SAVE_VERSION = 114
 
 import asyncio
 import json
@@ -665,8 +665,35 @@ def upgrade(
                 "CREATE VIEW shape_room_view AS SELECT shape.uuid as shape_id, room.id as room_id, location.id as location_id FROM shape LEFT JOIN layer ON shape.layer_id = layer.id LEFT JOIN floor ON layer.floor_id = floor.id LEFT JOIN location ON floor.location_id = location.id LEFT JOIN room ON location.room_id = room.id"
             )
     elif version == 111:
+        # Remove Shape.size and add Shape.size_x, Shape.size_y
         with db.atomic():
-            # Add use_origin_marker column to location options
+            db.execute_sql("CREATE TEMPORARY TABLE _shape_111 AS SELECT * FROM shape")
+            db.execute_sql("DROP TABLE shape")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL DEFAULT 0, "fill_colour" TEXT NOT NULL DEFAULT "#000", "stroke_colour" TEXT NOT NULL DEFAULT "#fff", "vision_obstruction" INTEGER NOT NULL DEFAULT 0, "movement_obstruction" INTEGER NOT NULL DEFAULT 0, "draw_operator" TEXT NOT NULL DEFAULT "source-over", "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL DEFAULT 1, "show_badge" INTEGER NOT NULL DEFAULT 0, "default_edit_access" INTEGER NOT NULL DEFAULT 0, "default_vision_access" INTEGER NOT NULL DEFAULT 0, "is_invisible" INTEGER NOT NULL DEFAULT 0, "is_defeated" INTEGER NOT NULL DEFAULT 0, "default_movement_access" INTEGER NOT NULL DEFAULT 0, "is_locked" INTEGER NOT NULL DEFAULT 0, "angle" REAL NOT NULL DEFAULT 0, "stroke_width" INTEGER NOT NULL DEFAULT 2, "asset_id" INTEGER DEFAULT NULL, "group_id" TEXT DEFAULT NULL, "ignore_zoom_size" INTEGER DEFAULT 0, "is_door" INTEGER DEFAULT 0 NOT NULL, "is_teleport_zone" INTEGER DEFAULT 0 NOT NULL, "character_id" INTEGER DEFAULT NULL, odd_hex_orientation INTEGER DEFAULT 0, size_x INTEGER DEFAULT 0, size_y INTEGER DEFAULT 0, show_cells INTEGER NOT NULL DEFAULT 0, cell_fill_colour TEXT DEFAULT NULL, cell_stroke_colour TEXT DEFAULT NULL, cell_stroke_width INTEGER DEFAULT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE SET NULL, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid") ON DELETE SET NULL, FOREIGN KEY ("character_id") REFERENCES "character" ("id") ON DELETE SET NULL)'
+            )
+            db.execute_sql("CREATE INDEX 'shape_layer_id' ON 'shape' ('layer_id')")
+            db.execute_sql("CREATE INDEX 'shape_asset_id' ON 'shape' ('asset_id')")
+            db.execute_sql("CREATE INDEX 'shape_group_id' ON 'shape' ('group_id')")
+            db.execute_sql("CREATE INDEX 'shape_character_id' ON 'shape' ('character_id')")
+            db.execute_sql(
+                'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size_x", "size_y", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size", "size", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width" FROM _shape_111'
+            )
+            db.execute_sql("DROP TABLE _shape_111")
+    elif version == 112:
+        # Change text font size from int to float
+        with db.atomic():
+            db.execute_sql("CREATE TEMPORARY TABLE _text_112 AS SELECT * FROM text")
+            db.execute_sql("DROP TABLE text")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "text" ("shape_id" TEXT NOT NULL PRIMARY KEY, "text" TEXT NOT NULL, "font_size" REAL NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'INSERT INTO "text" ("shape_id", "text", "font_size") SELECT "shape_id", "text", "font_size" FROM _text_112'
+            )
+    elif version == 113:
+        # Add use_origin_marker column to location options
+        with db.atomic():
             db.execute_sql("ALTER TABLE location_options ADD COLUMN use_origin_marker INTEGER DEFAULT 0")
             db.execute_sql(
                 "UPDATE location_options SET use_origin_marker = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"

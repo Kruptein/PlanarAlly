@@ -14,9 +14,10 @@ import {
 import type { GlobalId, LocalId } from "../../core/id";
 import { rotateAroundPoint } from "../../core/math";
 import { mostReadable } from "../../core/utils";
+import { calculateDelta } from "../drag";
 import { generateLocalId, dropId } from "../id";
 import type { ILayer } from "../interfaces/layer";
-import type { IShape } from "../interfaces/shape";
+import type { IShape, ShapeSize } from "../interfaces/shape";
 import { LayerName } from "../models/floor";
 import type { Floor, FloorId } from "../models/floor";
 import type { ShapeOptions } from "../models/shapes";
@@ -144,7 +145,9 @@ export abstract class Shape implements IShape {
         this.isSnappable = options?.isSnappable ?? true;
         this._parentId = options?.parentId;
 
-        if (properties !== undefined) propertiesSystem.import(this.id, properties, "load");
+        // properties system is the only system that requires knowledge about all shapes
+        // (it basically does not properly handle interactions with shapes it doesn't know about)
+        propertiesSystem.import(this.id, properties ?? {}, "load");
     }
 
     abstract __center(): GlobalPoint;
@@ -275,8 +278,12 @@ export abstract class Shape implements IShape {
         for (const { shape } of this._dependentShapes) {
             shape.setLayer(floor, layer);
         }
+        if (this.floorId !== undefined && this.layerName !== undefined) {
+            this.layer?.exitLayer(this);
+        }
         this.floorId = floor;
         this.layerName = layer;
+        this.layer?.enterLayer(this);
     }
 
     getPositionRepresentation(): { angle: number; points: [number, number][] } {
@@ -335,23 +342,30 @@ export abstract class Shape implements IShape {
         return subtractP(point, mid).normalize();
     }
 
-    getSize(gridType: GridType): number {
+    getSize(gridType: GridType): ShapeSize {
         const props = getProperties(this.id)!;
-        if (props.size !== 0) return props.size;
+        if (props.size.x !== 0) return props.size;
 
         const bbox = this.getAABB();
-        const s = Math.max(getCellCountFromWidth(bbox.w, gridType), getCellCountFromHeight(bbox.h, gridType));
+        const x = getCellCountFromWidth(bbox.w, gridType);
+        const y = getCellCountFromHeight(bbox.h, gridType);
         const cutoff = gridType === GridType.Square ? 0.25 : 0.125;
         const customRound = (n: number): number => (n % 1 >= cutoff ? Math.ceil(n) : Math.floor(n));
-        return Math.max(1, customRound(s));
+        return { x: Math.max(1, customRound(x)), y: Math.max(1, customRound(y)) };
     }
 
     snapToGrid(): void {
         const props = getProperties(this.id)!;
         const gridType = locationSettingsState.raw.gridType.value;
         const size = this.getSize(gridType);
-
-        this.center = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
+        const newCenter = snapShapeToGrid(this.center, gridType, size, props.oddHexOrientation);
+        if (this.layerName === LayerName.Tokens) {
+            const snapDelta = subtractP(newCenter, this.center);
+            const cappedDelta = calculateDelta(snapDelta, this, true);
+            this.center = addP(this.center, cappedDelta);
+        } else {
+            this.center = newCenter;
+        }
 
         this.invalidate(false);
     }

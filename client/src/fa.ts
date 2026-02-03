@@ -34,7 +34,6 @@ import {
     faCog,
     faCogs,
     faCommentDots,
-    faLocationDot,
     faCut,
     faDiceSix,
     faDoorClosed,

@@ -9,10 +9,11 @@ import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
 import type { SvgDisplayOverrides } from "../../shapes/variants/fontAwesomeIcon";
 
 import { Layer } from "./layer";
+import { gameState } from "../../systems/game/state";
 
 export class GridLayer extends Layer implements IGridLayer {
     displayOverrides: SvgDisplayOverrides = { fill: "rgba(255,0,0,0.4)", stroke: "black", strokeWidth: "10" };
-    originIcon: FontAwesomeIcon = new FontAwesomeIcon({ prefix: "fas", iconName: "location-dot" }, toGP(0,0), 40, { svgDisplayOverrides: this.displayOverrides })
+    originIcon: FontAwesomeIcon = new FontAwesomeIcon({ prefix: "fas", iconName: "location-dot" }, toGP(0, 0), 40, { svgDisplayOverrides: this.displayOverrides })
     originIconSize = { width: 30, height: 40 };
 
     invalidate(): void {
@@ -27,12 +28,11 @@ export class GridLayer extends Layer implements IGridLayer {
     draw(_doClear?: boolean): void {
         if (!this.valid) {
             this.clear();
-            const showOrigin = true; // CRAFTIMARK: WARN: Debug value;
-            if (showOrigin) {
+            if (locationSettingsState.raw.useOriginMarker.value && gameState.raw.isDm) {
                 const ctx = this.ctx;
                 const state = positionState.readonly;
                 console.log(state.zoom)
-                this.originIcon.draw(ctx, false, { center: toGP(0,-20/state.zoom), width: this.originIconSize.width, height: this.originIconSize.height });
+                this.originIcon.draw(ctx, false, { center: toGP(0, -20 / state.zoom), width: this.originIconSize.width, height: this.originIconSize.height });
             }
             if (locationSettingsState.raw.useGrid.value) {
                 const activeFowFloor = floorState.currentFloor.value!.id;

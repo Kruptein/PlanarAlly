@@ -99,8 +99,6 @@ class LocationSettingsSystem implements System {
 
         for (const floor of floorState.raw.floors) {
             const gridLayer = floorSystem.getGridLayer(floor)!;
-            if ($.useGrid.value) gridLayer.canvas.style.display = "block";
-            else gridLayer.canvas.style.display = "none";
             gridLayer.invalidate();
         }
 

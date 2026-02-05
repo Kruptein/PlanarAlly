@@ -5,6 +5,7 @@ import { type DraggableEvent, VueDraggable } from "vue-draggable-plus";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../../core/components/modals/Modal.vue";
+import ResizingTextArea from "../../../core/components/ResizingTextArea.vue";
 import RollingCounter from "../../../core/components/RollingCounter.vue";
 import { baseAdjust } from "../../../core/http";
 import type { GlobalId } from "../../../core/id";
@@ -525,16 +526,11 @@ function n(e: any): number {
                                                         :key="`${actor.globalId}-${e}`"
                                                         class="initiative-effect-info"
                                                     >
-                                                        <input
+                                                        <ResizingTextArea
                                                             v-model="effect.name"
-                                                            type="text"
-                                                            style="width: 100px"
-                                                            :class="{ disabled: !owns(actor.globalId) }"
                                                             :disabled="!owns(actor.globalId)"
-                                                            @change="
-                                                                setEffectName(actor.globalId, n(e), getValue($event))
-                                                            "
-                                                            @keyup.enter="getTarget($event).blur()"
+                                                            :visible="initiativeStore.state.showInitiative"
+                                                            @change="setEffectName(actor.globalId, n(e), $event)"
                                                         />
                                                         <input
                                                             v-if="effect.turns !== null"
@@ -983,7 +979,7 @@ function n(e: any): number {
     display: flex;
     flex-direction: column;
     width: -moz-fit-content;
-    width: 11.1em;
+    width: 15em;
     margin-right: 5px;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
@@ -1008,6 +1004,12 @@ function n(e: any): number {
         box-shadow: -2px 5px 6px -6px rgba(0, 0, 0, 0.75);
         scrollbar-color: #e1eae5 #82c8a0;
     }
+    > .initiative-effect-info:not(:nth-last-child(1 of .initiative-effect-info)) {
+        z-index: 1;
+        &::before {
+            opacity: 1;
+        }
+    }
 }
 
 .initiative-effect-info {
@@ -1015,6 +1017,22 @@ function n(e: any): number {
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
+    padding-left: 5px;
+    position: relative;
+    z-index: 1;
+    &::before {
+        position: absolute;
+        content: "";
+        border-bottom: solid 1px rgb(0, 0, 0, 0.25);
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        mask-image: linear-gradient(to right, transparent 0%, #000000ff 15%, #000000ff 95%, transparent 100%);
+        z-index: -1;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
 
     > * {
         border: none;
@@ -1022,9 +1040,6 @@ function n(e: any): number {
         text-align: right;
         margin: 0 3px;
 
-        &:first-child {
-            margin-left: 0;
-        }
         &:last-child {
             margin-right: 0;
         }

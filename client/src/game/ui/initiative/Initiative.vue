@@ -540,12 +540,14 @@ function n(e: any): number {
                                                             class="effect-icon-button"
                                                             :class="{ disabled: !owns(actor.globalId) }"
                                                             :title="
-                                                                'Updates at ' +
-                                                                (effect.updateTiming ===
-                                                                InitiativeEffectUpdateTiming.TurnStart
-                                                                    ? 'start'
-                                                                    : 'end') +
-                                                                ' of turn'
+                                                                t(
+                                                                    'game.ui.initiative.' +
+                                                                        (effect.updateTiming ===
+                                                                        InitiativeEffectUpdateTiming.TurnStart
+                                                                            ? 'start'
+                                                                            : 'end') +
+                                                                        '_turn_toggle_hint',
+                                                                )
                                                             "
                                                             @click="
                                                                 changeEffectTiming(

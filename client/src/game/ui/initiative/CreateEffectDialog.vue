@@ -75,7 +75,7 @@ function submitNewEffect(): void {
                 <div class="sub-row-group"></div>
                 <div class="sub-row-group">
                     <div
-                        class="actor-icon-button"
+                        class="icon-button"
                         :title="t('game.ui.initiative.' + (startOfTurn ? 'start' : 'end') + '_turn_toggle_hint')"
                         @click="startOfTurn = !startOfTurn"
                     >
@@ -86,7 +86,7 @@ function submitNewEffect(): void {
                         />
                     </div>
                     <div
-                        class="actor-icon-button"
+                        class="icon-button"
                         :title="t('game.ui.initiative.infinite_toggle_hint')"
                         @click="infinite = !infinite"
                     >
@@ -222,7 +222,7 @@ function submitNewEffect(): void {
     }
 }
 
-.actor-icon-button {
+.icon-button {
     display: flex;
     align-items: center;
     justify-content: center;

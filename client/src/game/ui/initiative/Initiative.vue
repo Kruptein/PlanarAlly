@@ -5,6 +5,7 @@ import { type DraggableEvent, VueDraggable } from "vue-draggable-plus";
 import { useI18n } from "vue-i18n";
 
 import Modal from "../../../core/components/modals/Modal.vue";
+import ResizingTextArea from "../../../core/components/ResizingTextArea.vue";
 import RollingCounter from "../../../core/components/RollingCounter.vue";
 import { baseAdjust } from "../../../core/http";
 import type { GlobalId } from "../../../core/id";
@@ -226,6 +227,7 @@ function invertEffectTiming(timing: InitiativeEffectUpdateTiming): InitiativeEff
     if (timing === InitiativeEffectUpdateTiming.TurnStart) return InitiativeEffectUpdateTiming.TurnEnd;
     return InitiativeEffectUpdateTiming.TurnStart;
 }
+
 function changeEffectTiming(shape: GlobalId, index: number, timing: InitiativeEffectUpdateTiming): void {
     if (initiativeStore.owns(shape)) initiativeStore.setEffectUpdateTiming(shape, index, timing, true);
 }
@@ -565,19 +567,14 @@ function n(e: any): number {
                                                                         ? 'default'
                                                                         : 'pointer',
                                                                 }"
-                                                                style="opacity: 0.6; padding: 0 2px"
+                                                                style="opacity: 0.6"
                                                             />
                                                         </div>
-                                                        <input
+                                                        <ResizingTextArea
                                                             v-model="effect.name"
-                                                            type="text"
-                                                            style="width: 150px"
-                                                            :class="{ disabled: !owns(actor.globalId) }"
                                                             :disabled="!owns(actor.globalId)"
-                                                            @change="
-                                                                setEffectName(actor.globalId, n(e), getValue($event))
-                                                            "
-                                                            @keyup.enter="getTarget($event).blur()"
+                                                            :visible="initiativeStore.state.showInitiative"
+                                                            @change="setEffectName(actor.globalId, n(e), $event)"
                                                         />
                                                         <input
                                                             v-if="effect.turns !== null"
@@ -597,7 +594,6 @@ function n(e: any): number {
                                                         <div
                                                             v-if="owns(actor.globalId)"
                                                             class="effect-icon-button"
-                                                            style="margin-right: 4px"
                                                             :title="t('game.ui.initiative.delete_effect')"
                                                             @click="removeEffect(actor.globalId, n(e))"
                                                         >
@@ -1019,6 +1015,7 @@ function n(e: any): number {
 }
 
 .effect-icon-button {
+    padding: 2px 0;
     font-size: 11pt;
 }
 
@@ -1055,6 +1052,12 @@ function n(e: any): number {
         box-shadow: -2px 5px 6px -6px rgba(0, 0, 0, 0.75);
         scrollbar-color: #e1eae5 #82c8a0;
     }
+    > .initiative-effect-info:not(:nth-last-child(1 of .initiative-effect-info)) {
+        z-index: 1;
+        &::before {
+            opacity: 1;
+        }
+    }
 }
 
 .initiative-effect-info {
@@ -1062,13 +1065,29 @@ function n(e: any): number {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+    z-index: 1;
+    &::before {
+        position: absolute;
+        content: "";
+        border-bottom: solid 1px rgb(0, 0, 0, 0.25);
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        mask-image: linear-gradient(to right, transparent 0%, #000000ff 15%, #000000ff 95%, transparent 100%);
+        z-index: -1;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
 
     > * {
+        margin: 0 3px;
         &:first-child {
-            margin-left: 0;
+            margin-left: 2px;
         }
         &:last-child {
-            margin-right: 0;
+            margin-right: 2px;
         }
     }
     > input {
@@ -1080,7 +1099,8 @@ function n(e: any): number {
         font-size: 11pt;
     }
     .effect-turn-counter {
-        width: 25px;
+        min-width: 25px;
+        max-width: 25px;
         padding: 0 2px;
     }
     .infinite-placeholder {

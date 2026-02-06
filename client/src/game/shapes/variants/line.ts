@@ -17,7 +17,6 @@ export class Line extends Shape implements IShape {
     type: SHAPE_TYPE = "line";
     private _endPoint: GlobalPoint;
     lineWidth: number;
-    diagonalStartState: boolean;
     constructor(
         startPoint: GlobalPoint,
         endPoint: GlobalPoint,
@@ -28,14 +27,12 @@ export class Line extends Shape implements IShape {
             isSnappable?: boolean;
         },
         properties?: Partial<ShapeProperties>,
-        diagonalStartState?: boolean, // Used by ruler tool
 
     ) {
         super(startPoint, options, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["#000"], ...properties });
         this._endPoint = endPoint;
         this._center = this.__center();
         this.lineWidth = options?.lineWidth ?? 1;
-        this.diagonalStartState = diagonalStartState ?? true;
     }
 
     get endPoint(): GlobalPoint {

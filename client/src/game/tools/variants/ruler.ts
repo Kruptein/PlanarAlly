@@ -60,12 +60,15 @@ class RulerTool extends Tool implements ITool {
     private text: Text | undefined = undefined;
 
     private currentLength = 0;
+    private currentBonusLength = 0;
     private currentCellDistance = 0;
     private currentLastCell: GlobalPoint | null = null;
+    private currentDiagonalEndState = true;
     private previousLength = 0;
+    private previousBonusLength = 0;
     private previousCellDistance = 0;
     private previousLastCell: GlobalPoint | null = null;
-    private previousDiagonalEndState = false;
+    private previousDiagonalEndState = true;
 
     get permittedTools(): ToolPermission[] {
         return [{ name: ToolName.Select, features: { enabled: [SelectFeatures.Context] } }];
@@ -76,7 +79,7 @@ class RulerTool extends Tool implements ITool {
         return SyncMode.NO_SYNC;
     }
 
-    private createNewRuler(start: GlobalPoint, end: GlobalPoint, diagonalStartState: boolean = true): void {
+    private createNewRuler(start: GlobalPoint, end: GlobalPoint): void {
         const ruler = new Line(
             start,
             end,
@@ -85,7 +88,6 @@ class RulerTool extends Tool implements ITool {
                 isSnappable: false,
             },
             { strokeColour: [playerSettingsState.raw.rulerColour.value] },
-            diagonalStartState,
         );
         ruler.ignoreZoomSize = true;
 
@@ -203,19 +205,20 @@ class RulerTool extends Tool implements ITool {
         const ydiff = Math.abs(end.y - start.y);
 
         let cellDistance = cells.length;
-        let isOddDiagonal = ruler.diagonalStartState;
+        let bonusCells = 0;
+        let isOddDiagonal = this.previousDiagonalEndState;
         const usePF2ERuler = true; // CRAFTIMARK: WARN: DEBUG VALUE
         if (usePF2ERuler) {
             if (this.previousLastCell !== null && cells.length > 0 && isDiagonal(this.previousLastCell, cells[0])) {
                 if (!isOddDiagonal) {
-                    cellDistance += 1;
+                    bonusCells += 1;
                 }
                 isOddDiagonal = !isOddDiagonal;
             }
             for (let i = 1; i < cells.length; i++) {
                 if (isDiagonal(cells[i - 1], cells[i])) {
                     if (!isOddDiagonal) {
-                        cellDistance += 1;
+                        bonusCells += 1;
                     }
                     isOddDiagonal = !isOddDiagonal;
                 }
@@ -229,13 +232,15 @@ class RulerTool extends Tool implements ITool {
             if (!this.previousCellDistance) {
                 cellDistance = Math.max(cellDistance - 1, 0);
             }
-            unitDistance = cellDistance * locationSettingsState.raw.unitSize.value;
+            unitDistance = cellDistance * locationSettingsState.raw.unitSize.value
+                + bonusCells * locationSettingsState.raw.unitSize.value;
         }
 
         this.currentLength = unitDistance;
+        this.currentBonusLength = bonusCells * locationSettingsState.raw.unitSize.value;
         this.currentCellDistance = cellDistance;
         this.currentLastCell = cells.length > 0 ? (cells[cells.length - 1] ?? null) : null;
-        this.previousDiagonalEndState = isOddDiagonal;
+        this.currentDiagonalEndState = isOddDiagonal;
         unitDistance += this.previousLength;
         cellDistance += this.previousCellDistance;
 
@@ -306,10 +311,12 @@ class RulerTool extends Tool implements ITool {
                 this.registerHighlightedCellDraw(layer);
             }
 
-            this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint, this.previousDiagonalEndState);
+            this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
             this.previousLength += this.currentLength;
+            this.previousBonusLength += this.currentBonusLength;
             this.previousCellDistance += this.currentCellDistance;
             this.previousLastCell = this.currentLastCell;
+            this.previousDiagonalEndState = this.currentDiagonalEndState;
 
             layer.moveShapeOrder(
                 this.text!,
@@ -368,9 +375,10 @@ class RulerTool extends Tool implements ITool {
         this.startPoint = this.text = undefined;
         this.rulers = [];
         this.previousLength = 0;
+        this.previousBonusLength = 0;
         this.previousCellDistance = 0;
         this.previousLastCell = null;
-        this.previousDiagonalEndState = false;
+        this.previousDiagonalEndState = true;
     }
 }
 

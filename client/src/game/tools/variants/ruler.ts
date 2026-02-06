@@ -207,20 +207,38 @@ class RulerTool extends Tool implements ITool {
         let cellDistance = cells.length;
         let bonusCells = 0;
         let isOddDiagonal = this.previousDiagonalEndState;
-        const usePF2ERuler = true; // CRAFTIMARK: WARN: DEBUG VALUE
-        if (usePF2ERuler) {
-            if (this.previousLastCell !== null && cells.length > 0 && isDiagonal(this.previousLastCell, cells[0])) {
+        const pf2eBonusCellValue = 1;
+        const manhattenBonusCellValue = 1;
+        const euclideanBonusCellValue = Math.sqrt(2) - 1;
+        const euclideanApproxBonusCellValue = 0.5;
+        const usePF2ERuler = false; // CRAFTIMARK: WARN: DEBUG VALUE
+        const useManhattenRuler = false; // CRAFTIMARK: WARN: DEBUG VALUE
+        const useEuclideanRuler = false; // CRAFTIMARK: WARN: DEBUG VALUE
+        const useEuclideanApproxRuler = true; // CRAFTIMARK: WARN: DEBUG VALUE
+        const addBonusValue = () => {
+            if (usePF2ERuler) {
                 if (!isOddDiagonal) {
-                    bonusCells += 1;
+                    bonusCells += pf2eBonusCellValue;
                 }
                 isOddDiagonal = !isOddDiagonal;
             }
+            else if (useManhattenRuler) {
+                bonusCells += manhattenBonusCellValue;
+            }
+            else if (useEuclideanRuler) {
+                bonusCells += euclideanBonusCellValue;
+            }
+            else if (useEuclideanApproxRuler) {
+                bonusCells += euclideanApproxBonusCellValue;
+            }
+        }
+        if (usePF2ERuler || useManhattenRuler || useEuclideanRuler || useEuclideanApproxRuler) {
+            if (this.previousLastCell !== null && cells.length > 0 && isDiagonal(this.previousLastCell, cells[0])) {
+                addBonusValue();
+            }
             for (let i = 1; i < cells.length; i++) {
                 if (isDiagonal(cells[i - 1], cells[i])) {
-                    if (!isOddDiagonal) {
-                        bonusCells += 1;
-                    }
-                    isOddDiagonal = !isOddDiagonal;
+                    addBonusValue();
                 }
             }
         }

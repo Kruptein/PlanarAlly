@@ -52,7 +52,11 @@ interface ConfirmationDialog {
 const confirmationDialog = ref<ConfirmationDialog | null>(null);
 const listElement = useTemplateRef<HTMLElement>("list-element");
 const addEffect = ref<GlobalId | null>(null);
-const showEffectsFor = ref<number | null>(null);
+const entryFocus = ref<{ index: number; mouseOver: boolean; focused: boolean }>({
+    index: 0,
+    mouseOver: false,
+    focused: false,
+});
 
 const hasVisibleActor = computed(() => initiativeStore.state.locationData.some((actor) => canSee(actor)));
 
@@ -343,6 +347,16 @@ function openSettings(): void {
     uiSystem.showClientSettings(true);
 }
 
+function setEntryFocus(index: number, enable: boolean, mouse: boolean): void {
+    if (!entryFocus.value.mouseOver && !entryFocus.value.focused) {
+        entryFocus.value.index = index;
+    }
+    if (entryFocus.value.index === index) {
+        if (mouse) entryFocus.value.mouseOver = enable;
+        else entryFocus.value.focused = enable;
+    }
+}
+
 // shitty helper because draggable loses all type information :arghfist:
 function n(e: any): number {
     return e as number;
@@ -378,8 +392,8 @@ function n(e: any): number {
                                         v-if="canSee(actor)"
                                         class="initiative-entry"
                                         :class="{ 'owned-actor': owns(actor.globalId) && !gameState.reactive.isDm }"
-                                        @mouseover="showEffectsFor = index"
-                                        @mouseleave="showEffectsFor = null"
+                                        @mouseenter="setEntryFocus(index, true, true)"
+                                        @mouseleave="setEntryFocus(index, false, true)"
                                     >
                                         <div
                                             class="initiative-actor"
@@ -511,7 +525,8 @@ function n(e: any): number {
                                                     actor.effects.length > 0 &&
                                                     (alwaysShowEffects ||
                                                         initiativeStore.state.turnCounter === index ||
-                                                        showEffectsFor === index)
+                                                        (entryFocus.index === index &&
+                                                            (entryFocus.mouseOver || entryFocus.focused)))
                                                 "
                                                 class="initiative-effect"
                                                 :class="{
@@ -531,6 +546,8 @@ function n(e: any): number {
                                                             :disabled="!owns(actor.globalId)"
                                                             :visible="initiativeStore.state.showInitiative"
                                                             @change="setEffectName(actor.globalId, n(e), $event)"
+                                                            @focus="setEntryFocus(index, true, false)"
+                                                            @blur="setEntryFocus(index, false, false)"
                                                         />
                                                         <input
                                                             v-if="effect.turns !== null"
@@ -543,6 +560,8 @@ function n(e: any): number {
                                                                 setEffectTurns(actor.globalId, n(e), getValue($event))
                                                             "
                                                             @keyup.enter="getTarget($event).blur()"
+                                                            @focus="setEntryFocus(index, true, false)"
+                                                            @blur="setEntryFocus(index, false, false)"
                                                         />
                                                         <div v-else class="effect-turn-counter infinite-placeholder">
                                                             &infin;

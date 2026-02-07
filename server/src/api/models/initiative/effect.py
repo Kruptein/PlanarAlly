@@ -4,9 +4,11 @@ from pydantic import BaseModel, Field
 
 from ..helpers import TypeIdModel
 
+
 class InitiativeEffectUpdateTiming(IntEnum):
     TurnEnd = 0
     TurnStart = 1
+
 
 class ApiInitiativeEffect(BaseModel):
     name: str
@@ -26,10 +28,12 @@ class InitiativeEffectRename(TypeIdModel):
     index: int
     name: str
 
+
 class InitiativeEffectTiming(TypeIdModel):
     shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     index: int
     timing: InitiativeEffectUpdateTiming
+
 
 class InitiativeEffectTurns(TypeIdModel):
     shape: str = Field(json_schema_extra={"typeId": "GlobalId"})

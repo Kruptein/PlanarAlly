@@ -127,6 +127,7 @@ async def set_initiative_effect_tuns(sid: str, raw_data: Any):
         skip_sid=sid,
     )
 
+
 @sio.on("Initiative.Effect.Timing", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_initiative_effect_timing(sid: str, raw_data: Any):
@@ -161,6 +162,7 @@ async def set_initiative_effect_timing(sid: str, raw_data: Any):
         room=pr.active_location.get_path(),
         skip_sid=sid,
     )
+
 
 @sio.on("Initiative.Effect.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")

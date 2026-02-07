@@ -16,14 +16,11 @@ const defaultTurns = 10;
 
 const name = ref("");
 // need string here because an empty input box still returns an empty string
-const turns = ref<number | string | null>(defaultTurns);
+const turns = ref<number | string>(defaultTurns);
 const infinite = ref(false);
 
 function validateTurns(): void {
-    if (turns.value === null) {
-        if (infinite.value) return;
-        turns.value = 0;
-    }
+    if (infinite.value) return;
     if (+turns.value < 0) turns.value = 0;
 }
 

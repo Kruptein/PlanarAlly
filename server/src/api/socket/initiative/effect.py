@@ -137,11 +137,11 @@ async def set_initiative_effect_timing(sid: str, raw_data: Any):
     shape = Shape.get_or_none(uuid=data.shape)
 
     if shape is None:
-        logger.warning("Attempt to modify initiative effect turns for an unknown shape")
+        logger.warning("Attempt to modify initiative effect timing for an unknown shape")
         return
 
     if not has_ownership(shape, pr, edit=True):
-        logger.warning(f"{pr.player.name} attempted to create a new initiative effect")
+        logger.warning(f"{pr.player.name} attempted to set timing on an initiative effect")
         return
 
     location_data = Initiative.get(location=pr.active_location)

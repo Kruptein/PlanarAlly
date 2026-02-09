@@ -8,6 +8,7 @@ class ApiLocationOptions(BaseModel):
     unit_size: float
     unit_size_unit: str
     use_grid: bool
+    grid_mode_ruler_type: str
     full_fow: bool
     fow_opacity: float
     fow_los: bool
@@ -29,6 +30,7 @@ class ApiOptionalLocationOptions(TypeIdModel):
     unit_size: float | None = None
     unit_size_unit: str | None = None
     use_grid: bool | None = None
+    grid_mode_ruler_type: str | None = None
     full_fow: bool | None = None
     fow_opacity: float | None = None
     fow_los: bool | None = None

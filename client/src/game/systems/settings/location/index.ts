@@ -26,6 +26,7 @@ class LocationSettingsSystem implements System {
             gridType: this.setGridType.bind(this),
             unitSize: this.setUnitSize.bind(this),
             unitSizeUnit: this.setUnitSizeUnit.bind(this),
+            gridModeRulerType: this.setGridModeRulerType.bind(this),
             dropRatio: this.setDropRatio.bind(this),
             fullFow: this.setFullFow.bind(this),
             fowLos: this.setFowLos.bind(this),
@@ -136,6 +137,16 @@ class LocationSettingsSystem implements System {
         floorSystem.invalidateAllFloors();
 
         if (sync) sendLocationOption("unit_size_unit", unitSizeUnit, location);
+    }
+
+    setGridModeRulerType(gridModeRulerType: string | undefined, location: number | undefined, sync: boolean): void {
+        if (gridModeRulerType !== undefined &&
+            !["UNCHANGED", "ALTERNATING", "MANHATTAN", "EUCLIDEAN", "EUCLIDEAN_APPROX"].includes(gridModeRulerType)) {
+            throw new Error("Unknown grid type set");
+        }
+        if (!this.setValue($.gridModeRulerType, gridModeRulerType, location)) return;
+
+        if (sync) sendLocationOption("grid_mode_ruler_type", gridModeRulerType, location);
     }
 
     setDropRatio(dropRatio: number | undefined, location: number | undefined, sync: boolean): void {

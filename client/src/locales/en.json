@@ -447,11 +447,18 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Unit Size (in {unit})",
                     "use_grid": "Use grid",
+                    "grid_mode_ruler_type": "Grid-Mode Ruler Diagonal Behavior",
+                    "grid_mode_ruler_type_title": "Different systems handle square-grid diagonals differently. This setting changes how the ruler treats diagonal movement in Grid Mode.",
                     "size_unit": "Size Unit",
                     "grid_type": "Grid Type",
                     "SQUARE": "Squares",
                     "POINTY_HEX": "Pointy Hexagons",
                     "FLAT_HEX": "Flat Hexagons",
+                    "UNCHANGED": "Default (D&D>=4e)",
+                    "ALTERNATING": "Alternating (PF/D&D<=3.5e)",
+                    "MANHATTAN": "Manhattan (2x)",
+                    "EUCLIDEAN": "Euclidean (√2x)",
+                    "EUCLIDEAN_APPROX": "Approximation (1.5x)",
                     "drop_ratio": "Drop Ratio",
                     "drop_ratio_title": "The drop ratio is used for shapes with size information (e.g. goblin_1x1). The drop ratio is applied to this info to determine the final size."
                 },

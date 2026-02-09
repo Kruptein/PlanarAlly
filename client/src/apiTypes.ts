@@ -26,8 +26,8 @@ export type DefaultNoteFilter = "NO_FILTER" | "ACTIVE_FILTER" | "NO_LINK_FILTER"
 export type InitiativeDirection = -1 | 0 | 1;
 
 export interface ApiShapeSize {
-    x: number;
-    y: number;
+  x: number;
+  y: number;
 }
 
 export interface ApiAsset {
@@ -817,9 +817,9 @@ export interface ShapeTemplateAdd {
   shapeId: GlobalId;
   name: string;
 }
-export interface ShapeSetSizeValue  {
-    shape: GlobalId;
-    value: ApiShapeSize;
+export interface ShapeSetSizeValue {
+  shape: GlobalId;
+  value: ApiShapeSize;
 }
 export interface ShapeTextSizeUpdate {
   uuid: GlobalId;
@@ -856,7 +856,7 @@ export interface ToggleCompositeVariant {
   shape: GlobalId;
   variant: GlobalId;
 }
-export interface TypeIdModel {}
+export interface TypeIdModel { }
 export interface ApiLocation {
   id: number;
   name: string;
@@ -867,6 +867,7 @@ export interface ApiOptionalLocationOptions {
   unit_size?: number | null;
   unit_size_unit?: string | null;
   use_grid?: boolean | null;
+  grid_mode_ruler_type?: string | null;
   full_fow?: boolean | null;
   fow_opacity?: number | null;
   fow_los?: boolean | null;
@@ -891,6 +892,7 @@ export interface ApiLocationOptions {
   unit_size: number;
   unit_size_unit: string;
   use_grid: boolean;
+  grid_mode_ruler_type: string;
   full_fow: boolean;
   fow_opacity: number;
   fow_los: boolean;

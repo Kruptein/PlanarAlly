@@ -11,6 +11,8 @@ import {
     getCellFromPoint,
     getCellVertices,
     getClosestCellCenter,
+    GridModeRulerType,
+    GridType,
     snapPointToGrid,
 } from "../../../core/grid";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
@@ -60,12 +62,12 @@ class RulerTool extends Tool implements ITool {
     private text: Text | undefined = undefined;
 
     private currentLength = 0;
-    private currentBonusLength = 0;
+    private currentBonusCells = 0;
     private currentCellDistance = 0;
     private currentLastCell: GlobalPoint | null = null;
     private currentDiagonalEndState = true;
     private previousLength = 0;
-    private previousBonusLength = 0;
+    private previousBonusCells = 0;
     private previousCellDistance = 0;
     private previousLastCell: GlobalPoint | null = null;
     private previousDiagonalEndState = true;
@@ -207,32 +209,29 @@ class RulerTool extends Tool implements ITool {
         let cellDistance = cells.length;
         let bonusCells = 0;
         let isOddDiagonal = this.previousDiagonalEndState;
-        const pf2eBonusCellValue = 1;
-        const manhattenBonusCellValue = 1;
-        const euclideanBonusCellValue = Math.sqrt(2) - 1;
-        const euclideanApproxBonusCellValue = 0.5;
-        const usePF2ERuler = false; // CRAFTIMARK: WARN: DEBUG VALUE
-        const useManhattenRuler = false; // CRAFTIMARK: WARN: DEBUG VALUE
-        const useEuclideanRuler = false; // CRAFTIMARK: WARN: DEBUG VALUE
-        const useEuclideanApproxRuler = true; // CRAFTIMARK: WARN: DEBUG VALUE
+        const isAlternatingRuler = locationSettingsState.raw.gridModeRulerType.value === GridModeRulerType.Alternating;
+        const bonusValue = (() => {
+            switch (locationSettingsState.raw.gridModeRulerType.value) {
+                case GridModeRulerType.Alternating:
+                case GridModeRulerType.Manhattan:
+                    return 1;
+                case GridModeRulerType.Euclidean: return Math.sqrt(2) - 1;
+                case GridModeRulerType.EuclideanApprox: return 0.5;
+                default: return 0;
+            }
+        })();
         const addBonusValue = () => {
-            if (usePF2ERuler) {
+            if (isAlternatingRuler) {
                 if (!isOddDiagonal) {
-                    bonusCells += pf2eBonusCellValue;
+                    bonusCells += bonusValue;
                 }
                 isOddDiagonal = !isOddDiagonal;
             }
-            else if (useManhattenRuler) {
-                bonusCells += manhattenBonusCellValue;
-            }
-            else if (useEuclideanRuler) {
-                bonusCells += euclideanBonusCellValue;
-            }
-            else if (useEuclideanApproxRuler) {
-                bonusCells += euclideanApproxBonusCellValue;
+            else {
+                bonusCells += bonusValue;
             }
         }
-        if (usePF2ERuler || useManhattenRuler || useEuclideanRuler || useEuclideanApproxRuler) {
+        if (locationSettingsState.raw.gridType.value === GridType.Square) {
             if (this.previousLastCell !== null && cells.length > 0 && isDiagonal(this.previousLastCell, cells[0])) {
                 addBonusValue();
             }
@@ -244,8 +243,7 @@ class RulerTool extends Tool implements ITool {
         }
         let unitDistance = cellDistance;
         if (!this.gridMode.value) {
-            unitDistance =
-                (Math.sqrt(xdiff ** 2 + ydiff ** 2) * locationSettingsState.raw.unitSize.value) / DEFAULT_GRID_SIZE;
+            unitDistance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * locationSettingsState.raw.unitSize.value) / DEFAULT_GRID_SIZE;
         } else {
             if (!this.previousCellDistance) {
                 cellDistance = Math.max(cellDistance - 1, 0);
@@ -255,7 +253,7 @@ class RulerTool extends Tool implements ITool {
         }
 
         this.currentLength = unitDistance;
-        this.currentBonusLength = bonusCells * locationSettingsState.raw.unitSize.value;
+        this.currentBonusCells = bonusCells * locationSettingsState.raw.unitSize.value;
         this.currentCellDistance = cellDistance;
         this.currentLastCell = cells.length > 0 ? (cells[cells.length - 1] ?? null) : null;
         this.currentDiagonalEndState = isOddDiagonal;
@@ -331,7 +329,7 @@ class RulerTool extends Tool implements ITool {
 
             this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
             this.previousLength += this.currentLength;
-            this.previousBonusLength += this.currentBonusLength;
+            this.previousBonusCells += this.currentBonusCells;
             this.previousCellDistance += this.currentCellDistance;
             this.previousLastCell = this.currentLastCell;
             this.previousDiagonalEndState = this.currentDiagonalEndState;
@@ -393,7 +391,7 @@ class RulerTool extends Tool implements ITool {
         this.startPoint = this.text = undefined;
         this.rulers = [];
         this.previousLength = 0;
-        this.previousBonusLength = 0;
+        this.previousBonusCells = 0;
         this.previousCellDistance = 0;
         this.previousLastCell = null;
         this.previousDiagonalEndState = true;

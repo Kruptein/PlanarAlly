@@ -694,7 +694,7 @@ def upgrade(
     elif version == 113:
         # Add grid_mode_ruler_type column to location options
         with db.atomic():
-            db.execute_sql("ALTER TABLE location_options ADD COLUMN grid_mode_ruler_type TEXT DEFAULT 'SQUARES'")
+            db.execute_sql("ALTER TABLE location_options ADD COLUMN grid_mode_ruler_type TEXT DEFAULT 'UNCHANGED'")
             db.execute_sql(
                 "UPDATE location_options SET grid_mode_ruler_type = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
             )

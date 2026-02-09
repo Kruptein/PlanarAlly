@@ -27,7 +27,6 @@ export class Line extends Shape implements IShape {
             isSnappable?: boolean;
         },
         properties?: Partial<ShapeProperties>,
-
     ) {
         super(startPoint, options, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["#000"], ...properties });
         this._endPoint = endPoint;

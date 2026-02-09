@@ -215,22 +215,24 @@ class RulerTool extends Tool implements ITool {
                 case GridModeRulerType.Alternating:
                 case GridModeRulerType.Manhattan:
                     return 1;
-                case GridModeRulerType.Euclidean: return Math.sqrt(2) - 1;
-                case GridModeRulerType.EuclideanApprox: return 0.5;
-                default: return 0;
+                case GridModeRulerType.Euclidean:
+                    return Math.sqrt(2) - 1;
+                case GridModeRulerType.EuclideanApprox:
+                    return 0.5;
+                default:
+                    return 0;
             }
         })();
-        const addBonusValue = () => {
+        const addBonusValue = (): void => {
             if (isAlternatingRuler) {
                 if (!isOddDiagonal) {
                     bonusCells += bonusValue;
                 }
                 isOddDiagonal = !isOddDiagonal;
-            }
-            else {
+            } else {
                 bonusCells += bonusValue;
             }
-        }
+        };
         if (locationSettingsState.raw.gridType.value === GridType.Square) {
             if (this.previousLastCell !== null && cells.length > 0 && isDiagonal(this.previousLastCell, cells[0])) {
                 addBonusValue();
@@ -243,13 +245,15 @@ class RulerTool extends Tool implements ITool {
         }
         let unitDistance = cellDistance;
         if (!this.gridMode.value) {
-            unitDistance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * locationSettingsState.raw.unitSize.value) / DEFAULT_GRID_SIZE;
+            unitDistance =
+                (Math.sqrt(xdiff ** 2 + ydiff ** 2) * locationSettingsState.raw.unitSize.value) / DEFAULT_GRID_SIZE;
         } else {
             if (!this.previousCellDistance) {
                 cellDistance = Math.max(cellDistance - 1, 0);
             }
-            unitDistance = cellDistance * locationSettingsState.raw.unitSize.value
-                + bonusCells * locationSettingsState.raw.unitSize.value;
+            unitDistance =
+                cellDistance * locationSettingsState.raw.unitSize.value +
+                bonusCells * locationSettingsState.raw.unitSize.value;
         }
 
         this.currentLength = unitDistance;
@@ -371,7 +375,7 @@ class RulerTool extends Tool implements ITool {
             })
             // this throws if we request cb multiple times before a draw has completed
             // we don't care about that, so we just catch it and ignore it
-            .catch(() => { });
+            .catch(() => {});
     }
 
     // HELPERS
@@ -404,6 +408,5 @@ function isDiagonal(cell1: GlobalPoint | undefined, cell2: GlobalPoint | undefin
 
     return !(cell1.x === cell2.x || cell1.y === cell2.y);
 }
-
 
 export const rulerTool = new RulerTool();

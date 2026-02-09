@@ -71,7 +71,12 @@ const dropRatio = useLocationSettings("dropRatio", location);
             </div>
         </ResetWrapper>
         <ResetWrapper :global="global" :location="location" setting="gridModeRulerType">
-            <label :for="'gridModeRulerType-' + location" :title="t('game.ui.settings.GridSettings.grid_mode_ruler_type_title')">{{ t("game.ui.settings.GridSettings.grid_mode_ruler_type") }}</label>
+            <label
+                :for="'gridModeRulerType-' + location"
+                :title="t('game.ui.settings.GridSettings.grid_mode_ruler_type_title')"
+            >
+                {{ t("game.ui.settings.GridSettings.grid_mode_ruler_type") }}
+            </label>
             <div>
                 <select :id="'gridModeRulerType-' + location" v-model="gridModeRulerType">
                     <option value="UNCHANGED">{{ t("game.ui.settings.GridSettings.UNCHANGED") }}</option>

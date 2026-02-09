@@ -140,8 +140,10 @@ class LocationSettingsSystem implements System {
     }
 
     setGridModeRulerType(gridModeRulerType: string | undefined, location: number | undefined, sync: boolean): void {
-        if (gridModeRulerType !== undefined &&
-            !["UNCHANGED", "ALTERNATING", "MANHATTAN", "EUCLIDEAN", "EUCLIDEAN_APPROX"].includes(gridModeRulerType)) {
+        if (
+            gridModeRulerType !== undefined &&
+            !["UNCHANGED", "ALTERNATING", "MANHATTAN", "EUCLIDEAN", "EUCLIDEAN_APPROX"].includes(gridModeRulerType)
+        ) {
             throw new Error("Unknown grid type set");
         }
         if (!this.setValue($.gridModeRulerType, gridModeRulerType, location)) return;

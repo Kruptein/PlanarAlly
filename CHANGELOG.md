@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2026.1]
+
 ### Added
 
 -   Custom shape data

@@ -1,5 +1,5 @@
 import { g2l, g2lr } from "../../../core/conversions";
-import { getShape } from "../../id";
+import { getShape, getVisualShape } from "../../id";
 import { LayerName } from "../../models/floor";
 import { polygon2path } from "../../rendering/basic";
 import { accessState } from "../../systems/access/state";
@@ -41,7 +41,7 @@ export class FowVisionLayer extends FowLayer {
             visionState.behindVisionLightPaths.clear();
 
             for (const tokenId of accessState.activeTokens.value.get("vision") ?? []) {
-                const token = getShape(tokenId);
+                const token = getVisualShape(tokenId);
                 if (token === undefined || token.floorId !== this.floor) continue;
                 if (token.layerName === LayerName.Dm && gameState.raw.isFakePlayer) continue;
 

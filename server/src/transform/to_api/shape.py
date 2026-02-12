@@ -22,8 +22,14 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         if not shape.name_visible:
             name = "?"
 
+    custom_data = [c.as_pydantic() for c in shape.custom_data]
     trackers = [t.as_pydantic() for t in tracker_query]
     auras = [a.as_pydantic() for a in aura_query]
+    notes = [
+        n.note.as_pydantic()
+        for n in shape.notes
+        if n.note.creator == pr.player or any((not a.user or a.user == pr.player) and a.can_view for a in n.note.access)
+    ]
     # Subtype
     shape_model = ApiCoreShape(
         uuid=shape.uuid,
@@ -54,14 +60,17 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         asset=None if shape.asset is None else shape.asset.id,
         group=None if shape.group is None else shape.group.uuid,
         owners=owners,
+        custom_data=custom_data,
         trackers=trackers,
         auras=auras,
         character=shape.character_id,
         odd_hex_orientation=shape.odd_hex_orientation,
-        size=shape.size,
+        size_x=shape.size_x,
+        size_y=shape.size_y,
         show_cells=shape.show_cells,
         cell_fill_colour=shape.cell_fill_colour,
         cell_stroke_colour=shape.cell_stroke_colour,
         cell_stroke_width=shape.cell_stroke_width,
+        notes=notes,
     )
     return shape.subtype.as_pydantic(shape_model)

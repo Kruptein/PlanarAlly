@@ -12,6 +12,7 @@ import type { PanelTab } from "../../../systems/ui/types";
 
 import AccessSettings from "./AccessSettings.vue";
 import { ShapeSettingCategory } from "./categories";
+import DataSettings from "./DataSettings.vue";
 import ExtraSettings from "./ExtraSettings.vue";
 import GridSettings from "./GridSettings.vue";
 import GroupSettings from "./GroupSettings.vue";
@@ -34,7 +35,10 @@ const visible = computed({
 const owned = accessState.hasEditAccess;
 
 watchEffect(() => {
-    const id = selectedState.reactive.focus;
+    let id = selectedState.reactive.focus;
+    if (activeShapeStore.isComposite.value) {
+        id = activeShapeStore.state.parentUuid;
+    }
     if (id !== undefined) {
         accessSystem.loadState(id);
     } else {
@@ -76,6 +80,11 @@ const ownedTabs: PanelTab[] = [
         component: GroupSettings,
     },
     {
+        id: ShapeSettingCategory.CustomData,
+        label: t("game.ui.selection.edit_dialog.customData.customData"),
+        component: DataSettings,
+    },
+    {
         id: ShapeSettingCategory.Extra,
         label: t("game.ui.selection.edit_dialog.extra.extra"),
         component: ExtraSettings,
@@ -104,7 +113,7 @@ const tabs = computed(() => {
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :tabs="tabs">
+    <PanelModal v-model:visible="visible" v-model:selection="uiState.reactive.activeShapeTab" :tabs="tabs">
         <template #title>{{ t("game.ui.selection.edit_dialog.dialog.edit_shape") }}</template>
         <template v-if="owned" #default>
             <div style="flex-grow: 1"></div>

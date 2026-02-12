@@ -1,5 +1,5 @@
 import json
-from typing import List, cast
+from typing import cast
 
 from peewee import BooleanField, IntegerField, TextField
 
@@ -15,12 +15,12 @@ class Polygon(ShapeType):
 
     def as_pydantic(self, shape: ApiCoreShape):
         return ApiPolygonShape(
-            **shape.dict(),
+            **shape.model_dump(),
             vertices=self.vertices,
             line_width=self.line_width,
             open_polygon=self.open_polygon,
         )
 
-    def set_location(self, points: List[List[float]]) -> None:
+    def set_location(self, points: list[tuple[float, float]]) -> None:
         self.vertices = json.dumps(points)
         self.save()

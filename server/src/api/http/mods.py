@@ -71,4 +71,4 @@ async def upload(request: web.Request) -> web.Response:
     except BadZipFile:
         return web.HTTPBadRequest(text="Invalid mod: not a valid pam file")
 
-    return web.json_response(mod.as_pydantic().dict())
+    return web.json_response(mod.as_pydantic().model_dump())

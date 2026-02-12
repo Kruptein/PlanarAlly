@@ -6,7 +6,7 @@ from ..helpers import TypeIdModel
 
 
 class ShapeOption(TypeIdModel):
-    uuid: str = Field(typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
     option: str
 
 
@@ -16,22 +16,22 @@ class ShapesOptionsUpdate(BaseModel):
 
 
 class ShapeSetBooleanValue(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     value: bool
 
 
 class ShapeSetStringValue(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     value: str
 
 
 class ShapeSetOptionalStringValue(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
-    value: str | None = Field(..., noneAsNull=True)
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    value: str | None
 
 
 class ShapeSetIntegerValue(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     value: int
 
 
@@ -42,21 +42,31 @@ class Permissions(BaseModel):
 
 
 class ShapeSetPermissionValue(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     value: Permissions
 
 
 class ShapeSetDoorToggleModeValue(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     value: Literal["movement"] | Literal["vision"] | Literal["both"]
 
 
 class TeleportLocation(TypeIdModel):
     id: int
-    spawnUuid: str = Field(typeId="GlobalId")
+    spawnUuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
 
 
 class ShapeSetTeleportLocationValue(TypeIdModel):
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    value: TeleportLocation
+    value: TeleportLocation
+
+
+class ApiShapeSize(BaseModel):
+    x: int
+    y: int
+
+
+class ShapeSetSizeValue(TypeIdModel):
     shape: str = Field(typeId="GlobalId")
-    value: TeleportLocation
-    value: TeleportLocation
+    value: ApiShapeSize

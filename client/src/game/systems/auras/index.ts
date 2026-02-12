@@ -1,11 +1,12 @@
 import { reactive, watchEffect } from "vue";
 import type { DeepReadonly } from "vue";
 
+import type { ApiCoreShape } from "../../../apiTypes";
 import type { LocalId } from "../../../core/id";
-import { NO_SYNC } from "../../../core/models/types";
+import { NO_SYNC, SERVER_SYNC } from "../../../core/models/types";
 import type { Sync } from "../../../core/models/types";
-import type { ShapeSystem } from "../../../core/systems";
 import { registerSystem } from "../../../core/systems";
+import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { getGlobalId, getShape } from "../../id";
 import { compositeState } from "../../layers/state";
 import { LayerName } from "../../models/floor";
@@ -14,10 +15,10 @@ import { accessSystem } from "../access";
 import { gameState } from "../game/state";
 import { selectedState } from "../selected/state";
 
-import { aurasToServer, partialAuraToServer, toUiAuras } from "./conversion";
+import { aurasFromServer, aurasToServer, partialAuraToServer, toUiAuras } from "./conversion";
 import { sendShapeCreateAura, sendShapeRemoveAura, sendShapeUpdateAura } from "./emits";
 import type { Aura, AuraId, UiAura } from "./models";
-import { createEmptyUiAura } from "./utils";
+import { createEmptyUiAura, generateAuraId } from "./utils";
 
 interface AuraState {
     id: LocalId | undefined;
@@ -26,8 +27,49 @@ interface AuraState {
     parentAuras: UiAura[];
 }
 
-class AuraSystem implements ShapeSystem {
+class AuraSystem implements ShapeSystem<Aura[]> {
     private data = new Map<LocalId, Aura[]>();
+
+    // CORE
+
+    clear(): void {
+        this.dropState();
+        this.data.clear();
+    }
+
+    drop(id: LocalId): void {
+        this.data.delete(id);
+        if (this._state.id === id) {
+            this.dropState();
+        }
+    }
+
+    importLate(id: LocalId, data: Aura[], mode: SystemInformMode): void {
+        if (data.length === 0) return;
+
+        let newData = data;
+        if (mode === "duplicate") {
+            newData = data.map((a) => ({ ...a, uuid: generateAuraId() }));
+        }
+        this.data.set(id, []);
+        for (const aura of newData) {
+            this.add(id, aura, mode === "load" ? NO_SYNC : SERVER_SYNC);
+        }
+    }
+
+    export(id: LocalId): Aura[] {
+        return this.data.get(id) ?? [];
+    }
+
+    toServerShape(id: LocalId, shape: ApiCoreShape): void {
+        const uuid = getGlobalId(id);
+        if (uuid === undefined) return;
+        shape.auras = aurasToServer(uuid, this.getAll(id, false));
+    }
+
+    fromServerShape(shape: ApiCoreShape): Aura[] {
+        return aurasFromServer(...shape.auras);
+    }
 
     // REACTIVE STATE
 
@@ -69,31 +111,11 @@ class AuraSystem implements ShapeSystem {
 
     // BEHAVIOUR
 
-    clear(): void {
-        this.dropState();
-        this.data.clear();
-    }
-
-    // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, auras: Aura[]): void {
-        this.data.set(id, []);
-        for (const aura of auras) {
-            this.add(id, aura, NO_SYNC);
-        }
-    }
-
-    drop(id: LocalId): void {
-        this.data.delete(id);
-        if (this._state.id === id) {
-            this.dropState();
-        }
-    }
-
     private getOrCreate(id: LocalId): Aura[] {
         let idAuras = this.data.get(id);
         if (idAuras === undefined) {
-            this.inform(id, []);
-            idAuras = this.data.get(id)!;
+            idAuras = [];
+            this.data.set(id, idAuras);
         }
         return idAuras;
     }

@@ -1,5 +1,5 @@
 import os
-from typing import Callable, Iterable, List, Type
+from typing import Callable, Iterable, Type
 
 import aiohttp_security
 import aiohttp_session
@@ -13,7 +13,7 @@ from .json import PydanticJson
 from .logs import handle_async_exception
 from .typed import TypedAsyncServer
 
-runners: List[web.AppRunner] = []
+runners: list[web.AppRunner] = []
 
 
 def setup_app(middlewares: Iterable[Callable] = ()) -> web.Application:

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 from peewee import BooleanField, ForeignKeyField, IntegerField, TextField
 
@@ -18,16 +18,17 @@ if TYPE_CHECKING:
 
 class Location(BaseDbModel):
     id: int
+    room_id: int
     floors: SelectSequence["Floor"]
-    initiative: List["Initiative"]
+    initiative: list["Initiative"]
     markers: SelectSequence["Marker"]
     players: SelectSequence["PlayerRoom"]
-    user_options: List["LocationUserOption"]
+    user_options: list["LocationUserOption"]
 
     room = ForeignKeyField(Room, backref="locations", on_delete="CASCADE")
     name = cast(str, TextField())
     options = cast(
-        Optional[LocationOptions],
+        LocationOptions | None,
         ForeignKeyField(LocationOptions, on_delete="CASCADE", null=True),
     )
     index = cast(int, IntegerField())

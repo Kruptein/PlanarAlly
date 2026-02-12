@@ -1,8 +1,8 @@
 import { g2l, g2lz, g2lr, toRadians } from "../../../core/conversions";
 import type { LocalId } from "../../../core/id";
-import type { SyncMode, InvalidationMode } from "../../../core/models/types";
+import type { SyncMode } from "../../../core/models/types";
 import { FOG_COLOUR } from "../../colour";
-import { getShape } from "../../id";
+import { getShape, getVisualShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
 import { polygon2path } from "../../rendering/basic";
@@ -18,13 +18,7 @@ import { visionState } from "../../vision/state";
 import { FowLayer } from "./fow";
 
 export class FowLightingLayer extends FowLayer {
-    addShape(shape: IShape, sync: SyncMode, invalidate: InvalidationMode): void {
-        super.addShape(shape, sync, invalidate);
-        if (shape.options.preFogShape ?? false) {
-            this.preFogShapes.push(shape);
-        }
-    }
-
+    // We still need removeShapes as this does not inherently call .setLayer, which addShape does
     removeShape(shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }): boolean {
         let idx = -1;
         if (shape.options.preFogShape ?? false) {
@@ -33,6 +27,16 @@ export class FowLightingLayer extends FowLayer {
         const remove = super.removeShape(shape, options);
         if (remove && idx >= 0) this.preFogShapes.splice(idx, 1);
         return remove;
+    }
+
+    enterLayer(shape: IShape): void {
+        if (shape.options.preFogShape ?? false) {
+            this.preFogShapes.push(shape);
+        }
+    }
+
+    exitLayer(shape: IShape): void {
+        this.preFogShapes = this.preFogShapes.filter((s) => s.id !== shape.id);
     }
 
     draw(): void {
@@ -51,7 +55,7 @@ export class FowLightingLayer extends FowLayer {
                 activeFloor.id === this.floor
             ) {
                 for (const sh of accessState.activeTokens.value.get("vision") ?? []) {
-                    const shape = getShape(sh);
+                    const shape = getVisualShape(sh);
                     if (shape === undefined) continue;
                     if (shape.options.skipDraw ?? false) continue;
                     if (shape.floorId !== activeFloor.id) continue;

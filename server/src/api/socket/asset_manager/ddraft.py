@@ -1,7 +1,6 @@
 import base64
 import hashlib
 import json
-from typing import List
 
 from typing_extensions import TypedDict
 
@@ -21,7 +20,7 @@ class Coord(TypedDict):
 
 class DDraftPortal(TypedDict):
     position: Coord
-    bounds: List[Coord]
+    bounds: list[Coord]
     rotation: int
     closed: bool
     freestanding: bool
@@ -36,8 +35,8 @@ class DDraftResolution(TypedDict):
 class DDraftData(TypedDict):
     format: str
     resolution: DDraftResolution
-    line_of_sight: List[Coord]
-    portals: List[DDraftPortal]
+    line_of_sight: list[Coord]
+    portals: list[DDraftPortal]
     image: str
 
 
@@ -49,10 +48,11 @@ async def handle_ddraft_file(upload_data: ApiAssetUpload, data: bytes, sid: str)
     sh = hashlib.sha1(image)
     hashname = sh.hexdigest()
 
-    full_hash_path = get_asset_hash_subpath(hashname)
+    full_path = ASSETS_DIR / get_asset_hash_subpath(hashname)
 
-    if not (ASSETS_DIR / full_hash_path).exists():
-        with open(ASSETS_DIR / full_hash_path, "wb") as f:
+    if not full_path.exists():
+        full_path.parent.mkdir(exist_ok=True, parents=True)
+        with open(full_path, "wb") as f:
             f.write(image)
 
     template = {

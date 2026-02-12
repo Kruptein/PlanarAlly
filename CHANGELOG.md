@@ -10,6 +10,93 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2026.1]
+
+### Added
+
+-   Custom shape data
+    -   A new tab in the Shape settings UI
+    -   Can be used to freely add custom data and create a rudimentary character sheet
+    -   Currently supported data types are text, number, toggle and dice expressions
+    -   Dice expressions can reference other data entries and open the dice tool with the evaluated expression
+    -   Dice tool has a quick access sidebar to selected shapes with dice expressions
+    -   Dice tool shows auto completion on expression references
+-   Shape order inconsistency check
+    -   Runs when moving a shape to the back
+    -   Fixes the order of all shapes on the layer and requests a page refresh
+-   Asset manager icon when a shape has template info
+-   Notes:
+    -   Campaigns tab (see more general note changes below)
+    -   Create can be confirmed with the enter key
+    -   Tag add now shows a pre-populated list with known tags
+-   Logging:
+    -   Enabling configuration of the logger via a new logging section
+    -   Allows for multiple logging file streams at different levels
+
+### Changed
+
+-   Initiative
+    -   UI rework
+        -   Asset images appear in initiative list
+        -   Prevent large initiative list growing excessively tall
+        -   Allow resizing of initiative list view
+        -   Replace popup modal with less intrusive verification check
+        -   New UI to add effects to entries
+        -   Add group badges for shapes with badges enabled
+        -   [DM] Add button to clear initiative list
+        -   [DM] Add previous/next round buttons
+    -   Add effects with infinite timespan
+    -   Fix names in initiative list not being reactive
+-   Templates
+    -   Are now stored as proper shapes in the DB
+    -   Will migrate along with other shapes on DB upgrades (old templates could become broken)
+    -   Can be linked with other systems (e.g. custom-data, notes, ...)
+-   Notes
+    -   No longer hard-linked to 1 particular location
+        -   Can be linked to multiple locations or no location (global/local concept is removed)
+    -   List filters have been redesigned to be mure useful
+        -   Many preferences have been removed as a result
+    -   Pagination is now in the bottom left and clearly notes the amount of pages
+    -   Tags in the note edit panel now have a "search" and "remove" action instead of always removing on click
+    -   [tech] Searching/Filtering/Pagination is now done on the server
+    -   [tech] tags are now stored in their own tables instead of being a json array on notes
+-   Campaign creator can no longer change their own role or kick themselves
+-   [tech] refactor of intermediate shape handling on client side (see `transformations.ts`)
+-   [tech] upgraded pydantic from 1.x to 2.x
+-   Square grids now have distinct x and y size values
+-   Keyboard movement now also snaps to the closest grid cell when snapping is relevant
+-   Variants
+    -   Players may now add variants to shapes they have edit access to
+    -   Players may now swap between variants of shapes they have edit access to
+    -   [tech] Variants' access permissions are now based on the permissions of the parent shape only
+
+### Fixed
+
+-   Images in the Token Direction indicator were overflowing
+-   Prevent shortcut handling when targetting an html select element
+-   Ampersand in campaign name preventing game load
+-   Duplicating (copy/paste) or undoing a removal of shapes would lose some info (e.g. notes)
+-   Undoing a shape removal related to a character did not work
+-   Undoing a shape removal causing the related group to be removed (i.e. last shape of the group)
+-   Cutting a rotated polygon would be wrong on refresh
+-   Resizing a rotated polygon did not correctly recalculate center, causing sudden shifts on move
+-   Note creation not going straight to edit mode in some cases
+-   Account settings text overlapping on smaller viewport widths
+-   Moving special hide/reveal shapes from the fow layer could lead to a niche bug
+-   Rotation slider not showing current value in text input on component load
+-   Shapes snapping to square grid sometimes offset from grid
+-   Shapes attempting to snap to a grid square now collide with walls
+-   DDraft files no longer being uploadable to the asset manager
+-   Moving shapes with keyboard keys while ruler was enabled on select tool would move shapes twice as far
+-   Hovering on an initiative entry that is part of a group but not marked as a group entry would highlight all group members
+-   Error log about viewports on the server
+-   Toggling initiative off vision lock interactions
+-   Initiative cog wheel not opening initiative tab in the client settings
+-   Initiative entries would remain blurred if the focused entry was removed by another player.
+-   Group system not properly cleaning up on location changes
+-   Group badges were not sorted numerically in a shape's group settings when set to the numbers character set.
+-   Tracker input resets to last value if left empty
+
 ## [2025.3]
 
 ### Added
@@ -51,6 +138,7 @@ tech changes will usually be stripped from release notes for the public
 ### Fixed
 
 -   Initiative effect rename losing focus after pressing 1 character
+-   Initiative effect rename losing focus when moving mouse off initiative entry
 -   Locked shapes not being selectable directly
 -   DM only auras where no longer rendered due to a bug in the new access logic
 

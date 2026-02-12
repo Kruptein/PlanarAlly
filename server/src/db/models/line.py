@@ -1,4 +1,4 @@
-from typing import Tuple, cast
+from typing import cast
 
 from peewee import FloatField, IntegerField
 
@@ -12,8 +12,8 @@ class Line(ShapeType):
     y2 = cast(float, FloatField())
     line_width = cast(int, IntegerField())
 
-    def get_center_offset(self) -> Tuple[float, float]:
+    def get_center_offset(self) -> tuple[float, float]:
         return (self.x2 - self.shape.x) / 2, (self.y2 - self.shape.y) / 2
 
     def as_pydantic(self, shape: ApiCoreShape):
-        return ApiLineShape(**shape.dict(), x2=self.x2, y2=self.y2, line_width=self.line_width)
+        return ApiLineShape(**shape.model_dump(), x2=self.x2, y2=self.y2, line_width=self.line_width)

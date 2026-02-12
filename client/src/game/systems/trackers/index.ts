@@ -1,15 +1,17 @@
 import { reactive, watchEffect } from "vue";
 import type { DeepReadonly, Reactive } from "vue";
 
+import type { ApiCoreShape } from "../../../apiTypes";
 import type { LocalId } from "../../../core/id";
 import type { Sync } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
-import type { ShapeSystem } from "../../../core/systems";
+import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
+import { uuidv4 } from "../../../core/utils";
 import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
 import { compositeState } from "../../layers/state";
 
-import { partialTrackerToServer, toUiTrackers, trackersToServer } from "./conversion";
+import { partialTrackerToServer, toUiTrackers, trackersFromServer, trackersToServer } from "./conversion";
 import { sendShapeCreateTracker, sendShapeRemoveTracker, sendShapeUpdateTracker } from "./emits";
 import type { Tracker, TrackerId, UiTracker } from "./models";
 import { trackerEvents } from "./mods";
@@ -22,11 +24,8 @@ interface TrackerState {
     parentTrackers: UiTracker[];
 }
 
-class TrackerSystem implements ShapeSystem {
+class TrackerSystem implements ShapeSystem<Tracker[]> {
     private data = new Map<LocalId, Tracker[]>();
-
-    // REACTIVE STATE
-
     private _state: Reactive<TrackerState>;
 
     constructor() {
@@ -37,6 +36,46 @@ class TrackerSystem implements ShapeSystem {
             parentTrackers: [],
         });
     }
+
+    // CORE
+
+    clear(): void {
+        this.dropState();
+        this.data.clear();
+    }
+
+    drop(id: LocalId): void {
+        this.data.delete(id);
+        if (this._state.id === id) {
+            this.dropState();
+        }
+    }
+
+    import(id: LocalId, data: Tracker[], mode: SystemInformMode): void {
+        if (data.length === 0) return;
+
+        let newData = data;
+        if (mode !== "load") {
+            newData = data.map((t) => ({ ...t, uuid: uuidv4() as unknown as TrackerId }));
+        }
+        this.data.set(id, newData);
+    }
+
+    export(id: LocalId): Tracker[] {
+        return this.data.get(id) ?? [];
+    }
+
+    toServerShape(id: LocalId, data: ApiCoreShape): void {
+        const uuid = getGlobalId(id);
+        if (uuid === undefined) return;
+        data.trackers = trackersToServer(uuid, this.getAll(id, false));
+    }
+
+    fromServerShape(data: ApiCoreShape): Tracker[] {
+        return trackersFromServer(...data.trackers);
+    }
+
+    // REACTIVE
 
     get state(): DeepReadonly<Reactive<TrackerState>> {
         return this._state;
@@ -66,47 +105,13 @@ class TrackerSystem implements ShapeSystem {
 
     // BEHAVIOUR
 
-    clear(): void {
-        this.dropState();
-        this.data.clear();
-    }
-
-    // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, trackers: Tracker[]): void {
-        this.data.set(id, trackers);
-    }
-
-    drop(id: LocalId): void {
-        this.data.delete(id);
-        if (this._state.id === id) {
-            this.dropState();
-        }
-    }
-
     private getOrCreateForShape(id: LocalId): Tracker[] {
         let idTrackers = this.data.get(id);
         if (idTrackers === undefined) {
-            this.inform(id, []);
-            idTrackers = this.data.get(id)!;
+            idTrackers = [];
+            this.data.set(id, idTrackers);
         }
         return idTrackers;
-    }
-
-    getOrCreate(
-        id: LocalId,
-        trackerId: TrackerId,
-        sync: Sync,
-        initialData?: () => Partial<Tracker>,
-    ): { tracker: DeepReadonly<Tracker>; created: boolean } {
-        if (trackerId !== undefined) {
-            const tracker = this.get(id, trackerId, false);
-            if (tracker !== undefined) return { tracker, created: false };
-        }
-        const tracker = createEmptyUiTracker(id);
-        if (initialData !== undefined) Object.assign(tracker, initialData());
-        tracker.uuid = trackerId;
-        this.add(id, tracker, sync);
-        return { tracker, created: true };
     }
 
     get(id: LocalId, trackerId: TrackerId, includeParent: boolean): DeepReadonly<Tracker> | undefined {

@@ -1,3 +1,4 @@
+import type { ShapeSize } from "../../game/interfaces/shape";
 import { type GlobalPoint, toGP, getPointDistanceSquared } from "../geometry";
 import { getClosestPoint } from "../math";
 
@@ -52,19 +53,15 @@ export function getClosestCellCenter(position: GlobalPoint, gridType: GridType):
     return getCellCenter(getCellFromPoint(position, gridType), gridType);
 }
 
-/*
- * Returns the GlobalPoint that represents the center for a shape of the provided size in the neighbourhood of the provided position in such a way that it is grid aligned.
- * Size should be an integer representing the amount of grid cells the shape spans and NOT a pixel length.
- * The returned point will be the center of a cell for odd sized shapes and a cell corner for even sized shapes.
- * For hex grids two different centers are possible depending on the orientation of the shape, which should be provided with the `oddHexOrientation` parameter.
- */
-export function snapShapeToGrid(
+function snapShapeToHexGrid(
     position: GlobalPoint,
     gridType: GridType,
-    size: number,
+    size: ShapeSize,
     oddHexOrientation: boolean,
 ): GlobalPoint {
-    if (size % 2 !== 0) {
+    const maxSize = Math.max(size.x, size.y);
+
+    if (maxSize % 2 !== 0) {
         return getClosestCellCenter(position, gridType);
     }
 
@@ -74,12 +71,65 @@ export function snapShapeToGrid(
     let min: [GlobalPoint | null, number] = [null, Infinity];
     for (const [i, p] of cellPoints.entries()) {
         // for hex grids we only want to consider every second vertex depening on the orientation!
-        if (gridType !== GridType.Square && i % 2 === (oddHexOrientation ? 0 : 1)) continue;
+        if (i % 2 === (oddHexOrientation ? 0 : 1)) continue;
 
         const d = getPointDistanceSquared(p, position);
         if (min[0] === null || d < min[1]) min = [p, d];
     }
+
     return min[0]!;
+}
+
+function snapShapeToSquareGrid(position: GlobalPoint, size: ShapeSize): GlobalPoint {
+    const evenWidth = size.x % 2 === 0;
+    const evenHeight = size.y % 2 === 0;
+
+    if (!evenWidth && !evenHeight) {
+        return getClosestCellCenter(position, GridType.Square);
+    }
+
+    const cell = getCellFromPoint(position, GridType.Square);
+    const cellPoints = getCellVertices(cell, GridType.Square);
+
+    const candidatePoints: GlobalPoint[] = [];
+
+    if (evenWidth && evenHeight) {
+        candidatePoints.push(...cellPoints);
+    } else {
+        for (let i = 0; i < cellPoints.length; i++) {
+            const iv = cellPoints[i]!;
+            const niv = cellPoints[(i + 1) % cellPoints.length]!;
+            if (evenWidth && iv.x !== niv.x) continue;
+            if (evenHeight && iv.y !== niv.y) continue;
+            candidatePoints.push(toGP((iv.x + niv.x) / 2, (iv.y + niv.y) / 2));
+        }
+    }
+    let min: [GlobalPoint | null, number] = [null, Infinity];
+    for (const p of candidatePoints) {
+        const d = getPointDistanceSquared(p, position);
+        if (min[0] === null || d < min[1]) min = [p, d];
+    }
+
+    return min[0]!;
+}
+
+/*
+ * Returns the GlobalPoint that represents the center for a shape of the provided size in the neighbourhood of the provided position in such a way that it is grid aligned.
+ * Size should be an integer representing the amount of grid cells the shape spans and NOT a pixel length.
+ * The returned point will be the center of a cell for odd sized shapes and a cell corner for even sized shapes.
+ * For shapes with an odd width and even height (or vice versa) on a square grid, the returned point will be the midpoint of a cell edge.
+ * For hex grids two different centers are possible depending on the orientation of the shape, which should be provided with the `oddHexOrientation` parameter.
+ */
+export function snapShapeToGrid(
+    position: GlobalPoint,
+    gridType: GridType,
+    size: ShapeSize,
+    oddHexOrientation: boolean,
+): GlobalPoint {
+    if (gridType === GridType.Square) {
+        return snapShapeToSquareGrid(position, size);
+    }
+    return snapShapeToHexGrid(position, gridType, size, oddHexOrientation);
 }
 
 /**

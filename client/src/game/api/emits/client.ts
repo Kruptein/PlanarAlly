@@ -23,7 +23,12 @@ export function sendClientLocationOptions(temp: boolean): void {
 }
 
 function _sendClientLocationOptions(locationOptions: ClientPosition, temp: boolean): void {
-    const data: TempClientPosition = { position: locationOptions, temp };
+    const position = {
+        pan_x: Math.round(locationOptions.pan_x),
+        pan_y: Math.round(locationOptions.pan_y),
+        zoom_display: locationOptions.zoom_display,
+    };
+    const data: TempClientPosition = { position, temp };
     socket.emit("Client.Options.Location.Set", data);
 }
 

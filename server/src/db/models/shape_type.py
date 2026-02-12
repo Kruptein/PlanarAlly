@@ -1,4 +1,4 @@
-from typing import Tuple, cast
+from typing import cast
 
 from peewee import ForeignKeyField
 from playhouse.shortcuts import model_to_dict
@@ -11,6 +11,7 @@ from ..base import BaseDbModel
 
 
 class ShapeType(BaseDbModel):
+    shape_id: str
     shape = cast(Shape, ForeignKeyField(Shape, primary_key=True, on_delete="CASCADE"))
 
     @staticmethod
@@ -27,7 +28,7 @@ class ShapeType(BaseDbModel):
     def as_pydantic(self, shape: ApiCoreShape) -> ApiShape:
         raise Exception(f"{self.__class__.__name__} has no pydantic model")
 
-    def get_center_offset(self) -> Tuple[float, float]:
+    def get_center_offset(self) -> tuple[float, float]:
         return 0, 0
 
     def set_location(self, points: list[tuple[float, float]]) -> None:

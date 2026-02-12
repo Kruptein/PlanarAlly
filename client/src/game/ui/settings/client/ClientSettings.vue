@@ -57,7 +57,7 @@ const tabs = computed(() => [
 </script>
 
 <template>
-    <PanelModal v-model:visible="visible" :tabs="tabs" :initial-selection="uiState.reactive.clientSettingsTab">
+    <PanelModal v-model:visible="visible" v-model:selection="uiState.reactive.clientSettingsTab" :tabs="tabs">
         <template #title>{{ t("game.ui.settings.client.ClientSettings.client_settings") }}</template>
     </PanelModal>
 </template>

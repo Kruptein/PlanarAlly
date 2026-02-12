@@ -1,8 +1,8 @@
 import { useToast } from "vue-toastification";
 
 import type { ApiAsset, ApiAssetUpload } from "../apiTypes";
-import { registerSystem, type System } from "../core/systems";
-import type { SystemClearReason } from "../core/systems/models";
+import { registerSystem } from "../core/systems";
+import type { System, SystemClearReason } from "../core/systems/models";
 import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
 

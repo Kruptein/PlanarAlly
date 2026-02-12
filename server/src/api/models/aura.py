@@ -1,17 +1,18 @@
 from pydantic import Field
+from pydantic_core import MISSING
 
 from .helpers import TypeIdModel
 
 
 class AuraRef(TypeIdModel):
-    uuid: str = Field(typeId="AuraId")
-    shape: str = Field(typeId="GlobalId")
+    uuid: str = Field(json_schema_extra={"typeId": "AuraId"})
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
 
 
 class AuraMove(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
-    aura: str = Field(typeId="AuraId")
-    new_shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    aura: str = Field(json_schema_extra={"typeId": "AuraId"})
+    new_shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
 
 
 class ApiAura(AuraRef):
@@ -28,18 +29,18 @@ class ApiAura(AuraRef):
 
 
 class ApiOptionalAura(AuraRef):
-    vision_source: bool | None
-    visible: bool | None
-    name: str | None
-    value: int | None
-    dim: int | None
-    colour: str | None
-    active: bool | None
-    border_colour: str | None
-    angle: int | None
-    direction: int | None
+    vision_source: bool | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    visible: bool | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    name: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    value: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    dim: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    colour: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    active: bool | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    border_colour: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    angle: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    direction: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
 
 
 class ShapeSetAuraValue(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
-    value: str = Field(typeId="AuraId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    value: str = Field(json_schema_extra={"typeId": "AuraId"})

@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field
 from enum import IntEnum
+
+from pydantic import BaseModel, Field
+from pydantic_core import MISSING
 
 from ..helpers import TypeIdModel
 from .effect import *
@@ -16,8 +18,8 @@ class InitiativeDirection(IntEnum):
 
 
 class ApiInitiativeData(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
-    initiative: int | None
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    initiative: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     isVisible: bool
     isGroup: bool
     effects: list[ApiInitiativeEffect]
@@ -33,8 +35,8 @@ class ApiInitiative(BaseModel):
 
 
 class InitiativeAdd(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
-    initiative: int | None
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    initiative: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     isVisible: bool
     isGroup: bool
     effects: list[ApiInitiativeEffect]
@@ -42,5 +44,11 @@ class InitiativeAdd(TypeIdModel):
 
 class InitiativeTurnUpdate(BaseModel):
     turn: int
+    direction: InitiativeDirection
+    processEffects: bool
+
+
+class InitiativeRoundUpdate(BaseModel):
+    round: int
     direction: InitiativeDirection
     processEffects: bool

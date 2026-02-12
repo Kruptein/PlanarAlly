@@ -2,8 +2,7 @@ import type { DeepReadonly } from "vue";
 
 import type { ClientPosition } from "../../../apiTypes";
 import { registerSystem } from "../../../core/systems";
-import type { System } from "../../../core/systems";
-import type { SystemClearReason } from "../../../core/systems/models";
+import type { System, SystemClearReason } from "../../../core/systems/models";
 import { getLocalStorageObject } from "../../../localStorageHelpers";
 import { router } from "../../../router";
 import { coreStore } from "../../../store/core";
@@ -46,7 +45,7 @@ class PlayerSystem implements System {
         players: string[],
         location: number,
         sync: boolean,
-        targetPosition?: { x: number; y: number },
+        targetPosition?: { x: number; y: number; floor?: string },
     ): void {
         for (const player of $.players.values()) {
             if (players.includes(player.name)) {

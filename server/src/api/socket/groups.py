@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
@@ -28,7 +28,7 @@ async def update_group(sid: str, raw_data: Any):
         logger.exception(f"Could not retrieve group information for {data.uuid}")
         return
     else:
-        safe_update_model_from_dict(group, data.dict())
+        safe_update_model_from_dict(group, data.model_dump())
         group.save()
 
     for psid in game_state.get_sids(room=pr.room):
@@ -42,7 +42,7 @@ async def update_group(sid: str, raw_data: Any):
 
 @sio.on("Group.Members.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def update_group_badges(sid: str, raw_data: List[Any]):
+async def update_group_badges(sid: str, raw_data: list[Any]):
     member_badges = [GroupMemberBadge(**data) for data in raw_data]
 
     pr: PlayerRoom = game_state.get(sid)
@@ -77,7 +77,7 @@ async def create_group(sid: str, raw_data: Any):
         logger.exception(f"Group with {data.uuid} already exists")
         return
     except Group.DoesNotExist:
-        Group.create(**data.dict())
+        Group.create(**data.model_dump())
 
     for psid in game_state.get_sids(room=pr.room):
         await _send_game(
@@ -166,11 +166,14 @@ async def remove_group(sid: str, group_id: str):
         await _send_game("Group.Remove", group_id, room=psid, skip_sid=sid)
 
 
-async def remove_group_if_empty(group_id: str):
+async def remove_group_if_empty(group_id: str) -> bool:
     try:
         group = Group.get_by_id(group_id)
     except Group.DoesNotExist:
-        return
+        return False
 
     if Shape.filter(group=group_id).count() == 0:
         group.delete_instance(True)
+        return True
+
+    return False

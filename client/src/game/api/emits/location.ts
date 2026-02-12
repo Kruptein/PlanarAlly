@@ -11,7 +11,7 @@ export const sendLocationOrder = wrapSocket<number[]>("Locations.Order.Set");
 export const sendLocationChange = wrapSocket<{
     location: number;
     users: string[];
-    position?: { x: number; y: number };
+    position?: { x: number; y: number; floor?: string };
 }>("Location.Change");
 export const sendNewLocation = wrapSocket<string>("Location.New");
 export const sendLocationRename = wrapSocket<LocationRename>("Location.Rename");

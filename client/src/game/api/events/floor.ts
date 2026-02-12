@@ -4,8 +4,8 @@ import { addServerFloor } from "../../floor/server";
 import { floorSystem } from "../../systems/floors";
 import { socket } from "../socket";
 
-socket.on("Floor.Create", (data: FloorCreate) => {
-    addServerFloor(data.floor);
+socket.on("Floor.Create", async (data: FloorCreate) => {
+    await addServerFloor(data.floor);
     if (data.creator === coreStore.state.username) floorSystem.selectFloor({ name: data.floor.name }, true);
 });
 

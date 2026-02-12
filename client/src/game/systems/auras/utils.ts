@@ -3,6 +3,10 @@ import { uuidv4 } from "../../../core/utils";
 
 import type { Aura, AuraId, UiAura } from "./models";
 
+export function generateAuraId(): AuraId {
+    return uuidv4() as unknown as AuraId;
+}
+
 export function createEmptyUiAura(shape: LocalId): UiAura {
     return {
         shape,
@@ -12,9 +16,9 @@ export function createEmptyUiAura(shape: LocalId): UiAura {
     };
 }
 
-export function createEmptyAura(): Aura {
+function createEmptyAura(): Aura {
     return {
-        uuid: uuidv4() as unknown as AuraId,
+        uuid: generateAuraId(),
         active: false,
         name: "",
         value: 0,

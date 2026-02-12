@@ -1,4 +1,4 @@
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from ..app import sio
 from ..logs import logger
@@ -10,8 +10,8 @@ async def _send_game(
     data: Any,
     *,
     room: str | None,
-    skip_sid: Optional[str] = None,
-):
+    skip_sid: str | None = None,
+) -> None:
     await sio.emit(event, data, room=room, skip_sid=skip_sid, namespace=GAME_NS)
 
 
@@ -20,7 +20,7 @@ async def _send_assets(
     data: Any,
     *,
     room: str | None,
-    skip_sid: Optional[str] = None,
+    skip_sid: str | None = None,
 ):
     await sio.emit(event, data, room=room, skip_sid=skip_sid, namespace=ASSET_NS)
 

@@ -1,4 +1,4 @@
-from typing import Generator, Union
+from typing import Generator
 
 from ....db.models.player_room import PlayerRoom
 from ....db.models.shape import Shape
@@ -7,7 +7,7 @@ from ....models.access import has_ownership
 from ....state.game import game_state
 
 
-def get_shape_or_none(pr: PlayerRoom, shape_id: str, action: str) -> Union[Shape, None]:
+def get_shape_or_none(pr: PlayerRoom, shape_id: str, action: str) -> Shape | None:
     try:
         shape: Shape = Shape.get(uuid=shape_id)
     except Shape.DoesNotExist as exc:

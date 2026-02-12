@@ -1,5 +1,5 @@
 import { registerSystem } from "../../../core/systems";
-import type { System } from "../../../core/systems";
+import type { System } from "../../../core/systems/models";
 import { sendRoomLock } from "../../api/emits/room";
 import { updateFogColour } from "../../colour";
 import { floorSystem } from "../floors";

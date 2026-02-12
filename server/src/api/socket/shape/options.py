@@ -1,5 +1,7 @@
 import json
-from typing import Any, List, Optional
+from typing import Any
+
+from pydantic_core import MISSING
 
 from .... import auth
 from ....api.helpers import _send_game
@@ -20,13 +22,9 @@ from ...models.shape.options import (
     ShapeSetPermissionValue,
     ShapeSetStringValue,
     ShapeSetTeleportLocationValue,
+    ShapeSetSizeValue,
 )
-from ...models.tracker import (
-    ApiOptionalTracker,
-    ApiTracker,
-    ShapeSetTrackerValue,
-    TrackerMove,
-)
+from ...models.tracker import ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove
 from ..constants import GAME_NS
 from .utils import get_owner_sids, get_shape_or_none
 
@@ -35,16 +33,16 @@ async def send_name(
     data: ShapeSetStringValue,
     *,
     room: str,
-    skip_sid: Optional[str] = None,
+    skip_sid: str | None = None,
 ):
     await _send_game("Shape.Options.Name.Set", data, room=room, skip_sid=skip_sid)
 
 
-async def send_new_tracker(data: ApiTracker, *, room: str, skip_sid: Optional[str] = None):
+async def send_new_tracker(data: ApiTracker, *, room: str, skip_sid: str | None = None):
     await _send_game("Shape.Options.Tracker.Create", data, room=room, skip_sid=skip_sid)
 
 
-async def send_new_aura(data: ApiAura, *, room: str, skip_sid: Optional[str] = None):
+async def send_new_aura(data: ApiAura, *, room: str, skip_sid: str | None = None):
     await _send_game("Shape.Options.Aura.Create", data, room=room, skip_sid=skip_sid)
 
 
@@ -117,7 +115,7 @@ async def set_odd_hex_orientation(sid: str, raw_data: Any):
 @sio.on("Shape.Options.Size.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_size(sid: str, raw_data: Any):
-    data = ShapeSetIntegerValue(**raw_data)
+    data = ShapeSetSizeValue(**raw_data)
 
     pr: PlayerRoom = game_state.get(sid)
 
@@ -125,7 +123,8 @@ async def set_size(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    shape.size = data.value
+    shape.size_x = data.value.x
+    shape.size_y = data.value.y
     shape.save()
 
     await _send_game(
@@ -464,7 +463,7 @@ async def create_tracker(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    model = reduce_data_to_model(Tracker, data.dict())
+    model = reduce_data_to_model(Tracker, data.model_dump())
     tracker = Tracker.create(**model)
     tracker.save()
 
@@ -492,10 +491,10 @@ async def update_tracker(sid: str, raw_data: Any):
     tracker = Tracker.get_by_id(data.uuid)
 
     changed_visible = False
-    if data.visible is not None and data.visible != tracker.visible:
+    if data.visible is not MISSING and data.visible != tracker.visible:
         changed_visible = True
 
-    # don't use data.dict() as it contains a bunch of None's
+    # don't use data.model_dump() as it contains a bunch of None's
     safe_update_model_from_dict(tracker, raw_data)
     tracker.save()
 
@@ -556,7 +555,7 @@ async def create_aura(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    model = reduce_data_to_model(Aura, data.dict())
+    model = reduce_data_to_model(Aura, data.model_dump())
     aura = Aura.create(**model)
     aura.save()
 
@@ -587,7 +586,7 @@ async def update_aura(sid: str, raw_data: Any):
     if data.visible is not None and data.visible != aura.visible:
         changed_visible = True
 
-    # don't use data.dict() as it contains a bunch of None's
+    # don't use data.model_dump() as it contains a bunch of None's
     safe_update_model_from_dict(aura, raw_data)
     aura.save()
 
@@ -668,7 +667,7 @@ def set_options(shape: Shape, key: str, value):
 
 
 def set_options_deep(shape: Shape, key: str, subkey: str, value: dict | str | int):
-    options: List[Any] = json.loads(shape.options or "[]")
+    options: list[Any] = json.loads(shape.options or "[]")
     for option in options:
         if option[0] == key:
             option[1][subkey] = value
@@ -691,7 +690,7 @@ async def set_door_permissions(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    set_options_deep(shape, "door", "permissions", data.value.dict())
+    set_options_deep(shape, "door", "permissions", data.value.model_dump())
 
     await _send_game(
         "Shape.Options.Door.Permissions.Set",
@@ -776,7 +775,7 @@ async def set_tp_permissions(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    set_options_deep(shape, "teleport", "permissions", data.value.dict())
+    set_options_deep(shape, "teleport", "permissions", data.value.model_dump())
 
     await _send_game(
         "Shape.Options.TeleportZonePermissions.Set",
@@ -797,7 +796,7 @@ async def set_tp_target(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    set_options_deep(shape, "teleport", "location", data.value.dict())
+    set_options_deep(shape, "teleport", "location", data.value.model_dump())
 
     await _send_game(
         "Shape.Options.TeleportZoneTarget.Set",
@@ -839,7 +838,7 @@ async def set_svg_asset(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    options: List[Any] = json.loads(shape.options or "[]")
+    options: list[Any] = json.loads(shape.options or "[]")
 
     for i, option in enumerate(options[::-1]):
         if data.value is None and option[0] in [

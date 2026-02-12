@@ -20,6 +20,7 @@ import type { Floor } from "../../../models/floor";
 import { ToolName } from "../../../models/tools";
 import type { ToolFeatures, ITool } from "../../../models/tools";
 import { overrideLastOperation } from "../../../operations/undo";
+import { fromSystemForm } from "../../../shapes/transformations";
 import { Circle } from "../../../shapes/variants/circle";
 import { Line } from "../../../shapes/variants/line";
 import { Polygon } from "../../../shapes/variants/polygon";
@@ -212,19 +213,21 @@ class DrawTool extends Tool implements ITool {
             }
             if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
             if (this.state.isDoor) {
-                doorSystem.inform(
+                doorSystem.importLate(
                     this.shape.id,
-                    true,
                     {
-                        permissions: this.state.doorPermissions,
-                        toggleMode: this.state.toggleMode,
+                        enabled: true,
+                        options: {
+                            permissions: this.state.doorPermissions,
+                            toggleMode: this.state.toggleMode,
+                        },
                     },
-                    true,
+                    "create",
                 );
             }
             overrideLastOperation({
                 type: "shapeadd",
-                shapes: [this.shape.asDict()],
+                shapes: [fromSystemForm(this.shape.id)],
                 floor: this.shape.floor!.name,
                 layerName: this.shape.layer!.name,
             });
@@ -549,7 +552,7 @@ class DrawTool extends Tool implements ITool {
             let ignore = undefined;
             if (this.ruler) ignore = { shape: this.ruler };
             else if (this.shape) ignore = { shape: this.shape };
-            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, ignore);
+            [endPoint, this.snappedToPoint] = snapToPoint(layer as DeepReadonly<ILayer>, endPoint, ignore);
         } else this.snappedToPoint = false;
 
         if (this.pointer !== undefined) {
@@ -640,7 +643,7 @@ class DrawTool extends Tool implements ITool {
         let endPoint = l2g(lp);
         if (event && playerSettingsState.useSnapping(event)) {
             const ignore = this.shape !== undefined ? { shape: this.shape } : undefined;
-            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, ignore);
+            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()! as DeepReadonly<ILayer>, endPoint, ignore);
         } else this.snappedToPoint = false;
 
         // TODO: handle touch event different than altKey, long press

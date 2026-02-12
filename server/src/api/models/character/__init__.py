@@ -4,13 +4,13 @@ from ..helpers import TypeIdModel
 
 
 class ApiCharacter(TypeIdModel):
-    id: int = Field(typeId="CharacterId")
+    id: int = Field(json_schema_extra={"typeId": "CharacterId"})
     name: str
-    shapeId: str = Field(typeId="GlobalId")
+    shapeId: str = Field(json_schema_extra={"typeId": "GlobalId"})
     assetId: int
     assetHash: str
 
 
 class CharacterCreate(TypeIdModel):
-    shape: str = Field(typeId="GlobalId")
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     name: str

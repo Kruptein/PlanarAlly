@@ -1,4 +1,3 @@
-import type { ApiCircularTokenShape } from "../../../apiTypes";
 import { g2l, g2lz } from "../../../core/conversions";
 import type { GlobalPoint } from "../../../core/geometry";
 import type { GlobalId, LocalId } from "../../../core/id";
@@ -8,10 +7,10 @@ import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
 import { getColour } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import type { ServerShapeOptions } from "../../models/shapes";
 import { getProperties } from "../../systems/properties/state";
-import type { ShapeProperties } from "../../systems/properties/state";
+import type { ShapeProperties } from "../../systems/properties/types";
 import { playerSettingsState } from "../../systems/settings/players/state";
+import type { CircularTokenCompactCore, CompactShapeCore } from "../transformations";
 import type { SHAPE_TYPE } from "../types";
 
 import { Circle } from "./circle";
@@ -36,20 +35,14 @@ export class CircularToken extends Circle implements IShape {
         this.font = font;
     }
 
-    asDict(): ApiCircularTokenShape {
-        return {
-            ...super.asDict(),
-            text: this.text,
-            font: this.font,
-        };
+    asCompact(): CircularTokenCompactCore {
+        return { ...super.asCompact(), text: this.text, font: this.font };
     }
 
-    fromDict(data: ApiCircularTokenShape, options: Partial<ServerShapeOptions>): void {
-        super.fromDict(data, options);
-        this.r = data.radius;
-        this.viewingAngle = data.viewing_angle;
-        this.text = data.text;
-        this.font = data.font;
+    fromCompact(core: CompactShapeCore, subShape: CircularTokenCompactCore): void {
+        super.fromCompact(core, subShape);
+        this.text = subShape.text;
+        this.font = subShape.font;
     }
 
     draw(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {

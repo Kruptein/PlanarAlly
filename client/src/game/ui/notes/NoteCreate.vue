@@ -1,29 +1,70 @@
 <script setup lang="ts">
-import { onDeactivated, ref } from "vue";
+import { onActivated, onDeactivated, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { ApiNote } from "../../../apiTypes";
+import type { ApiNote, ApiNoteRoom } from "../../../apiTypes";
 import { uuidv4 } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
+import { gameState } from "../../systems/game/state";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
-import { NoteManagerMode } from "../../systems/notes/types";
+import { type NoteId, NoteManagerMode } from "../../systems/notes/types";
 import { locationSettingsState } from "../../systems/settings/location/state";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
 const { t } = useI18n();
 
+enum NoteLinkType {
+    Campaign,
+    Location,
+    NoLink,
+}
+
 const title = ref("");
-const isLocal = ref(true);
+const noteLinkType = ref(NoteLinkType.Campaign);
+
+onActivated(() => {
+    window.addEventListener("keydown", handleEnter);
+});
 
 onDeactivated(() => {
     title.value = "";
-    isLocal.value = true;
+    noteLinkType.value = NoteLinkType.Campaign;
+    window.removeEventListener("keydown", handleEnter);
 });
 
+const roomLinkOptions = [
+    {
+        title: t("game.ui.notes.NoteCreate.campaign_note_title"),
+        body: t("game.ui.notes.NoteCreate.campaign_note_body"),
+        value: NoteLinkType.Campaign,
+    },
+    {
+        title: t("game.ui.notes.NoteCreate.location_note_title"),
+        body: t("game.ui.notes.NoteCreate.location_note_body"),
+        value: NoteLinkType.Location,
+    },
+    {
+        title: t("game.ui.notes.NoteCreate.no_link_note_title"),
+        body: t("game.ui.notes.NoteCreate.no_link_note_body"),
+        value: NoteLinkType.NoLink,
+    },
+];
+
 async function createNote(): Promise<void> {
-    const uuid = uuidv4();
+    const uuid = uuidv4() as unknown as NoteId;
+    const [roomCreator, ...roomName] = gameState.fullRoomName.value.split("/") as [string, string[]];
+    const rooms: ApiNoteRoom[] = [];
+    if (noteLinkType.value !== NoteLinkType.NoLink) {
+        rooms.push({
+            roomCreator,
+            roomName: roomName.join("/"),
+            locationId:
+                noteLinkType.value === NoteLinkType.Location ? locationSettingsState.reactive.activeLocation : null,
+            locationName: null,
+        });
+    }
     const note: ApiNote = {
         uuid,
         creator: coreStore.state.username,
@@ -31,8 +72,7 @@ async function createNote(): Promise<void> {
         text: "",
         showOnHover: false,
         showIconOnShape: false,
-        isRoomNote: isLocal.value,
-        location: isLocal.value ? locationSettingsState.reactive.activeLocation : null,
+        rooms,
         tags: [],
         access: [],
         shapes: [],
@@ -42,6 +82,12 @@ async function createNote(): Promise<void> {
 
     noteState.mutableReactive.currentNote = note.uuid;
     emit("mode", NoteManagerMode.Edit);
+}
+
+function handleEnter(event: KeyboardEvent): void {
+    if (event.key === "Enter") {
+        void createNote();
+    }
 }
 </script>
 
@@ -60,21 +106,13 @@ async function createNote(): Promise<void> {
             autofocus
         />
         <label for="new-note-type">{{ t("game.ui.notes.NoteCreate.type") }}</label>
-        <div @click="isLocal = true">
-            <input type="radio" name="new-note-type" value="local" :checked="isLocal" />
+        <div>{{ t("game.ui.notes.NoteCreate.type_description") }}</div>
+        <div v-for="option of roomLinkOptions" :key="option.value" class="option" @click="noteLinkType = option.value">
+            <input type="radio" name="new-note-type" value="local" :checked="noteLinkType === option.value" />
             <div>
-                <div>{{ t("game.ui.notes.NoteCreate.local_note_title") }}</div>
+                <div>{{ option.title }}</div>
                 <div>
-                    {{ t("game.ui.notes.NoteCreate.local_note_body") }}
-                </div>
-            </div>
-        </div>
-        <div @click="isLocal = false">
-            <input type="radio" name="new-note-type" value="global" :checked="!isLocal" />
-            <div>
-                <div>{{ t("game.ui.notes.NoteCreate.global_note_title") }}</div>
-                <div>
-                    {{ t("game.ui.notes.NoteCreate.global_note_body") }}
+                    {{ option.body }}
                 </div>
             </div>
         </div>
@@ -131,26 +169,29 @@ header {
         border-style: solid;
     }
 
-    > div {
+    > .option {
         grid-column: 1/-1;
         display: flex;
 
         padding: 1rem;
-
         border: solid 1px black;
 
         &:hover {
             cursor: pointer;
         }
 
-        &:first-of-type {
-            border-top-left-radius: 1rem;
-            border-top-right-radius: 1rem;
+        &:not(:nth-last-child(1 of .option)),
+        &:nth-child(1 of .option) {
             margin-bottom: -1rem; // offset row-gap
             border-bottom: none;
         }
 
-        &:last-of-type {
+        &:nth-child(1 of .option) {
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+
+        &:nth-last-child(1 of .option) {
             border-bottom-left-radius: 1rem;
             border-bottom-right-radius: 1rem;
         }

@@ -4,6 +4,6 @@ from ...helpers import TypeIdModel
 
 
 class RoomInfoPlayersAdd(TypeIdModel):
-    id: int = Field(typeId="PlayerId")
+    id: int = Field(json_schema_extra={"typeId": "PlayerId"})
     name: str
     location: int

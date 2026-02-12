@@ -13,6 +13,12 @@ export class BiArrMap<K1, K2> {
     private map1 = new Map<K1, K2[]>();
     private map2 = new Map<K2, K1[]>();
 
+    constructor(entries?: Iterable<[K1, K2]>) {
+        for (const [k1, k2] of entries ?? []) {
+            this.add(k1, k2);
+        }
+    }
+
     clear(): void {
         this.map1.clear();
         this.map2.clear();
@@ -52,8 +58,16 @@ export class BiArrMap<K1, K2> {
         return this.map1.has(k1);
     }
 
-    entries1(): IterableIterator<[K1, K2[]]> {
+    entries1(): MapIterator<[K1, K2[]]> {
         return this.map1.entries();
+    }
+
+    entries2(): MapIterator<[K2, K1[]]> {
+        return this.map2.entries();
+    }
+
+    keys2(): MapIterator<K2> {
+        return this.map2.keys();
     }
 
     // Delete from map all data associated with key `k`

@@ -1,15 +1,22 @@
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
-from peewee import ForeignKeyField
+from peewee import DeferredForeignKey
 
 from ..base import BaseDbModel
-from .note import Note
-from .shape import Shape
+
+if TYPE_CHECKING:
+    from .note import Note
+    from .shape import Shape
 
 
 class NoteShape(BaseDbModel):
-    note = cast(Note, ForeignKeyField(Note, backref="shapes", on_delete="CASCADE"))
+    note_id: str
+    shape_id: str
+
+    note = cast(
+        "Note", DeferredForeignKey("Note", deferrable="INITIALLY DEFERRED", backref="shapes", on_delete="CASCADE")
+    )
     shape = cast(
-        Shape,
-        ForeignKeyField(Shape, backref="notes", on_delete="CASCADE"),
+        "Shape",
+        DeferredForeignKey("Shape", deferrable="INITIALLY DEFERRED", backref="notes", on_delete="CASCADE"),
     )

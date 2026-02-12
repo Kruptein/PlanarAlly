@@ -1,5 +1,5 @@
 from datetime import date
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 import bcrypt
 from peewee import DateField, ForeignKeyField, TextField, fn
@@ -28,7 +28,7 @@ class User(BaseDbModel):
     password_hash = cast(str, TextField())
     default_options = cast(UserOptions, ForeignKeyField(UserOptions, on_delete="CASCADE"))
 
-    colour_history = cast(Optional[str], TextField(null=True))
+    colour_history = cast(str | None, TextField(null=True))
 
     last_login = cast(date, DateField(null=True))
 
@@ -74,7 +74,7 @@ class User(BaseDbModel):
         return cls.get_or_none(cls.email == email)
 
     @classmethod
-    def create_new(cls, name: str, password: str, email: Optional[str] = None) -> "User":
+    def create_new(cls, name: str, password: str, email: str | None = None) -> "User":
         u = User(name=name)
         u.set_password(password)
         if email:

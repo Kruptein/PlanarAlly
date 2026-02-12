@@ -1,7 +1,7 @@
 import json
-from typing import Any, List
+from typing import Any
 
-from peewee import JOIN
+from pydantic_core import MISSING
 from typing_extensions import TypedDict
 
 from ... import auth
@@ -19,8 +19,6 @@ from ...db.models.location_options import LocationOptions
 from ...db.models.location_user_option import LocationUserOption
 from ...db.models.marker import Marker
 from ...db.models.mod_room import ModRoom
-from ...db.models.note import Note
-from ...db.models.note_access import NoteAccess
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.shape import Shape
@@ -33,17 +31,8 @@ from ...transform.to_api.asset import transform_asset
 from ...transform.to_api.floor import transform_floor
 from ..helpers import _send_game
 from ..models.client import OptionalClientViewport
-from ..models.location import (
-    ApiLocationCore,
-    LocationChange,
-    LocationClone,
-    LocationRename,
-)
-from ..models.location.settings import (
-    ApiOptionalLocationOptions,
-    LocationOptionsSet,
-    LocationSettingsSet,
-)
+from ..models.location import ApiLocationCore, LocationChange, LocationClone, LocationRename
+from ..models.location.settings import ApiOptionalLocationOptions, LocationOptionsSet, LocationSettingsSet
 from ..models.location.spawn_info import ApiSpawnInfo
 from ..models.mods import ApiModMeta
 from ..models.players.info import PlayerInfoCore, PlayersInfoSet
@@ -96,13 +85,13 @@ async def load_location(sid: str, location: Location, *, complete=False):
                 name=rp.player.name,
                 location=rp.active_location.id,
                 role=rp.role,
-            )
+            ),
+            position=MISSING,
+            clients=MISSING,
         )
 
         if IS_DM or rp.player.id == pr.player.id:
-            player_info.position = (LocationUserOption.get(user=rp.player, location=rp.active_location).as_pydantic(),)[
-                0
-            ]
+            player_info.position = LocationUserOption.get(user=rp.player, location=rp.active_location).as_pydantic()
 
         if IS_DM:
             client_data: list[OptionalClientViewport] = []
@@ -126,7 +115,9 @@ async def load_location(sid: str, location: Location, *, complete=False):
     # 1. Load room info
 
     if complete:
-        mods = [ApiModMeta(**mod.mod.as_pydantic().dict()) for mod in ModRoom.select().where(ModRoom.room == pr.room)]
+        mods = [
+            ApiModMeta(**mod.mod.as_pydantic().model_dump()) for mod in ModRoom.select().where(ModRoom.room == pr.room)
+        ]
         await _send_game(
             "Room.Info.Set",
             RoomInfoSet(
@@ -211,7 +202,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
     floors = [floor for floor in location.floors.order_by(Floor.index)]
 
     player_position = player_data[current_player_index].position
-    if player_position and player_position.active_floor is not None:
+    if player_position is not MISSING and player_position.active_floor is not MISSING:
         index = next(i for i, f in enumerate(floors) if f.name == player_position.active_floor)
         lower_floors = floors[index - 1 :: -1] if index > 0 else []
         higher_floors = floors[index + 1 :] if index < len(floors) else []
@@ -227,39 +218,6 @@ async def load_location(sid: str, location: Location, *, complete=False):
         await _send_game("Initiative.Set", initiative_data.as_pydantic(), room=sid)
 
     # 7. Load Notes
-
-    await _send_game(
-        "Notes.Set",
-        [
-            note.as_pydantic()
-            for note in Note.select()
-            .join(NoteAccess, JOIN.LEFT_OUTER)
-            .where(
-                # Global
-                (
-                    (Note.room >> None)  # type: ignore
-                    & (
-                        # Note owner or specific access (w/o default access)
-                        (Note.creator == pr.player) | ((NoteAccess.user == pr.player) & NoteAccess.can_view)
-                    )
-                )
-                | (
-                    # Local
-                    (Note.room == pr.room)
-                    & (
-                        # Note owner or specific access
-                        (Note.creator == pr.player)
-                        | (
-                            ((NoteAccess.user >> None) | (NoteAccess.user == pr.player))  # type: ignore
-                            & NoteAccess.can_view
-                        )
-                    )
-                )
-            )
-            .group_by(Note.uuid)
-        ],
-        room=sid,
-    )
 
     # 8. Load Markers
 
@@ -327,7 +285,7 @@ async def change_location(sid: str, raw_data: Any):
             # loading times might vary and we don't want to snap people back when they already move around
             # And it's possible that there are already users on the new location
             # that don't want to be moved to this new position
-            if data.position:
+            if data.position is not MISSING:
                 await sio.emit(
                     "Position.Set",
                     data=data.position,
@@ -347,7 +305,7 @@ async def set_location_options(sid: str, raw_data: Any):
         logger.warning(f"{pr.player.name} attempted to set a room option")
         return
 
-    if data.location is None:
+    if data.location is MISSING:
         options = pr.room.default_options
     else:
         loc = Location.get_by_id(data.location)
@@ -356,10 +314,10 @@ async def set_location_options(sid: str, raw_data: Any):
             loc.save()
         options = loc.options
 
-    safe_update_model_from_dict(options, raw_data["options"])  # Don't use .dict() here
+    safe_update_model_from_dict(options, raw_data["options"])  # Don't use .model_dump() here
     options.save()
 
-    if data.location is None:
+    if data.location is MISSING:
         for sid in game_state.get_sids(skip_sid=sid, room=pr.room):
             await _send_game("Location.Options.Set", raw_data, room=sid)
     else:
@@ -430,7 +388,7 @@ async def clone_location(sid: str, raw_data: Any):
                 src_shape.make_copy(new_layer, new_group)
 
     for luo in src_location.user_options:
-        lduo = luo.as_pydantic().dict()
+        lduo = luo.as_pydantic().model_dump()
         lduo["location"] = new_location
         lduo["user"] = luo.user
         if lduo["active_layer"]:
@@ -458,7 +416,7 @@ async def clone_location(sid: str, raw_data: Any):
 
 @sio.on("Locations.Order.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def set_locations_order(sid: str, locations: List[int]):
+async def set_locations_order(sid: str, locations: list[int]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:

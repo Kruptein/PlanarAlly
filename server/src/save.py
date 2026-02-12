@@ -14,37 +14,24 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 106
+SAVE_VERSION = 113
 
 import asyncio
 import json
-import logging
 import secrets
 import shutil
 import sys
 from datetime import datetime
-from pathlib import Path
-from typing import Optional
 from uuid import uuid4
 
 from playhouse.sqlite_ext import SqliteExtDatabase
 
-from .thumbnail import generate_thumbnail_for_asset
-
-from .db.all import ALL_MODELS
+from .db.all import ALL_NORMAL_MODELS, ALL_VIEWS
 from .db.db import db as ACTIVE_DB
 from .db.models.constants import Constants
-from .utils import (
-    ASSETS_DIR,
-    FILE_DIR,
-    SAVE_PATH,
-    OldVersionException,
-    UnknownVersionException,
-    get_asset_hash_subpath,
-)
-
-logger: logging.Logger = logging.getLogger("PlanarAllyServer")
-logger.setLevel(logging.INFO)
+from .thumbnail import generate_thumbnail_for_asset
+from .utils import ASSETS_DIR, FILE_DIR, SAVE_PATH, OldVersionException, UnknownVersionException, get_asset_hash_subpath
+from .logs import logger
 
 
 def get_save_version(db: SqliteExtDatabase):
@@ -56,7 +43,9 @@ def inc_save_version(db: SqliteExtDatabase):
 
 
 def create_new_db(db: SqliteExtDatabase, version: int):
-    db.create_tables(ALL_MODELS)
+    db.create_tables(ALL_NORMAL_MODELS)
+    for view in ALL_VIEWS:
+        view.create_view(db)
     Constants.create(
         save_version=version,
         secret_token=secrets.token_bytes(32),
@@ -76,57 +65,16 @@ def upgrade(
     db: SqliteExtDatabase,
     version: int,
     is_import: bool,
-    loop: Optional[asyncio.AbstractEventLoop] = None,
+    loop: asyncio.AbstractEventLoop | None = None,
 ):
-    if version < 85:
+    if version < 88:
         raise OldVersionException(
             f"Upgrade code for this version is >2 years old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 85:
-        # Add Character things
-        with db.atomic():
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "character" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "owner_id" INTEGER NOT NULL, "asset_id" INTEGER NOT NULL, "campaign_id" INTEGER DEFAULT NULL, FOREIGN KEY ("owner_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE RESTRICT, FOREIGN KEY ("campaign_id") REFERENCES "room" ("id") ON DELETE SET NULL)'
-            )
-            db.execute_sql("CREATE TEMPORARY TABLE _shape_85 AS SELECT * FROM shape")
-            db.execute_sql("DROP TABLE shape")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, "is_invisible" INTEGER NOT NULL DEFAULT 0, "default_movement_access" INTEGER NOT NULL DEFAULT 0, "is_locked" INTEGER NOT NULL DEFAULT 0, "angle" REAL NOT NULL DEFAULT 0, "stroke_width" INTEGER NOT NULL DEFAULT 2, "asset_id" INTEGER DEFAULT NULL, "group_id" TEXT DEFAULT NULL, "annotation_visible" INTEGER NOT NULL DEFAULT 0, "ignore_zoom_size" INTEGER DEFAULT 0, "is_defeated" INTEGER NOT NULL DEFAULT 0, "is_door" INTEGER DEFAULT 0 NOT NULL, "is_teleport_zone" INTEGER DEFAULT 0 NOT NULL, "character_id" INTEGER DEFAULT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE SET NULL, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid") ON DELETE SET NULL, FOREIGN KEY ("character_id") REFERENCES "character" ("id") ON DELETE SET NULL);'
-            )
-            db.execute_sql(
-                'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "is_token", "annotation", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "annotation_visible", "ignore_zoom_size", "is_defeated", "is_door", "is_teleport_zone" FROM _shape_85'
-            )
-            db.execute_sql("DROP TABLE _shape_85")
-    elif version == 86:
-        # Add DataBlock
-        with db.atomic():
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "room_data_block" ("id" INTEGER NOT NULL PRIMARY KEY, "source" TEXT NOT NULL, "name" TEXT NOT NULL, "room_id" TEXT NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE)'
-            )
-            db.execute_sql(
-                'CREATE UNIQUE INDEX "room_data_block_keys" ON "room_data_block" ("source", "name", "room_id");'
-            )
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "shape_data_block" ("id" INTEGER NOT NULL PRIMARY KEY, "source" TEXT NOT NULL, "name" TEXT NOT NULL, "shape_id" TEXT NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
-            )
-            db.execute_sql(
-                'CREATE UNIQUE INDEX "shape_data_block_keys" ON "shape_data_block" ("source", "name", "shape_id");'
-            )
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "user_data_block" ("id" INTEGER NOT NULL PRIMARY KEY, "source" TEXT NOT NULL, "name" TEXT NOT NULL, "user_id" TEXT NOT NULL, "data" TEXT NOT NULL, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
-            )
-            db.execute_sql(
-                'CREATE UNIQUE INDEX "user_data_block_keys" ON "user_data_block" ("source", "name", "user_id");'
-            )
-    elif version == 87:
-        # Add AssetShare
-        db.execute_sql(
-            'CREATE TABLE IF NOT EXISTS "asset_share" ("id" INTEGER NOT NULL PRIMARY KEY, "asset_id" INT NOT NULL, "user_id" INT NOT NULL, "right" TEXT NOT NULL, "name" TEXT NOT NULL, "parent_id" INT NOT NULL, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("parent_id") REFERENCES "asset" ("id") ON DELETE CASCADE)'
-        )
-    elif version == 88:
+    if version == 88:
         with db.atomic():
             # Add new Note fields
             db.execute_sql("CREATE TEMPORARY TABLE _note_88 AS SELECT * FROM note")
@@ -159,8 +107,8 @@ def upgrade(
                     templates = asset_options["templates"]
                 except:
                     continue
-                for template in templates.values():
-                    if template.get("annotation", "") == "":
+                for template_name in templates.values():
+                    if template_name.get("annotation", "") == "":
                         continue
 
                     note_id = str(uuid4())
@@ -171,26 +119,26 @@ def upgrade(
                             note_id,
                             asset_owner,
                             asset_name or "?",
-                            template["annotation"],
+                            template_name["annotation"],
                             None,
                         ),
                     )
 
-                    del template["annotation"]
+                    del template_name["annotation"]
 
                     # Grant default view access if the annotation was public
-                    if template.get("annotation_visible", False):
+                    if template_name.get("annotation_visible", False):
                         db.execute_sql(
                             'INSERT INTO "note_access" ("note_id", "can_edit", "can_view") VALUES (?, ?, ?)',
                             (note_id, 0, 1),
                         )
 
-                    if "annotation_visible" in template:
-                        del template["annotation_visible"]
+                    if "annotation_visible" in template_name:
+                        del template_name["annotation_visible"]
 
-                    options = json.loads(template.get("options", "[]"))
-                    options.append(["templateNoteIds", [note_id]])
-                    template["options"] = json.dumps(options)
+                    template_values = json.loads(template_name.get("options", "[]"))
+                    template_values.append(["templateNoteIds", [note_id]])
+                    template_name["options"] = json.dumps(template_values)
                 db.execute_sql(
                     "UPDATE asset SET options=? WHERE id=?",
                     (json.dumps(asset_options), asset_id),
@@ -478,6 +426,271 @@ def upgrade(
         # Add User.last_login
         with db.atomic():
             db.execute_sql("ALTER TABLE user ADD COLUMN last_login DATE DEFAULT NULL")
+    elif version == 106:
+        # Add ShapeCustomData
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TABLE IF NOT EXISTS 'shape_custom_data' ('id' INTEGER NOT NULL PRIMARY KEY, 'shape_id' TEXT NOT NULL, 'source' TEXT NOT NULL, 'prefix' TEXT NOT NULL, 'name' TEXT NOT NULL, 'kind' TEXT NOT NULL, 'value' TEXT NOT NULL, 'reference' TEXT DEFAULT NULL, 'description' TEXT DEFAULT NULL, FOREIGN KEY ('shape_id') REFERENCES 'shape' ('uuid') ON DELETE CASCADE)"
+            )
+            db.execute_sql(
+                "CREATE UNIQUE INDEX 'shape_custom_data_keys' ON 'shape_custom_data' ('shape_id', 'source', 'prefix', 'name')"
+            )
+    elif version == 107:
+        with db.atomic():
+            # Fix Shape default values missing
+            db.execute_sql("CREATE TEMPORARY TABLE _shape_107 AS SELECT * FROM shape")
+            db.execute_sql("DROP TABLE shape")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL DEFAULT 0, "fill_colour" TEXT NOT NULL DEFAULT "#000", "stroke_colour" TEXT NOT NULL DEFAULT "#fff", "vision_obstruction" INTEGER NOT NULL DEFAULT 0, "movement_obstruction" INTEGER NOT NULL DEFAULT 0, "draw_operator" TEXT NOT NULL DEFAULT "source-over", "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL DEFAULT 1, "show_badge" INTEGER NOT NULL DEFAULT 0, "default_edit_access" INTEGER NOT NULL DEFAULT 0, "default_vision_access" INTEGER NOT NULL DEFAULT 0, "is_invisible" INTEGER NOT NULL DEFAULT 0, "is_defeated" INTEGER NOT NULL DEFAULT 0, "default_movement_access" INTEGER NOT NULL DEFAULT 0, "is_locked" INTEGER NOT NULL DEFAULT 0, "angle" REAL NOT NULL DEFAULT 0, "stroke_width" INTEGER NOT NULL DEFAULT 2, "asset_id" INTEGER DEFAULT NULL, "group_id" TEXT DEFAULT NULL, "ignore_zoom_size" INTEGER DEFAULT 0, "is_door" INTEGER DEFAULT 0 NOT NULL, "is_teleport_zone" INTEGER DEFAULT 0 NOT NULL, "character_id" INTEGER DEFAULT NULL, odd_hex_orientation INTEGER DEFAULT 0, size INTEGER DEFAULT 0, show_cells INTEGER NOT NULL DEFAULT 0, cell_fill_colour TEXT DEFAULT NULL, cell_stroke_colour TEXT DEFAULT NULL, cell_stroke_width INTEGER DEFAULT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE SET NULL, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid") ON DELETE SET NULL, FOREIGN KEY ("character_id") REFERENCES "character" ("id") ON DELETE SET NULL)'
+            )
+            db.execute_sql("CREATE INDEX 'shape_layer_id' ON 'shape' ('layer_id')")
+            db.execute_sql("CREATE INDEX 'shape_asset_id' ON 'shape' ('asset_id')")
+            db.execute_sql("CREATE INDEX 'shape_group_id' ON 'shape' ('group_id')")
+            db.execute_sql("CREATE INDEX 'shape_character_id' ON 'shape' ('character_id')")
+            db.execute_sql(
+                'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width" FROM _shape_107'
+            )
+            db.execute_sql("DROP TABLE _shape_107")
+
+            # Add AssetTemplate
+            db.execute_sql(
+                "CREATE TABLE IF NOT EXISTS 'shape_template' ('id' INTEGER NOT NULL PRIMARY KEY, 'shape_id' TEXT NOT NULL, 'asset_id' INTEGER NOT NULL, 'name' TEXT NOT NULL, FOREIGN KEY ('shape_id') REFERENCES 'shape' ('uuid') ON DELETE CASCADE, FOREIGN KEY ('asset_id') REFERENCES 'asset' ('id') ON DELETE CASCADE)"
+            )
+            db.execute_sql("CREATE INDEX 'shape_template_shape_id' ON 'shape_template' ('shape_id')")
+            db.execute_sql("CREATE INDEX 'shape_template_asset_id' ON 'shape_template' ('asset_id')")
+
+            # Migrate old templates
+            data = db.execute_sql(
+                "SELECT a.id, a.owner_id, a.options FROM asset a WHERE a.options IS NOT NULL"
+            ).fetchall()
+            asset_id_to_note_id = {}
+            for asset_id, asset_owner, raw_options in data:
+                try:
+                    asset_options = json.loads(raw_options)
+                    templates = asset_options["templates"]
+                except:
+                    continue
+                for template_name, template_values in templates.items():
+                    if template_values.get("type_") != "assetrect":
+                        continue
+
+                    try:
+                        new_shape_id = str(uuid4())
+                        db.execute_sql(
+                            'INSERT INTO "shape" ("uuid", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "index", "default_edit_access", "default_vision_access", "default_movement_access", "angle", "stroke_width", "asset_id") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                            (
+                                new_shape_id,
+                                "assetrect",
+                                0,
+                                0,
+                                template_values.get("name", None),
+                                template_values.get("name_visible", False),
+                                template_values.get("fill_colour", "#000"),
+                                template_values.get("stroke_colour", "#fff"),
+                                template_values.get("vision_obstruction", False),
+                                template_values.get("movement_obstruction", False),
+                                0,
+                                template_values.get("default_edit_access", False),
+                                template_values.get("default_vision_access", False),
+                                template_values.get("default_movement_access", False),
+                                template_values.get("angle", 0),
+                                template_values.get("stroke_width", 2),
+                                asset_id,
+                            ),
+                        )
+                        src = template_values.get("src", "")
+                        if "/static/assets/" in src:
+                            file_hash = src.split("/static/assets/")[1]
+                            src = f"/static/assets/{get_asset_hash_subpath(file_hash)}"
+                        db.execute_sql(
+                            'INSERT INTO "asset_rect" ("shape_id", "src", "width", "height") VALUES (?, ?, ?, ?)',
+                            (
+                                new_shape_id,
+                                src,
+                                template_values.get("width", 0),
+                                template_values.get("height", 0),
+                            ),
+                        )
+                        db.execute_sql(
+                            "INSERT INTO 'shape_template' ('shape_id', 'asset_id', 'name') VALUES (?, ?, ?)",
+                            (new_shape_id, asset_id, template_name),
+                        )
+                        # insert trackers
+                        trackers = template_values.get("trackers", [])
+                        for tracker in trackers:
+                            db.execute_sql(
+                                "INSERT INTO 'tracker' ('uuid', 'shape_id', 'visible', 'name', 'value', 'maxvalue', 'draw', 'primary_color', 'secondary_color') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                (
+                                    str(uuid4()),
+                                    new_shape_id,
+                                    tracker.get("visible", False),
+                                    tracker.get("name", ""),
+                                    tracker.get("value", 0),
+                                    tracker.get("maxvalue", 0),
+                                    tracker.get("draw", False),
+                                    tracker.get("primary_color", "#000000"),
+                                    tracker.get("secondary_color", "#000000"),
+                                ),
+                            )
+                        # insert auras
+                        auras = template_values.get("auras", [])
+                        for aura in auras:
+                            db.execute_sql(
+                                "INSERT INTO 'aura' ('uuid', 'shape_id', 'vision_source', 'visible', 'name', 'value', 'dim', 'colour', 'active', 'border_colour', 'angle', 'direction') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                (
+                                    str(uuid4()),
+                                    new_shape_id,
+                                    aura.get("vision_source", False),
+                                    aura.get("visible", False),
+                                    aura.get("name", ""),
+                                    aura.get("value", 0),
+                                    aura.get("dim", 0),
+                                    aura.get("colour", "#000000"),
+                                    aura.get("active", False),
+                                    aura.get("border_colour", "#000000"),
+                                    aura.get("angle", 0),
+                                    aura.get("direction", 0),
+                                ),
+                            )
+                        # attach notes
+                        try:
+                            notes_data = json.loads(template_values.get("options", "[]"))
+                            notes = {k: v for k, v in notes_data.items() if k == "templateNoteIds"}.get(
+                                "templateNoteIds", []
+                            )
+                        except:
+                            pass
+                        else:
+                            for note_id in notes:
+                                note_query = db.execute_sql("SELECT id FROM note WHERE uuid = ?", (note_id,))
+                                if note_query.fetchone() is None:
+                                    continue
+                                db.execute_sql(
+                                    "INSERT INTO 'note_shape' ('note_id', 'shape_id') VALUES (?, ?)",
+                                    (note_id, new_shape_id),
+                                )
+                    except:
+                        logger.exception(
+                            f"Error migrating asset template {template_name} for asset {asset_id} - skipping"
+                        )
+            # remove Asset options
+            db.execute_sql("CREATE TEMPORARY TABLE _asset_107 AS SELECT * FROM asset")
+            db.execute_sql("DROP TABLE asset")
+            db.execute_sql(
+                "CREATE TABLE IF NOT EXISTS 'asset' ('id' INTEGER NOT NULL PRIMARY KEY, 'owner_id' INTEGER NOT NULL, 'parent_id' INTEGER, 'name' TEXT NOT NULL, 'file_hash' TEXT, FOREIGN KEY ('owner_id') REFERENCES 'user' ('id') ON DELETE CASCADE, FOREIGN KEY ('parent_id') REFERENCES 'asset' ('id') ON DELETE CASCADE)"
+            )
+            db.execute_sql("CREATE INDEX 'asset_owner_id' ON 'asset' ('owner_id')")
+            db.execute_sql("CREATE INDEX 'asset_parent_id' ON 'asset' ('parent_id')")
+            db.execute_sql(
+                "INSERT INTO 'asset' ('id', 'owner_id', 'parent_id', 'name', 'file_hash') SELECT id, owner_id, parent_id, name, file_hash FROM _asset_107"
+            )
+            db.execute_sql("DROP TABLE _asset_107")
+    elif version == 108:
+        # Add NoteRoom and migrate Note to NoteRoom
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_room" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "room_id" INTEGER NOT NULL, "location_id" INTEGER DEFAULT NULL, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_room_note_id" ON "note_room" ("note_id")')
+            db.execute_sql('CREATE INDEX "note_room_room_id" ON "note_room" ("room_id")')
+            db.execute_sql('CREATE INDEX "note_room_location_id" ON "note_room" ("location_id")')
+            db.execute_sql(
+                'CREATE UNIQUE INDEX "unique_note_room" ON "note_room" ("note_id", "room_id", "location_id")'
+            )
+
+            data = db.execute_sql("SELECT uuid, location_id, room_id FROM note WHERE room_id IS NOT NULL")
+            for note_id, location_id, room_id in data.fetchall():
+                db.execute_sql(
+                    'INSERT INTO "note_room" ("note_id", "room_id", "location_id") VALUES (?, ?, ?)',
+                    (note_id, room_id, location_id),
+                )
+
+            db.execute_sql("CREATE TEMPORARY TABLE _note_108 AS SELECT * FROM note")
+            db.execute_sql("DROP TABLE note")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note" ("uuid" TEXT NOT NULL PRIMARY KEY, "creator_id" INTEGER NOT NULL, "title" TEXT NOT NULL DEFAULT \'\', "text" TEXT NOT NULL DEFAULT \'\', "tags" TEXT DEFAULT NULL, "show_on_hover" INT DEFAULT 0 NOT NULL, "show_icon_on_shape" INT DEFAULT 0 NOT NULL, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_creator_id" ON "note" ("creator_id")')
+            db.execute_sql(
+                'INSERT INTO "note" ("uuid", "creator_id", "title", "text", "tags", "show_on_hover", "show_icon_on_shape") SELECT uuid, creator_id, title, text, tags, show_on_hover, show_icon_on_shape FROM _note_108'
+            )
+            db.execute_sql("DROP TABLE _note_108")
+
+            db.execute_sql(
+                "CREATE VIEW IF NOT EXISTS shape_room_view AS SELECT shape.uuid as shape_id, room.id as room_id FROM shape LEFT JOIN layer ON shape.layer_id = layer.id INNER JOIN floor ON layer.floor_id = floor.id INNER JOIN location ON floor.location_id = location.id INNER JOIN room ON location.room_id = room.id"
+            )
+    elif version == 109:
+        # Add NoteTag and NoteUserTag and remove tags column from note
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_user_tag" ("id" INTEGER NOT NULL PRIMARY KEY, "user_id" INTEGER NOT NULL, "tag" TEXT NOT NULL, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_user_tag_user_id" ON "note_user_tag" ("user_id")')
+            db.execute_sql('CREATE UNIQUE INDEX "unique_note_user_tag" ON "note_user_tag" ("user_id", "tag")')
+
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "note_tag" ("id" INTEGER NOT NULL PRIMARY KEY, "note_id" TEXT NOT NULL, "tag_id" INTEGER NOT NULL, FOREIGN KEY ("note_id") REFERENCES "note" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("tag_id") REFERENCES "note_user_tag" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql('CREATE INDEX "note_tag_note_id" ON "note_tag" ("note_id")')
+            db.execute_sql('CREATE INDEX "note_tag_tag_id" ON "note_tag" ("tag_id")')
+            db.execute_sql('CREATE UNIQUE INDEX "unique_note_tag" ON "note_tag" ("note_id", "tag_id")')
+            data = db.execute_sql("SELECT uuid, creator_id, tags FROM note WHERE tags IS NOT NULL")
+            for note_id, creator_id, tags in data.fetchall():
+                try:
+                    tags = json.loads(tags)
+                except:
+                    continue
+                for tag in set(tags):
+                    tag_query = db.execute_sql(
+                        "SELECT id FROM note_user_tag WHERE user_id = ? AND tag = ?", (creator_id, tag)
+                    )
+                    result = tag_query.fetchone()
+                    if result is None:
+                        tag_query = db.execute_sql(
+                            "INSERT INTO 'note_user_tag' ('user_id', 'tag') VALUES (?, ?) RETURNING id",
+                            (creator_id, tag),
+                        )
+                        result = tag_query.fetchone()
+                    tag_id = result[0]
+                    db.execute_sql(
+                        "INSERT INTO 'note_tag' ('note_id', 'tag_id') VALUES (?, ?)",
+                        (note_id, tag_id),
+                    )
+            db.execute_sql("ALTER TABLE note DROP COLUMN tags")
+    elif version == 110:
+        # Add more columns to ShapeRoomView
+        with db.atomic():
+            db.execute_sql("DROP VIEW shape_room_view")
+            db.execute_sql(
+                "CREATE VIEW shape_room_view AS SELECT shape.uuid as shape_id, room.id as room_id, location.id as location_id FROM shape LEFT JOIN layer ON shape.layer_id = layer.id LEFT JOIN floor ON layer.floor_id = floor.id LEFT JOIN location ON floor.location_id = location.id LEFT JOIN room ON location.room_id = room.id"
+            )
+    elif version == 111:
+        # Remove Shape.size and add Shape.size_x, Shape.size_y
+        with db.atomic():
+            db.execute_sql("CREATE TEMPORARY TABLE _shape_111 AS SELECT * FROM shape")
+            db.execute_sql("DROP TABLE shape")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL DEFAULT 0, "fill_colour" TEXT NOT NULL DEFAULT "#000", "stroke_colour" TEXT NOT NULL DEFAULT "#fff", "vision_obstruction" INTEGER NOT NULL DEFAULT 0, "movement_obstruction" INTEGER NOT NULL DEFAULT 0, "draw_operator" TEXT NOT NULL DEFAULT "source-over", "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL DEFAULT 1, "show_badge" INTEGER NOT NULL DEFAULT 0, "default_edit_access" INTEGER NOT NULL DEFAULT 0, "default_vision_access" INTEGER NOT NULL DEFAULT 0, "is_invisible" INTEGER NOT NULL DEFAULT 0, "is_defeated" INTEGER NOT NULL DEFAULT 0, "default_movement_access" INTEGER NOT NULL DEFAULT 0, "is_locked" INTEGER NOT NULL DEFAULT 0, "angle" REAL NOT NULL DEFAULT 0, "stroke_width" INTEGER NOT NULL DEFAULT 2, "asset_id" INTEGER DEFAULT NULL, "group_id" TEXT DEFAULT NULL, "ignore_zoom_size" INTEGER DEFAULT 0, "is_door" INTEGER DEFAULT 0 NOT NULL, "is_teleport_zone" INTEGER DEFAULT 0 NOT NULL, "character_id" INTEGER DEFAULT NULL, odd_hex_orientation INTEGER DEFAULT 0, size_x INTEGER DEFAULT 0, size_y INTEGER DEFAULT 0, show_cells INTEGER NOT NULL DEFAULT 0, cell_fill_colour TEXT DEFAULT NULL, cell_stroke_colour TEXT DEFAULT NULL, cell_stroke_width INTEGER DEFAULT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE SET NULL, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid") ON DELETE SET NULL, FOREIGN KEY ("character_id") REFERENCES "character" ("id") ON DELETE SET NULL)'
+            )
+            db.execute_sql("CREATE INDEX 'shape_layer_id' ON 'shape' ('layer_id')")
+            db.execute_sql("CREATE INDEX 'shape_asset_id' ON 'shape' ('asset_id')")
+            db.execute_sql("CREATE INDEX 'shape_group_id' ON 'shape' ('group_id')")
+            db.execute_sql("CREATE INDEX 'shape_character_id' ON 'shape' ('character_id')")
+            db.execute_sql(
+                'INSERT INTO "shape" ("uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size_x", "size_y", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width") SELECT "uuid", "layer_id", "type_", "x", "y", "name", "name_visible", "fill_colour", "stroke_colour", "vision_obstruction", "movement_obstruction", "draw_operator", "index", "options", "badge", "show_badge", "default_edit_access", "default_vision_access", "is_invisible", "is_defeated", "default_movement_access", "is_locked", "angle", "stroke_width", "asset_id", "group_id", "ignore_zoom_size", "is_door", "is_teleport_zone", "character_id", "odd_hex_orientation", "size", "size", "show_cells", "cell_fill_colour", "cell_stroke_colour", "cell_stroke_width" FROM _shape_111'
+            )
+            db.execute_sql("DROP TABLE _shape_111")
+    elif version == 112:
+        # Change text font size from int to float
+        with db.atomic():
+            db.execute_sql("CREATE TEMPORARY TABLE _text_112 AS SELECT * FROM text")
+            db.execute_sql("DROP TABLE text")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "text" ("shape_id" TEXT NOT NULL PRIMARY KEY, "text" TEXT NOT NULL, "font_size" REAL NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'INSERT INTO "text" ("shape_id", "text", "font_size") SELECT "shape_id", "text", "font_size" FROM _text_112'
+            )
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)
@@ -485,10 +698,10 @@ def upgrade(
 
 
 def upgrade_save(
-    db: Optional[SqliteExtDatabase] = None,
+    db: SqliteExtDatabase | None = None,
     *,
     is_import=False,
-    loop: Optional[asyncio.AbstractEventLoop] = None,
+    loop: asyncio.AbstractEventLoop | None = None,
 ):
     if db is None:
         db = ACTIVE_DB

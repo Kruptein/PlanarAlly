@@ -13,7 +13,7 @@ class Circle(ShapeType):
 
     def as_pydantic(self, shape: ApiCoreShape):
         return ApiCircleShape(
-            **shape.dict(),
+            **shape.model_dump(),
             radius=self.radius,
             viewing_angle=self.viewing_angle,
         )

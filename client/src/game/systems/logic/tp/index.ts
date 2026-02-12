@@ -3,13 +3,15 @@ import type { DeepReadonly } from "vue";
 import { POSITION, useToast } from "vue-toastification";
 import type { ToastID } from "vue-toastification/dist/types/types";
 
+import type { ApiCoreShape } from "../../../../apiTypes";
 import SingleButtonToast from "../../../../core/components/toasts/SingleButtonToast.vue";
 import type { LocalId } from "../../../../core/id";
 import type { Sync } from "../../../../core/models/types";
 import { registerSystem } from "../../../../core/systems";
-import type { ShapeSystem } from "../../../../core/systems";
+import type { ShapeSystem } from "../../../../core/systems/models";
 import { getGlobalId, getShape } from "../../../id";
 import type { IShape } from "../../../interfaces/shape";
+import type { ServerShapeOptions } from "../../../models/shapes";
 import { playerSystem } from "../../players";
 import type { PlayerId } from "../../players/models";
 import { getProperties } from "../../properties/state";
@@ -48,11 +50,9 @@ interface ReactiveTpState {
     target?: TeleportOptions["location"];
 }
 
-class TeleportZoneSystem implements ShapeSystem {
+class TeleportZoneSystem implements ShapeSystem<{ enabled: boolean; options?: TeleportOptions }> {
     private enabled = new Set<LocalId>();
     private data = new Map<LocalId, ClientTeleportOptions>();
-
-    // REACTIVE STATE
 
     private _state: ReactiveTpState;
 
@@ -63,6 +63,47 @@ class TeleportZoneSystem implements ShapeSystem {
             immediate: false,
         });
     }
+
+    // CORE
+
+    clear(): void {
+        this.dropState();
+        this.enabled.clear();
+        this.data.clear();
+    }
+
+    drop(id: LocalId): void {
+        this.enabled.delete(id);
+        this.data.delete(id);
+        if (this._state.id === id) {
+            this.dropState();
+        }
+    }
+
+    import(id: LocalId, data: { enabled: boolean; options?: TeleportOptions }): void {
+        if (data.enabled) {
+            this.enabled.add(id);
+        }
+        this.data.set(id, { ...DEFAULT_OPTIONS(), ...data.options });
+    }
+
+    export(id: LocalId): { enabled: boolean; options?: TeleportOptions } {
+        return { enabled: this.enabled.has(id), options: this.data.get(id)! };
+    }
+
+    toServerShape(id: LocalId, shape: ApiCoreShape): void {
+        const data = this.export(id);
+        shape.is_teleport_zone = data.enabled;
+    }
+
+    fromServerShape(
+        shape: ApiCoreShape,
+        serverOptions: Partial<ServerShapeOptions>,
+    ): { enabled: boolean; options?: TeleportOptions } {
+        return { enabled: shape.is_teleport_zone, options: serverOptions.teleport };
+    }
+
+    // REACTIVE
 
     get state(): DeepReadonly<ReactiveTpState> {
         return this._state;
@@ -82,28 +123,6 @@ class TeleportZoneSystem implements ShapeSystem {
     }
 
     // BEHAVIOUR
-
-    clear(): void {
-        this.dropState();
-        this.enabled.clear();
-        this.data.clear();
-    }
-
-    // Inform the system about the state of a certain LocalId
-    inform(id: LocalId, enabled: boolean, options?: TeleportOptions): void {
-        if (enabled) {
-            this.enabled.add(id);
-        }
-        this.data.set(id, { ...DEFAULT_OPTIONS(), ...options });
-    }
-
-    drop(id: LocalId): void {
-        this.enabled.delete(id);
-        this.data.delete(id);
-        if (this._state.id === id) {
-            this.dropState();
-        }
-    }
 
     toggle(id: LocalId, enabled: boolean, syncTo: Sync): void {
         if (syncTo.server) {

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from .... import stats
 from ....db.create.floor import create_floor
 from ....db.db import db
@@ -11,7 +9,7 @@ from ....db.models.user import User
 from ....models.role import Role
 
 
-def create_room(name: str, user: User, logo: int) -> Optional[Room]:
+def create_room(name: str, user: User, logo: int) -> Room | None:
     if Room.get_or_none(name=name, creator=user):
         return None
 

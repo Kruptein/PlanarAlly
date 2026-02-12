@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import type { SortableEvent } from "sortablejs";
 import { computed, ref, toRef, watchEffect } from "vue";
+import { VueDraggable } from "vue-draggable-plus";
 import { useI18n } from "vue-i18n";
-import draggable from "vuedraggable";
 
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { coreStore } from "../../../store/core";
@@ -87,11 +88,11 @@ function toggleExpanded(id: number): void {
     else expanded.value.add(id);
 }
 
-function onDragAdd(event: { item: HTMLDivElement; clone: HTMLDivElement }): void {
+function onDragAdd(event: SortableEvent): void {
     event.clone.replaceWith(event.item);
 }
 
-function endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
+function endPlayerDrag(e: SortableEvent): void {
     e.item.style.removeProperty("transform");
     const fromLocation = Number.parseInt(e.from.dataset.loc!);
     const toLocation = Number.parseInt(e.to.dataset.loc!);
@@ -106,7 +107,7 @@ function endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTML
     }
 }
 
-function endPlayersDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
+function endPlayersDrag(e: SortableEvent): void {
     e.item.style.removeProperty("transform");
     const fromLocation = Number.parseInt(e.from.dataset.loc!);
     const toLocation = Number.parseInt(e.to.dataset.loc!);
@@ -173,8 +174,8 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
                 <font-awesome-icon icon="archive" />
             </div>
         </div>
-        <draggable id="locations" ref="locations" v-model="activeLocations" item-key="id" handle=".drag-handle">
-            <template #item="{ element: location }: { element: Location }">
+        <VueDraggable id="locations" ref="locations" v-model="activeLocations" handle=".drag-handle">
+            <template v-for="location of activeLocations" :key="location.id">
                 <div class="location">
                     <div class="location-name" :class="{ 'active-location': activeLocation === location.id }">
                         <div class="drag-handle"></div>
@@ -185,68 +186,60 @@ const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
                             <font-awesome-icon icon="cog" />
                         </div>
                     </div>
-                    <draggable
+                    <VueDraggable
                         v-show="locationStore.state.playerLocations.has(location.id)"
                         class="location-players"
-                        :list="[{ id: location.id }]"
-                        item-key="id"
+                        :model-value="[{ id: location.id }]"
+                        :data-loc="location.id"
                         :group="{ name: 'players', pull: 'clone' }"
                         handle=".player-collapse-header"
-                        :data-loc="location.id"
                         @add="onDragAdd"
                         @end="endPlayersDrag"
                     >
-                        <template #item>
-                            <div class="player-collapse-header">
-                                {{ t("common.players") }}
-                                <div
-                                    :title="t('game.ui.menu.LocationBar.show_specific_pl')"
-                                    @click="toggleExpanded(location.id)"
-                                >
-                                    <span v-show="expanded.has(location.id)">
-                                        <font-awesome-icon icon="chevron-up" />
-                                    </span>
-                                    <span v-show="!expanded.has(location.id)">
-                                        <font-awesome-icon icon="chevron-down" />
-                                    </span>
-                                </div>
+                        <div :key="location.id" class="player-collapse-header">
+                            {{ t("common.players") }}
+                            <div
+                                :title="t('game.ui.menu.LocationBar.show_specific_pl')"
+                                @click="toggleExpanded(location.id)"
+                            >
+                                <span v-show="expanded.has(location.id)">
+                                    <font-awesome-icon icon="chevron-up" />
+                                </span>
+                                <span v-show="!expanded.has(location.id)">
+                                    <font-awesome-icon icon="chevron-down" />
+                                </span>
                             </div>
-                        </template>
-                    </draggable>
-                    <draggable
+                        </div>
+                    </VueDraggable>
+                    <VueDraggable
                         v-show="active && expanded.has(location.id)"
                         class="player-collapse-content"
-                        :list="[...(locationStore.state.playerLocations.get(location.id) ?? [])]"
-                        item-key="id"
+                        :model-value="[...(locationStore.state.playerLocations.get(location.id) ?? [])]"
                         :data-loc="location.id"
                         group="player"
                         @end="endPlayerDrag"
                     >
-                        <template #item="{ element: player }: { element: string }">
-                            <div class="player-collapse-item" :data-loc="location.id">
-                                {{ player }}
-                            </div>
-                        </template>
-                    </draggable>
-                    <draggable
+                        <div
+                            v-for="player of locationStore.state.playerLocations.get(location.id)"
+                            :key="player"
+                            class="player-collapse-item"
+                        >
+                            {{ player }}
+                        </div>
+                    </VueDraggable>
+                    <VueDraggable
                         v-show="!locationStore.state.playerLocations.has(location.id)"
                         class="location-players-empty"
                         :group="{ name: 'empty-players', put: ['players', 'player'] }"
-                        :list="[{ id: location.id }]"
-                        item-key="id"
+                        :model-value="[{ id: location.id }]"
                         :data-loc="location.id"
                         @add="onDragAdd"
                     >
-                        <template #item>
-                            <div>
-                                <!-- without the {{}} it throws an error because it becomes a null element? -->
-                                {{}}
-                            </div>
-                        </template>
-                    </draggable>
+                        <div :key="location.id"></div>
+                    </VueDraggable>
                 </div>
             </template>
-        </draggable>
+        </VueDraggable>
     </div>
 </template>
 

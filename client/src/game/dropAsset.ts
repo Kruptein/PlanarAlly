@@ -1,29 +1,30 @@
+import type { AssetTemplateInfo } from "../apiTypes";
 import { assetSystem } from "../assets";
+import type { AssetId } from "../assets/models";
 import { assetState } from "../assets/state";
 import { getImageSrcFromHash } from "../assets/utils";
 import { l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
 import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../core/grid";
 import { baseAdjust } from "../core/http";
-import { SyncMode, InvalidationMode } from "../core/models/types";
+import { SyncMode, InvalidationMode, UI_SYNC } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
 
 import { requestAssetOptions } from "./api/emits/asset";
-import { sendShapesMove } from "./api/emits/shape/core";
-import { getLocalId, getShape } from "./id";
-import { compositeState } from "./layers/state";
-import type { BaseTemplate } from "./models/templates";
+import { fetchFullShape, sendShapesMove } from "./api/emits/shape/core";
+import { getLocalId, getVisualShape } from "./id";
 import { moveShapes } from "./operations/movement";
-import { loadShapeData } from "./shapes";
-import { applyTemplate } from "./shapes/templates";
+import { loadFromServer } from "./shapes/transformations";
 import { Asset } from "./shapes/variants/asset";
+import { accessSystem } from "./systems/access";
 import type { CharacterId } from "./systems/characters/models";
 import { characterState } from "./systems/characters/state";
 import { floorState } from "./systems/floors/state";
 import { noteSystem } from "./systems/notes";
+import { playerSystem } from "./systems/players";
 import { locationSettingsState } from "./systems/settings/location/state";
-import { selectionBoxFunction } from "./temp";
+import { addShape, selectionBoxFunction } from "./temp";
 import { handleDropFF } from "./ui/firefox";
 
 export async function handleDropEvent(event: DragEvent): Promise<void> {
@@ -45,7 +46,7 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
     } else if (transferInfo) {
         const assetInfo = JSON.parse(transferInfo) as {
             assetHash: string;
-            assetId: number;
+            assetId: AssetId;
             characterId?: CharacterId;
         };
         await dropHelper(assetInfo, location);
@@ -55,7 +56,7 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
 }
 
 async function dropHelper(
-    assetInfo: { assetHash: string; assetId: number; characterId?: CharacterId },
+    assetInfo: { assetHash: string; assetId: AssetId; characterId?: CharacterId },
     location: GlobalPoint,
 ): Promise<void> {
     if (assetInfo.characterId !== undefined) {
@@ -66,16 +67,9 @@ async function dropHelper(
         const shapeId = getLocalId(character.shapeId, false);
 
         if (shapeId !== undefined) {
-            let shape = getShape(shapeId);
-            // bunch of fuckery to patch toggle composites
-            if (shape !== undefined) {
-                const compositeParent = compositeState.getCompositeParent(shapeId);
-                if (compositeParent !== undefined) {
-                    shape = getShape(compositeParent.activeVariant);
-                }
-            }
+            const shape = getVisualShape(shapeId);
             if (shape !== undefined && shape.options.skipDraw !== true) {
-                await moveShapes([shape], Vector.fromPoints(shape.center, location), false);
+                await moveShapes([shape], Vector.fromPoints(shape.center, location), { temporary: false });
                 return;
             }
         }
@@ -99,41 +93,59 @@ async function dropHelper(
     );
 }
 
+async function loadTemplate(template: AssetTemplateInfo, position: GlobalPoint): Promise<void> {
+    const data = await fetchFullShape(template.id);
+    if (data !== undefined) {
+        const { shape, notes } = data;
+        await Promise.all(notes.map((note) => noteSystem.loadNote(note)));
+        const layer = floorState.currentLayer.value!;
+        const compact = await loadFromServer(shape, layer.floor, layer.name);
+        compact.core.x = position.x;
+        compact.core.y = position.y;
+        compact.systems.notes = notes.map((note) => note.uuid);
+        addShape(compact, SyncMode.FULL_SYNC, "create");
+    }
+}
+
 export async function dropAsset(
-    data: { imageSource: string; assetId: number },
+    data: { imageSource: string; assetId: AssetId },
     position: GlobalPoint,
 ): Promise<Asset | undefined> {
-    const layer = floorState.currentLayer.value!;
+    let dimensions: { width: number; height: number } | undefined;
 
-    let template: BaseTemplate | undefined;
-    if (data.assetId) {
-        const assetInfo = await requestAssetOptions(data.assetId);
-        if (assetInfo.success) {
-            // check if map dimensions in asset name
-            const dimensions = assetInfo.name.match(/(?<x>\d+)x(?<y>\d+)/);
-            if (dimensions?.groups !== undefined) {
-                const dimX = Number.parseInt(dimensions.groups.x ?? "0");
-                const dimY = Number.parseInt(dimensions.groups.y ?? "0");
-                // DropRatio is already accounted for in applyTemplate!!
-                template = {
-                    width: dimX * DEFAULT_GRID_SIZE,
-                    height: dimY * DEFAULT_GRID_SIZE,
-                } as BaseTemplate;
-            }
-
-            const choices = Object.keys(assetInfo.options?.templates ?? {});
-            if (choices.length > 0) {
-                try {
-                    const choice = await selectionBoxFunction!(
-                        i18n.global.t("game.ui.templates.choose").toString(),
-                        choices,
-                    );
-                    if (choice === undefined || choice.length === 0) return;
-                    template = assetInfo.options!.templates[choice[0]!];
-                } catch {
-                    // no-op ; action cancelled
+    const assetInfo = await requestAssetOptions(data.assetId);
+    if (assetInfo.success) {
+        // First check if there are templates and if so, if we want to use one
+        const choices = assetInfo.templates.map((template) => template.name);
+        if (choices.length > 0) {
+            try {
+                const choice = await selectionBoxFunction!(
+                    i18n.global.t("game.ui.templates.choose").toString(),
+                    choices,
+                );
+                if (choice === undefined || choice.length === 0) return;
+                const template = assetInfo.templates.find((template) => template.name === choice[0]);
+                if (template) {
+                    await loadTemplate(template, position);
+                    return;
                 }
+            } catch {
+                // no-op ; action cancelled
             }
+        }
+
+        // If no templates, check if there are map dimensions in the asset name
+        const dimensionsMatch = assetInfo.name.match(/(?<x>\d+)x(?<y>\d+)/);
+        if (dimensionsMatch?.groups !== undefined) {
+            const dimX = Number.parseInt(dimensionsMatch.groups.x ?? "0");
+            const dimY = Number.parseInt(dimensionsMatch.groups.y ?? "0");
+
+            const gridRescale = locationSettingsState.raw.dropRatio.value;
+
+            dimensions = {
+                width: dimX * DEFAULT_GRID_SIZE * gridRescale,
+                height: dimY * DEFAULT_GRID_SIZE * gridRescale,
+            };
         }
     }
 
@@ -142,21 +154,25 @@ export async function dropAsset(
     const uuid = uuidv4();
     image.src = baseAdjust(data.imageSource);
 
+    const layer = floorState.currentLayer.value!;
+
     return new Promise((resolve) => {
         image.onload = () => {
-            const asset = new Asset(image, position, l2gz(image.width), l2gz(image.height), {
-                assetId: data.assetId,
-                uuid,
-            });
+            const asset = new Asset(
+                image,
+                position,
+                dimensions?.width ?? l2gz(image.width),
+                dimensions?.height ?? l2gz(image.height),
+                {
+                    assetId: data.assetId,
+                    uuid,
+                },
+            );
 
             const pathname = new URL(image.src).pathname;
             asset.src = pathname.replace(import.meta.env.BASE_URL, "/");
 
             asset.setLayer(layer.floor, layer.name); // set this early to avoid conflicts
-
-            if (template) {
-                loadShapeData(asset, applyTemplate(asset.asDict(), template));
-            }
 
             if (locationSettingsState.raw.useGrid.value) {
                 const gridType = locationSettingsState.raw.gridType.value;
@@ -165,11 +181,14 @@ export async function dropAsset(
                 })[0];
             }
 
-            layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+            accessSystem.addAccess(
+                asset.id,
+                playerSystem.getCurrentPlayer()!.name,
+                { edit: true, movement: true, vision: true },
+                UI_SYNC,
+            );
 
-            for (const noteId of asset.options.templateNoteIds ?? []) {
-                noteSystem.attachShape(noteId, asset.id, true);
-            }
+            layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 
             resolve(asset);
         };

@@ -8,10 +8,20 @@ PlanarAlly consists of a client and a server component. If you want to run a dev
 
 This project uses the gitflow branching strategy. This means that the master branch is intended for releases only. All pull requests should be done on the development branch.
 
-When making a pull request, make sure the code is formatted properly.
+### Format & Lint
 
-For the server you can run `black .` in the server folder,
-for the client you can run `npm run lint` in the client folder.
+All code is required to be formatted and linted before it can be merged. To format and lint the server you need to run
+
+```bash
+uv run ruff format src
+uv run ruff check src
+```
+To format and lint the client code you need to run
+
+```bash
+npm run format
+npm run lint
+```
 
 ## Server
 
@@ -19,35 +29,48 @@ All code of the server is located in the `server` folder at the root level of th
 The server infrastructure runs on aiohttp, a python async webframework.
 Install python >=3.6 (a virtual environment is recommended) and install all the dependencies.
 
-### Example install
+### Install & Setup
 
-Lines 2 and 3 are optional. Replace `python` with `python3` if the default is not py3.
+This project uses uv to manage its dependencies and run the server so to begin you will need to install UV from its official site. UV will automatically create the virtual environment so you only need to run the application to get going. Optionally you can run `uv sync` in the server directory to install the dependencies.
 
+> This project uses Python 3 so ensure that python and UV are running with the correct version.
+
+You can create a config.toml in the server/data directory to change settings. You can find the configuration values at the [PlanarAlly Site](https://www.planarally.io/server/management/configuration/)
+
+You can change the host & port configuration in the config.toml to adjust for your application needs. For example
+
+```toml
+[webserver.connection]
+type = "hostport"
+host = "0.0.0.0"
+port = 8000
 ```
-cd server
-python -m venv env
-source env/bin/activate
-pip install -r requirements.txt
+
+### Running the server
+
+You can run the server in either development or production mode. In development mode, requests are redirected to the Vite server, enabling real-time updates while building the client application. In production mode, the server instead serves the static assets generated from the client build.
+
+#### Production
+
+The command will start the server in production mode. This expects build js artifacts to be created and available to the server. (These can be created by building a production version of the client).
+
+```bash
+uv run planarserver.py
 ```
 
-Change the server.cfg file to what you wish to use and you can start the webserver with a simple
+#### Development
 
-`python planarserver.py`
-
-The above command will start the server in production mode. This expects build js artifacts to be created and available to the server. (These can be created by building a production version of the client).
 To use the server together with a development version of the client instead use:
 
-`python planarserver.py dev`
+`uv run planarserver.py dev`
 
-If both server and client are running you can launch PA by visiting http://localhost:8000
-
-It is strongly recommended to also install the devdependencies ('requirements-dev.txt) as this contains the formatter that is used for PA.
+You will need to then start the client app. Then you will want to launch your browser at the host & port for the PA server (**not the client**). By default that will be: http://localhost:8000
 
 ## Client
 
-The client is written in typescript, editing the javascript file directly is strongly discouraged and any pull request that only changes the js file will also be declined.
+The client is written in typescript, editing the javascript file directly is strongly discouraged and any pull request that only changes the js file will also be declined. 
 
-To get the client side up and running you'll need to install the dependencies with
+Ensure you have the correct version of NPM installed (typically latest LTS). You can verify that by checking in the github actions [pull_request.yaml](.github/workflows/pull_request.yaml#65) To get the client side up and running you'll need to install the dependencies with
 
 `npm i`
 
@@ -57,7 +80,7 @@ To build a production version use:
 
 To build a development version use:
 
-`npm run serve`
+`npm run dev`
 
 ### Target version
 
@@ -65,7 +88,7 @@ As mentioned in the client and server steps, there's a difference between the de
 
 ### The result
 
-To actually view and interact with the result whether you use the development or the production version you simply need to browse to your localhost at port 8000 (by default).
+To actually view and interact with the client app regardless of if you use the development or the production version. You will need to browse to your localhost at port 8000 (by default).
 
 # Translation
 

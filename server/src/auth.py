@@ -1,6 +1,5 @@
 import logging
 from functools import wraps
-from typing import Union
 
 from aiohttp import web
 from aiohttp_security import authorized_userid
@@ -28,7 +27,7 @@ class AuthPolicy(AbstractAuthorizationPolicy):
         """
         return identity
 
-    async def permits(self, _identity, _permission, _context=None):
+    async def permits(self, identity, permission, context=None):
         """Check user permissions.
         Return True if the identity is allowed the permission in the
         current context, else return False.
@@ -36,7 +35,7 @@ class AuthPolicy(AbstractAuthorizationPolicy):
         return False
 
 
-def login_required(app, sio, state: Union[Literal["game"], Literal["asset"], Literal["dashboard"]]):
+def login_required(app, sio, state: Literal["game"] | Literal["asset"] | Literal["dashboard"]):
     """
     Decorator that restrict access only for authorized users in a websocket context.
     """

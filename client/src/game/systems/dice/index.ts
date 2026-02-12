@@ -2,11 +2,11 @@ import { SYSTEMS, type Part, type RollResult } from "@planarally/dice/core";
 import type { DeepReadonly } from "vue";
 
 import { registerSystem } from "../../../core/systems";
-import type { System } from "../../../core/systems";
-import type { SystemClearReason } from "../../../core/systems/models";
+import type { System, SystemClearReason } from "../../../core/systems/models";
 import type { AsyncReturnType } from "../../../core/types";
 
 import { diceState } from "./state";
+import { DiceUiState } from "./types";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const _env = () => import("./environment");
@@ -25,11 +25,22 @@ class DiceSystem implements System {
         }
     }
 
+    setInput(input: string): void {
+        $.lastCursorPosition = input.length;
+        $.textInput = input;
+        $.updateInputCursor = true;
+        $.uiState = DiceUiState.Roll;
+    }
+
     addToHistory(roll: RollResult<Part>, player: string, name?: string): string {
         let rollString = "";
         for (const part of roll.parts) rollString += ` ${part.input}`;
         $.history.push({ roll, player, name: name ?? rollString });
         return rollString;
+    }
+
+    get isLoaded(): boolean {
+        return $.systems !== undefined;
     }
 
     async loadSystems(): Promise<void> {
@@ -43,6 +54,12 @@ class DiceSystem implements System {
     async load3d(canvas?: HTMLCanvasElement): Promise<void> {
         const env = await getDiceEnvironment();
         await env.loadDiceEnv(canvas);
+    }
+
+    getSystem(
+        name: "2d" | "3d",
+    ): AsyncReturnType<typeof SYSTEMS.DX>["DX"] | AsyncReturnType<typeof SYSTEMS.DX3>["DX3"] | undefined {
+        return $.systems?.[name];
     }
 
     set3dDimensions(width: number, height: number): void {

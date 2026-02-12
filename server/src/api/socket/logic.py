@@ -1,5 +1,3 @@
-from typing import Dict
-
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
@@ -8,16 +6,12 @@ from ...logs import logger
 from ...models.role import Role
 from ...state.game import game_state
 from ..helpers import _send_game
-from ..models.logic.request import (
-    LogicDoorRequest,
-    LogicRequestInfo,
-    LogicTeleportRequest,
-)
+from ..models.logic.request import LogicDoorRequest, LogicRequestInfo, LogicTeleportRequest
 
 
 @sio.on("Logic.Request", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def request(sid: str, raw_data: Dict):
+async def request(sid: str, raw_data: dict):
     logic_type = raw_data.get("logic", None)
     if logic_type == "door":
         data = LogicDoorRequest(**raw_data)

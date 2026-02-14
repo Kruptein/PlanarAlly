@@ -123,7 +123,7 @@ async function completeAutoComplete(option?: AutoCompleteOption): Promise<void> 
     const start = diceState.raw.lastCursorPosition - autoCompleteSearchTextBackward.length - 1;
 
     const oldMessage = diceState.raw.textInput;
-    const fullRef = "{" + `[${option.shapeId}]` + option.name + "}";
+    const fullRef = `{[${option.shapeId}]${option.name}}`;
     diceState.mutableReactive.lastCursorPosition = start + fullRef.length;
     diceState.mutableReactive.textInput =
         oldMessage.slice(0, start) +

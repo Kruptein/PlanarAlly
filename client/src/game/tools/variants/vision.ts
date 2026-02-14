@@ -14,7 +14,12 @@ class VisionTool extends Tool implements ITool {
     alert = computed(() => accessState.reactive.activeTokenFilters.get("vision") !== undefined);
 
     get permittedTools(): ToolPermission[] {
-        return [{ name: ToolName.Select, features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] } }];
+        return [
+            {
+                name: ToolName.Select,
+                features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] },
+            },
+        ];
     }
 }
 

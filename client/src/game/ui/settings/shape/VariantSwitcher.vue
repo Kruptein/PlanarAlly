@@ -80,7 +80,10 @@ async function addVariant(): Promise<void> {
     if (name === undefined) return;
 
     const newShape = await dropAsset(
-        { imageSource: getImageSrcFromHash(assetInfo.fileHash, { addBaseUrl: false }), assetId: assetId },
+        {
+            imageSource: getImageSrcFromHash(assetInfo.fileHash, { addBaseUrl: false }),
+            assetId: assetId,
+        },
         shape.refPoint,
     );
     if (newShape === undefined) {

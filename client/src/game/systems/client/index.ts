@@ -95,7 +95,11 @@ class ClientSystem implements System {
         if (rect !== undefined) {
             const shape = getShape(rect);
             if (shape !== undefined) {
-                shape.layer?.removeShape(shape, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+                shape.layer?.removeShape(shape, {
+                    sync: SyncMode.NO_SYNC,
+                    recalculate: false,
+                    dropShapeId: true,
+                });
             }
             $.clientRectIds.delete(client);
         }
@@ -141,7 +145,10 @@ class ClientSystem implements System {
                 openPolygon: true,
                 isSnappable: false,
             },
-            { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["rgba(0, 0, 0, 1)", "rgba(255, 255, 255, 1)"] },
+            {
+                fillColour: "rgba(0, 0, 0, 0)",
+                strokeColour: ["rgba(0, 0, 0, 1)", "rgba(255, 255, 255, 1)"],
+            },
         );
         $.clientRectIds.set(client, polygon.id);
         polygon.options.isPlayerRect = true;
@@ -177,7 +184,11 @@ class ClientSystem implements System {
         const { h, w } = dimensions;
 
         const center = rect.center;
-        const newPosition = { ...locationData, pan_x: w / 2 - center.x - offset.x, pan_y: h / 2 - center.y - offset.y };
+        const newPosition = {
+            ...locationData,
+            pan_x: w / 2 - center.x - offset.x,
+            pan_y: h / 2 - center.y - offset.y,
+        };
 
         sendMoveClientThrottled({
             client,
@@ -219,7 +230,11 @@ class ClientSystem implements System {
         const factor = viewport.zoom_factor;
         const h = viewport.height / factor;
         const w = viewport.width / factor;
-        return { w, h, center: toGP(w / 2 - locationData.pan_x - offset.x, h / 2 - locationData.pan_y - offset.y) };
+        return {
+            w,
+            h,
+            center: toGP(w / 2 - locationData.pan_x - offset.x, h / 2 - locationData.pan_y - offset.y),
+        };
     }
 
     initViewport(): void {

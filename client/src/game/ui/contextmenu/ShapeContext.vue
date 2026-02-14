@@ -107,6 +107,7 @@ async function addToInitiative(): Promise<boolean> {
         const group = groupSystem.getGroupId(shape.id);
         if (group === undefined) continue;
         if (groupsFound.has(group)) {
+            // oxlint-disable-next-line no-await-in-loop
             const answer = await modals.confirm(
                 "Adding initiative",
                 "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",

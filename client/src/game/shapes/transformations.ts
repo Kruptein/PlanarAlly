@@ -317,9 +317,9 @@ function createShapeInstanceFromCore(compact: CompactForm): IShape | undefined {
             if (asset.src.startsWith("http")) img.src = baseAdjust(new URL(asset.src).pathname);
             else img.src = baseAdjust(asset.src);
             sh = new Asset(img, refPoint, asset.width, asset.height, { uuid });
-            img.onload = () => {
+            img.addEventListener("load", () => {
                 (sh as Asset).setLoaded();
-            };
+            });
         } else if (core.type_ === "togglecomposite") {
             const toggleComposite = subShape as ToggleCompositeCompactCore;
             sh = new ToggleComposite(
@@ -409,7 +409,11 @@ function createServerDataFromCompact(compact: CompactForm): ApiShape {
         serverShape = { ...serverCoreShape, ...line } as ApiLineShape;
     } else if (core.type_ === "polygon") {
         const polygon = subShape as PolygonCompactCore;
-        serverShape = { ...serverCoreShape, ...polygon, vertices: JSON.stringify(polygon.vertices) } as ApiPolygonShape;
+        serverShape = {
+            ...serverCoreShape,
+            ...polygon,
+            vertices: JSON.stringify(polygon.vertices),
+        } as ApiPolygonShape;
     } else if (core.type_ === "text") {
         const text = subShape as TextCompactCore;
         serverShape = { ...serverCoreShape, ...text } as ApiTextShape;

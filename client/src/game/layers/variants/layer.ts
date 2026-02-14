@@ -275,9 +275,11 @@ export class Layer implements ILayer {
             if (serverShape.type_ === "togglecomposite") {
                 composites.push(serverShape);
             } else {
+                // oxlint-disable-next-line no-await-in-loop
                 await this.setServerShape(serverShape);
             }
         }
+        // oxlint-disable-next-line no-await-in-loop
         for (const composite of composites) await this.setServerShape(composite);
     }
 

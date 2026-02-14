@@ -534,9 +534,17 @@ describe("Access System", () => {
                 "load",
             );
             // test
-            expect(accessSystem.getAccess(id, "some user")).toEqual({ edit: false, movement: false, vision: false });
+            expect(accessSystem.getAccess(id, "some user")).toEqual({
+                edit: false,
+                movement: false,
+                vision: false,
+            });
             accessSystem.updateAccess(id, "some user", { edit: true }, SERVER_SYNC);
-            expect(accessSystem.getAccess(id, "some user")).toEqual({ edit: true, movement: false, vision: false });
+            expect(accessSystem.getAccess(id, "some user")).toEqual({
+                edit: true,
+                movement: false,
+                vision: false,
+            });
             expect(errorSpy).not.toBeCalled();
             expect(emitSpy).toBeCalled();
         });
@@ -594,7 +602,11 @@ describe("Access System", () => {
                 "load",
             );
             // test
-            expect(accessSystem.getAccess(id, "some user")).toEqual({ edit: false, movement: false, vision: false });
+            expect(accessSystem.getAccess(id, "some user")).toEqual({
+                edit: false,
+                movement: false,
+                vision: false,
+            });
             accessSystem.removeAccess(id, "some user", SERVER_SYNC);
             expect(accessSystem.getAccess(id, "some user")).toBeUndefined();
             expect(errorSpy).not.toBeCalled();

@@ -1,16 +1,15 @@
 /// <reference types="vitest" />
 
-import { fileURLToPath, URL } from "node:url";
-
-import path from "path";
-import { defineConfig, loadEnv } from "vite";
 import { EsmExternalsPlugin } from "@esbuild-plugins/esm-externals";
-import vue from "@vitejs/plugin-vue";
 import vueI18n from "@intlify/unplugin-vue-i18n/vite";
+import vue from "@vitejs/plugin-vue";
+import { fileURLToPath, URL } from "node:url";
+import path from "path";
+import { visualizer } from "rollup-plugin-visualizer";
 import { transformLazyShow } from "v-lazy-show";
+import { defineConfig, loadEnv } from "vite";
 import { ViteEjsPlugin } from "vite-plugin-ejs";
 import VueDevTools from "vite-plugin-vue-devtools";
-import { visualizer } from "rollup-plugin-visualizer";
 
 const isProduction = (process.env.NODE_ENV ?? "production") === "production";
 const viteEnv = loadEnv(process.env.NODE_ENV ?? "production", process.cwd());
@@ -78,7 +77,7 @@ export default defineConfig({
             },
         ],
     },
-    css: { preprocessorOptions: { scss: { api: 'modern-compiler', charset: false } } },
+    css: { preprocessorOptions: { scss: { api: "modern-compiler", charset: false } } },
     test: {
         environment: "happy-dom",
         setupFiles: ["./test/setup.ts"],

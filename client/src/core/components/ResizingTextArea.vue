@@ -3,9 +3,12 @@ import { nextTick, onMounted, useTemplateRef, watch } from "vue";
 
 import { getTarget, getValue } from "../utils";
 
-const { visible = true, disabled = false } = defineProps<{ visible?: boolean; disabled?: boolean }>();
+const { visible = true, disabled = false } = defineProps<{
+    visible?: boolean;
+    disabled?: boolean;
+}>();
 const textArea = useTemplateRef("textarea");
-const emit = defineEmits<(e: "change", s: string) => void>();
+const emit = defineEmits<{ (e: "change", s: string): void; (e: "focus" | "blur"): void }>();
 const text = defineModel<string>({ required: true });
 
 onMounted(async () => {
@@ -39,6 +42,8 @@ function resizeTextArea(element: HTMLElement): void {
             rows="1"
             @input="resizeTextArea(getTarget($event))"
             @change="emit('change', getValue($event))"
+            @focus="emit('focus')"
+            @blur="emit('blur')"
             @keyup.enter="getTarget($event).blur()"
             @keydown.enter.prevent
         />

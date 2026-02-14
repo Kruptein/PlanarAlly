@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "rules": {
+    "eslint-plugin-unicorn/no-array-reverse": "off",
+    "eslint-plugin-unicorn/no-array-sort": "off",
+    "eslint/no-debugger": "warn",
+    "eslint/prefer-const": "warn",
+    "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }],
+    "no-map-spread": "off",
+    "promise/always-return": [
+      "error",
+      {
+        "ignoreLastCallback": true
+      }
+    ],
+    "typescript/consistent-type-assertions": ["error", { "assertionStyle": "as" }],
+    // currently off due to vue template reporting missing
+    // "typescript/consistent-type-imports": "error",
+    "typescript/explicit-function-return-type": [2, { "allowExpressions": true }],
+    "typescript/no-unsafe-type-assertion": "off",
+    "typescript/require-await": "error",
+    "typescript/strict-boolean-expressions": "error"
+  },
+  "plugins": ["eslint", "unicorn", "oxc", "import", "promise", "typescript", "vue"]
+}

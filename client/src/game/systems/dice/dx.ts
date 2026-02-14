@@ -39,7 +39,12 @@ function addDie(die: (typeof addOptions)[number]): void {
         seg.input = `${seg.amount}${die}`;
     } else if (seg?.type === DxSegmentType.Literal) {
         parts.value.pop();
-        addSegment(parts, { type: DxSegmentType.Die, amount: seg.value, die, input: `${seg.value}${die}` });
+        addSegment(parts, {
+            type: DxSegmentType.Die,
+            amount: seg.value,
+            die,
+            input: `${seg.value}${die}`,
+        });
     } else {
         addSegment(parts, { type: DxSegmentType.Die, amount: 1, die, input: `1${die}` });
     }

@@ -695,8 +695,7 @@ def upgrade(
         # Add updateTiming to initiative effects
         with db.atomic():
             rows = db.execute_sql("SELECT id, data FROM initiative").fetchall()
-            for row in rows:
-                rowid, data = row
+            for rowid, data in rows:
                 try:
                     json_data = json.loads(data) if data else {}
                 except:

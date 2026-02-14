@@ -45,19 +45,14 @@ function getDefaultTimedEffect(): InitiativeEffect {
 function updateActorEffects(turnDelta: number, actor: InitiativeData, timing?: InitiativeEffectUpdateTiming): void {
     if (actor === undefined) return;
 
-    const effects =
-        timing !== undefined
-            ? actor.effects.map((value, index) => ({ index, value })).filter((e) => e.value.updateTiming === timing)
-            : actor.effects.map((value, index) => ({ index, value }));
-
-    for (let e = effects.length - 1; e >= 0; e--) {
-        const effect = effects[e]!.value;
-        const index = effects[e]!.index;
+    for (let e = actor.effects.length - 1; e >= 0; e--) {
+        const effect = actor.effects[e]!;
         if (effect.turns === null) continue;
-        const turns = +effect.turns;
+        if (effect.updateTiming !== timing) continue;
+        const turns = +effect.turns!;
         if (isNaN(turns)) continue;
-        if (turns <= 0) actor.effects.splice(index, 1);
-        else actor.effects[index]!.turns = (turns - turnDelta).toString();
+        if (turns <= 0) actor.effects.splice(e, 1);
+        else effect.turns = (turns - turnDelta).toString();
     }
 }
 

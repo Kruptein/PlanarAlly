@@ -206,7 +206,13 @@ describe("Aura System", () => {
             auraSystem.update(
                 id,
                 aura.uuid,
-                { angle: 90, borderColour: "blue", direction: -20, name: "changed test aura", visible: true },
+                {
+                    angle: 90,
+                    borderColour: "blue",
+                    direction: -20,
+                    name: "changed test aura",
+                    visible: true,
+                },
                 NO_SYNC,
             );
             expect(auraSystem.get(id, aura.uuid, false)).toMatchObject({

@@ -34,13 +34,13 @@ const floorIndex = toRef(floorState.reactive, "floorIndex");
 
 const floors = computed({
     get() {
-        return [...floorState.reactive.floors]
-            .reverse()
+        return floorState.reactive.floors
+            .toReversed()
             .filter((f) => f.playerVisible || gameState.reactive.isDm)
             .map((f) => ({ reverseIndex: floorSystem.getFloorIndex({ id: f.id })!, floor: f }));
     },
     set(floors: { reverseIndex: number; floor: Floor }[]) {
-        floorSystem.reorderFloors(floors.map((f) => f.floor.name).reverse(), true);
+        floorSystem.reorderFloors(floors.map((f) => f.floor.name).toReversed(), true);
     },
 });
 
@@ -114,7 +114,9 @@ const selectedLayer = computed(() => {
                         >
                             <font-awesome-icon icon="eye" />
                         </div>
-                        <div @click="uiSystem.showFloorSettings(f.floor.id)"><font-awesome-icon icon="cog" /></div>
+                        <div @click="uiSystem.showFloorSettings(f.floor.id)">
+                            <font-awesome-icon icon="cog" />
+                        </div>
                     </div>
                 </div>
             </VueDraggable>

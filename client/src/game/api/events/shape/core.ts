@@ -58,6 +58,7 @@ socket.on("Shape.Add", async (data: ApiShapeWithLayer) => {
 socket.on("Shapes.Add", async (shapes: ApiShapeWithLayer[]) => {
     for (const data of shapes) {
         const floorId = floorSystem.getFloor({ name: data.floor })!.id;
+        // oxlint-disable-next-line no-await-in-loop
         addShape(await loadFromServer(data.shape, floorId, data.layer), SyncMode.NO_SYNC, "load");
     }
     initiativeStore._forceUpdate();

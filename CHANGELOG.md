@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2026.1]
+
 ### Added
 
 -   Custom shape data
@@ -95,6 +97,7 @@ tech changes will usually be stripped from release notes for the public
 -   Initiative entries would remain blurred if the focused entry was removed by another player.
 -   Group system not properly cleaning up on location changes
 -   Group badges were not sorted numerically in a shape's group settings when set to the numbers character set.
+-   Tracker input resets to last value if left empty
 
 ## [2025.3]
 

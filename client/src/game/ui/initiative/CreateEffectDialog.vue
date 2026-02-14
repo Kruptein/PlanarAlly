@@ -70,7 +70,9 @@ function submitNewEffect(): void {
             </Transition>
         </div>
         <div class="second-row">
-            <button class="create-effect-button" tabindex="-1" @click="emit('cancel')">{{ t("common.cancel") }}</button>
+            <button class="create-effect-button" tabindex="-1" @click="emit('cancel')">
+                {{ t("common.cancel") }}
+            </button>
             <div class="sub-row-group">
                 <div class="sub-row-group"></div>
                 <div class="sub-row-group">

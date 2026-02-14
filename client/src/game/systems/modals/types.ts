@@ -8,5 +8,7 @@ export interface FullModal {
     props?: Record<string, unknown>;
 }
 export type Modal = Component | FullModal;
-export type IndexedModal = FullModal & { props: { modalIndex: ModalIndex } & Record<string, unknown> };
+export type IndexedModal = FullModal & {
+    props: { modalIndex: ModalIndex } & Record<string, unknown>;
+};
 export type ModalIndex = NumberId<"modal">;

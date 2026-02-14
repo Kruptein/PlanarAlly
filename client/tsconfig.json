@@ -11,7 +11,6 @@
         "allowSyntheticDefaultImports": true,
         "useDefineForClassFields": true,
         "sourceMap": true,
-        "baseUrl": ".",
         "outDir": "dist",
         "types": ["vite/client", "@intlify/unplugin-vue-i18n/messages"],
         "lib": ["esnext", "dom", "dom.iterable", "scripthost"],

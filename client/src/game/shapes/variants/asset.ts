@@ -113,7 +113,11 @@ export class Asset extends BaseRect implements IAsset {
                 if (this.floorId !== undefined) visionState.recalculateMovement(this.floorId);
                 visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.id });
             }
-            this.layer?.removeShape(cover, { sync: SyncMode.NO_SYNC, recalculate: false, dropShapeId: true });
+            this.layer?.removeShape(cover, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: false,
+                dropShapeId: true,
+            });
             this.invalidate(false);
         }
     }
@@ -152,9 +156,9 @@ export class Asset extends BaseRect implements IAsset {
         this.#loaded = false;
         this.src = url;
         this.img.src = baseAdjust(url);
-        this.img.onload = () => {
+        this.img.addEventListener("load", () => {
             this.setLoaded();
-        };
+        });
         const uuid = getGlobalId(this.id);
         if (uuid && sync) sendAssetRectImageChange({ uuid, src: url });
     }

@@ -3,6 +3,7 @@ import { ref } from "vue";
 import type { ApiModMeta } from "../apiTypes";
 import { baseAdjust } from "../core/http";
 
+// oxlint-disable-next-line import/no-unassigned-import
 import "./events";
 import type { Mod } from "./models";
 
@@ -31,6 +32,7 @@ export async function loadMod(meta: ApiModMeta): Promise<{ id: string; meta: Api
 
 export async function loadRoomMods(mods: ApiModMeta[]): Promise<void> {
     for (const modMeta of mods) {
+        // oxlint-disable-next-line no-await-in-loop
         await loadMod(modMeta);
     }
     resolveModsLoading();

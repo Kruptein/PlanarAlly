@@ -7,7 +7,9 @@ vi.mock("path-data-polyfill", () => {
     return { default: vi.fn() };
 });
 
-function createMockManager(): { socket: () => { connect: () => void; on: () => void; emit: () => void } } {
+function createMockManager(): {
+    socket: () => { connect: () => void; on: () => void; emit: () => void };
+} {
     return {
         socket: () => ({
             connect: vi.fn(),

@@ -45,7 +45,13 @@ function drawPointL(point: [number, number], r: number, colour?: string): void {
 // eslint-disable-next-line import/no-unused-modules
 export function drawPolygon(
     polygon: [number, number][],
-    options?: { fillColour?: string; strokeColour?: string; strokeWidth?: number; close?: boolean; debug?: boolean },
+    options?: {
+        fillColour?: string;
+        strokeColour?: string;
+        strokeWidth?: number;
+        close?: boolean;
+        debug?: boolean;
+    },
 ): void {
     if (polygon.length === 0) return;
 

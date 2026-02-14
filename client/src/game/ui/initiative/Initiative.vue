@@ -307,8 +307,14 @@ function canSee(actor: DeepReadonly<InitiativeData>): boolean {
 }
 
 function reset(): void {
-    initiativeStore.setTurnCounter(0, InitiativeTurnDirection.Null, { sync: true, updateEffects: false });
-    initiativeStore.setRoundCounter(1, InitiativeTurnDirection.Null, { sync: true, updateEffects: false });
+    initiativeStore.setTurnCounter(0, InitiativeTurnDirection.Null, {
+        sync: true,
+        updateEffects: false,
+    });
+    initiativeStore.setRoundCounter(1, InitiativeTurnDirection.Null, {
+        sync: true,
+        updateEffects: false,
+    });
     sendRequestInitiatives();
     scrollToInitiative();
 }

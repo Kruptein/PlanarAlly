@@ -32,7 +32,9 @@ export async function addServerFloor(serverFloor: ApiFloor): Promise<void> {
     let fowLayer: ApiLayer | undefined;
     for (const layer of serverFloor.layers) {
         if (layer.name === LayerName.Lighting) fowLayer = layer;
+        // oxlint-disable-next-line no-await-in-loop
         else await addServerLayer(layer, floor);
+        // oxlint-disable-next-line no-await-in-loop
         if (layer.name === LayerName.Vision) await addServerLayer(fowLayer!, floor);
     }
 

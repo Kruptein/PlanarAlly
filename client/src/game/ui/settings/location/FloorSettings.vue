@@ -95,7 +95,9 @@ function setUndergroundBackgroundFromEvent(event: Event): void {
         </ResetWrapper>
         <div v-show="airBackgroundType === BackgroundType.Simple" class="row">
             <div></div>
-            <div><ColourPicker :colour="airBackground ?? undefined" @update:colour="airBackground = $event" /></div>
+            <div>
+                <ColourPicker :colour="airBackground ?? undefined" @update:colour="airBackground = $event" />
+            </div>
             <div></div>
         </div>
         <div v-show="airBackgroundType === BackgroundType.Pattern" class="row">

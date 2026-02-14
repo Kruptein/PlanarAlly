@@ -21,7 +21,7 @@ function addMod(): void {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = async (event) => {
+    reader.addEventListener("load", async (event) => {
         const data = event.target?.result as ArrayBuffer | null;
         if (data) {
             const response = await http.post("/api/mod/upload", data);
@@ -36,7 +36,9 @@ function addMod(): void {
                     }
                 } catch (error) {
                     console.error(`Failed to load mod ${mod.tag} ${mod.version} ${mod.hash}`, error);
-                    toast.error(`Failed to load mod ${mod.tag} ${mod.version} ${mod.hash}`, { timeout: false });
+                    toast.error(`Failed to load mod ${mod.tag} ${mod.version} ${mod.hash}`, {
+                        timeout: false,
+                    });
                 }
                 sendLinkModToRoom({
                     tag: mod.tag,
@@ -49,7 +51,7 @@ function addMod(): void {
             }
         }
         uploadInput.value!.value = "";
-    };
+    });
     reader.readAsArrayBuffer(file);
 }
 

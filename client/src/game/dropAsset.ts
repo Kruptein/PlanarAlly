@@ -40,8 +40,12 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
 
     // External files are dropped
     if (!transferInfo && event.dataTransfer.files.length > 0) {
-        for (const asset of await assetSystem.upload(event.dataTransfer.files, { target: () => assetState.raw.root })) {
-            if (asset.fileHash !== null) await dropHelper({ assetHash: asset.fileHash, assetId: asset.id }, location);
+        for (const asset of await assetSystem.upload(event.dataTransfer.files, {
+            target: () => assetState.raw.root,
+        })) {
+            if (asset.fileHash !== null)
+                // oxlint-disable-next-line no-await-in-loop
+                await dropHelper({ assetHash: asset.fileHash, assetId: asset.id }, location);
         }
     } else if (transferInfo) {
         const assetInfo = JSON.parse(transferInfo) as {
@@ -88,7 +92,10 @@ async function dropHelper(
         return;
     }
     await dropAsset(
-        { assetId: assetInfo.assetId, imageSource: getImageSrcFromHash(assetInfo.assetHash, { addBaseUrl: false }) },
+        {
+            assetId: assetInfo.assetId,
+            imageSource: getImageSrcFromHash(assetInfo.assetHash, { addBaseUrl: false }),
+        },
         location,
     );
 }
@@ -157,7 +164,7 @@ export async function dropAsset(
     const layer = floorState.currentLayer.value!;
 
     return new Promise((resolve) => {
-        image.onload = () => {
+        image.addEventListener("load", () => {
             const asset = new Asset(
                 image,
                 position,
@@ -191,6 +198,6 @@ export async function dropAsset(
             layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 
             resolve(asset);
-        };
+        });
     });
 }

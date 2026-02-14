@@ -12,7 +12,10 @@ export enum ShapeCustomDataPending {
     Branch,
     Leaf,
 }
-export type UiShapeCustomData = ApiShapeCustomData & { id: ElementId; pending?: ShapeCustomDataPending };
+export type UiShapeCustomData = ApiShapeCustomData & {
+    id: ElementId;
+    pending?: ShapeCustomDataPending;
+};
 
 export interface CustomDataKindInfo<T extends UiShapeCustomData> {
     defaultValue: T extends { value: infer V } ? V : undefined;

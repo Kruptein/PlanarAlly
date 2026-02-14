@@ -72,6 +72,7 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseMove(event, permitted.features);
     }
 
@@ -79,6 +80,7 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseMove(event, permitted.features);
     }
 
@@ -130,6 +132,7 @@ export async function mouseUp(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 
@@ -137,6 +140,7 @@ export async function mouseUp(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 }
@@ -146,6 +150,7 @@ export async function mouseLeave(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 
@@ -153,6 +158,7 @@ export async function mouseLeave(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 }
@@ -165,6 +171,7 @@ async function contextMenu(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onContextMenu(event, permitted.features);
     }
 
@@ -173,6 +180,7 @@ async function contextMenu(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onContextMenu(event, permitted.features);
     }
 }
@@ -182,6 +190,7 @@ export async function keyDown(event: KeyboardEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onKeyDown(event, permitted.features);
     }
 
@@ -189,6 +198,7 @@ export async function keyDown(event: KeyboardEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onKeyDown(event, permitted.features);
     }
 }
@@ -198,6 +208,7 @@ export async function keyUp(event: KeyboardEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onKeyUp(event, permitted.features);
     }
 
@@ -205,6 +216,7 @@ export async function keyUp(event: KeyboardEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onKeyUp(event, permitted.features);
     }
 }
@@ -247,6 +259,7 @@ export async function touchMove(event: TouchEvent): Promise<void> {
         const otherTool = toolMap[permitted.name];
         if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
         else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
+        // oxlint-disable-next-line no-await-in-loop
         else await otherTool.onTouchMove(event, permitted.features);
     }
 
@@ -264,6 +277,7 @@ export async function touchMove(event: TouchEvent): Promise<void> {
         const otherTool = toolMap[permitted.name];
         if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
         else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
+        // oxlint-disable-next-line no-await-in-loop
         else await otherTool.onTouchMove(event, permitted.features);
     }
 

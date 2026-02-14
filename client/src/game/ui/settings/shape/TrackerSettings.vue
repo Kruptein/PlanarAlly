@@ -33,6 +33,8 @@ const trackers = computed(() => {
 
 function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>, syncTo = true): void {
     if (!owned.value || activeShapeStore.state.id === undefined) return;
+    if (delta.value !== undefined && Number.isNaN(delta.value)) delta.value = tracker.value;
+    if (delta.maxvalue !== undefined && Number.isNaN(delta.maxvalue)) delta.maxvalue = tracker.maxvalue;
 
     if (tracker.temporary) {
         trackerSystem.add(tracker.shape, { ...tracker }, SERVER_SYNC);

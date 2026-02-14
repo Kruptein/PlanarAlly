@@ -12,25 +12,23 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const defaultName = t("game.ui.initiative.new_effect");
-const defaultTurns = "10";
+const defaultTurns = 10;
 
 const name = ref("");
-const turns = ref<string | null>(defaultTurns);
+// need string here because an empty input box still returns an empty string
+const turns = ref<number | string>(defaultTurns);
 const infinite = ref(false);
 
 function validateTurns(): void {
-    if (turns.value === null) {
-        if (infinite.value) return;
-        turns.value = "0";
-    }
-    if (+turns.value < 0) turns.value = "0";
+    if (infinite.value) return;
+    if (+turns.value < 0) turns.value = 0;
 }
 
 function getTurns(): string | null {
     validateTurns();
     if (infinite.value) return null;
-    if (turns.value === "") return defaultTurns;
-    return turns.value;
+    if (turns.value === "") turns.value = defaultTurns;
+    return String(turns.value);
 }
 
 function submitNewEffect(): void {
@@ -56,7 +54,7 @@ function submitNewEffect(): void {
             <Transition name="grow">
                 <input
                     v-if="!infinite"
-                    v-model="turns"
+                    v-model.number="turns"
                     class="turn-input effect-input-box"
                     placeholder="10"
                     :title="t('game.ui.initiative.effect_duration_hint')"

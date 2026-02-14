@@ -30,6 +30,7 @@ export class Asset extends BaseRect implements IAsset {
     src = "";
     #loaded: boolean;
 
+    variants: { name: string | null; assetId: AssetId; width: number; height: number }[] = [];
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
 
     constructor(

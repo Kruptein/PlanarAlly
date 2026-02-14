@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, unref, watchEffect } from "vue";
+import { computed, ref, unref, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -19,8 +19,12 @@ import GroupSettings from "./GroupSettings.vue";
 import LogicSettings from "./LogicSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
+import VariantSettings from "./VariantSettings.vue";
+import { getShape } from "../../../id";
+import { IShape } from "../../../interfaces/shape";
 
 const { t } = useI18n();
+const shape = ref<IShape | null>(null);
 
 const visible = computed({
     get() {
@@ -37,8 +41,10 @@ watchEffect(() => {
     const id = selectedState.reactive.focus;
     if (id !== undefined) {
         accessSystem.loadState(id);
+        shape.value = getShape(id) ?? null;
     } else {
         accessSystem.dropState();
+        shape.value = null;
     }
 });
 
@@ -69,7 +75,7 @@ const fixedTabs: PanelTab[] = [
     },
 ];
 
-const ownedTabs: PanelTab[] = [
+const ownedTabs = computed<PanelTab[]>(() => [
     {
         id: ShapeSettingCategory.Group,
         label: t("game.ui.selection.edit_dialog.groups.groups"),
@@ -80,12 +86,21 @@ const ownedTabs: PanelTab[] = [
         label: t("game.ui.selection.edit_dialog.customData.customData"),
         component: DataSettings,
     },
+    ...(shape.value?.type === "assetrect"
+        ? [
+              {
+                  id: ShapeSettingCategory.Variants,
+                  label: t("game.ui.selection.edit_dialog.variants.variants"),
+                  component: VariantSettings,
+              },
+          ]
+        : []),
     {
         id: ShapeSettingCategory.Extra,
         label: t("game.ui.selection.edit_dialog.extra.extra"),
         component: ExtraSettings,
     },
-];
+]);
 
 const tabs = computed(() => {
     const tabs: PanelTab[] = [];
@@ -93,7 +108,7 @@ const tabs = computed(() => {
 
     tabs.push(...fixedTabs);
     if (owned.value) {
-        tabs.push(...ownedTabs);
+        tabs.push(...ownedTabs.value);
     }
 
     for (const charTab of uiState.mutableReactive.characterTabs) {
@@ -102,6 +117,11 @@ const tabs = computed(() => {
         } else {
             tabs.push(charTab.tab);
         }
+    }
+
+    // Ensure we always show a tab that exists
+    if (!tabs.some((t) => t.id === uiState.reactive.activeShapeTab)) {
+        uiState.mutableReactive.activeShapeTab = tabs[0]?.id as ShapeSettingCategory;
     }
 
     return tabs;

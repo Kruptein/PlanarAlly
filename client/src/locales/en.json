@@ -318,6 +318,11 @@
                         "removeBranchPrompt": "Are you sure you want to remove this branch and all its children?",
                         "removeElementTitle": "Remove Element",
                         "removeElementPrompt": "Are you sure you want to remove this element?"
+                    },
+                    "variants": {
+                        "variants": "Variants",
+                        "addVariant": "Add Variant",
+                        "empty": "Here you can add alternate visual representations of this shape.\n\nThis can be used for shapes that have alternate outfits or forms (e.g. boss stages).\n\nFor each variant a name and custom asset can be configured.\nWhen you activate a variant, its data will be copied to the main shape and become visible to all players.\nAny resizing you do of the asset on the board will only be done to the active variant.\nAllowing you to swap between variants of different sizes."
                     }
                 },
                 "SelectionInfo": {

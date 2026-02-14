@@ -691,6 +691,12 @@ def upgrade(
             db.execute_sql(
                 'INSERT INTO "text" ("shape_id", "text", "font_size") SELECT "shape_id", "text", "font_size" FROM _text_112'
             )
+    # elif version == 113:
+    #     # Add AssetRectVariant
+    #     with db.atomic():
+    #         db.execute_sql(
+    #             'CREATE TABLE IF NOT EXISTS "asset_rect_variant" ("shape_id" TEXT NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "asset_id" INTEGER NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE CASCADE)'
+    #         )
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

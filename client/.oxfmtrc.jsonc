@@ -11,5 +11,6 @@
     },
     "printWidth": 120,
     "tabWidth": 4,
-    "ignorePatterns": ["*.md"],
+    // listed twice to cover both plugin and cli
+    "ignorePatterns": ["*.md", "src/apiTypes.ts", "client/src/apiTypes.ts"],
 }

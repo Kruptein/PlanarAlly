@@ -32,6 +32,8 @@ tech changes will usually be stripped from release notes for the public
 -   Logging:
     -   Enabling configuration of the logger via a new logging section
     -   Allows for multiple logging file streams at different levels
+-   Initiative:
+    -   Add ability to update effects at start of turn as well as end of turn
 
 ### Changed
 

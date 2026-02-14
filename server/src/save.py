@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 113
+SAVE_VERSION = 114
 
 import asyncio
 import json
@@ -691,6 +691,21 @@ def upgrade(
             db.execute_sql(
                 'INSERT INTO "text" ("shape_id", "text", "font_size") SELECT "shape_id", "text", "font_size" FROM _text_112'
             )
+    elif version == 113:
+        # Add updateTiming to initiative effects
+        with db.atomic():
+            rows = db.execute_sql("SELECT id, data FROM initiative").fetchall()
+            for rowid, data in rows:
+                try:
+                    json_data = json.loads(data) if data else {}
+                except:
+                    json_data = {}
+
+                for entry in json_data:
+                    for effect in entry["effects"]:
+                        effect["updateTiming"] = 0
+                data_text = json.dumps(json_data)
+                db.execute_sql("UPDATE initiative SET data = ? WHERE id = ?", (data_text, rowid))
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

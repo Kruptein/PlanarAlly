@@ -5,6 +5,7 @@ import type {
     InitiativeRoundUpdate,
     InitiativeTurnUpdate,
     InitiativeEffectRename,
+    InitiativeEffectTiming,
     InitiativeEffectTurns,
     InitiativeOptionSet,
 } from "../../../apiTypes";
@@ -41,6 +42,9 @@ socket.on("Initiative.Effect.New", (data: InitiativeEffectNew) => {
 });
 socket.on("Initiative.Effect.Rename", (data: InitiativeEffectRename) => {
     initiativeStore.setEffectName(data.shape, data.index, data.name, false);
+});
+socket.on("Initiative.Effect.Timing", (data: InitiativeEffectTiming) => {
+    initiativeStore.setEffectUpdateTiming(data.shape, data.index, data.timing, false);
 });
 socket.on("Initiative.Effect.Turns", (data: InitiativeEffectTurns) => {
     initiativeStore.setEffectTurns(data.shape, data.index, data.turns, false);

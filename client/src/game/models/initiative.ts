@@ -16,6 +16,12 @@ export interface InitiativeEffect {
     name: string;
     turns: string | null;
     highlightsActor: boolean;
+    updateTiming: InitiativeEffectUpdateTiming;
+}
+
+export enum InitiativeEffectUpdateTiming {
+    TurnEnd = 0,
+    TurnStart = 1,
 }
 
 export enum InitiativeSort {

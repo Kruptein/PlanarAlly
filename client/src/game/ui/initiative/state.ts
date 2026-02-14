@@ -9,6 +9,7 @@ import {
     sendInitiativeRemoveEffect,
     sendInitiativeRenameEffect,
     sendInitiativeRoundUpdate,
+    sendInitiativeTimingEffect,
     sendInitiativeTurnsEffect,
     sendInitiativeTurnUpdate,
     sendInitiativeAdd,
@@ -21,7 +22,7 @@ import {
 } from "../../api/emits/initiative";
 import { getGlobalId, getLocalId, getShape } from "../../id";
 import { type InitiativeData, type InitiativeEffect, InitiativeSort } from "../../models/initiative";
-import { InitiativeTurnDirection } from "../../models/initiative";
+import { InitiativeTurnDirection, InitiativeEffectUpdateTiming } from "../../models/initiative";
 import { setCenterPosition } from "../../position";
 import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
@@ -33,23 +34,25 @@ let activeTokensBackup: Set<LocalId> | undefined = undefined;
 
 function getDefaultEffect(): InitiativeEffect {
     const name = i18n.global.t("game.ui.initiative.new_effect");
-    return { name, turns: null, highlightsActor: false };
+    return { name, turns: null, highlightsActor: false, updateTiming: InitiativeEffectUpdateTiming.TurnEnd };
 }
 
 function getDefaultTimedEffect(): InitiativeEffect {
     const name = i18n.global.t("game.ui.initiative.new_effect");
-    return { name, turns: "10", highlightsActor: false };
+    return { name, turns: "10", highlightsActor: false, updateTiming: InitiativeEffectUpdateTiming.TurnEnd };
 }
 
-function updateActorEffects(turnDelta: number, actor: InitiativeData): void {
+function updateActorEffects(turnDelta: number, actor: InitiativeData, timing?: InitiativeEffectUpdateTiming): void {
     if (actor === undefined) return;
 
     for (let e = actor.effects.length - 1; e >= 0; e--) {
-        if (actor.effects[e]!.turns === null) continue;
-        const turns = +actor.effects[e]!.turns!;
+        const effect = actor.effects[e]!;
+        if (effect.turns === null) continue;
+        if (timing !== undefined && effect.updateTiming !== timing) continue;
+        const turns = +effect.turns;
         if (isNaN(turns)) continue;
         if (turns <= 0) actor.effects.splice(e, 1);
-        else actor.effects[e]!.turns = (turns - turnDelta).toString();
+        else effect.turns = (turns - turnDelta).toString();
     }
 }
 
@@ -236,10 +239,21 @@ class InitiativeStore extends Store<InitiativeState> {
         if (turn < 0) turn = 0;
 
         if (options.updateEffects) {
-            const entry = direction === InitiativeTurnDirection.Forward ? this._state.turnCounter : turn;
+            let entry: number;
+            let next: number;
+            if (direction === InitiativeTurnDirection.Forward) {
+                entry = this._state.turnCounter;
+                next = turn;
+            } else {
+                entry = turn;
+                next = this._state.turnCounter;
+            }
 
             const actor = this.getDataSet()[entry];
-            if (actor !== undefined) updateActorEffects(direction, actor);
+            const nextActor = this.getDataSet()[next];
+            if (actor !== undefined) updateActorEffects(direction, actor, InitiativeEffectUpdateTiming.TurnEnd);
+            if (nextActor !== undefined)
+                updateActorEffects(direction, nextActor, InitiativeEffectUpdateTiming.TurnStart);
         }
         this._state.turnCounter = turn;
 
@@ -356,6 +370,22 @@ class InitiativeStore extends Store<InitiativeState> {
 
         effect.turns = turns;
         if (sync) sendInitiativeTurnsEffect({ shape: globalId, index, turns });
+    }
+
+    setEffectUpdateTiming(
+        globalId: GlobalId,
+        index: number,
+        timing: InitiativeEffectUpdateTiming,
+        sync: boolean,
+    ): void {
+        const actor = this.getDataSet().find((i) => i.globalId === globalId);
+        if (actor === undefined) return;
+
+        const effect = actor.effects[index];
+        if (effect === undefined) return;
+
+        effect.updateTiming = timing;
+        if (sync) sendInitiativeTimingEffect({ shape: globalId, index, timing });
     }
 
     removeEffect(globalId: GlobalId, index: number, sync: boolean): void {

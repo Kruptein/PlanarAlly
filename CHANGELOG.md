@@ -32,6 +32,9 @@ tech changes will usually be stripped from release notes for the public
 -   Logging:
     -   Enabling configuration of the logger via a new logging section
     -   Allows for multiple logging file streams at different levels
+-   Ruler:
+    -   Enabling configuration of grid-mode's style of measuring diagonal
+        movement.
 
 ### Changed
 

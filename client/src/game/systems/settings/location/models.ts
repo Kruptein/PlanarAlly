@@ -1,4 +1,4 @@
-import type { GridType } from "../../../../core/grid";
+import type { GridType, GridModeRulerType } from "../../../../core/grid";
 import type { GlobalId } from "../../../../core/id";
 
 export interface WithDefault<T> {
@@ -17,6 +17,7 @@ export interface LocationOptions {
     gridType: GridType;
     unitSize: number;
     unitSizeUnit: string;
+    gridModeRulerType: GridModeRulerType;
     fullFow: boolean;
     fowOpacity: number;
     fowLos: boolean;

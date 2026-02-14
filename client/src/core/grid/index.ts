@@ -49,6 +49,14 @@ export enum GridType {
     FlatHex = "FLAT_HEX",
 }
 
+export enum GridModeRulerType {
+    Unchanged = "UNCHANGED",
+    Alternating = "ALTERNATING",
+    Manhattan = "MANHATTAN",
+    Euclidean = "EUCLIDEAN",
+    EuclideanApprox = "EUCLIDEAN_APPROX",
+}
+
 export function getClosestCellCenter(position: GlobalPoint, gridType: GridType): GlobalPoint {
     return getCellCenter(getCellFromPoint(position, gridType), gridType);
 }

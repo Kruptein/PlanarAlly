@@ -11,6 +11,8 @@ import {
     getCellFromPoint,
     getCellVertices,
     getClosestCellCenter,
+    GridModeRulerType,
+    GridType,
     snapPointToGrid,
 } from "../../../core/grid";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
@@ -60,9 +62,15 @@ class RulerTool extends Tool implements ITool {
     private text: Text | undefined = undefined;
 
     private currentLength = 0;
+    private currentBonusCells = 0;
     private currentCellDistance = 0;
+    private currentLastCell: GlobalPoint | null = null;
+    private currentDiagonalEndState = true;
     private previousLength = 0;
+    private previousBonusCells = 0;
     private previousCellDistance = 0;
+    private previousLastCell: GlobalPoint | null = null;
+    private previousDiagonalEndState = true;
 
     get permittedTools(): ToolPermission[] {
         return [{ name: ToolName.Select, features: { enabled: [SelectFeatures.Context] } }];
@@ -199,6 +207,42 @@ class RulerTool extends Tool implements ITool {
         const ydiff = Math.abs(end.y - start.y);
 
         let cellDistance = cells.length;
+        let bonusCells = 0;
+        let isOddDiagonal = this.previousDiagonalEndState;
+        const isAlternatingRuler = locationSettingsState.raw.gridModeRulerType.value === GridModeRulerType.Alternating;
+        const bonusValue = (() => {
+            switch (locationSettingsState.raw.gridModeRulerType.value) {
+                case GridModeRulerType.Alternating:
+                case GridModeRulerType.Manhattan:
+                    return 1;
+                case GridModeRulerType.Euclidean:
+                    return Math.sqrt(2) - 1;
+                case GridModeRulerType.EuclideanApprox:
+                    return 0.5;
+                default:
+                    return 0;
+            }
+        })();
+        const addBonusValue = (): void => {
+            if (isAlternatingRuler) {
+                if (!isOddDiagonal) {
+                    bonusCells += bonusValue;
+                }
+                isOddDiagonal = !isOddDiagonal;
+            } else {
+                bonusCells += bonusValue;
+            }
+        };
+        if (locationSettingsState.raw.gridType.value === GridType.Square) {
+            if (this.previousLastCell !== null && cells.length > 0 && isDiagonal(this.previousLastCell, cells[0])) {
+                addBonusValue();
+            }
+            for (let i = 1; i < cells.length; i++) {
+                if (isDiagonal(cells[i - 1], cells[i])) {
+                    addBonusValue();
+                }
+            }
+        }
         let unitDistance = cellDistance;
         if (!this.gridMode.value) {
             unitDistance =
@@ -207,11 +251,16 @@ class RulerTool extends Tool implements ITool {
             if (!this.previousCellDistance) {
                 cellDistance = Math.max(cellDistance - 1, 0);
             }
-            unitDistance = cellDistance * locationSettingsState.raw.unitSize.value;
+            unitDistance =
+                cellDistance * locationSettingsState.raw.unitSize.value +
+                bonusCells * locationSettingsState.raw.unitSize.value;
         }
 
         this.currentLength = unitDistance;
+        this.currentBonusCells = bonusCells * locationSettingsState.raw.unitSize.value;
         this.currentCellDistance = cellDistance;
+        this.currentLastCell = cells.length > 0 ? (cells[cells.length - 1] ?? null) : null;
+        this.currentDiagonalEndState = isOddDiagonal;
         unitDistance += this.previousLength;
         cellDistance += this.previousCellDistance;
 
@@ -284,7 +333,10 @@ class RulerTool extends Tool implements ITool {
 
             this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
             this.previousLength += this.currentLength;
+            this.previousBonusCells += this.currentBonusCells;
             this.previousCellDistance += this.currentCellDistance;
+            this.previousLastCell = this.currentLastCell;
+            this.previousDiagonalEndState = this.currentDiagonalEndState;
 
             layer.moveShapeOrder(
                 this.text!,
@@ -343,8 +395,18 @@ class RulerTool extends Tool implements ITool {
         this.startPoint = this.text = undefined;
         this.rulers = [];
         this.previousLength = 0;
+        this.previousBonusCells = 0;
         this.previousCellDistance = 0;
+        this.previousLastCell = null;
+        this.previousDiagonalEndState = true;
     }
+}
+
+// Assumes cell1 and cell2 are square cells and are 1 cell away from each other
+function isDiagonal(cell1: GlobalPoint | undefined, cell2: GlobalPoint | undefined): boolean {
+    if (cell1 === undefined || cell2 === undefined) return false;
+
+    return !(cell1.x === cell2.x || cell1.y === cell2.y);
 }
 
 export const rulerTool = new RulerTool();

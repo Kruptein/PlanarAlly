@@ -1,4 +1,4 @@
-import { GridType } from "../../../../core/grid";
+import { GridModeRulerType, GridType } from "../../../../core/grid";
 import { buildState } from "../../../../core/systems/state";
 
 import type { LocationOptions, WithDefault, WithLocationDefault } from "./models";
@@ -15,6 +15,7 @@ function getInitState(): _S {
         fowLos: init(false),
         fowOpacity: init(0),
         gridType: init(GridType.Square),
+        gridModeRulerType: init(GridModeRulerType.Unchanged),
         fullFow: init(false),
         movePlayerOnTokenChange: init(false),
         spawnLocations: init([]),

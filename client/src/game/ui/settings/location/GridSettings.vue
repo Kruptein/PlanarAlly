@@ -15,6 +15,7 @@ const location = computed(() => (props.global ? undefined : uiState.reactive.ope
 
 const useGrid = useLocationSettings("useGrid", location);
 const gridType = useLocationSettings("gridType", location);
+const gridModeRulerType = useLocationSettings("gridModeRulerType", location);
 
 const unitSize = useLocationSettings("unitSize", location);
 const unitSizeUnit = useLocationSettings("unitSizeUnit", location);
@@ -67,6 +68,23 @@ const dropRatio = useLocationSettings("dropRatio", location);
             </div>
             <div>
                 <input :id="'unitSizeInput-' + location" v-model.number="unitSize" type="number" step="any" />
+            </div>
+        </ResetWrapper>
+        <ResetWrapper :global="global" :location="location" setting="gridModeRulerType">
+            <label
+                :for="'gridModeRulerType-' + location"
+                :title="t('game.ui.settings.GridSettings.grid_mode_ruler_type_title')"
+            >
+                {{ t("game.ui.settings.GridSettings.grid_mode_ruler_type") }}
+            </label>
+            <div>
+                <select :id="'gridModeRulerType-' + location" v-model="gridModeRulerType">
+                    <option value="UNCHANGED">{{ t("game.ui.settings.GridSettings.UNCHANGED") }}</option>
+                    <option value="ALTERNATING">{{ t("game.ui.settings.GridSettings.ALTERNATING") }}</option>
+                    <option value="MANHATTAN">{{ t("game.ui.settings.GridSettings.MANHATTAN") }}</option>
+                    <option value="EUCLIDEAN">{{ t("game.ui.settings.GridSettings.EUCLIDEAN") }}</option>
+                    <option value="EUCLIDEAN_APPROX">{{ t("game.ui.settings.GridSettings.EUCLIDEAN_APPROX") }}</option>
+                </select>
             </div>
         </ResetWrapper>
         <ResetWrapper :global="global" :location="location" setting="dropRatio">

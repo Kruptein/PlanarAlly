@@ -45,6 +45,7 @@ class LocationOptionKeys(TypedDict, total=False):
     unit_size: float
     unit_size_unit: str
     use_grid: bool
+    grid_mode_ruler_type: str
     grid_type: str
     full_fow: bool
     fow_opacity: float

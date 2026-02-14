@@ -34,7 +34,11 @@ function getTurns(): string | null {
 }
 
 function submitNewEffect(): void {
-    emit("submit", { name: name.value === "" ? defaultName : name.value, turns: getTurns(), highlightsActor: false });
+    emit("submit", {
+        name: name.value === "" ? defaultName : name.value,
+        turns: getTurns(),
+        highlightsActor: false,
+    });
 }
 </script>
 
@@ -64,7 +68,9 @@ function submitNewEffect(): void {
             </Transition>
         </div>
         <div class="second-row">
-            <button class="create-effect-button" tabindex="-1" @click="emit('cancel')">{{ t("common.cancel") }}</button>
+            <button class="create-effect-button" tabindex="-1" @click="emit('cancel')">
+                {{ t("common.cancel") }}
+            </button>
             <div class="sub-row-group">
                 <div
                     :title="t('game.ui.initiative.infinite_toggle_hint')"

@@ -32,7 +32,7 @@ async function generate3dOptions(): Promise<{
 
     const xDir = Math.random();
     const yDir = Math.random();
-    const side = Math.random() > 0.5 ? true : false;
+    const side = Math.random() > 0.5;
     const signX = Math.random() > 0.5 ? 1 : -1;
     const signY = Math.random() > 0.5 ? 1 : -1;
 
@@ -81,7 +81,12 @@ class DiceTool extends Tool implements ITool {
     }
 
     get permittedTools(): ToolPermission[] {
-        return [{ name: ToolName.Select, features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] } }];
+        return [
+            {
+                name: ToolName.Select,
+                features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] },
+            },
+        ];
     }
 
     async roll(input: string, use3d: boolean, shareWith: DiceRollResult["shareWith"]): Promise<RollResult<Part>> {

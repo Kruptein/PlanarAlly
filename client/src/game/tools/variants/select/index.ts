@@ -81,7 +81,11 @@ const toast = useToast();
 // Calculate 45 degrees in radians just once
 const ANGLE_SNAP = (45 * Math.PI) / 180;
 
-const rulerPermission = { name: ToolName.Ruler, features: { enabled: [RulerFeatures.All] }, early: true };
+const rulerPermission = {
+    name: ToolName.Ruler,
+    features: { enabled: [RulerFeatures.All] },
+    early: true,
+};
 
 const { _, _$ } = selectToolState;
 
@@ -1003,9 +1007,21 @@ class SelectTool extends Tool implements ISelectTool {
             const layer = this.rotationAnchor!.layer;
             if (layer === undefined) return;
 
-            layer.removeShape(this.rotationAnchor!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
-            layer.removeShape(this.rotationBox!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
-            layer.removeShape(this.rotationEnd!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+            layer.removeShape(this.rotationAnchor!, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: true,
+                dropShapeId: true,
+            });
+            layer.removeShape(this.rotationBox!, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: true,
+                dropShapeId: true,
+            });
+            layer.removeShape(this.rotationEnd!, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: true,
+                dropShapeId: true,
+            });
             this.rotationAnchor = this.rotationBox = this.rotationEnd = undefined;
             this.rotationUiActive = false;
 

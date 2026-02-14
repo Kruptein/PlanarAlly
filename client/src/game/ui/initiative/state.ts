@@ -106,8 +106,14 @@ class InitiativeStore extends Store<InitiativeState> {
         else this._state.locationData = initiativeData;
 
         if (!this._state.manuallyOpened) this.setActive(data.isActive);
-        this.setRoundCounter(data.round, InitiativeTurnDirection.Null, { sync: false, updateEffects: false });
-        this.setTurnCounter(data.turn, InitiativeTurnDirection.Null, { sync: false, updateEffects: false });
+        this.setRoundCounter(data.round, InitiativeTurnDirection.Null, {
+            sync: false,
+            updateEffects: false,
+        });
+        this.setTurnCounter(data.turn, InitiativeTurnDirection.Null, {
+            sync: false,
+            updateEffects: false,
+        });
         this._state.sort = data.sort;
     }
 

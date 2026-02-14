@@ -47,7 +47,11 @@ const tabs = computed(() => [
         label: t("game.ui.settings.client.common.Display"),
         component: DisplaySettings,
     },
-    { id: ClientSettingCategory.Initiative, label: t("common.initiative"), component: InitiativeSettings },
+    {
+        id: ClientSettingCategory.Initiative,
+        label: t("common.initiative"),
+        component: InitiativeSettings,
+    },
     {
         id: ClientSettingCategory.Performance,
         label: t("game.ui.settings.client.common.Performance"),

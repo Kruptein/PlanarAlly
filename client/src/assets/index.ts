@@ -10,7 +10,7 @@ import { sendAssetRemove, sendAssetRename, getFolder, sendInodeMove, getFolderPa
 import type { AssetId } from "./models";
 import { socket } from "./socket";
 import { assetState } from "./state";
-
+// oxlint-disable-next-line import/no-unassigned-import
 import "./events";
 
 const toast = useToast();
@@ -234,6 +234,7 @@ class AssetSystem implements System {
             const slices = Math.ceil(file.size / CHUNK_SIZE);
             $.pendingUploads.push(file.name);
             for (let slice = 0; slice < slices; slice++) {
+                // oxlint-disable-next-line no-await-in-loop
                 const uploadedFile = await new Promise<ApiAsset | undefined>((resolve) => {
                     const fr = new FileReader();
                     fr.readAsArrayBuffer(
@@ -242,7 +243,7 @@ class AssetSystem implements System {
                             slice * CHUNK_SIZE + Math.min(CHUNK_SIZE, file.size - slice * CHUNK_SIZE),
                         ),
                     );
-                    fr.onload = (_e) => {
+                    fr.addEventListener("load", (_e) => {
                         if (fr.result === null) return;
 
                         const uploadData: ApiAssetUpload = {
@@ -258,7 +259,7 @@ class AssetSystem implements System {
                             uuid,
                         };
                         socket.emit("Asset.Upload", uploadData, resolve);
-                    };
+                    });
                 });
                 // The returned data is undefined, if the file has multiple slices
                 // only the last slice will return a valid file

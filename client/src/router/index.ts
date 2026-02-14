@@ -33,7 +33,11 @@ router.beforeEach(async (to, _from, next) => {
         // Handle core requests
         const [authResponse, versionResponse] = await Promise.all(promiseArray);
         if (authResponse!.ok && versionResponse!.ok) {
-            const authData = (await authResponse!.json()) as { auth: boolean; username: string; email: string };
+            const authData = (await authResponse!.json()) as {
+                auth: boolean;
+                username: string;
+                email: string;
+            };
             const versionData = (await versionResponse!.json()) as { release: string; env: string };
 
             coreStore.setAuthenticated(authData.auth);

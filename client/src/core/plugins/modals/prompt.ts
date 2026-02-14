@@ -19,6 +19,10 @@ export interface PromptModal {
     submit: (answer: string) => void;
 }
 
+const defaultValidationFunction: validationFunc = (_value) => ({
+    valid: true,
+});
+
 export function usePrompt(): PromptModal {
     const data = reactive({
         visible: false,
@@ -27,12 +31,9 @@ export function usePrompt(): PromptModal {
         error: "",
     });
 
-    const defaultValidationFunction: validationFunc = (_value) => ({
-        valid: true,
-    });
-
     let validationFunction = defaultValidationFunction;
 
+    // oxlint-disable-next-line unicorn/consistent-function-scoping
     let resolve: (value: string | undefined) => void = (_value: string | undefined) => {};
 
     async function ask(question: string, title: string, validation?: validationFunc): Promise<string | undefined> {

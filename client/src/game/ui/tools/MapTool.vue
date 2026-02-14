@@ -190,7 +190,9 @@ function calculateY(gridX: number, gridType: GridType): void {
                 <div id="map-buttons">
                     <div class="button apply" @click="apply">{{ t("game.ui.tools.MapTool.apply") }}</div>
                     <div style="width: 25px"></div>
-                    <div class="button cancel" @click="removeRect">{{ t("game.ui.tools.MapTool.cancel") }}</div>
+                    <div class="button cancel" @click="removeRect">
+                        {{ t("game.ui.tools.MapTool.cancel") }}
+                    </div>
                 </div>
             </template>
         </template>

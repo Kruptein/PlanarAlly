@@ -1,0 +1,15 @@
+{
+    "$schema": "./node_modules/oxfmt/configuration_schema.json",
+    "experimentalSortImports": {
+        "groups": [
+            ["builtin", "external"], // node_modules packages
+            ["parent"], // relative parent imports
+            ["sibling"], // relative sibling imports
+            ["index"], // relative index imports
+            ["style"], // CSS imports
+        ],
+    },
+    "printWidth": 120,
+    "tabWidth": 4,
+    "ignorePatterns": ["*.md"],
+}

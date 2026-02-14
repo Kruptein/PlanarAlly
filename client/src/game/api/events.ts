@@ -1,3 +1,4 @@
+// oxlint-disable import/no-unassigned-import
 import { POSITION, useToast } from "vue-toastification";
 
 import "../dataBlock/events";
@@ -15,7 +16,6 @@ import "../systems/markers/events";
 import "../systems/notes/events";
 import "../systems/room/events";
 import "../systems/trackers/events";
-
 import "./events/client";
 import "./events/floor";
 import "./events/initiative";
@@ -32,7 +32,6 @@ import "./events/shape/options";
 import "./events/shape/text";
 import "./events/shape/togglecomposite";
 import "./events/user";
-
 import type { ApiFloor, ApiLocationCore, PlayerPosition } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import type { GlobalId } from "../../core/id";

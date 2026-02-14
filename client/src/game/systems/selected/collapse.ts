@@ -54,7 +54,10 @@ export async function expandSelection(updateList?: IShape[]): Promise<void> {
     for (const [collapsedId, vector] of shape.options.collapsedIds) {
         const collapsedShape = getShape(collapsedId);
         if (collapsedShape !== undefined) {
-            await moveShapes([collapsedShape], calculateDelta(vector, collapsedShape, true), { temporary: true });
+            // oxlint-disable-next-line no-await-in-loop
+            await moveShapes([collapsedShape], calculateDelta(vector, collapsedShape, true), {
+                temporary: true,
+            });
             selectedSystem.push(collapsedShape.id);
             if (updateList && !collapsedShape.preventSync) updateList.push(collapsedShape);
         }

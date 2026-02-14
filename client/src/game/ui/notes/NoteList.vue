@@ -168,7 +168,10 @@ async function search(): Promise<void> {
 }
 
 async function updateLocationFilter(): Promise<void> {
-    const filters = (await socket.emitWithAck("Note.Filters.Location.Get")) as { id: number; name: string }[];
+    const filters = (await socket.emitWithAck("Note.Filters.Location.Get")) as {
+        id: number;
+        name: string;
+    }[];
     filterOptions.locations = filters.sort((a, b) => a.name.localeCompare(b.name));
 }
 

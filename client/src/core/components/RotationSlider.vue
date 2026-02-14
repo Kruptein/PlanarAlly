@@ -55,7 +55,10 @@ function syncDegreeAngle(): void {
 function mouseMove(event: MouseEvent): void {
     if (active) {
         const circleRect = circle.value!.getBoundingClientRect();
-        const center = { x: circleRect.left + circleRect.width / 2, y: circleRect.top + circleRect.height / 2 };
+        const center = {
+            x: circleRect.left + circleRect.width / 2,
+            y: circleRect.top + circleRect.height / 2,
+        };
 
         const mPos = { x: event.x - center.x, y: event.y - center.y };
         radianAngle.value = Math.PI / 2 - Math.atan2(radius * mPos.x, radius * mPos.y);

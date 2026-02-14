@@ -1,16 +1,22 @@
 from typing import Any, cast
+from typing import TYPE_CHECKING
 
 from peewee import ForeignKeyField
 
 from ...api.models.shape.shape import ApiCoreShape
 from ...api.models.shape.subtypes import ApiAssetRectShape
 from .asset import Asset
+from ..typed import SelectSequence
 from .base_rect import BaseRect
+
+if TYPE_CHECKING:
+    from .asset_rect_variant import AssetRectVariant
 
 
 class AssetRect(BaseRect):
     id: int
     asset_id: int
+    variants: SelectSequence["AssetRectVariant"]
 
     asset = cast(Asset, ForeignKeyField(Asset, backref="asset_rects", on_delete="CASCADE"))
 

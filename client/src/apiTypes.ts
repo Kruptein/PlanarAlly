@@ -138,6 +138,14 @@ export interface ApiNoteAccess {
   can_edit: boolean;
   can_view: boolean;
 }
+export interface ApiVariant {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
+  id: number;
+  assetHash: string;
+}
 export interface ApiAssetRemoveShare {
   asset: AssetEntryId;
   user: string;
@@ -230,6 +238,7 @@ export interface ApiCoreShape {
   cell_stroke_colour: string | null;
   cell_stroke_width: number | null;
   notes: ApiNote[];
+  variants: ApiVariant[] | null;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
@@ -952,4 +961,30 @@ export interface TrackerMove {
 export interface TrackerRef {
   uuid: TrackerId;
   shape: GlobalId;
+}
+export interface ApiAddVariant {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
+  id: number;
+  assetHash: string;
+  shapeId: GlobalId;
+}
+export interface ApiCreateVariant {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
+  shapeId: GlobalId;
+}
+export interface ApiVariantIdentifier {
+  shapeId: GlobalId;
+  variantId: number;
+}
+export interface ApiVariantWithoutId {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
 }

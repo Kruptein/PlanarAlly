@@ -15,7 +15,7 @@ When writing migrations make sure that these things are respected:
 - It's often a good idea to start the server with a clean save and use `.schema <table_name>` in sqlite to get the exact schema output that a clean save creates
 """
 
-SAVE_VERSION = 115
+SAVE_VERSION = 116
 
 import asyncio
 import json
@@ -708,7 +708,14 @@ def upgrade(
                     (shape_id,),
                 )
                 db.execute_sql("DELETE FROM asset_rect WHERE shape_id = ?", (shape_id,))
-
+    elif version == 115:
+        # Add AssetRectVariant
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "asset_rect_variant" ("id" INTEGER NOT NULL PRIMARY KEY, "shape_id" TEXT NOT NULL, "name" TEXT, "asset_id" INTEGER NOT NULL, "width" REAL NOT NULL, "height" REAL NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "asset_rect" ("shape_id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE RESTRICT)'
+            )
+            db.execute_sql('CREATE INDEX "asset_rect_variant_shape_id" ON "asset_rect_variant" ("shape_id")')
+            db.execute_sql('CREATE INDEX "asset_rect_variant_asset_id" ON "asset_rect_variant" ("asset_id")')
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

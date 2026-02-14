@@ -48,7 +48,7 @@ from ...models.shape.position import ShapePositionUpdate, ShapesPositionUpdateLi
 from .. import initiative
 from ..constants import GAME_NS
 from ..groups import remove_group_if_empty
-from . import access, custom_data, options  # noqa: F401
+from . import access, custom_data, options, variants  # noqa: F401
 
 
 @sio.on("Shape.Get", namespace=GAME_NS)

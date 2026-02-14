@@ -366,6 +366,7 @@ function createServerDataFromCompact(compact: CompactForm): ApiShape {
         group: null,
         is_door: false,
         is_teleport_zone: false,
+        variants: [],
     };
 
     // Augment the data with the correct system data

@@ -1,6 +1,10 @@
+import { toGP } from "../../../core/geometry";
 import { DEFAULT_HEX_RADIUS, DEFAULT_GRID_SIZE, SQRT3, GridType } from "../../../core/grid";
 import type { IGridLayer } from "../../interfaces/layers/grid";
+import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
+import type { SvgDisplayOverrides } from "../../shapes/variants/fontAwesomeIcon";
 import { floorState } from "../../systems/floors/state";
+import { gameState } from "../../systems/game/state";
 import { positionState } from "../../systems/position/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
@@ -8,6 +12,12 @@ import { playerSettingsState } from "../../systems/settings/players/state";
 import { Layer } from "./layer";
 
 export class GridLayer extends Layer implements IGridLayer {
+    displayOverrides: SvgDisplayOverrides = { fill: "rgba(255,0,0,0.4)", stroke: "black", strokeWidth: "10" };
+    originIcon: FontAwesomeIcon = new FontAwesomeIcon({ prefix: "fas", iconName: "location-dot" }, toGP(0, 0), 40, {
+        svgDisplayOverrides: this.displayOverrides,
+    });
+    originIconSize = { width: 30, height: 40 };
+
     invalidate(): void {
         this.valid = false;
     }
@@ -19,6 +29,17 @@ export class GridLayer extends Layer implements IGridLayer {
 
     draw(_doClear?: boolean): void {
         if (!this.valid) {
+            this.clear();
+            if (locationSettingsState.raw.useOriginMarker.value && gameState.raw.isDm) {
+                const ctx = this.ctx;
+                const state = positionState.readonly;
+                console.log(state.zoom);
+                this.originIcon.draw(ctx, false, {
+                    center: toGP(0, -20 / state.zoom),
+                    width: this.originIconSize.width,
+                    height: this.originIconSize.height,
+                });
+            }
             if (locationSettingsState.raw.useGrid.value) {
                 const activeFowFloor = floorState.currentFloor.value!.id;
 
@@ -28,7 +49,6 @@ export class GridLayer extends Layer implements IGridLayer {
                     this.canvas.style.display = "none";
 
                 const ctx = this.ctx;
-                this.clear();
                 ctx.beginPath();
 
                 const state = positionState.readonly;

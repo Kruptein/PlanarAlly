@@ -856,7 +856,7 @@ export interface ToggleCompositeVariant {
   shape: GlobalId;
   variant: GlobalId;
 }
-export interface TypeIdModel {}
+export interface TypeIdModel { }
 export interface ApiLocation {
   id: number;
   name: string;
@@ -867,6 +867,7 @@ export interface ApiOptionalLocationOptions {
   unit_size?: number | null;
   unit_size_unit?: string | null;
   use_grid?: boolean | null;
+  use_origin_marker?: boolean | null;
   full_fow?: boolean | null;
   fow_opacity?: number | null;
   fow_los?: boolean | null;
@@ -891,6 +892,7 @@ export interface ApiLocationOptions {
   unit_size: number;
   unit_size_unit: string;
   use_grid: boolean;
+  use_origin_marker: boolean;
   full_fow: boolean;
   fow_opacity: number;
   fow_los: boolean;

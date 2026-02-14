@@ -123,6 +123,7 @@ export function loadFontAwesome(): void {
         faCopy,
         faCompass,
         faCommentDots,
+        faLocationDot,
         faCut,
         faDAndD,
         faDiceD20,

@@ -18,6 +18,7 @@ const gridType = useLocationSettings("gridType", location);
 
 const unitSize = useLocationSettings("unitSize", location);
 const unitSizeUnit = useLocationSettings("unitSizeUnit", location);
+const useOriginMarker = useLocationSettings("useOriginMarker", location);
 const dropRatio = useLocationSettings("dropRatio", location);
 </script>
 
@@ -67,6 +68,14 @@ const dropRatio = useLocationSettings("dropRatio", location);
             </div>
             <div>
                 <input :id="'unitSizeInput-' + location" v-model.number="unitSize" type="number" step="any" />
+            </div>
+        </ResetWrapper>
+        <ResetWrapper :global="global" :location="location" setting="useOriginMarker">
+            <label :for="'useOriginMarkerInput-' + location">
+                {{ t("game.ui.settings.GridSettings.use_origin_marker") }}
+            </label>
+            <div>
+                <input :id="'useOriginMarkerInput-' + location" v-model="useOriginMarker" type="checkbox" />
             </div>
         </ResetWrapper>
         <ResetWrapper :global="global" :location="location" setting="dropRatio">

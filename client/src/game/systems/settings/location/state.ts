@@ -21,6 +21,7 @@ function getInitState(): _S {
         useGrid: init(false),
         unitSize: init(5), // gridSize computed is not triggering on setDefault for some reason
         unitSizeUnit: init("ft"),
+        useOriginMarker: init(false),
         visionMaxRange: init(0),
         visionMinRange: init(0),
         visionMode: init(""),

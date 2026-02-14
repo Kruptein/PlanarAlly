@@ -17,6 +17,7 @@ export interface LocationOptions {
     gridType: GridType;
     unitSize: number;
     unitSizeUnit: string;
+    useOriginMarker: boolean;
     fullFow: boolean;
     fowOpacity: number;
     fowLos: boolean;

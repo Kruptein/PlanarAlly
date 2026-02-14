@@ -14,7 +14,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 113
+SAVE_VERSION = 114
 
 import asyncio
 import json
@@ -690,6 +690,13 @@ def upgrade(
             )
             db.execute_sql(
                 'INSERT INTO "text" ("shape_id", "text", "font_size") SELECT "shape_id", "text", "font_size" FROM _text_112'
+            )
+    elif version == 113:
+        # Add use_origin_marker column to location options
+        with db.atomic():
+            db.execute_sql("ALTER TABLE location_options ADD COLUMN use_origin_marker INTEGER DEFAULT 0")
+            db.execute_sql(
+                "UPDATE location_options SET use_origin_marker = NULL WHERE id NOT IN (SELECT default_options_id FROM room)"
             )
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")

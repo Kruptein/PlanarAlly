@@ -447,6 +447,7 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Unit Size (in {unit})",
                     "use_grid": "Use grid",
+                    "use_origin_marker": "Show origin marker",
                     "size_unit": "Size Unit",
                     "grid_type": "Grid Type",
                     "SQUARE": "Squares",

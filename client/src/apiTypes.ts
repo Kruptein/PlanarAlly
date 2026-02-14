@@ -11,7 +11,7 @@ import type { VisionBlock } from "./game/systems/properties/types";
 import type { GridModeLabelFormat } from "./game/systems/settings/players/models";
 import type { TrackerId } from "./game/systems/trackers/models";
 
-export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
+export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape
 export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock
 export type ApiShapeAdd = ApiShapeWithLayerAndTemporary | ApiTemplateShape
 export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumber | ApiShapeCustomDataBoolean | ApiShapeCustomDataDiceExpression
@@ -268,7 +268,6 @@ export interface ApiLayer {
     | ApiPolygonShape
     | ApiTextShape
     | ApiLineShape
-    | ApiToggleCompositeShape
   )[];
   groups: ApiGroup[];
 }
@@ -289,14 +288,6 @@ export interface ApiLineShape extends ApiCoreShape {
   x2: number;
   y2: number;
   line_width: number;
-}
-export interface ApiToggleCompositeShape extends ApiCoreShape {
-  active_variant: GlobalId;
-  variants: ToggleVariant[];
-}
-export interface ToggleVariant {
-  uuid: GlobalId;
-  name: string;
 }
 export interface ApiGroup {
   uuid: string;
@@ -846,15 +837,6 @@ export interface TempClientPosition {
 export interface TemporaryShapes {
   uuids: GlobalId[];
   temporary: boolean;
-}
-export interface ToggleCompositeNewVariant {
-  shape: GlobalId;
-  variant: GlobalId;
-  name: string;
-}
-export interface ToggleCompositeVariant {
-  shape: GlobalId;
-  variant: GlobalId;
 }
 export interface TypeIdModel {}
 export interface ApiLocation {

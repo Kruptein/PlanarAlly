@@ -7,5 +7,4 @@ export enum ShapeSettingCategory {
     Group = "Group",
     CustomData = "CustomData",
     Extra = "Extra",
-    Variant = "Variant",
 }

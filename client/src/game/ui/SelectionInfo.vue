@@ -26,9 +26,9 @@ const shapeProps = useShapeProps();
 
 const activeTracker = ref<Tracker | Aura | null>(null);
 
-const trackers = computed(() => [...trackerSystem.state.parentTrackers, ...trackerSystem.state.trackers.slice(0, -1)]);
+const trackers = computed(() => trackerSystem.state.trackers.slice(0, -1));
 
-const auras = computed(() => [...auraSystem.state.parentAuras, ...auraSystem.state.auras.slice(0, -1)]);
+const auras = computed(() => auraSystem.state.auras.slice(0, -1));
 
 const notes = computed(
     () =>

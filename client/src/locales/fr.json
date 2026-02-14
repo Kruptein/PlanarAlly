@@ -281,7 +281,6 @@
                         "odd_hex_orientation": "Orientation hexagonale impaire"
                     },
                     "tracker": {
-                        "shared_for_all_variants": "Partagé pour toutes les variantes",
                         "border": "Bordure",
                         "light_source": "Source de lumière",
                         "angle": "Angle",

@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from .aura import Aura
     from .circle import Circle
     from .circular_token import CircularToken
-    from .composite_shape_association import CompositeShapeAssociation
     from .line import Line
     from .polygon import Polygon
     from .rect import Rect
@@ -27,7 +26,6 @@ if TYPE_CHECKING:
     from .shape_owner import ShapeOwner
     from .shape_type import ShapeType
     from .text import Text
-    from .toggle_composite import ToggleComposite
     from .tracker import Tracker
 
 
@@ -42,9 +40,6 @@ class Shape(BaseDbModel):
     polygon_set: SelectSequence["Polygon"]
     rect_set: SelectSequence["Rect"]
     text_set: SelectSequence["Text"]
-    togglecomposite_set: SelectSequence["ToggleComposite"]
-    composite_parent: SelectSequence["CompositeShapeAssociation"]
-    shape_variants: SelectSequence["CompositeShapeAssociation"]
     character_id: int | None
     data_blocks: SelectSequence["ShapeDataBlock"]
     custom_data: SelectSequence["ShapeCustomData"]

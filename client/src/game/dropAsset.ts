@@ -13,7 +13,7 @@ import { i18n } from "../i18n";
 
 import { requestAssetOptions } from "./api/emits/asset";
 import { fetchFullShape, sendShapesMove } from "./api/emits/shape/core";
-import { getLocalId, getVisualShape } from "./id";
+import { getLocalId, getShape } from "./id";
 import { moveShapes } from "./operations/movement";
 import { loadFromServer } from "./shapes/transformations";
 import { Asset } from "./shapes/variants/asset";
@@ -71,7 +71,7 @@ async function dropHelper(
         const shapeId = getLocalId(character.shapeId, false);
 
         if (shapeId !== undefined) {
-            const shape = getVisualShape(shapeId);
+            const shape = getShape(shapeId);
             if (shape !== undefined && shape.options.skipDraw !== true) {
                 await moveShapes([shape], Vector.fromPoints(shape.center, location), { temporary: false });
                 return;

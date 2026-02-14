@@ -30,7 +30,6 @@ import "./events/shape/circularToken";
 import "./events/shape/core";
 import "./events/shape/options";
 import "./events/shape/text";
-import "./events/shape/togglecomposite";
 import "./events/user";
 import type { ApiFloor, ApiLocationCore, PlayerPosition } from "../../apiTypes";
 import { toGP } from "../../core/geometry";

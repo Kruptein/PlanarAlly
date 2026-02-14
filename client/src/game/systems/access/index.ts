@@ -7,7 +7,7 @@ import type { Sync } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { coreStore } from "../../../store/core";
-import { getGlobalId, getShape, getBaseShapeId } from "../../id";
+import { getGlobalId, getShape } from "../../id";
 import { initiativeStore } from "../../ui/initiative/state";
 import { floorSystem } from "../floors";
 import { gameState } from "../game/state";
@@ -95,12 +95,11 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
     // REACTIVE
 
     loadState(id: LocalId): void {
-        const baseId = getBaseShapeId(id);
-        $.id = baseId;
+        $.id = id;
         $.defaultAccess = { ...DEFAULT_ACCESS };
         $.playerAccess.clear();
 
-        const accessMap = mutable.access.get(baseId);
+        const accessMap = mutable.access.get(id);
 
         if (accessMap !== undefined) {
             for (const [user, access] of accessMap) {
@@ -126,7 +125,6 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
     // High-level access check based on owned/active state
     // Should be used by external systems
     hasAccessTo(id: LocalId, access: AccessLevel | AccessLevel[], limitToActiveTokens = false): boolean {
-        id = getBaseShapeId(id);
         // 1. DMs always have access when not limiting to active tokens
         if (gameState.raw.isDm && !limitToActiveTokens) return true;
 
@@ -146,7 +144,6 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
     // Low-level internal access check
     // This decides whether a shape is regarded as owned for a certain access level
     private _hasAccessTo(id: LocalId, access: AccessLevel): boolean {
-        id = getBaseShapeId(id);
         const accessMap = mutable.access.get(id);
         if (accessMap === undefined) return false;
 
@@ -331,8 +328,7 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
         floorSystem.invalidateLightAllFloors();
     }
 
-    removeActiveToken(token: LocalId, access: AccessLevel): void {
-        const id = getBaseShapeId(token);
+    removeActiveToken(id: LocalId, access: AccessLevel): void {
         const accessActiveTokens = $.activeTokenFilters.get(access);
         if (accessActiveTokens === undefined) {
             $.activeTokenFilters.set(access, new Set(filter(raw.ownedTokens.get(access)!, (t) => t !== id)));
@@ -341,7 +337,7 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
         }
 
         // the token itself might need re-rendering (e.g. invisible)
-        getShape(token)?.invalidate(true);
+        getShape(id)?.invalidate(true);
         floorSystem.invalidateLightAllFloors();
     }
 

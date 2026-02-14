@@ -264,7 +264,6 @@
                         "odd_hex_orientation": "更改为另一朝向"
                     },
                     "tracker": {
-                        "shared_for_all_variants": "与其他变体一致",
                         "border": "边缘",
                         "light_source": "光源",
                         "angle": "角度",

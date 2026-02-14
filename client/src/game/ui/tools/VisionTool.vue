@@ -3,7 +3,7 @@ import { computed } from "vue";
 
 import type { LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
-import { getVisualShape, getBaseShapeId } from "../../id";
+import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { accessSystem } from "../../systems/access";
@@ -14,20 +14,19 @@ import { visionTool } from "../../tools/variants/vision";
 const selected = visionTool.isActiveTool;
 
 const tokens = computed(() =>
-    [...map(accessState.reactive.ownedTokens.get("vision")!, (t) => getVisualShape(t)!)].filter(
+    [...map(accessState.reactive.ownedTokens.get("vision")!, (t) => getShape(t)!)].filter(
         (sh) => !(sh.options.skipDraw ?? false),
     ),
 );
 const selection = computed(() => {
     const activeTokens = accessState.reactive.activeTokenFilters.get("vision");
-    if (activeTokens) return new Set([...activeTokens].map((e) => getBaseShapeId(e)));
-    return new Set([...accessState.reactive.ownedTokens.get("vision")!].map((e) => getBaseShapeId(e)));
+    if (activeTokens) return new Set(activeTokens);
+    return new Set(accessState.reactive.ownedTokens.get("vision")!);
 });
 
 function toggle(token: LocalId): void {
-    const id = getBaseShapeId(token);
-    if (selection.value.has(id)) accessSystem.removeActiveToken(id, "vision");
-    else accessSystem.addActiveToken(id, "vision");
+    if (selection.value.has(token)) accessSystem.removeActiveToken(token, "vision");
+    else accessSystem.addActiveToken(token, "vision");
 }
 
 function getImageSrc(token: IShape): string {
@@ -44,7 +43,7 @@ function getImageSrc(token: IShape): string {
             v-for="token in tokens"
             :key="token.id"
             class="token"
-            :class="{ selected: selection.has(getBaseShapeId(token.id)) }"
+            :class="{ selected: selection.has(token.id) }"
             @click="toggle(token.id)"
         >
             <img v-if="getImageSrc(token) !== ''" :src="getImageSrc(token)" width="30px" height="30px" alt="" />

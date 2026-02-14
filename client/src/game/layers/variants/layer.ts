@@ -10,7 +10,7 @@ import { callbackProvider } from "../../../core/utils";
 import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
 import { sendRemoveShapes, sendShapeOrder } from "../../api/emits/shape/core";
-import { dropId, getGlobalId, getVisualShape } from "../../id";
+import { dropId, getGlobalId, getShape } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
@@ -37,7 +37,6 @@ import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
-import { compositeState } from "../state";
 
 const SECTOR_SIZE = 200;
 
@@ -167,7 +166,7 @@ export class Layer implements ILayer {
     /**
      * Returns the number of shapes on this layer
      */
-    size(options: { includeComposites: boolean; onlyInView: boolean }): number {
+    size(options: { onlyInView: boolean }): number {
         return this.getShapes(options).length;
     }
 
@@ -237,14 +236,8 @@ export class Layer implements ILayer {
         shape.onLayerAdd();
     }
 
-    // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
-    // They are often not desired unless in specific circumstances
-    getShapes(options: { includeComposites: boolean; onlyInView: boolean }): readonly IShape[] {
-        let shapes: readonly IShape[] = options.onlyInView ? this.shapesInSector : this.shapes;
-        if (options.includeComposites) {
-            shapes = compositeState.addAllCompositeShapes(shapes);
-        }
-        return shapes;
+    getShapes(options: { onlyInView: boolean }): readonly IShape[] {
+        return options.onlyInView ? this.shapesInSector : this.shapes;
     }
 
     pushShapes(...shapes: IShape[]): void {
@@ -269,18 +262,10 @@ export class Layer implements ILayer {
 
     async setServerShapes(shapes: ApiShape[]): Promise<void> {
         if (this.isActiveLayer) selectedSystem.clear(); // TODO: Fix keeping selection on those items that are not moved.
-        // We need to ensure composites are added after all their variants have been added
-        const composites = [];
         for (const serverShape of shapes) {
-            if (serverShape.type_ === "togglecomposite") {
-                composites.push(serverShape);
-            } else {
-                // oxlint-disable-next-line no-await-in-loop
-                await this.setServerShape(serverShape);
-            }
+            // oxlint-disable-next-line no-await-in-loop
+            await this.setServerShape(serverShape);
         }
-        // oxlint-disable-next-line no-await-in-loop
-        for (const composite of composites) await this.setServerShape(composite);
     }
 
     private async setServerShape(serverShape: ApiShape): Promise<void> {
@@ -433,7 +418,7 @@ export class Layer implements ILayer {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;
-                for (const shape of selectedSystem.get({ includeComposites: false })) {
+                for (const shape of selectedSystem.get()) {
                     shape.drawSelection(ctx);
                 }
             }
@@ -457,7 +442,7 @@ export class Layer implements ILayer {
                     const bboxCenter = bbox.center;
                     for (const token of accessState.activeTokens.value.get("vision") ?? []) {
                         let found = false;
-                        const shape = getVisualShape(token);
+                        const shape = getShape(token);
                         if (shape !== undefined && shape.floorId === this.floor && shape.type === "assetrect") {
                             if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: false })) {
                                 const ray = Ray.fromPoints(shape.center, bboxCenter);

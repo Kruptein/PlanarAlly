@@ -8,7 +8,6 @@ import type { Sync } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { getGlobalId, getShape } from "../../id";
-import { compositeState } from "../../layers/state";
 import { LayerName } from "../../models/floor";
 import { visionState } from "../../vision/state";
 import { accessSystem } from "../access";
@@ -23,8 +22,6 @@ import { createEmptyUiAura, generateAuraId } from "./utils";
 interface AuraState {
     id: LocalId | undefined;
     auras: UiAura[];
-    parentId: LocalId | undefined;
-    parentAuras: UiAura[];
 }
 
 class AuraSystem implements ShapeSystem<Aura[]> {
@@ -64,7 +61,7 @@ class AuraSystem implements ShapeSystem<Aura[]> {
     toServerShape(id: LocalId, shape: ApiCoreShape): void {
         const uuid = getGlobalId(id);
         if (uuid === undefined) return;
-        shape.auras = aurasToServer(uuid, this.getAll(id, false));
+        shape.auras = aurasToServer(uuid, this.getAll(id));
     }
 
     fromServerShape(shape: ApiCoreShape): Aura[] {
@@ -79,8 +76,6 @@ class AuraSystem implements ShapeSystem<Aura[]> {
         this._state = reactive({
             id: undefined,
             auras: [],
-            parentId: undefined,
-            parentAuras: [],
         });
     }
 
@@ -90,8 +85,6 @@ class AuraSystem implements ShapeSystem<Aura[]> {
 
     loadState(id: LocalId): void {
         this._state.id = id;
-        const parentId = compositeState.getCompositeParent(id)?.id;
-        this._state.parentId = parentId;
         this.updateAuraState();
     }
 
@@ -101,12 +94,10 @@ class AuraSystem implements ShapeSystem<Aura[]> {
 
     updateAuraState(): void {
         const id = this._state.id!;
-        const parentId = this._state.parentId;
 
         const auras = toUiAuras(this.data.get(id) ?? [], id);
         auras.push(createEmptyUiAura(id));
         this._state.auras = auras;
-        this._state.parentAuras = parentId === undefined ? [] : toUiAuras(this.data.get(parentId) ?? [], parentId);
     }
 
     // BEHAVIOUR
@@ -120,25 +111,18 @@ class AuraSystem implements ShapeSystem<Aura[]> {
         return idAuras;
     }
 
-    get(id: LocalId, auraId: AuraId, includeParent: boolean): DeepReadonly<Aura> | undefined {
-        return this.getAll(id, includeParent).find((t) => t.uuid === auraId);
+    get(id: LocalId, auraId: AuraId): DeepReadonly<Aura> | undefined {
+        return this.getAll(id).find((t) => t.uuid === auraId);
     }
 
-    getAll(id: LocalId, includeParent: boolean): DeepReadonly<Aura[]> {
+    getAll(id: LocalId): DeepReadonly<Aura[]> {
         if (gameState.raw.isFakePlayer) {
             const shape = getShape(id);
             if (shape === undefined) return [];
             if (shape.layerName === LayerName.Dm) return [];
         }
 
-        const auras: Aura[] = [];
-        if (includeParent) {
-            const parent = compositeState.getCompositeParent(id);
-            if (parent !== undefined) {
-                auras.push(...this.getAll(parent.id, false));
-            }
-        }
-        auras.push(...(this.data.get(id) ?? []));
+        const auras = this.data.get(id) ?? [];
 
         if (!accessSystem.hasAccessTo(id, "vision", true)) return auras.filter((a) => a.visible);
 
@@ -153,7 +137,7 @@ class AuraSystem implements ShapeSystem<Aura[]> {
 
         this.getOrCreate(id).push(aura);
 
-        if (id === this._state.id || id === this._state.parentId) this.updateAuraState();
+        if (id === this._state.id) this.updateAuraState();
 
         if (aura.active) {
             const shape = getShape(id);
@@ -217,7 +201,7 @@ class AuraSystem implements ShapeSystem<Aura[]> {
             }
         }
 
-        if (id === this._state.id || id === this._state.parentId) this.updateAuraState();
+        if (id === this._state.id) this.updateAuraState();
 
         if (aura.active || oldAuraActive) getShape(id)?.invalidate(false);
     }
@@ -228,7 +212,7 @@ class AuraSystem implements ShapeSystem<Aura[]> {
             if (gId) sendShapeRemoveAura({ shape: gId, value: auraId });
         }
 
-        const oldAura = this.get(id, auraId, false);
+        const oldAura = this.get(id, auraId);
 
         this.data.set(id, this.data.get(id)?.filter((au) => au.uuid !== auraId) ?? []);
 
@@ -238,7 +222,7 @@ class AuraSystem implements ShapeSystem<Aura[]> {
             layer.updateSectors(id, shape.getAuraAABB());
         }
 
-        if (id === this._state.id || id === this._state.parentId) this.updateAuraState();
+        if (id === this._state.id) this.updateAuraState();
 
         if (oldAura?.active === true) {
             const shape = getShape(id);

@@ -9,7 +9,7 @@ export function drawAuras(shape: IShape, ctx: CanvasRenderingContext2D): void {
     const center = shape.center;
     const lCenter = g2l(center);
 
-    for (const aura of auraSystem.getAll(shape.id, true)) {
+    for (const aura of auraSystem.getAll(shape.id)) {
         if (!aura.active) continue;
         if (!aura.visionSource && shape.layerName === LayerName.Lighting) continue;
 

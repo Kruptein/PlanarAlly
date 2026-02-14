@@ -98,7 +98,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 ) {
                     offsetY = 0;
                 }
-                const selection = selectedSystem.get({ includeComposites: false });
+                const selection = selectedSystem.get();
                 let delta = new Vector(offsetX, offsetY);
                 if (!event.shiftKey || !gameState.raw.isDm) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
@@ -125,7 +125,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             floorState.currentLayer.value!.invalidate(true);
         } else if (event.key === "x") {
             // x - Mark Defeated
-            const selection = selectedSystem.get({ includeComposites: true });
+            const selection = selectedSystem.get();
             for (const shape of selection) {
                 if (accessSystem.hasAccessTo(shape.id, "edit")) {
                     const isDefeated = getProperties(shape.id)!.isDefeated;
@@ -133,7 +133,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 }
             }
         } else if (event.key === "l" && ctrlOrCmdPressed(event)) {
-            const selection = selectedSystem.get({ includeComposites: true });
+            const selection = selectedSystem.get();
             for (const shape of selection) {
                 if (accessSystem.hasAccessTo(shape.id, "edit")) {
                     // This and GroupSettings are the only places currently where we would need to update both UI and Server.
@@ -153,7 +153,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             let targetX = 0;
             let targetY = 0;
             if (selectedSystem.hasSelection) {
-                const selection = selectedSystem.get({ includeComposites: false });
+                const selection = selectedSystem.get();
                 for (const sel of selection) {
                     targetX += sel.refPoint.x;
                     targetY += sel.refPoint.y;
@@ -214,10 +214,10 @@ function changeFloor(event: KeyboardEvent, targetFloor: number): void {
     const newFloor = floorState.raw.floors[targetFloor];
     if (newFloor === undefined) return;
 
-    const selection = selectedSystem.get({ includeComposites: false });
+    const selection = selectedSystem.get();
 
     if (event.altKey) {
-        moveFloor([...selectedSystem.get({ includeComposites: true })], newFloor, true);
+        moveFloor([...selectedSystem.get()], newFloor, true);
     }
     selectedSystem.clear();
     floorState.currentLayer.value!.invalidate(true);

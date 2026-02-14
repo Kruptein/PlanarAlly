@@ -25,7 +25,6 @@ from ..db.models.aura import Aura
 from ..db.models.character import Character
 from ..db.models.circle import Circle
 from ..db.models.circular_token import CircularToken
-from ..db.models.composite_shape_association import CompositeShapeAssociation
 from ..db.models.constants import Constants
 from ..db.models.data_block import DataBlock
 from ..db.models.floor import Floor
@@ -52,7 +51,6 @@ from ..db.models.shape import Shape
 from ..db.models.shape_data_block import ShapeDataBlock
 from ..db.models.shape_owner import ShapeOwner
 from ..db.models.text import Text
-from ..db.models.toggle_composite import ToggleComposite
 from ..db.models.tracker import Tracker
 from ..db.models.user import User
 from ..db.models.user_options import UserOptions
@@ -630,8 +628,6 @@ class CampaignMigrator:
             self.migrate_polygon(shape.polygon_set)
             self.migrate_rect(shape.rect_set)
             self.migrate_text(shape.text_set)
-            self.migrate_togglecomposite(shape.togglecomposite_set)
-            self.migrate_composite_shape_associations(shape.shape_variants)
             self.migrate_shape_datablocks(new_uuid, shape.data_blocks)
 
     def migrate_group(self, group_id: UUID):
@@ -686,19 +682,6 @@ class CampaignMigrator:
 
                 with self.to_db.bind_ctx([ShapeOwner]):
                     ShapeOwner.create(**owner_data)
-
-    def migrate_composite_shape_associations(self, associations: SelectSequence[CompositeShapeAssociation]):
-        with self.from_db.bind_ctx([CompositeShapeAssociation]):
-            for association in associations:
-                association_data = model_to_dict(association, recurse=False)
-                del association_data["id"]
-                association_data["variant"] = self.migrate_shape(association_data["variant"])
-                association_data["parent"] = self.migrate_shape(association_data["parent"])
-                if association_data["variant"] is None or association_data["parent"] is None:
-                    continue
-
-                with self.to_db.bind_ctx([CompositeShapeAssociation]):
-                    CompositeShapeAssociation.create(**association_data)
 
     def migrate_assetrect(self, rects: SelectSequence[AssetRect]):
         with self.from_db.bind_ctx([AssetRect]):
@@ -762,16 +745,6 @@ class CampaignMigrator:
 
                 with self.to_db.bind_ctx([Text]):
                     Text.create(**text_data)
-
-    def migrate_togglecomposite(self, togglecomposites: SelectSequence[ToggleComposite]):
-        with self.from_db.bind_ctx([ToggleComposite]):
-            for togglecomposite in togglecomposites:
-                togglecomposite_data = model_to_dict(togglecomposite, recurse=False)
-                togglecomposite_data["shape"] = self.migrate_shape(togglecomposite_data["shape"])
-                togglecomposite_data["active_variant"] = self.migrate_shape(togglecomposite_data["active_variant"])
-
-                with self.to_db.bind_ctx([ToggleComposite]):
-                    ToggleComposite.create(**togglecomposite_data)
 
     def migrate_shape_datablocks(self, new_uuid: UUID, data_blocks: SelectSequence[ShapeDataBlock]):
         with self.from_db.bind_ctx([DataBlock, ShapeDataBlock]):

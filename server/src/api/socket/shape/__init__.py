@@ -48,7 +48,7 @@ from .. import initiative
 from ..asset_manager.core import clean_filehash
 from ..constants import GAME_NS
 from ..groups import remove_group_if_empty
-from . import access, custom_data, options, toggle_composite  # noqa: F401
+from . import access, custom_data, options  # noqa: F401
 
 
 @sio.on("Shape.Get", namespace=GAME_NS)
@@ -213,21 +213,7 @@ async def remove_shapes(sid: str, raw_data: Any):
             if shape.group:
                 group_ids.add(shape.group.uuid)
 
-            is_char_related = shape.character_id is not None
-            # ToggleComposite patches
-            if not is_char_related:
-                parent = None
-                if shape.composite_parent:
-                    parent = shape.composite_parent[0].parent
-                elif shape.type_ == "togglecomposite":
-                    parent = shape
-                if parent:
-                    for csa in parent.shape_variants:
-                        if csa.variant.character_id is not None:
-                            is_char_related = True
-                            break
-
-            if not is_char_related:
+            if shape.character_id is None:
                 file_hash_to_clean = None
                 if shape.type_ == "assetrect":
                     rect = cast(AssetRect, shape.subtype)
@@ -429,13 +415,6 @@ async def move_shapes(sid: str, raw_data: Any):
         if shape.uuid in shape_uuids:
             continue
 
-        # toggle composite patch
-        parent = None
-        if shape.composite_parent:
-            parent = shape.composite_parent[0].parent
-            shape = Shape.get_by_id(parent.subtype.active_variant)
-            print(f"Parent found for {shape.uuid}")
-
         layer = target_layer
         if shape.layer:
             if old_floor is None:
@@ -449,16 +428,6 @@ async def move_shapes(sid: str, raw_data: Any):
         if shape.uuid not in shape_uuids:
             shape_uuids.add(shape.uuid)
             shapes.append((shape, layer))
-
-        if parent:
-            if parent.uuid not in shape_uuids:
-                shape_uuids.add(parent.uuid)
-                shapes.append((parent, layer))
-            for csa in parent.shape_variants:
-                variant = csa.variant
-                if variant != shape and variant.uuid not in shape_uuids:
-                    shape_uuids.add(variant.uuid)
-                    shapes.append((variant, layer))
 
     if old_floor:
         await send_remove_shapes([sh.uuid for sh, _ in shapes], room=old_floor.location.get_path())

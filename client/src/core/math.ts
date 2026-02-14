@@ -65,7 +65,7 @@ export function snapToPoint(
     let smallestPoint: [number, GlobalPoint] | undefined;
     // We could do an extra cache in Layer, similar to Shape._points if this ends up being too slow
     // Has to be tested in scenes with a lot of shapes
-    for (const shape of layer.getShapes({ onlyInView: true, includeComposites: false })) {
+    for (const shape of layer.getShapes({ onlyInView: true })) {
         if (!shape.isSnappable) continue;
         for (const point of shape.points) {
             // const gp = toGP(JSON.parse(point) as [number, number]);

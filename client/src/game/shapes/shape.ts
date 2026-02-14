@@ -175,7 +175,7 @@ export abstract class Shape implements IShape {
      */
     get triggersVisionRecalc(): boolean {
         const props = getProperties(this.id)!;
-        return props.blocksMovement || auraSystem.getAll(this.id, true).some((a) => a.visionSource);
+        return props.blocksMovement || auraSystem.getAll(this.id).some((a) => a.visionSource);
     }
 
     resetVisionIteration(): void {
@@ -475,7 +475,7 @@ export abstract class Shape implements IShape {
         }
         // Draw tracker bars
         let barOffset = 0;
-        for (const tracker of trackerSystem.getAll(this.id, true)) {
+        for (const tracker of trackerSystem.getAll(this.id)) {
             if (tracker.draw && (tracker.visible || accessSystem.hasAccessTo(this.id, "vision"))) {
                 if (bbox === undefined) bbox = this.getBoundingBox();
                 ctx.strokeStyle = "black";
@@ -592,7 +592,7 @@ export abstract class Shape implements IShape {
 
     getAuraAABB(options?: { onlyVisionSources?: boolean }): BoundingRect {
         let aabb = this.getAABB();
-        for (const aura of auraSystem.getAll(this.id, true)) {
+        for (const aura of auraSystem.getAll(this.id)) {
             if ((options?.onlyVisionSources ?? false) && !aura.visionSource) continue;
             const range = getUnitDistance(aura.value + aura.dim);
             aabb = aabb.union(new BoundingRect(addP(this.refPoint, new Vector(-range, -range)), range * 2, range * 2));
@@ -620,7 +620,7 @@ export abstract class Shape implements IShape {
 
     visibleInCanvas(max: { w: number; h: number }, options: { includeAuras: boolean }): boolean {
         if (options.includeAuras) {
-            for (const aura of auraSystem.getAll(this.id, true)) {
+            for (const aura of auraSystem.getAll(this.id)) {
                 if (aura.value > 0 || aura.dim > 0) {
                     const r = getUnitDistance(aura.value + aura.dim);
                     const center = this.center;

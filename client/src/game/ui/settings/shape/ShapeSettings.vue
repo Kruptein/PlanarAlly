@@ -19,7 +19,6 @@ import GroupSettings from "./GroupSettings.vue";
 import LogicSettings from "./LogicSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
-import VariantSwitcher from "./VariantSwitcher.vue";
 
 const { t } = useI18n();
 
@@ -35,10 +34,7 @@ const visible = computed({
 const owned = accessState.hasEditAccess;
 
 watchEffect(() => {
-    let id = selectedState.reactive.focus;
-    if (activeShapeStore.isComposite.value) {
-        id = activeShapeStore.state.parentUuid;
-    }
+    const id = selectedState.reactive.focus;
     if (id !== undefined) {
         accessSystem.loadState(id);
     } else {
@@ -115,9 +111,5 @@ const tabs = computed(() => {
 <template>
     <PanelModal v-model:visible="visible" v-model:selection="uiState.reactive.activeShapeTab" :tabs="tabs">
         <template #title>{{ t("game.ui.selection.edit_dialog.dialog.edit_shape") }}</template>
-        <template v-if="owned" #default>
-            <div style="flex-grow: 1"></div>
-            <VariantSwitcher />
-        </template>
     </PanelModal>
 </template>

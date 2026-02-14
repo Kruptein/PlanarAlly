@@ -30,7 +30,7 @@ sed -i '1s/^/'\
 'import type { GridModeLabelFormat } from ".\/game\/systems\/settings\/players\/models";\n'\
 'import type { TrackerId } from ".\/game\/systems\/trackers\/models";\n'\
 '\n'\
-'export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape\n'\
+'export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape\n'\
 'export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock\n'\
 'export type ApiShapeAdd = ApiShapeWithLayerAndTemporary | ApiTemplateShape\n'\
 'export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumber | ApiShapeCustomDataBoolean | ApiShapeCustomDataDiceExpression\n'\

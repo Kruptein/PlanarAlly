@@ -2,7 +2,7 @@ import { g2l, g2lz, g2lr, toRadians } from "../../../core/conversions";
 import type { LocalId } from "../../../core/id";
 import type { SyncMode } from "../../../core/models/types";
 import { FOG_COLOUR } from "../../colour";
-import { getShape, getVisualShape } from "../../id";
+import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
 import { polygon2path } from "../../rendering/basic";
@@ -55,7 +55,7 @@ export class FowLightingLayer extends FowLayer {
                 activeFloor.id === this.floor
             ) {
                 for (const sh of accessState.activeTokens.value.get("vision") ?? []) {
-                    const shape = getVisualShape(sh);
+                    const shape = getShape(sh);
                     if (shape === undefined) continue;
                     if (shape.options.skipDraw ?? false) continue;
                     if (shape.floorId !== activeFloor.id) continue;
@@ -97,7 +97,7 @@ export class FowLightingLayer extends FowLayer {
                 for (const light of visionState.getVisionSourcesInView(this.floor)) {
                     const shape = getShape(light.shape);
                     if (shape === undefined) continue;
-                    const aura = auraSystem.get(shape.id, light.aura, true);
+                    const aura = auraSystem.get(shape.id, light.aura);
                     if (aura === undefined) continue;
 
                     // Out of Bounds check

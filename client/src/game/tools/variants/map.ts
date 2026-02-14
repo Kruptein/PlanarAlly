@@ -86,7 +86,11 @@ class MapTool extends Tool implements ITool {
         }
         if (this.rect !== undefined) {
             const layer = floorState.currentLayer.value!;
-            layer.removeShape(this.rect, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+            layer.removeShape(this.rect, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: true,
+                dropShapeId: true,
+            });
             this.rect = undefined;
             this.state.hasRect = false;
         }
@@ -149,7 +153,10 @@ class MapTool extends Tool implements ITool {
         }
 
         this.permittedTools_ = [
-            { name: ToolName.Select, features: { enabled: [SelectFeatures.Drag, SelectFeatures.Resize] } },
+            {
+                name: ToolName.Select,
+                features: { enabled: [SelectFeatures.Drag, SelectFeatures.Resize] },
+            },
         ];
         return Promise.resolve();
     }

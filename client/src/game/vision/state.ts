@@ -290,6 +290,7 @@ class VisionState extends Store<State> {
 
     private deleteShapesFromTriangulation(target: TriangulationTarget, shape: IShape): void {
         if (shape.points.length <= 1) return;
+        // oxlint-disable-next-line no-new
         new IterativeDelete(target, shape);
     }
 

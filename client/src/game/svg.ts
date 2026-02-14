@@ -1,3 +1,4 @@
+// oxlint-disable-next-line import/no-unassigned-import
 import "path-data-polyfill";
 import { addP, getCenterLine, toArrayP, toGP, Vector } from "../core/geometry";
 import type { GlobalPoint } from "../core/geometry";

@@ -138,7 +138,9 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
         if (gameState.raw.isDm && _access.every((al) => !raw.activeTokenFilters.has(al))) return true;
 
         // 2. Otherwise check in the active tokens or owned tokens depending on the limitToActiveTokens flag
-        return _access.every((al) => (limitToActiveTokens ? activeTokens.value : raw.ownedTokens).get(al)?.has(id));
+        return _access.every(
+            (al) => (limitToActiveTokens ? activeTokens.value : raw.ownedTokens).get(al)?.has(id) ?? false,
+        );
     }
 
     // Low-level internal access check

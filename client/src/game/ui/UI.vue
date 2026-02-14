@@ -201,7 +201,10 @@ function setTempZoomDisplay(value: number): void {
             height="6px"
             width="200px"
             :dot-size="[8, 20]"
-            :rail-style="{ backgroundColor: '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)' }"
+            :rail-style="{
+                backgroundColor: '#fff',
+                'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)',
+            }"
             :dot-style="{ 'border-radius': '15%' }"
             :min="0"
             :max="1"

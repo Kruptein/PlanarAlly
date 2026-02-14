@@ -29,7 +29,12 @@ async function create(): Promise<void> {
         logo: logo.id,
     });
     if (response.ok) {
-        await open({ creator: coreStore.state.username, name: name.value, is_locked: false, last_played: null });
+        await open({
+            creator: coreStore.state.username,
+            name: name.value,
+            is_locked: false,
+            last_played: null,
+        });
         await router.push(`/game/${encodeURIComponent(coreStore.state.username)}/${encodeURIComponent(name.value)}`);
     } else if (response.statusText === "Conflict") {
         toast.error("A campaign with that name already exists!");
@@ -66,7 +71,9 @@ function setLogo(data: { id: AssetId; fileHash: string | undefined }): void {
                         )
                     "
                 />
-                <div class="edit" @click="showAssetPicker = true"><font-awesome-icon icon="pencil-alt" /></div>
+                <div class="edit" @click="showAssetPicker = true">
+                    <font-awesome-icon icon="pencil-alt" />
+                </div>
             </div>
         </div>
         <div class="entry">

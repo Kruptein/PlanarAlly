@@ -77,7 +77,7 @@ async function createSpawnLocation(): Promise<boolean> {
     floorSystem
         .getLayer(floorState.currentFloor.value!, LayerName.Dm)!
         .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
-    img.onload = () => (gameState.raw.boardInitialized ? shape.layer?.invalidate(true) : undefined);
+    img.addEventListener("load", () => (gameState.raw.boardInitialized ? shape.layer?.invalidate(true) : undefined));
 
     const gId = getGlobalId(shape.id);
 

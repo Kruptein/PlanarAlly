@@ -186,8 +186,8 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // Alt + Page Down - Move selected shape floor down
             // Alt + Shift + Page Down - Move selected shapes floor down AND move floor down
             const maxLength = floorState.raw.floors.length - 1;
-            let targetFloor = [...floorState.raw.floors]
-                .reverse()
+            let targetFloor = floorState.raw.floors
+                .toReversed()
                 .findIndex(
                     (f, i) => maxLength - i < floorState.raw.floorIndex && (gameState.raw.isDm || f.playerVisible),
                 );

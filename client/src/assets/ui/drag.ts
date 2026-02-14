@@ -47,7 +47,10 @@ async function parseDirectoryUpload(
     }
     if (files.length > 0) {
         const fileList = await Promise.all(files.map((f) => fsToFile(f)));
-        await assetSystem.upload(fileList as unknown as FileList, { target: () => target, newDirectories });
+        await assetSystem.upload(fileList as unknown as FileList, {
+            target: () => target,
+            newDirectories,
+        });
     }
 }
 

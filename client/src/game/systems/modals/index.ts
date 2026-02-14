@@ -57,6 +57,7 @@ class ModalSystem implements System {
         // but the logic to handle moving all extra modals 1 index is too complex
         $.openModals.delete(modalId);
         if (remove && modalId >= extraStartIndex) {
+            // oxlint-disable-next-line typescript/no-array-delete
             delete $.extraModals[modalId - extraStartIndex];
             $.modalOrder.splice(raw.modalOrder.indexOf(modalId), 1);
         }

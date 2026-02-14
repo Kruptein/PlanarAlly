@@ -44,7 +44,9 @@ function mutationHandler(childList: MutationRecord[]): void {
             if (add instanceof HTMLElement) {
                 const img = add.querySelector("img");
                 if (img) {
+                    // oxlint-disable-next-line unicorn/prefer-add-event-listener
                     img.onload = scrollToBottom;
+                    // oxlint-disable-next-line unicorn/prefer-add-event-listener
                     img.onclick = () => showDialog(img.src);
                 }
             }

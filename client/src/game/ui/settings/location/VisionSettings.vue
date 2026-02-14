@@ -102,7 +102,9 @@ function changeVisionMode(event: Event): void {
             <label :for="'visionMode-' + location">{{ t("game.ui.settings.VisionSettings.vision_mode") }}</label>
             <div>
                 <select :id="'visionMode-' + location" @change="changeVisionMode">
-                    <option :selected="visionMode === 0">{{ t("game.ui.settings.VisionSettings.default") }}</option>
+                    <option :selected="visionMode === 0">
+                        {{ t("game.ui.settings.VisionSettings.default") }}
+                    </option>
                     <option :selected="visionMode === 1">
                         {{ t("game.ui.settings.VisionSettings.experimental") }}
                     </option>

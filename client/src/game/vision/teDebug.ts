@@ -60,6 +60,7 @@ async function debugComputeVisibility(): Promise<void> {
         const vNext = triangle.vertices[nextI]!;
         const vPrev = triangle.vertices[prevI]!;
         rawOutput.push(vNext.point!);
+        // oxlint-disable-next-line no-await-in-loop
         await drawCurrent(triangle, rawOutput, behindPatches);
 
         // We can always recurse further if the edge is not constrained.
@@ -90,6 +91,7 @@ async function debugComputeVisibility(): Promise<void> {
         }
 
         if (continueExpand) {
+            // oxlint-disable-next-line no-await-in-loop
             await expandEdge(Q, vPrev.point!, vNext.point!, triangle, i, rawOutput, behindPatches, behindPath);
             if (crossingBehindShape) {
                 behindPath?.push(vPrev.point!);

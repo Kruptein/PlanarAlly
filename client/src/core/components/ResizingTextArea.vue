@@ -3,7 +3,10 @@ import { nextTick, onMounted, useTemplateRef, watch } from "vue";
 
 import { getTarget, getValue } from "../utils";
 
-const { visible = true, disabled = false } = defineProps<{ visible?: boolean; disabled?: boolean }>();
+const { visible = true, disabled = false } = defineProps<{
+    visible?: boolean;
+    disabled?: boolean;
+}>();
 const textArea = useTemplateRef("textarea");
 const emit = defineEmits<{ (e: "change", s: string): void; (e: "focus" | "blur"): void }>();
 const text = defineModel<string>({ required: true });

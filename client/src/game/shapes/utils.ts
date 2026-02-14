@@ -109,7 +109,11 @@ export function deleteShapes(shapes: readonly IShape[], sync: SyncMode, invalida
             if (props.blocksMovement) recalculateMovement = true;
         }
 
-        sel.layer?.removeShape(sel, { sync: SyncMode.NO_SYNC, recalculate: recalculateIterative, dropShapeId: true });
+        sel.layer?.removeShape(sel, {
+            sync: SyncMode.NO_SYNC,
+            recalculate: recalculateIterative,
+            dropShapeId: true,
+        });
     }
     if (sync !== SyncMode.NO_SYNC) sendRemoveShapes({ uuids: removed, temporary: sync === SyncMode.TEMP_SYNC });
     if (invalidateVision && !recalculateIterative) {

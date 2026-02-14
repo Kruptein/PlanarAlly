@@ -34,6 +34,7 @@ export function useConfirm(): ConfirmModal {
         focus: "deny",
     });
 
+    // oxlint-disable-next-line unicorn/consistent-function-scoping
     let resolve: (value: boolean | undefined) => void = (_value: boolean | undefined) => {};
 
     async function show(title: string, text = "", buttons?: ConfirmButtons): Promise<boolean | undefined> {

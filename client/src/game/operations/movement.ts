@@ -99,7 +99,7 @@ export async function moveShapes(
     if (!temporary) {
         addOperation(operationList);
 
-        await teleportZoneSystem.checkTeleport(selectedSystem.get({ includeComposites: true }));
+        await teleportZoneSystem.checkTeleport(selectedSystem.get());
     }
 
     const layer = shapes[0]?.layer;

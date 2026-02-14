@@ -302,7 +302,6 @@
                         "odd_hex_orientation": "Odd Hex Orientation"
                     },
                     "tracker": {
-                        "shared_for_all_variants": "Shared for all variants",
                         "border": "Border",
                         "light_source": "Light source",
                         "angle": "Angle",

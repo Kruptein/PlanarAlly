@@ -3,7 +3,6 @@ import { registerSystem } from "../../../core/systems";
 import type { System } from "../../../core/systems/models";
 import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
-import { compositeState } from "../../layers/state";
 
 import { selectedState } from "./state";
 
@@ -47,12 +46,12 @@ class SelectedSystem implements System {
         return $.selected.size > 0;
     }
 
-    get(options: { includeComposites: boolean }): readonly IShape[] {
+    get(): readonly IShape[] {
         const shapes: IShape[] = [];
         for (const selection of $.selected) {
             shapes.push(getShape(selection)!);
         }
-        return options.includeComposites ? compositeState.addAllCompositeShapes(shapes) : shapes;
+        return shapes;
     }
 }
 

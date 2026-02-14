@@ -3,7 +3,6 @@ import type { SystemClearReason } from "../core/systems/models";
 import { locationStore } from "../store/location";
 
 import { clearIds } from "./id";
-import { compositeState } from "./layers/state";
 import { stopDrawLoop } from "./rendering/core";
 import { initiativeStore } from "./ui/initiative/state";
 import { visionState } from "./vision/state";
@@ -14,7 +13,6 @@ export function clearGame(reason: SystemClearReason): void {
     locationStore.setLocations([], false);
     const layers = document.getElementById("layers");
     if (layers) layers.innerHTML = "";
-    compositeState.clear();
     initiativeStore.clear();
     clearSystems(reason);
     clearIds();

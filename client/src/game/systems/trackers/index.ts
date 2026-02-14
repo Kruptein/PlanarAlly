@@ -9,7 +9,6 @@ import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models
 import { uuidv4 } from "../../../core/utils";
 import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
-import { compositeState } from "../../layers/state";
 
 import { partialTrackerToServer, toUiTrackers, trackersFromServer, trackersToServer } from "./conversion";
 import { sendShapeCreateTracker, sendShapeRemoveTracker, sendShapeUpdateTracker } from "./emits";
@@ -20,8 +19,6 @@ import { createEmptyUiTracker } from "./utils";
 interface TrackerState {
     id: LocalId | undefined;
     trackers: UiTracker[];
-    parentId: LocalId | undefined;
-    parentTrackers: UiTracker[];
 }
 
 class TrackerSystem implements ShapeSystem<Tracker[]> {
@@ -32,8 +29,6 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
         this._state = reactive({
             id: undefined,
             trackers: [],
-            parentId: undefined,
-            parentTrackers: [],
         });
     }
 
@@ -68,7 +63,7 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
     toServerShape(id: LocalId, data: ApiCoreShape): void {
         const uuid = getGlobalId(id);
         if (uuid === undefined) return;
-        data.trackers = trackersToServer(uuid, this.getAll(id, false));
+        data.trackers = trackersToServer(uuid, this.getAll(id));
     }
 
     fromServerShape(data: ApiCoreShape): Tracker[] {
@@ -83,8 +78,6 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
 
     loadState(id: LocalId): void {
         this._state.id = id;
-        const parentId = compositeState.getCompositeParent(id)?.id;
-        this._state.parentId = parentId;
         this.updateTrackerState();
     }
 
@@ -94,13 +87,10 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
 
     updateTrackerState(): void {
         const id = this._state.id!;
-        const parentId = this._state.parentId;
 
         const trackers = toUiTrackers(this.data.get(id) ?? [], id);
         trackers.push(createEmptyUiTracker(id));
         this._state.trackers = trackers;
-        this._state.parentTrackers =
-            parentId === undefined ? [] : toUiTrackers(this.data.get(parentId) ?? [], parentId);
     }
 
     // BEHAVIOUR
@@ -114,20 +104,12 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
         return idTrackers;
     }
 
-    get(id: LocalId, trackerId: TrackerId, includeParent: boolean): DeepReadonly<Tracker> | undefined {
-        return this.getAll(id, includeParent).find((t) => t.uuid === trackerId);
+    get(id: LocalId, trackerId: TrackerId): DeepReadonly<Tracker> | undefined {
+        return this.getAll(id).find((t) => t.uuid === trackerId);
     }
 
-    getAll(id: LocalId, includeParent: boolean): DeepReadonly<Tracker[]> {
-        const trackers: DeepReadonly<Tracker>[] = [];
-        if (includeParent) {
-            const parent = compositeState.getCompositeParent(id);
-            if (parent !== undefined) {
-                trackers.push(...this.getAll(parent.id, false));
-            }
-        }
-        trackers.push(...(this.data.get(id) ?? []));
-        return trackers;
+    getAll(id: LocalId): DeepReadonly<Tracker[]> {
+        return this.data.get(id) ?? [];
     }
 
     add(id: LocalId, tracker: Tracker, syncTo: Sync): void {
@@ -138,7 +120,7 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
 
         this.getOrCreateForShape(id).push(tracker);
 
-        if (id === this._state.id || id === this._state.parentId) this.updateTrackerState();
+        if (id === this._state.id) this.updateTrackerState();
 
         if (tracker.draw) getShape(id)?.invalidate(false);
     }
@@ -165,7 +147,7 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
 
         Object.assign(tracker, delta);
 
-        if (id === this._state.id || id === this._state.parentId) this.updateTrackerState();
+        if (id === this._state.id) this.updateTrackerState();
 
         if (tracker.draw || oldDrawTracker) getShape(id)?.invalidate(false);
     }
@@ -176,11 +158,11 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
             if (shape) sendShapeRemoveTracker({ shape, value: trackerId });
         }
 
-        const oldTracker = this.get(id, trackerId, false);
+        const oldTracker = this.get(id, trackerId);
 
         this.data.set(id, this.data.get(id)?.filter((tr) => tr.uuid !== trackerId) ?? []);
 
-        if (id === this._state.id || id === this._state.parentId) this.updateTrackerState();
+        if (id === this._state.id) this.updateTrackerState();
 
         if (oldTracker?.draw === true) getShape(id)?.invalidate(false);
     }

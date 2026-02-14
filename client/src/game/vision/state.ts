@@ -302,7 +302,7 @@ class VisionState extends Store<State> {
         if (props.blocksVision !== VisionBlock.No) {
             this.moveBlocker(TriangulationTarget.VISION, id, oldFloor, newFloor, true);
         }
-        this.moveVisionSource(id, auraSystem.getAll(id, true), oldFloor, newFloor);
+        this.moveVisionSource(id, auraSystem.getAll(id), oldFloor, newFloor);
     }
 
     // HELPERS
@@ -349,7 +349,7 @@ class VisionState extends Store<State> {
         if (layer === undefined) return;
         const viv = [];
         for (const source of this.getVisionSources(floor)) {
-            const aura = auraSystem.get(source.shape, source.aura, true);
+            const aura = auraSystem.get(source.shape, source.aura);
             if (aura === undefined) continue;
 
             if (!accessSystem.hasAccessTo(source.shape, "vision", true) && !aura.visible) continue;

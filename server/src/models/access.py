@@ -13,9 +13,6 @@ def has_ownership(shape: Shape, pr: PlayerRoom, *, edit=False, movement=False, v
     if pr.role == Role.DM:
         return True
 
-    if shape.composite_parent:
-        return has_ownership(shape.composite_parent[0].parent, pr, edit=edit, movement=movement, vision=vision)
-
     if shape.layer and not shape.layer.player_editable:
         return False
 

@@ -18,7 +18,6 @@ import { sendShapePositionUpdate, sendShapesMove } from "../../api/emits/shape/c
 import { getGlobalId, getShape } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
-import { compositeState } from "../../layers/state";
 import type { Floor, LayerName } from "../../models/floor";
 import { fromSystemForm, instantiateCompactForm } from "../../shapes/transformations";
 import { deleteShapes } from "../../shapes/utils";
@@ -101,7 +100,7 @@ function setMarker(): boolean {
 
 async function addToInitiative(): Promise<boolean> {
     let groupInitiatives = false;
-    const selection = selectedSystem.get({ includeComposites: false });
+    const selection = selectedSystem.get();
     // First check if there are shapes with the same groupId
     const groupsFound = new Set();
     for (const shape of selection) {
@@ -158,7 +157,7 @@ const layers = computed(() => {
 });
 
 function setLayer(newLayer: LayerName): boolean {
-    const oldSelection = [...selectedSystem.get({ includeComposites: true })];
+    const oldSelection = [...selectedSystem.get()];
     selectedSystem.clear();
     moveLayer(oldSelection, floorSystem.getLayer(floorState.currentFloor.value!, newLayer)!, true);
     return true;
@@ -166,7 +165,7 @@ function setLayer(newLayer: LayerName): boolean {
 
 function moveToBack(): boolean {
     const layer = floorState.currentLayer.value!;
-    for (const shape of selectedSystem.get({ includeComposites: false })) {
+    for (const shape of selectedSystem.get()) {
         layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC);
     }
     return true;
@@ -174,8 +173,8 @@ function moveToBack(): boolean {
 
 function moveToFront(): boolean {
     const layer = floorState.currentLayer.value!;
-    for (const shape of selectedSystem.get({ includeComposites: false })) {
-        layer.moveShapeOrder(shape, layer.size({ includeComposites: true, onlyInView: false }) - 1, SyncMode.FULL_SYNC);
+    for (const shape of selectedSystem.get()) {
+        layer.moveShapeOrder(shape, layer.size({ onlyInView: false }) - 1, SyncMode.FULL_SYNC);
     }
 
     return true;
@@ -184,7 +183,7 @@ function moveToFront(): boolean {
 // FLOORS
 
 function setFloor(floor: Floor): boolean {
-    moveFloor([...selectedSystem.get({ includeComposites: true })], floor, true);
+    moveFloor([...selectedSystem.get()], floor, true);
     return true;
 }
 
@@ -198,7 +197,7 @@ const locations = computed(() => {
 });
 
 async function setLocation(newLocation: number): Promise<boolean> {
-    const shapes = selectedSystem.get({ includeComposites: true }).filter((s) => !getProperties(s.id)!.isLocked);
+    const shapes = selectedSystem.get().filter((s) => !getProperties(s.id)!.isLocked);
     if (shapes.length === 0) {
         return false;
     }
@@ -242,7 +241,7 @@ async function setLocation(newLocation: number): Promise<boolean> {
     });
     if (locationSettingsState.raw.movePlayerOnTokenChange.value) {
         const users = new Set<string>();
-        for (const shape of selectedSystem.get({ includeComposites: true })) {
+        for (const shape of selectedSystem.get()) {
             if (getProperties(shape.id)!.isLocked) continue;
             for (const owner of accessSystem.getOwners(shape.id)) users.add(owner);
         }
@@ -257,20 +256,16 @@ async function setLocation(newLocation: number): Promise<boolean> {
 const hasSingleSelection = computed(() => selectedState.reactive.selected.size === 1);
 
 function deleteSelection(): boolean {
-    deleteShapes(selectedSystem.get({ includeComposites: true }), SyncMode.FULL_SYNC);
+    deleteShapes(selectedSystem.get(), SyncMode.FULL_SYNC);
     return true;
 }
 
 // TEMPLATES
 
-const canBeSaved = computed(() =>
-    [...selectedState.reactive.selected].every(
-        (s) => getShape(s)!.type === "assetrect" && compositeState.getCompositeParent(s) === undefined,
-    ),
-);
+const canBeSaved = computed(() => [...selectedState.reactive.selected].every((s) => getShape(s)!.type === "assetrect"));
 
 function saveTemplate(): boolean {
-    const ogShape = selectedSystem.get({ includeComposites: false })[0];
+    const ogShape = selectedSystem.get()[0];
     if (ogShape === undefined) return false;
 
     if (ogShape.type === "assetrect") {
@@ -343,8 +338,6 @@ const canHaveCharacter = computed(() => {
     const selection = selectedState.reactive.selected;
     if (selection.size !== 1) return false;
     const shapeId = [...selection][0]!;
-    const compParent = compositeState.getCompositeParent(shapeId);
-    if (compParent?.variants.some((v) => getShape(v.id)?.character !== undefined) ?? false) return false;
     const shape = getShape(shapeId);
     if (shape?.type !== "assetrect") return false;
     return true;
@@ -409,7 +402,7 @@ async function mergeGroups(): Promise<boolean> {
     if (keepBadges === undefined) return false;
     let targetGroup: string | undefined;
     const membersToMove: { id: LocalId; badge?: number }[] = [];
-    for (const shape of selectedSystem.get({ includeComposites: false })) {
+    for (const shape of selectedSystem.get()) {
         const groupId = groupSystem.getGroupId(shape.id);
         if (groupId !== undefined) {
             if (targetGroup === undefined) {
@@ -427,7 +420,7 @@ async function mergeGroups(): Promise<boolean> {
 }
 
 function removeEntireGroup(): boolean {
-    const shape = selectedSystem.get({ includeComposites: false })[0];
+    const shape = selectedSystem.get()[0];
     if (shape !== undefined) {
         const groupId = groupSystem.getGroupId(shape.id);
         if (groupId !== undefined) {
@@ -438,9 +431,7 @@ function removeEntireGroup(): boolean {
 }
 
 function enlargeGroup(): boolean {
-    const selection = selectedSystem
-        .get({ includeComposites: false })
-        .map((s) => ({ id: s.id, groupId: groupSystem.getGroupId(s.id) }));
+    const selection = selectedSystem.get().map((s) => ({ id: s.id, groupId: groupSystem.getGroupId(s.id) }));
     const shape = selection.find((s) => s.groupId !== undefined);
     if (shape?.groupId !== undefined) {
         groupSystem.addGroupMembers(

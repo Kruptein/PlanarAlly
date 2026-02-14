@@ -387,7 +387,9 @@ async def change_initiative_order(sid: str, raw_data: Any):
     await send_initiative(location_data.as_pydantic(), pr)
 
 
-def update_initiative_effects(entry: dict[str, Any], direction: InitiativeDirection, timing: InitiativeEffectUpdateTiming):
+def update_initiative_effects(
+    entry: dict[str, Any], direction: InitiativeDirection, timing: InitiativeEffectUpdateTiming
+):
     effect_list = entry["effects"]
     starting_len = len(effect_list)
     for i, _effect in enumerate(effect_list[::-1]):

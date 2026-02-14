@@ -48,7 +48,7 @@ function updateActorEffects(turnDelta: number, actor: InitiativeData, timing?: I
     for (let e = actor.effects.length - 1; e >= 0; e--) {
         const effect = actor.effects[e]!;
         if (effect.turns === null) continue;
-        if (effect.updateTiming !== timing) continue;
+        if (timing !== undefined && effect.updateTiming !== timing) continue;
         const turns = +effect.turns;
         if (isNaN(turns)) continue;
         if (turns <= 0) actor.effects.splice(e, 1);

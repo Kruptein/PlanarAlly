@@ -147,17 +147,10 @@ function submitNewEffect(): void {
 .sub-row-group {
     display: flex;
     flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    user-select: none;
-}
-
-.sub-row-group {
-    display: flex;
-    flex-direction: row;
     flex-grow: 1;
     align-items: center;
     justify-content: center;
+    user-select: none;
 }
 
 .effect-input-box {

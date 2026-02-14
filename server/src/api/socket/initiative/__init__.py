@@ -1,5 +1,8 @@
 import json
-from typing import Any
+from typing import (
+    Any,
+    Optional,
+)
 
 from .... import auth
 from ....app import app, sio
@@ -388,12 +391,12 @@ async def change_initiative_order(sid: str, raw_data: Any):
 
 
 def update_initiative_effects(
-    entry: dict[str, Any], direction: InitiativeDirection, timing: InitiativeEffectUpdateTiming
+    entry: dict[str, Any], direction: InitiativeDirection, timing: Optional[InitiativeEffectUpdateTiming] = None
 ):
     effect_list = entry["effects"]
     starting_len = len(effect_list)
     for i, _effect in enumerate(effect_list[::-1]):
-        if _effect["updateTiming"] != timing:
+        if timing is not None and _effect["updateTiming"] != timing:
             continue
         effect_turns = _effect["turns"]
         if effect_turns is None:
@@ -444,12 +447,12 @@ async def update_initiative_turn(sid: str, raw_data: Any):
             if process_effects:
                 if data.direction == InitiativeDirection.FORWARD:
                     entry = location_data.turn
-                    next = turn
+                    next_entry = turn
                 else:
                     entry = turn
-                    next = location_data.turn
+                    next_entry = location_data.turn
                 update_initiative_effects(json_data[entry], data.direction, InitiativeEffectUpdateTiming.TurnEnd)
-                update_initiative_effects(json_data[next], data.direction, InitiativeEffectUpdateTiming.TurnStart)
+                update_initiative_effects(json_data[next_entry], data.direction, InitiativeEffectUpdateTiming.TurnStart)
             location_data.turn = turn
             location_data.data = json.dumps(json_data)
     else:

@@ -156,9 +156,9 @@ export class Asset extends BaseRect implements IAsset {
         this.#loaded = false;
         this.src = url;
         this.img.src = baseAdjust(url);
-        this.img.addEventListener("load", () => {
+        this.img.onload = () => {
             this.setLoaded();
-        });
+        };
         const uuid = getGlobalId(this.id);
         if (uuid && sync) sendAssetRectImageChange({ uuid, src: url });
     }

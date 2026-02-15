@@ -317,9 +317,9 @@ function createShapeInstanceFromCore(compact: CompactForm): IShape | undefined {
             if (asset.src.startsWith("http")) img.src = baseAdjust(new URL(asset.src).pathname);
             else img.src = baseAdjust(asset.src);
             sh = new Asset(img, refPoint, asset.width, asset.height, { uuid });
-            img.addEventListener("load", () => {
+            img.onload = () => {
                 (sh as Asset).setLoaded();
-            });
+            };
         } else if (core.type_ === "togglecomposite") {
             const toggleComposite = subShape as ToggleCompositeCompactCore;
             sh = new ToggleComposite(

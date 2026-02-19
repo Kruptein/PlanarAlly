@@ -399,6 +399,7 @@ header {
 #asset-picker {
     display: flex;
     justify-content: flex-end;
+    z-index: 1; // otherwise the footer overlaps the bottom half of the buttons
 
     button {
         height: 2rem;

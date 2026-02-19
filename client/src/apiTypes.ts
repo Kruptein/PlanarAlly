@@ -728,6 +728,7 @@ export interface RoomInfoSet {
 export interface ShapeAssetImageSet {
   uuid: GlobalId;
   src: string;
+  assetId: AssetId;
 }
 export interface ShapeCircleSizeUpdate {
   uuid: GlobalId;

@@ -123,7 +123,7 @@ async function changeAsset(): Promise<void> {
     const assetInfo = assetState.raw.idMap.get(assetId);
     if (assetInfo === undefined || assetInfo.fileHash === null) return;
 
-    (shape as Asset).setImage(getImageSrcFromHash(assetInfo.fileHash, { addBaseUrl: false }), true);
+    (shape as Asset).setImage(assetId, getImageSrcFromHash(assetInfo.fileHash, { addBaseUrl: false }), true);
 }
 </script>
 
@@ -308,4 +308,3 @@ button {
     justify-self: flex-end;
 }
 </style>
-../../../systems/properties/helpers

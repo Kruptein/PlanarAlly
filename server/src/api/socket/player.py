@@ -9,14 +9,15 @@ from ...logs import logger
 from ...models.role import Role
 from ...state.game import game_state
 from ..helpers import _send_game
-from ..models.players import PlayerPosition, PlayersPositionSet
+from ..models.common import PositionTupleWithFloor
+from ..models.players import PlayersPositionSet
 from ..models.players.role import PlayerRoleSet
 
 
 @sio.on("Players.Bring", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def bring_players(sid: str, raw_data: Any):
-    data = PlayerPosition(**raw_data)
+    data = PositionTupleWithFloor(**raw_data)
 
     pr = game_state.get(sid)
 

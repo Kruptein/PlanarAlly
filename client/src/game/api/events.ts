@@ -32,7 +32,7 @@ import "./events/shape/options";
 import "./events/shape/text";
 import "./events/shape/togglecomposite";
 import "./events/user";
-import type { ApiFloor, ApiLocationCore, PlayerPosition } from "../../apiTypes";
+import type { ApiFloor, ApiLocationCore, PositionTupleWithFloor } from "../../apiTypes";
 import { toGP } from "../../core/geometry";
 import type { GlobalId } from "../../core/id";
 import { SyncMode } from "../../core/models/types";
@@ -126,8 +126,8 @@ socket.on("Request.Refresh", (translationKey: string) => {
     });
 });
 
-socket.on("Position.Set", (data: PlayerPosition) => {
-    if (data.floor !== undefined) floorSystem.selectFloor({ name: data.floor }, true);
+socket.on("Position.Set", (data: PositionTupleWithFloor) => {
+    floorSystem.selectFloor({ name: data.floor }, true);
     setCenterPosition(toGP(data.x, data.y));
 });
 

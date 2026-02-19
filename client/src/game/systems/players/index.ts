@@ -1,6 +1,6 @@
 import type { DeepReadonly } from "vue";
 
-import type { ClientPosition } from "../../../apiTypes";
+import type { ClientPosition, PositionTupleWithFloor } from "../../../apiTypes";
 import { registerSystem } from "../../../core/systems";
 import type { System, SystemClearReason } from "../../../core/systems/models";
 import { getLocalStorageObject } from "../../../localStorageHelpers";
@@ -45,7 +45,7 @@ class PlayerSystem implements System {
         players: string[],
         location: number,
         sync: boolean,
-        targetPosition?: { x: number; y: number; floor?: string },
+        targetPosition?: PositionTupleWithFloor,
     ): void {
         for (const player of $.players.values()) {
             if (players.includes(player.name)) {

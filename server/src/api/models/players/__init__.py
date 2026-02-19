@@ -1,12 +1,8 @@
-from ..common import PositionTuple
+from ..common import PositionTupleWithFloor
 from .info import *
 from .options import *
 from .role import *
 
 
-class PlayerPosition(PositionTuple):
-    floor: str
-
-
-class PlayersPositionSet(PlayerPosition):
+class PlayersPositionSet(PositionTupleWithFloor):
     players: list[str]

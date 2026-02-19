@@ -1,6 +1,7 @@
 import type {
     ApiLocationOptions,
     ApiSpawnInfo,
+    LocationChange,
     LocationClone,
     LocationOptionsSet,
     LocationRename,
@@ -8,11 +9,7 @@ import type {
 import { socket, wrapSocket } from "../socket";
 
 export const sendLocationOrder = wrapSocket<number[]>("Locations.Order.Set");
-export const sendLocationChange = wrapSocket<{
-    location: number;
-    users: string[];
-    position?: { x: number; y: number; floor?: string };
-}>("Location.Change");
+export const sendLocationChange = wrapSocket<LocationChange>("Location.Change");
 export const sendNewLocation = wrapSocket<string>("Location.New");
 export const sendLocationRename = wrapSocket<LocationRename>("Location.Rename");
 export const sendLocationRemove = wrapSocket<number>("Location.Delete");

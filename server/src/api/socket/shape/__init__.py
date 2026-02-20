@@ -585,10 +585,11 @@ async def change_asset_image(sid: str, raw_data: Any):
 
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = AssetRect.get_by_id(data.uuid)
+    asset_rect = AssetRect.get_by_id(data.uuid)
 
-    shape.src = data.src
-    shape.save()
+    asset_rect.src = data.src
+    asset_rect.shape.asset_id = data.assetId
+    asset_rect.save()
 
     await _send_game("Shape.Asset.Image.Set", data, room=pr.active_location.get_path(), skip_sid=sid)
 

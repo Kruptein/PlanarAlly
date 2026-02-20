@@ -49,6 +49,7 @@ class Shape(BaseDbModel):
     data_blocks: SelectSequence["ShapeDataBlock"]
     custom_data: SelectSequence["ShapeCustomData"]
     notes: SelectSequence["NoteShape"]
+    asset_id: int | None
 
     uuid = cast(str, TextField(primary_key=True))
     layer = cast(

@@ -10,6 +10,12 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2026.1.2]
+
+### Fixed
+
+-   A bug causing the location and shape note filters to not show the proper details
+
 ## [2026.1.1]
 
 ### Fixed

@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-    win: circleci/windows@5.0
+    win: circleci/windows@5.1.1
 
 jobs:
     build-client:
@@ -104,7 +104,9 @@ jobs:
 
             - run: uv add ordered-set nuitka
 
-            - run: uv run -m nuitka --standalone --assume-yes-for-downloads --include-data-files=VERSION=VERSION --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico ./planarally.py
+            - run:
+                  command: uv run -m nuitka --standalone --assume-yes-for-downloads --include-data-files=VERSION=VERSION --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico ./planarally.py
+                  no_output_timeout: 30m
 
             - run:
                   name: Zip artifacts
@@ -135,7 +137,6 @@ jobs:
                             destination: archives
 
 workflows:
-    version: 2
     build:
         jobs:
             - build-client:

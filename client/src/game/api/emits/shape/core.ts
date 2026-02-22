@@ -1,5 +1,4 @@
 import type {
-    ApiNote,
     ApiShape,
     ApiShapeAdd,
     ShapeCircleSizeUpdate,
@@ -85,8 +84,8 @@ export async function requestShapeInfo(shape: string): Promise<ShapeInfo> {
     return new Promise((resolve: (value: ShapeInfo) => void) => socket.once("Shape.Info", resolve));
 }
 
-export async function fetchFullShape(shapeId: GlobalId): Promise<{ shape: ApiShape; notes: ApiNote[] } | undefined> {
-    return (await socket.emitWithAck("Shape.Get", shapeId)) as { shape: ApiShape; notes: ApiNote[] } | undefined;
+export async function fetchFullShape(shapeId: GlobalId): Promise<{ shape: ApiShape } | undefined> {
+    return (await socket.emitWithAck("Shape.Get", shapeId)) as { shape: ApiShape } | undefined;
 }
 
 // helpers

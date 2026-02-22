@@ -96,13 +96,13 @@ async function dropHelper(
 async function loadTemplate(template: AssetTemplateInfo, position: GlobalPoint): Promise<void> {
     const data = await fetchFullShape(template.id);
     if (data !== undefined) {
-        const { shape, notes } = data;
-        await Promise.all(notes.map((note) => noteSystem.loadNote(note)));
+        const { shape } = data;
+        await Promise.all(shape.notes.map((note) => noteSystem.loadNote(note)));
         const layer = floorState.currentLayer.value!;
         const compact = await loadFromServer(shape, layer.floor, layer.name);
         compact.core.x = position.x;
         compact.core.y = position.y;
-        compact.systems.notes = notes.map((note) => note.uuid);
+        compact.systems.notes = shape.notes.map((note) => note.uuid);
         addShape(compact, SyncMode.FULL_SYNC, "create");
     }
 }

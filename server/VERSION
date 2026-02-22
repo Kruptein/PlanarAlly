@@ -1,6 +1,10 @@
-2026.1.1
+2026.1.2
 
-2026.1.1 fixed a bug with templates not applying properly on drop.
+### Hotfixes
+
+- 2026.1.1 fixed a bug with templates not applying properly on drop.
+- 2026.1.2 fixed a bug with the new note filters not showing location and shape details.
+
 The rest of this changelog is from 2026.1.0
 
 ### Added

@@ -4,7 +4,7 @@ import { computed, onActivated, onDeactivated, onMounted, onUnmounted, reactive,
 import { useI18n } from "vue-i18n";
 
 import type { DefaultNoteFilter } from "../../../apiTypes";
-import type { GlobalId, LocalId } from "../../../core/id";
+import type { GlobalId } from "../../../core/id";
 import { mostReadable, word2color } from "../../../core/utils";
 import { coreStore } from "../../../store/core";
 import { socket } from "../../api/socket";
@@ -119,10 +119,6 @@ const debouncedSearch = useDebounceFn(() => void search(), 300);
 const searchResults = ref<(Omit<QueryNote, "tags"> & { tags: NoteTag[] })[]>([]);
 const totalCount = ref(0);
 const loading = ref(false);
-const filterOptions = reactive({
-    locations: [] as { id: number; name: string }[],
-    shapes: [] as { id: LocalId; name: string; src: string }[],
-});
 
 enum DefaultFilter {
     NO_FILTER = "NO_FILTER",
@@ -168,11 +164,8 @@ async function search(): Promise<void> {
 }
 
 async function updateLocationFilter(): Promise<void> {
-    const filters = (await socket.emitWithAck("Note.Filters.Location.Get")) as {
-        id: number;
-        name: string;
-    }[];
-    filterOptions.locations = filters.sort((a, b) => a.name.localeCompare(b.name));
+    const filters = (await socket.emitWithAck("Note.Filters.Location.Get")) as { id: number; name: string }[];
+    customFilterOptions.locations = filters.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 async function updateShapeFilter(): Promise<void> {
@@ -181,7 +174,7 @@ async function updateShapeFilter(): Promise<void> {
         name: string;
         src: string;
     }[];
-    filterOptions.shapes = filters
+    customFilterOptions.shapes = filters
         .map(({ uuid, ...s }) => ({ ...s, id: getLocalId(uuid, false)! }))
         .filter((s) => s.id !== undefined)
         .sort((a, b) => a.name.localeCompare(b.name));

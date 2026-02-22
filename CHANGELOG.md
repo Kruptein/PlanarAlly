@@ -15,6 +15,13 @@ tech changes will usually be stripped from release notes for the public
 -   Asset pick modal butons don't work when clicking on their bottom half
 -   Asset changing not updating the assetId stored on the shape
 
+## [2026.1.1]
+
+### Fixed
+
+-   Templates not properly loading on drop due to API error
+
+
 ## [2026.1]
 
 ### Added

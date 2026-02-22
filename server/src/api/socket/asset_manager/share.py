@@ -2,7 +2,7 @@ from typing import Any
 
 from .... import auth
 from ....app import app, sio
-from ....db.models.asset import Asset
+from ....db.models.asset_entry import AssetEntry
 from ....db.models.asset_share import AssetShare
 from ....db.models.user import User
 from ....logs import logger
@@ -35,28 +35,28 @@ async def share_asset(sid: str, raw_data: Any):
         return
 
     try:
-        asset = Asset.get_by_id(data.asset)
-    except Asset.DoesNotExist:
+        entry = AssetEntry.get_by_id(data.asset)
+    except AssetEntry.DoesNotExist:
         await send_log_toast("Asset does not exist", "warn", room=sid, namespace=ASSET_NS)
         return
 
-    if asset.owner != initiating_user:
+    if entry.owner != initiating_user:
         await send_log_toast("You do not own this asset", "warn", room=sid, namespace=ASSET_NS)
         return
 
     try:
         asset_share = AssetShare.create(
-            asset=asset,
+            entry=entry,
             user=target_user,
             right=data.right,
-            name=f"{initiating_user.name}-{asset.name}",
-            parent=Asset.get_root_folder(target_user),
+            name=f"{initiating_user.name}-{entry.name}",
+            parent=AssetEntry.get_root_folder(target_user),
         )
     except:
         await send_log_toast("Failed to create asset share", "warn", room=sid, namespace=ASSET_NS)
         return
 
-    for user in [asset.owner, *(s.user for s in asset.shares if s.user != target_user)]:
+    for user in [entry.owner, *(s.user for s in entry.shares if s.user != target_user)]:
         for psid in asset_state.get_sids(name=user.name):
             await sio.emit("Asset.Share.Created", data, room=psid, namespace=ASSET_NS)
 
@@ -64,7 +64,7 @@ async def share_asset(sid: str, raw_data: Any):
         await sio.emit(
             "Asset.Add",
             ApiAssetAdd(
-                asset=transform_asset(asset, user=target_user),
+                asset=transform_asset(entry, user=target_user),
                 parent=asset_share.parent_id,
             ),
             room=psid,
@@ -79,9 +79,9 @@ async def edit_asset_share(sid: str, raw_data: Any):
 
     data = ApiAssetCreateShare(**raw_data)
 
-    if asset := Asset.get_or_none(id=data.asset):
-        users_with_edit_access: list[User] = [asset.owner]
-        shares = list(asset.shares)  # we're going to iterate twice
+    if entry := AssetEntry.get_or_none(id=data.asset):
+        users_with_edit_access: list[User] = [entry.owner]
+        shares = list(entry.shares)  # we're going to iterate twice
 
         for share in shares:
             if share.right == "edit":
@@ -119,9 +119,9 @@ async def remove_asset_share(sid: str, raw_data: Any):
 
     data = ApiAssetRemoveShare(**raw_data)
 
-    if asset := Asset.get_or_none(id=data.asset):
-        users_with_edit_access: list[User] = [asset.owner]
-        shares = list(asset.shares)  # we're going to iterate twice
+    if entry := AssetEntry.get_or_none(id=data.asset):
+        users_with_edit_access: list[User] = [entry.owner]
+        shares = list(entry.shares)  # we're going to iterate twice
 
         for share in shares:
             if share.right == "edit":

@@ -284,6 +284,13 @@ export class Layer implements ILayer {
     }
 
     private async setServerShape(serverShape: ApiShape): Promise<void> {
+        // if (serverShape.uuid === "11ae4209-2503-4b33-935a-3d5a3d4add00") {
+        //     serverShape.type_ = "fontawesome";
+        //     serverShape.icon = {
+        //         prefix: "fas",
+        //         iconName: "arrows-to-circle",
+        //     };
+        // }
         const compact = await loadFromServer(serverShape, this.floor, this.name);
         instantiateCompactForm(compact, "load", (shape) => {
             let invalidate = InvalidationMode.NO;

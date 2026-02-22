@@ -7,6 +7,7 @@ from .models.note_tag import NoteTag  # isort: skip
 
 from .base import BaseDbModel, BaseViewModel
 from .models.asset import Asset
+from .models.asset_entry import AssetEntry
 from .models.asset_rect import AssetRect
 from .models.asset_shortcut import AssetShortcut
 from .models.aura import Aura
@@ -17,6 +18,7 @@ from .models.circular_token import CircularToken
 from .models.composite_shape_association import CompositeShapeAssociation
 from .models.constants import Constants
 from .models.floor import Floor
+from .models.font_awesome import FontAwesome
 from .models.group import Group
 from .models.initiative import Initiative
 from .models.layer import Layer
@@ -55,6 +57,7 @@ from .signals import *  # noqa: F403
 ALL_NORMAL_MODELS: list[type[BaseDbModel]] = [
     AssetRect,
     Asset,
+    AssetEntry,
     AssetShare,
     AssetShortcut,
     Aura,
@@ -65,6 +68,7 @@ ALL_NORMAL_MODELS: list[type[BaseDbModel]] = [
     CompositeShapeAssociation,
     Constants,
     Floor,
+    FontAwesome,
     Group,
     Initiative,
     Layer,

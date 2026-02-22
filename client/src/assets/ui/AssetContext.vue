@@ -7,13 +7,13 @@ import ContextMenu from "../../core/components/contextMenu/ContextMenu.vue";
 import type { Section } from "../../core/components/contextMenu/types";
 import { useModal } from "../../core/plugins/modals/plugin";
 import { coreStore } from "../../store/core";
-import type { AssetId } from "../models";
+import type { AssetEntryId } from "../models";
 import { assetState } from "../state";
 
 import AssetShare from "./AssetShare.vue";
 import type { AssetContextMenu } from "./context";
 
-const emit = defineEmits<{ (event: "rename", payload: AssetId): void; (event: "close"): void }>();
+const emit = defineEmits<{ (event: "rename", payload: AssetEntryId): void; (event: "close"): void }>();
 const props = defineProps<AssetContextMenu["state"] & { extraSections?: Section[] }>();
 
 const cm = ref<{ $el: HTMLDivElement } | null>(null);

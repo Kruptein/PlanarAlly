@@ -238,7 +238,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
         shortcuts = AssetShortcut.select().where(AssetShortcut.player_room == pr)
         await _send_game(
             "Asset.Shortcuts.Set",
-            [transform_asset(shortcut.asset, pr.player) for shortcut in shortcuts],
+            [transform_asset(shortcut.entry, pr.player) for shortcut in shortcuts],
             room=sid,
         )
 

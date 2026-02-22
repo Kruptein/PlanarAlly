@@ -8,7 +8,7 @@ import type { Section } from "../../core/components/contextMenu/types";
 import { baseAdjust } from "../../core/http";
 import { ctrlOrCmdPressed } from "../../core/utils";
 import { coreStore } from "../../store/core";
-import type { AssetId } from "../models";
+import type { AssetEntryId } from "../models";
 import { assetState } from "../state";
 import { getImageSrcFromAssetId } from "../utils";
 
@@ -39,10 +39,10 @@ const props = withDefaults(
 const assetContextMenu = useAssetContextMenu();
 const drag = useDrag(emit);
 
-const thumbnailMisses = ref(new Set<AssetId>());
+const thumbnailMisses = ref(new Set<AssetEntryId>());
 
 const contextTargetElement = ref<HTMLElement | null>(null);
-const currentRenameAsset = ref<AssetId | null>(null);
+const currentRenameAsset = ref<AssetEntryId | null>(null);
 
 const folders = computed(() => {
     if (props.searchResults.length > 0) {
@@ -57,17 +57,13 @@ const files = computed(() => {
     return assetState.reactive.files.map((f) => assetState.reactive.idMap.get(f)!);
 });
 
-function dragStart(event: DragEvent, file: AssetId, assetHash: string | null): void {
-    drag.startDrag(event, file, assetHash);
-}
-
 function isShared(asset: DeepReadonly<ApiAsset>): boolean {
     return (
         asset.shares.length > 0 || (asset.owner !== coreStore.state.username && assetState.raw.sharedParent === null)
     );
 }
 
-function select(event: MouseEvent, inode: AssetId): void {
+function select(event: MouseEvent, inode: AssetEntryId): void {
     if (!canEdit(inode, false)) {
         return;
     }
@@ -96,7 +92,7 @@ function select(event: MouseEvent, inode: AssetId): void {
     }
 }
 
-function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
+function renameAsset(event: FocusEvent, file: AssetEntryId, oldName: string): void {
     if (!canEdit(file, false)) {
         return;
     }
@@ -117,7 +113,7 @@ function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
     currentRenameAsset.value = null;
 }
 
-function openContextMenu(event: MouseEvent, key: AssetId): void {
+function openContextMenu(event: MouseEvent, key: AssetEntryId): void {
     if (!canEdit(key, false)) {
         return;
     }
@@ -145,7 +141,7 @@ function selectElementContents(el: HTMLElement): void {
     }
 }
 
-async function showRenameUI(id: AssetId): Promise<void> {
+async function showRenameUI(id: AssetEntryId): Promise<void> {
     const el = contextTargetElement.value;
     contextTargetElement.value = null;
     if (el) {
@@ -210,7 +206,7 @@ async function showRenameUI(id: AssetId): Promise<void> {
                 @click.stop="select($event, folder.id)"
                 @dblclick="assetSystem.changeDirectory(folder.id)"
                 @contextmenu.prevent="openContextMenu($event, folder.id)"
-                @dragstart="drag.startDrag($event, folder.id, null)"
+                @dragstart="drag.startDrag($event, folder.id)"
                 @dragover.prevent="drag.moveDrag"
                 @dragend="drag.onDragEnd"
                 @dragleave.prevent="drag.leaveDrag"
@@ -242,7 +238,7 @@ async function showRenameUI(id: AssetId): Promise<void> {
                 }"
                 @click.stop="select($event, file.id)"
                 @contextmenu.prevent="openContextMenu($event, file.id)"
-                @dragstart="dragStart($event, file.id, file.fileHash)"
+                @dragstart="drag.startDrag($event, file.id)"
                 @dragend="drag.onDragEnd"
             >
                 <picture v-if="!thumbnailMisses.has(file.id)">

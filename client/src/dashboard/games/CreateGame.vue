@@ -15,7 +15,7 @@ const router = useRouter();
 const toast = useToast();
 
 const name = ref("");
-const logo = reactive({ path: "", id: -1 });
+const logo = reactive<{ path: string; id: AssetId | -1 }>({ path: "", id: -1 });
 
 const showAssetPicker = ref(false);
 
@@ -43,8 +43,7 @@ async function create(): Promise<void> {
     }
 }
 
-function setLogo(data: { id: AssetId; fileHash: string | undefined }): void {
-    if (data.fileHash === undefined) return;
+function setLogo(data: { id: AssetId; fileHash: string }): void {
     logo.path = data.fileHash;
     logo.id = data.id;
     showAssetPicker.value = false;

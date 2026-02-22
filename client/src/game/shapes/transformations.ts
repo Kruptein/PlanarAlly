@@ -16,6 +16,7 @@
  * that will decide whether the data can be copied as is, or needs to have unique identifiers. (e.g. undoing a shape delete vs copy-paste)
  */
 
+import { type IconName, type IconPrefix } from "@fortawesome/fontawesome-svg-core";
 import cloneDeep from "lodash/cloneDeep";
 
 import type {
@@ -23,6 +24,7 @@ import type {
     ApiCircleShape,
     ApiCircularTokenShape,
     ApiCoreShape,
+    ApiFontAwesomeShape,
     ApiLineShape,
     ApiPolygonShape,
     ApiRectShape,
@@ -33,6 +35,7 @@ import type {
     ApiToggleCompositeShape,
 } from "../../apiTypes";
 import type { AssetId } from "../../assets/models";
+import { getImageSrcFromHash } from "../../assets/utils";
 import { toGP } from "../../core/geometry";
 import { baseAdjust } from "../../core/http";
 import type { GlobalId, LocalId } from "../../core/id";
@@ -53,6 +56,7 @@ import type { SHAPE_TYPE } from "./types";
 import { Asset } from "./variants/asset";
 import { Circle } from "./variants/circle";
 import { CircularToken } from "./variants/circularToken";
+import { FontAwesomeIcon } from "./variants/fontAwesomeIcon";
 import { Line } from "./variants/line";
 import { Polygon } from "./variants/polygon";
 import { Rect } from "./variants/rect";
@@ -79,7 +83,6 @@ export function fromSystemForm(shapeId: LocalId): CompactForm {
     if (shape === undefined) throw new Error("Shape not found");
     const uuid = getGlobalId(shapeId);
     if (uuid === undefined) throw new Error("Global ID not found");
-    if (shape.type === "fontawesome") throw new Error("FontAwesome shapes are not supported");
 
     const systems: Record<string, unknown> = {};
     for (const [name, system] of getShapeSystems()) {
@@ -100,7 +103,6 @@ export function fromSystemForm(shapeId: LocalId): CompactForm {
             customData: [],
             strokeWidth: shape.strokeWidth,
             options: shape.options,
-            assetId: shape.assetId ?? null,
             ignoreZoomSize: shape.ignoreZoomSize,
             character: shape.character ?? null,
         },
@@ -219,7 +221,6 @@ interface CompactShapeCoreOptions {
     customData: ApiShapeCustomData[];
     strokeWidth: number;
     options: Partial<ShapeOptions>;
-    assetId: AssetId | null;
     ignoreZoomSize: boolean;
     character: CharacterId | null;
 }
@@ -263,7 +264,13 @@ export interface TextCompactCore {
 }
 
 export interface AssetRectCompactCore extends RectCompactCore {
-    src: string;
+    assetId: AssetId;
+    assetHash: string;
+}
+
+export interface FontAwesomeCompactCore extends RectCompactCore {
+    iconPrefix: string;
+    iconName: string;
 }
 
 export interface ToggleCompositeCompactCore {
@@ -314,9 +321,9 @@ function createShapeInstanceFromCore(compact: CompactForm): IShape | undefined {
         } else if (core.type_ === "assetrect") {
             const asset = subShape as AssetRectCompactCore;
             const img = new Image(asset.width, asset.height);
-            if (asset.src.startsWith("http")) img.src = baseAdjust(new URL(asset.src).pathname);
-            else img.src = baseAdjust(asset.src);
-            sh = new Asset(img, refPoint, asset.width, asset.height, { uuid });
+            if (asset.assetHash.startsWith("http")) img.src = baseAdjust(new URL(asset.assetHash).pathname);
+            else img.src = getImageSrcFromHash(asset.assetHash);
+            sh = new Asset(img, refPoint, asset.width, asset.height, asset.assetId, asset.assetHash, { uuid });
             img.onload = () => {
                 (sh as Asset).setLoaded();
             };
@@ -328,7 +335,16 @@ function createShapeInstanceFromCore(compact: CompactForm): IShape | undefined {
                 toggleComposite.variants.map((v) => ({ id: reserveLocalId(v.uuid), name: v.name })),
                 core,
             );
+        } else if (core.type_ === "fontawesome") {
+            const fontAwesome = subShape as FontAwesomeCompactCore;
+            sh = new FontAwesomeIcon(
+                { prefix: fontAwesome.iconPrefix as IconPrefix, iconName: fontAwesome.iconName as IconName },
+                refPoint,
+                fontAwesome.width,
+                { uuid },
+            );
         } else {
+            // oxlint-disable-next-line typescript/restrict-template-expressions
             console.error(`Failed to create Shape with unknown type ${core.type_}`);
             return undefined;
         }
@@ -347,14 +363,13 @@ function createServerDataFromCompact(compact: CompactForm): ApiShape {
     const { core, id, subShape } = compact;
 
     // Create the core shape content + default values for all system related data
-    const { drawOperator, customData, options, strokeWidth, ignoreZoomSize, assetId, ...rest } = core;
+    const { drawOperator, customData, options, strokeWidth, ignoreZoomSize, ...rest } = core;
     const serverCoreShape: ApiCoreShape = {
         ...rest,
         draw_operator: drawOperator,
         custom_data: customData,
         stroke_width: strokeWidth,
         ignore_zoom_size: ignoreZoomSize,
-        asset: assetId,
         name: "",
         name_visible: false,
         fill_colour: "",
@@ -423,7 +438,11 @@ function createServerDataFromCompact(compact: CompactForm): ApiShape {
     } else if (core.type_ === "togglecomposite") {
         const toggleComposite = subShape as ToggleCompositeCompactCore;
         serverShape = { ...serverCoreShape, ...toggleComposite } as ApiToggleCompositeShape;
+    } else if (core.type_ === "fontawesome") {
+        const fontAwesome = subShape as FontAwesomeCompactCore;
+        serverShape = { ...serverCoreShape, ...fontAwesome } as ApiFontAwesomeShape;
     } else {
+        // oxlint-disable-next-line typescript/restrict-template-expressions
         throw new Error(`Failed to create Shape with unknown type ${core.type_}`);
     }
 
@@ -462,6 +481,8 @@ async function createCompactFromServerData(
         subShape = serverShape as AssetRectCompactCore;
     } else if (serverShape.type_ === "togglecomposite") {
         subShape = serverShape as ToggleCompositeCompactCore;
+    } else if (serverShape.type_ === "fontawesome") {
+        subShape = serverShape as FontAwesomeCompactCore;
     } else {
         throw new Error(`Failed to create Shape with unknown type ${serverShape.type_}`);
     }
@@ -478,7 +499,6 @@ async function createCompactFromServerData(
             angle: serverShape.angle,
             drawOperator: serverShape.draw_operator as GlobalCompositeOperation,
             customData: serverShape.custom_data,
-            assetId: serverShape.asset,
             ignoreZoomSize: serverShape.ignore_zoom_size,
             character: serverShape.character,
             strokeWidth: serverShape.stroke_width,

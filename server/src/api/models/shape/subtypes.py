@@ -14,7 +14,13 @@ class ApiRectShape(ApiBaseRectShape):
 
 
 class ApiAssetRectShape(ApiBaseRectShape):
-    src: str
+    assetHash: str
+    assetId: int = Field(json_schema_extra={"typeId": "AssetId"})
+
+
+class ApiFontAwesomeShape(ApiBaseRectShape):
+    iconPrefix: str
+    iconName: str
 
 
 class ApiCircleShape(ApiCoreShape):
@@ -59,6 +65,7 @@ ApiShapeSubType = (
     | ApiRectShape
     | ApiCircleShape
     | ApiCircularTokenShape
+    | ApiFontAwesomeShape
     | ApiPolygonShape
     | ApiTextShape
     | ApiLineShape

@@ -6,7 +6,7 @@ import { ACTIVE_FILTER, NO_FILTER, NO_LINK_FILTER } from "../../systems/notes/ty
 
 export const customFilterOptions = reactive({
     locations: [] as { id: number; name: string }[],
-    shapes: [] as { id: LocalId; name: string; src: string }[],
+    shapes: [] as { id: LocalId; name: string; assetHash: string }[],
     tags: [] as string[],
 });
 
@@ -59,7 +59,7 @@ export const shapeFilterOptions = computed(() => {
         search: customFilterOptions.shapes.map((s) => ({
             label: s.name,
             value: s.id,
-            icon: s.src,
+            icon: s.assetHash,
         })),
     };
 });

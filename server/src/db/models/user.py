@@ -12,14 +12,14 @@ from ..typed import SelectSequence
 from .user_options import UserOptions
 
 if TYPE_CHECKING:
-    from .asset import Asset
+    from .asset_entry import AssetEntry
     from .player_room import PlayerRoom
     from .room import Room
 
 
 class User(BaseDbModel):
     id: int
-    assets: SelectSequence["Asset"]
+    asset_entries: SelectSequence["AssetEntry"]
     rooms_created: SelectSequence["Room"]
     rooms_joined: SelectSequence["PlayerRoom"]
 
@@ -53,11 +53,14 @@ class User(BaseDbModel):
         )
 
     def get_total_asset_size(self) -> int:
-        return sum(
-            (ASSETS_DIR / get_asset_hash_subpath(asset.file_hash)).stat().st_size
-            for asset in self.assets
-            if asset.file_hash and (ASSETS_DIR / get_asset_hash_subpath(asset.file_hash)).exists()
-        )
+        handled_assets = set[int]()
+        total_size = 0
+        for asset in self.asset_entries:
+            if asset.asset and asset.asset.id not in handled_assets:
+                if asset.asset.file_hash and (ASSETS_DIR / get_asset_hash_subpath(asset.asset.file_hash)).exists():
+                    total_size += (ASSETS_DIR / get_asset_hash_subpath(asset.asset.file_hash)).stat().st_size
+                    handled_assets.add(asset.asset.id)
+        return total_size
 
     def update_last_login(self):
         today = date.today()

@@ -11,7 +11,6 @@ import { activeShapeStore } from "../../../../store/activeShape";
 import { getColour } from "../../../colour";
 import { getShape } from "../../../id";
 import type { IText } from "../../../interfaces/shapes/text";
-import type { Asset } from "../../../shapes/variants/asset";
 import type { CircularToken } from "../../../shapes/variants/circularToken";
 import { accessState } from "../../../systems/access/state";
 import { pickAsset } from "../../../systems/assets/ui";
@@ -19,6 +18,7 @@ import { propertiesSystem } from "../../../systems/properties";
 import { useShapeProps } from "../../../systems/properties/composables";
 import { VisionBlock, visionBlocks } from "../../../systems/properties/types";
 import { selectedState } from "../../../systems/selected/state";
+import { IAsset } from "../../../interfaces/shapes/asset";
 
 const { t } = useI18n();
 const shapeProps = useShapeProps();
@@ -117,13 +117,13 @@ async function changeAsset(): Promise<void> {
     const shape = getShape(activeShapeStore.state.id);
     if (shape === undefined || shape.type !== "assetrect") return;
 
-    const assetId = await pickAsset();
-    if (assetId === null) return;
+    const entryId = await pickAsset();
+    if (entryId === null) return;
 
-    const assetInfo = assetState.raw.idMap.get(assetId);
-    if (assetInfo === undefined || assetInfo.fileHash === null) return;
+    const assetInfo = assetState.raw.idMap.get(entryId);
+    if (assetInfo === undefined || assetInfo.fileHash === null || assetInfo.assetId === null) return;
 
-    (shape as Asset).setImage(assetId, getImageSrcFromHash(assetInfo.fileHash, { addBaseUrl: false }), true);
+    (shape as IAsset).setImage(assetInfo.assetId, getImageSrcFromHash(assetInfo.fileHash, { addBaseUrl: false }), true);
 }
 </script>
 

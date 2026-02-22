@@ -32,7 +32,6 @@ class ApiCoreShape(TypeIdModel):
     is_locked: bool
     angle: float
     stroke_width: int
-    asset: int | None = Field(json_schema_extra={"typeId": "AssetId"})
     group: str | None
     ignore_zoom_size: bool
     is_door: bool

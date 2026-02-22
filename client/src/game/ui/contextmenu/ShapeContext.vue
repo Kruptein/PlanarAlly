@@ -44,6 +44,7 @@ import { initiativeStore } from "../initiative/state";
 import { layerTranslationMapping } from "../translations";
 
 import { shapeContextLeft, shapeContextTop, showShapeContextMenu } from "./state";
+import { IAsset } from "../../interfaces/shapes/asset";
 
 const { t } = useI18n();
 const modals = useModal();
@@ -264,7 +265,7 @@ function deleteSelection(): boolean {
 
 const canBeSaved = computed(() =>
     [...selectedState.reactive.selected].every(
-        (s) => getShape(s)!.assetId !== undefined && compositeState.getCompositeParent(s) === undefined,
+        (s) => getShape(s)!.type === "assetrect" && compositeState.getCompositeParent(s) === undefined,
     ),
 );
 
@@ -272,7 +273,7 @@ function saveTemplate(): boolean {
     const ogShape = selectedSystem.get({ includeComposites: false })[0];
     if (ogShape === undefined) return false;
 
-    if (ogShape.assetId !== undefined) {
+    if (ogShape.type === "assetrect") {
         // const response = await requestAssetOptions(shape.assetId);
         // if (response.success && response.options) assetOptions = response.options;
     } else {
@@ -299,7 +300,7 @@ function saveTemplate(): boolean {
     deleteShapes([newShape], SyncMode.NO_SYNC, false);
 
     sendShapeTemplateAdd({
-        assetId: ogShape.assetId,
+        assetId: (ogShape as IAsset).assetId,
         shapeId,
         name,
     });
@@ -345,7 +346,7 @@ const canHaveCharacter = computed(() => {
     const compParent = compositeState.getCompositeParent(shapeId);
     if (compParent?.variants.some((v) => getShape(v.id)?.character !== undefined) ?? false) return false;
     const shape = getShape(shapeId);
-    if (shape?.assetId === undefined) return false;
+    if (shape?.type !== "assetrect") return false;
     return true;
 });
 

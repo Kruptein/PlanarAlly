@@ -1,4 +1,4 @@
-import type { AssetId } from "./assets/models";
+import type { AssetId, AssetEntryId } from "./assets/models";
 import type { GlobalId } from "./core/id";
 import type { FloorIndex, LayerName } from "./game/models/floor";
 import type { Role } from "./game/models/role";
@@ -16,6 +16,7 @@ export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlo
 export type ApiShapeAdd = ApiShapeWithLayerAndTemporary | ApiTemplateShape
 export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumber | ApiShapeCustomDataBoolean | ApiShapeCustomDataDiceExpression
 
+/* tslint:disable */
 /* eslint-disable */
 /**
 /* This file was automatically generated from pydantic models by running pydantic2ts.
@@ -27,9 +28,10 @@ export type DefaultNoteFilter = "NO_FILTER" | "ACTIVE_FILTER" | "NO_LINK_FILTER"
 export type InitiativeDirection = -1 | 0 | 1;
 
 export interface ApiAsset {
-  id: AssetId;
+  id: AssetEntryId;
   name: string;
   owner: string;
+  assetId: AssetId | null;
   fileHash: string | null;
   children: ApiAsset[] | null;
   shares: ApiAssetShare[];
@@ -41,45 +43,114 @@ export interface ApiAssetShare {
 }
 export interface ApiAssetAdd {
   asset: ApiAsset;
-  parent: AssetId;
+  parent: AssetEntryId;
 }
 export interface ApiAssetCreateFolder {
   name: string;
-  parent: AssetId;
+  parent: AssetEntryId;
 }
 export interface ApiAssetCreateShare {
   right: "view" | "edit";
   user: string;
-  asset: AssetId;
+  asset: AssetEntryId;
 }
 export interface ApiAssetFolder {
   folder: ApiAsset;
-  path: AssetId[] | null;
+  path: AssetEntryId[] | null;
   sharedParent: ApiAsset | null;
   sharedRight: "view" | "edit" | null;
 }
 export interface ApiAssetInodeMove {
-  inode: AssetId;
-  target: AssetId;
+  inode: AssetEntryId;
+  target: AssetEntryId;
 }
-export interface ApiAssetRectShape extends ApiCoreShape {
+export interface ApiAssetRectShape {
+  uuid: GlobalId;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: VisionBlock;
+  movement_obstruction: boolean;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  group: string | null;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  custom_data: (
+    | ApiShapeCustomDataText
+    | ApiShapeCustomDataNumber
+    | ApiShapeCustomDataBoolean
+    | ApiShapeCustomDataDiceExpression
+  )[];
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  character: CharacterId | null;
+  odd_hex_orientation: boolean;
+  size_x: number;
+  size_y: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
+  notes: ApiNote[];
   width: number;
   height: number;
-  src: string;
+  assetHash: string;
+  assetId: AssetId;
 }
-export interface ApiShapeCustomDataText extends ApiShapeCustomDataCore {
+export interface ApiShapeCustomDataText {
+  shapeId: GlobalId;
+  source: string;
+  prefix: string;
+  name: string;
+  reference: string | null;
+  description: string | null;
   kind: "text";
   value: string;
 }
-export interface ApiShapeCustomDataNumber extends ApiShapeCustomDataCore {
+export interface ApiShapeCustomDataNumber {
+  shapeId: GlobalId;
+  source: string;
+  prefix: string;
+  name: string;
+  reference: string | null;
+  description: string | null;
   kind: "number";
   value: number;
 }
-export interface ApiShapeCustomDataBoolean extends ApiShapeCustomDataCore {
+export interface ApiShapeCustomDataBoolean {
+  shapeId: GlobalId;
+  source: string;
+  prefix: string;
+  name: string;
+  reference: string | null;
+  description: string | null;
   kind: "boolean";
   value: boolean;
 }
-export interface ApiShapeCustomDataDiceExpression extends ApiShapeCustomDataCore {
+export interface ApiShapeCustomDataDiceExpression {
+  shapeId: GlobalId;
+  source: string;
+  prefix: string;
+  name: string;
+  reference: string | null;
+  description: string | null;
   kind: "dice-expression";
   value: string;
 }
@@ -139,23 +210,67 @@ export interface ApiNoteAccess {
   can_view: boolean;
 }
 export interface ApiAssetRemoveShare {
-  asset: AssetId;
+  asset: AssetEntryId;
   user: string;
 }
 export interface ApiAssetRename {
-  asset: AssetId;
+  asset: AssetEntryId;
   name: string;
 }
 export interface ApiAssetUpload {
   uuid: string;
   name: string;
-  directory: AssetId;
+  directory: AssetEntryId;
   newDirectories: string[];
   slice: number;
   totalSlices: number;
   data: string;
 }
-export interface ApiBaseRectShape extends ApiCoreShape {
+export interface ApiBaseRectShape {
+  uuid: GlobalId;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: VisionBlock;
+  movement_obstruction: boolean;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  group: string | null;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  custom_data: (
+    | ApiShapeCustomDataText
+    | ApiShapeCustomDataNumber
+    | ApiShapeCustomDataBoolean
+    | ApiShapeCustomDataDiceExpression
+  )[];
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  character: CharacterId | null;
+  odd_hex_orientation: boolean;
+  size_x: number;
+  size_y: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
+  notes: ApiNote[];
   width: number;
   height: number;
 }
@@ -163,7 +278,7 @@ export interface ApiCharacter {
   id: CharacterId;
   name: string;
   shapeId: GlobalId;
-  assetId: number;
+  assetId: AssetId;
   assetHash: string;
 }
 export interface ApiChatMessage {
@@ -175,11 +290,99 @@ export interface ApiChatMessageUpdate {
   id: string;
   message: string;
 }
-export interface ApiCircleShape extends ApiCoreShape {
+export interface ApiCircleShape {
+  uuid: GlobalId;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: VisionBlock;
+  movement_obstruction: boolean;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  group: string | null;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  custom_data: (
+    | ApiShapeCustomDataText
+    | ApiShapeCustomDataNumber
+    | ApiShapeCustomDataBoolean
+    | ApiShapeCustomDataDiceExpression
+  )[];
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  character: CharacterId | null;
+  odd_hex_orientation: boolean;
+  size_x: number;
+  size_y: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
+  notes: ApiNote[];
   radius: number;
   viewing_angle: number | null;
 }
-export interface ApiCircularTokenShape extends ApiCoreShape {
+export interface ApiCircularTokenShape {
+  uuid: GlobalId;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: VisionBlock;
+  movement_obstruction: boolean;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  group: string | null;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  custom_data: (
+    | ApiShapeCustomDataText
+    | ApiShapeCustomDataNumber
+    | ApiShapeCustomDataBoolean
+    | ApiShapeCustomDataDiceExpression
+  )[];
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  character: CharacterId | null;
+  odd_hex_orientation: boolean;
+  size_x: number;
+  size_y: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
+  notes: ApiNote[];
   radius: number;
   viewing_angle: number | null;
   text: string;
@@ -213,12 +416,16 @@ export interface ApiCoreShape {
   is_locked: boolean;
   angle: number;
   stroke_width: number;
-  asset: AssetId | null;
   group: string | null;
   ignore_zoom_size: boolean;
   is_door: boolean;
   is_teleport_zone: boolean;
-  custom_data: ApiShapeCustomData[];
+  custom_data: (
+    | ApiShapeCustomDataText
+    | ApiShapeCustomDataNumber
+    | ApiShapeCustomDataBoolean
+    | ApiShapeCustomDataDiceExpression
+  )[];
   owners: ApiShapeOwner[];
   trackers: ApiTracker[];
   auras: ApiAura[];
@@ -268,25 +475,245 @@ export interface ApiLayer {
   )[];
   groups: ApiGroup[];
 }
-export interface ApiRectShape extends ApiCoreShape {
+export interface ApiRectShape {
+  uuid: GlobalId;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: VisionBlock;
+  movement_obstruction: boolean;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  group: string | null;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  custom_data: (
+    | ApiShapeCustomDataText
+    | ApiShapeCustomDataNumber
+    | ApiShapeCustomDataBoolean
+    | ApiShapeCustomDataDiceExpression
+  )[];
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  character: CharacterId | null;
+  odd_hex_orientation: boolean;
+  size_x: number;
+  size_y: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
+  notes: ApiNote[];
   width: number;
   height: number;
 }
-export interface ApiPolygonShape extends ApiCoreShape {
+export interface ApiPolygonShape {
+  uuid: GlobalId;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: VisionBlock;
+  movement_obstruction: boolean;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  group: string | null;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  custom_data: (
+    | ApiShapeCustomDataText
+    | ApiShapeCustomDataNumber
+    | ApiShapeCustomDataBoolean
+    | ApiShapeCustomDataDiceExpression
+  )[];
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  character: CharacterId | null;
+  odd_hex_orientation: boolean;
+  size_x: number;
+  size_y: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
+  notes: ApiNote[];
   vertices: string;
   line_width: number;
   open_polygon: boolean;
 }
-export interface ApiTextShape extends ApiCoreShape {
+export interface ApiTextShape {
+  uuid: GlobalId;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: VisionBlock;
+  movement_obstruction: boolean;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  group: string | null;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  custom_data: (
+    | ApiShapeCustomDataText
+    | ApiShapeCustomDataNumber
+    | ApiShapeCustomDataBoolean
+    | ApiShapeCustomDataDiceExpression
+  )[];
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  character: CharacterId | null;
+  odd_hex_orientation: boolean;
+  size_x: number;
+  size_y: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
+  notes: ApiNote[];
   text: string;
   font_size: number;
 }
-export interface ApiLineShape extends ApiCoreShape {
+export interface ApiLineShape {
+  uuid: GlobalId;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: VisionBlock;
+  movement_obstruction: boolean;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  group: string | null;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  custom_data: (
+    | ApiShapeCustomDataText
+    | ApiShapeCustomDataNumber
+    | ApiShapeCustomDataBoolean
+    | ApiShapeCustomDataDiceExpression
+  )[];
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  character: CharacterId | null;
+  odd_hex_orientation: boolean;
+  size_x: number;
+  size_y: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
+  notes: ApiNote[];
   x2: number;
   y2: number;
   line_width: number;
 }
-export interface ApiToggleCompositeShape extends ApiCoreShape {
+export interface ApiToggleCompositeShape {
+  uuid: GlobalId;
+  type_: string;
+  x: number;
+  y: number;
+  name: string;
+  name_visible: boolean;
+  fill_colour: string;
+  stroke_colour: string;
+  vision_obstruction: VisionBlock;
+  movement_obstruction: boolean;
+  draw_operator: string;
+  options: string;
+  badge: number;
+  show_badge: boolean;
+  default_edit_access: boolean;
+  default_vision_access: boolean;
+  is_invisible: boolean;
+  is_defeated: boolean;
+  default_movement_access: boolean;
+  is_locked: boolean;
+  angle: number;
+  stroke_width: number;
+  group: string | null;
+  ignore_zoom_size: boolean;
+  is_door: boolean;
+  is_teleport_zone: boolean;
+  custom_data: (
+    | ApiShapeCustomDataText
+    | ApiShapeCustomDataNumber
+    | ApiShapeCustomDataBoolean
+    | ApiShapeCustomDataDiceExpression
+  )[];
+  owners: ApiShapeOwner[];
+  trackers: ApiTracker[];
+  auras: ApiAura[];
+  character: CharacterId | null;
+  odd_hex_orientation: boolean;
+  size_x: number;
+  size_y: number;
+  show_cells: boolean;
+  cell_fill_colour: string | null;
+  cell_stroke_colour: string | null;
+  cell_stroke_width: number | null;
+  notes: ApiNote[];
   active_variant: GlobalId;
   variants: ToggleVariant[];
 }
@@ -343,10 +770,17 @@ export interface ApiModMeta {
   hash: string;
   hasCss: boolean;
 }
-export interface ApiNoteAccessEdit extends ApiNoteAccess {
+export interface ApiNoteAccessEdit {
+  name: string;
+  can_edit: boolean;
+  can_view: boolean;
   note: NoteId;
 }
-export interface ApiNoteRoomLink extends ApiNoteRoom {
+export interface ApiNoteRoomLink {
+  roomCreator: string;
+  roomName: string;
+  locationId: number | null;
+  locationName: string | null;
   note: NoteId;
 }
 export interface ApiNoteSearch {
@@ -413,14 +847,28 @@ export interface ApiOptionalUserOptions {
   initiative_open_on_activate?: boolean | null;
   render_all_floors?: boolean | null;
 }
-export interface ApiRoomDataBlock extends ApiCoreDataBlock {
+export interface ApiRoomDataBlock {
+  source: string;
+  name: string;
   data: string;
   category: "room";
 }
 export interface ApiShapeCore {
-  shape: ApiShape;
+  shape:
+    | ApiAssetRectShape
+    | ApiRectShape
+    | ApiCircleShape
+    | ApiCircularTokenShape
+    | ApiPolygonShape
+    | ApiTextShape
+    | ApiLineShape
+    | ApiToggleCompositeShape;
 }
-export interface ApiShapeCustomDataCore extends ApiShapeCustomDataIdentifier {
+export interface ApiShapeCustomDataCore {
+  shapeId: GlobalId;
+  source: string;
+  prefix: string;
+  name: string;
   reference: string | null;
   description: string | null;
 }
@@ -430,7 +878,9 @@ export interface ApiShapeCustomDataIdentifier {
   prefix: string;
   name: string;
 }
-export interface ApiShapeDataBlock extends ApiCoreDataBlock {
+export interface ApiShapeDataBlock {
+  source: string;
+  name: string;
   data: string;
   category: "shape";
   shape: GlobalId;
@@ -439,17 +889,48 @@ export interface ApiShapeSize {
   x: number;
   y: number;
 }
-export interface ApiShapeWithLayer extends ApiShapeCore {
+export interface ApiShapeWithLayer {
+  shape:
+    | ApiAssetRectShape
+    | ApiRectShape
+    | ApiCircleShape
+    | ApiCircularTokenShape
+    | ApiPolygonShape
+    | ApiTextShape
+    | ApiLineShape
+    | ApiToggleCompositeShape;
   floor: string;
   layer: LayerName;
 }
-export interface ApiShapeWithLayerAndTemporary extends ApiShapeWithLayer {
+export interface ApiShapeWithLayerAndTemporary {
+  shape:
+    | ApiAssetRectShape
+    | ApiRectShape
+    | ApiCircleShape
+    | ApiCircularTokenShape
+    | ApiPolygonShape
+    | ApiTextShape
+    | ApiLineShape
+    | ApiToggleCompositeShape;
+  floor: string;
+  layer: LayerName;
   temporary: boolean;
 }
-export interface ApiTemplateShape extends ApiShapeCore {
+export interface ApiTemplateShape {
+  shape:
+    | ApiAssetRectShape
+    | ApiRectShape
+    | ApiCircleShape
+    | ApiCircularTokenShape
+    | ApiPolygonShape
+    | ApiTextShape
+    | ApiLineShape
+    | ApiToggleCompositeShape;
   template: boolean;
 }
-export interface ApiUserDataBlock extends ApiCoreDataBlock {
+export interface ApiUserDataBlock {
+  source: string;
+  name: string;
   data: string;
   category: "user";
 }
@@ -479,22 +960,22 @@ export interface ApiUserOptions {
   initiative_open_on_activate: boolean;
   render_all_floors: boolean;
 }
-export interface AssetOptionsInfoFail {
-  error: string;
-  success: false;
-}
-export interface AssetOptionsInfoSuccess {
-  name: string;
-  templates: AssetTemplateInfo[];
-  success: true;
-}
 export interface AssetTemplateInfo {
   name: string;
   id: GlobalId;
 }
-export interface AssetOptionsSet {
-  asset: number;
-  options: string;
+export interface AssetTemplatesInfoFail {
+  error: string;
+  success: false;
+}
+export interface AssetTemplatesInfoRequest {
+  assetId: AssetId;
+  entryId: AssetEntryId;
+}
+export interface AssetTemplatesInfoSuccess {
+  name: string;
+  templates: AssetTemplateInfo[];
+  success: true;
 }
 export interface AuraMove {
   shape: GlobalId;
@@ -727,7 +1208,7 @@ export interface RoomInfoSet {
 }
 export interface ShapeAssetImageSet {
   uuid: GlobalId;
-  src: string;
+  assetHash: string;
   assetId: AssetId;
 }
 export interface ShapeCircleSizeUpdate {

@@ -7,5 +7,5 @@ socket.on("Shape.Asset.Image.Set", (data: ShapeAssetImageSet) => {
     const shape = getShapeFromGlobal(data.uuid) as Asset | undefined;
     if (shape === undefined) return;
 
-    shape.setImage(data.assetId, data.src, false);
+    shape.setImage(data.assetId, data.assetHash, false);
 });

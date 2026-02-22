@@ -28,7 +28,7 @@ def create_shape(data: ApiShape, *, layer: Layer | None):
 
         subshape = type_table.create(
             shape=shape,
-            **type_table.pre_create(**reduce_data_to_model(type_table, data_dict)),
+            **type_table.pre_create(data_dict, reduce_data_to_model(type_table, data_dict)),
         )
         type_table.post_create(subshape, **data_dict)
         # Owners

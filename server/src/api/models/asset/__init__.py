@@ -15,10 +15,13 @@ class ApiAssetShare(TypeIdModel):
 
 
 class ApiAsset(TypeIdModel):
-    id: int = Field(json_schema_extra={"typeId": "AssetId"})
+    id: int = Field(json_schema_extra={"typeId": "AssetEntryId"})
     # The name of the asset can be shown differently depending on sharing state
     name: str
     owner: str
+    # Both ID and Hash are passed to prevent extra roundtrips to fetch the hash
+    # The ID is supposed to be the source of truth
+    assetId: int | None = Field(json_schema_extra={"typeId": "AssetId"})
     fileHash: str | None
     # If specified, this provides the list of children for this asset
     # This should only be provided for folders (i.e. assets without a fileHash)
@@ -30,30 +33,30 @@ class ApiAsset(TypeIdModel):
 
 class ApiAssetFolder(TypeIdModel):
     folder: ApiAsset
-    path: list[int] | None = Field(json_schema_extra={"typeId": "AssetId"})
+    path: list[int] | None = Field(json_schema_extra={"typeId": "AssetEntryId"})
     sharedParent: ApiAsset | None
     sharedRight: Literal["view"] | Literal["edit"] | None
 
 
 class ApiAssetCreateFolder(TypeIdModel):
     name: str
-    parent: int = Field(json_schema_extra={"typeId": "AssetId"})
+    parent: int = Field(json_schema_extra={"typeId": "AssetEntryId"})
 
 
 class ApiAssetInodeMove(TypeIdModel):
-    inode: int = Field(json_schema_extra={"typeId": "AssetId"})
-    target: int = Field(json_schema_extra={"typeId": "AssetId"})
+    inode: int = Field(json_schema_extra={"typeId": "AssetEntryId"})
+    target: int = Field(json_schema_extra={"typeId": "AssetEntryId"})
 
 
 class ApiAssetRename(TypeIdModel):
-    asset: int = Field(json_schema_extra={"typeId": "AssetId"})
+    asset: int = Field(json_schema_extra={"typeId": "AssetEntryId"})
     name: str
 
 
 class ApiAssetUpload(TypeIdModel):
     uuid: str
     name: str
-    directory: int = Field(json_schema_extra={"typeId": "AssetId"})
+    directory: int = Field(json_schema_extra={"typeId": "AssetEntryId"})
     newDirectories: list[str]
     slice: int
     totalSlices: int
@@ -62,4 +65,4 @@ class ApiAssetUpload(TypeIdModel):
 
 class ApiAssetAdd(TypeIdModel):
     asset: ApiAsset
-    parent: int = Field(json_schema_extra={"typeId": "AssetId"})
+    parent: int = Field(json_schema_extra={"typeId": "AssetEntryId"})

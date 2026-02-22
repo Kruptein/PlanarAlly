@@ -33,6 +33,7 @@ import type {
     ApiToggleCompositeShape,
 } from "../../apiTypes";
 import type { AssetId } from "../../assets/models";
+import { getImageSrcFromHash } from "../../assets/utils";
 import { toGP } from "../../core/geometry";
 import { baseAdjust } from "../../core/http";
 import type { GlobalId, LocalId } from "../../core/id";
@@ -100,7 +101,6 @@ export function fromSystemForm(shapeId: LocalId): CompactForm {
             customData: [],
             strokeWidth: shape.strokeWidth,
             options: shape.options,
-            assetId: shape.assetId ?? null,
             ignoreZoomSize: shape.ignoreZoomSize,
             character: shape.character ?? null,
         },
@@ -219,7 +219,6 @@ interface CompactShapeCoreOptions {
     customData: ApiShapeCustomData[];
     strokeWidth: number;
     options: Partial<ShapeOptions>;
-    assetId: AssetId | null;
     ignoreZoomSize: boolean;
     character: CharacterId | null;
 }
@@ -263,7 +262,8 @@ export interface TextCompactCore {
 }
 
 export interface AssetRectCompactCore extends RectCompactCore {
-    src: string;
+    assetId: AssetId;
+    assetHash: string;
 }
 
 export interface ToggleCompositeCompactCore {
@@ -314,9 +314,9 @@ function createShapeInstanceFromCore(compact: CompactForm): IShape | undefined {
         } else if (core.type_ === "assetrect") {
             const asset = subShape as AssetRectCompactCore;
             const img = new Image(asset.width, asset.height);
-            if (asset.src.startsWith("http")) img.src = baseAdjust(new URL(asset.src).pathname);
-            else img.src = baseAdjust(asset.src);
-            sh = new Asset(img, refPoint, asset.width, asset.height, { uuid });
+            if (asset.assetHash.startsWith("http")) img.src = baseAdjust(new URL(asset.assetHash).pathname);
+            else img.src = getImageSrcFromHash(asset.assetHash);
+            sh = new Asset(img, refPoint, asset.width, asset.height, asset.assetId, asset.assetHash, { uuid });
             img.onload = () => {
                 (sh as Asset).setLoaded();
             };
@@ -347,14 +347,13 @@ function createServerDataFromCompact(compact: CompactForm): ApiShape {
     const { core, id, subShape } = compact;
 
     // Create the core shape content + default values for all system related data
-    const { drawOperator, customData, options, strokeWidth, ignoreZoomSize, assetId, ...rest } = core;
+    const { drawOperator, customData, options, strokeWidth, ignoreZoomSize, ...rest } = core;
     const serverCoreShape: ApiCoreShape = {
         ...rest,
         draw_operator: drawOperator,
         custom_data: customData,
         stroke_width: strokeWidth,
         ignore_zoom_size: ignoreZoomSize,
-        asset: assetId,
         name: "",
         name_visible: false,
         fill_colour: "",
@@ -478,7 +477,6 @@ async function createCompactFromServerData(
             angle: serverShape.angle,
             drawOperator: serverShape.draw_operator as GlobalCompositeOperation,
             customData: serverShape.custom_data,
-            assetId: serverShape.asset,
             ignoreZoomSize: serverShape.ignore_zoom_size,
             character: serverShape.character,
             strokeWidth: serverShape.stroke_width,

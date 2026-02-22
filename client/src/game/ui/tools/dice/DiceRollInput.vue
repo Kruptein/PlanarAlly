@@ -2,7 +2,6 @@
 import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { baseAdjust } from "../../../../core/http";
 import type { GlobalId } from "../../../../core/id";
 import { getLocalId, getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
@@ -10,6 +9,7 @@ import { getVariableSegments } from "../../../systems/customData/utils";
 import { diceState } from "../../../systems/dice/state";
 
 import DiceAutoComplete from "./DiceAutoComplete.vue";
+import { getImageSrcFromHash } from "../../../../assets/utils";
 
 const { t } = useI18n();
 
@@ -249,7 +249,7 @@ function getImage(shapeId: GlobalId): string {
     if (local === undefined) return "";
     const shape = getShape(local);
     if (shape === undefined || shape.type !== "assetrect") return "";
-    return baseAdjust((shape as IAsset).src);
+    return getImageSrcFromHash((shape as IAsset).assetHash);
 }
 </script>
 

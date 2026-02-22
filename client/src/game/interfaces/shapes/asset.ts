@@ -3,7 +3,8 @@ import type { GlobalPoint } from "../../../core/geometry";
 import type { IShape } from "../shape";
 
 export interface IAsset extends IShape {
-    src: string;
+    assetId: AssetId;
+    assetHash: string;
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
 
     get h(): number;

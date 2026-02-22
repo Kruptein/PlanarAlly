@@ -24,6 +24,7 @@ import {
     shapeFilterOptions,
     tagFilterOptions,
 } from "./noteFilters";
+import { AssetId } from "../../../assets/models";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
 
@@ -164,7 +165,10 @@ async function search(): Promise<void> {
 }
 
 async function updateLocationFilter(): Promise<void> {
-    const filters = (await socket.emitWithAck("Note.Filters.Location.Get")) as { id: number; name: string }[];
+    const filters = (await socket.emitWithAck("Note.Filters.Location.Get")) as {
+        id: number;
+        name: string;
+    }[];
     customFilterOptions.locations = filters.sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -172,7 +176,7 @@ async function updateShapeFilter(): Promise<void> {
     const filters = (await socket.emitWithAck("Note.Filters.Shape.Get")) as {
         uuid: GlobalId;
         name: string;
-        src: string;
+        assetHash: string;
     }[];
     customFilterOptions.shapes = filters
         .map(({ uuid, ...s }) => ({ ...s, id: getLocalId(uuid, false)! }))

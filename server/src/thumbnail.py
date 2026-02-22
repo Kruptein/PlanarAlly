@@ -48,7 +48,7 @@ def create_thumbnail_from_bytes(input_bytes, max_size=(200, 200)):
     return {"webp": webp_output.getvalue(), "jpeg": jpeg_output.getvalue()}
 
 
-def generate_thumbnail_for_asset(name: str, file_hash: str) -> None:
+def generate_thumbnail_for_asset(file_hash: str) -> None:
     full_hash_name = get_asset_hash_subpath(file_hash)
     asset_path = ASSETS_DIR / full_hash_name
 
@@ -67,7 +67,7 @@ def generate_thumbnail_for_asset(name: str, file_hash: str) -> None:
                 f.write(data)
     except Image.DecompressionBombError:
         print()
-        print(f"Thumbnail generation failed for {name}: The asset is too large")
+        print(f"Thumbnail generation failed for {file_hash}: The asset is too large")
     except Exception as e:
         print()
-        print(f"Thumbnail generation failed for {name}: {e}")
+        print(f"Thumbnail generation failed for {file_hash}: {e}")

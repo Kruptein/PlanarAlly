@@ -1,4 +1,4 @@
-import type { AssetId } from "../../../assets/models";
+import type { AssetEntryId } from "../../../assets/models";
 
 import { assetGameState } from "./state";
 
@@ -23,7 +23,7 @@ export function toggleAssetManager(): void {
     }
 }
 
-export async function pickAsset(): Promise<AssetId | null> {
+export async function pickAsset(): Promise<AssetEntryId | null> {
     openAssetManager();
     return new Promise((resolve) => {
         assetGameState.mutableReactive.picker = resolve;

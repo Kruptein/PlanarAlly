@@ -10,6 +10,7 @@ import { sendRemoveCharacter } from "../../systems/characters/emits";
 import type { CharacterId } from "../../systems/characters/models";
 import { characterState } from "../../systems/characters/state";
 import { gameState } from "../../systems/game/state";
+import { DropAssetInfo } from "../../dropAsset";
 
 const { t } = useI18n();
 
@@ -33,7 +34,10 @@ function dragStart(event: DragEvent): void {
     const { assetHash, assetId } = charAsset.value;
 
     event.dataTransfer.setDragImage(new Image(), 0, 0);
-    event.dataTransfer.setData("text/plain", JSON.stringify({ assetHash, assetId, characterId: characterId.value }));
+    event.dataTransfer.setData(
+        "text/plain",
+        JSON.stringify({ assetHash, assetId, characterId: characterId.value } as DropAssetInfo),
+    );
 
     characterId.value = undefined;
 }

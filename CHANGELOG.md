@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Changed
+
+-   [tech] DB storage of asset data is reworked
+
 ### Fixed
 
 -   Asset pick modal butons don't work when clicking on their bottom half

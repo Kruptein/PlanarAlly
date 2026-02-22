@@ -10,6 +10,7 @@ import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
 import { getProperties } from "../../systems/properties/state";
 import { visionTool } from "../../tools/variants/vision";
+import { getImageSrcFromHash } from "../../../assets/utils";
 
 const selected = visionTool.isActiveTool;
 
@@ -32,7 +33,7 @@ function toggle(token: LocalId): void {
 
 function getImageSrc(token: IShape): string {
     if (token.type === "assetrect") {
-        return (token as IAsset).src;
+        return getImageSrcFromHash((token as IAsset).assetHash);
     }
     return "";
 }

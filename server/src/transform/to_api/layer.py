@@ -11,6 +11,12 @@ def transform_layer(layer: Layer, pr: PlayerRoom) -> ApiLayer:
     groups: list[ApiGroup] = []
     shapes: list[ApiShape] = []
     for shape in layer.shapes.order_by(Shape.index):
+        # TEMP until spawn shapes are fixed
+        try:
+            shape.subtype
+        except:
+            print(shape.uuid)
+            continue
         shapes.append(transform_shape(shape, pr))
         if shape.group and shape.group.uuid not in groups_added:
             groups_added.add(shape.group.uuid)

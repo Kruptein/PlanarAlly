@@ -1,6 +1,6 @@
 import type { AssetTemplateInfo } from "../apiTypes";
 import { assetSystem } from "../assets";
-import type { AssetId } from "../assets/models";
+import type { AssetEntryId, AssetId } from "../assets/models";
 import { assetState } from "../assets/state";
 import { getImageSrcFromHash } from "../assets/utils";
 import { l2gx, l2gy, l2gz } from "../core/conversions";
@@ -11,7 +11,7 @@ import { SyncMode, InvalidationMode, UI_SYNC } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
 
-import { requestAssetOptions } from "./api/emits/asset";
+import { requestAssetTemplates } from "./api/emits/asset";
 import { fetchFullShape, sendShapesMove } from "./api/emits/shape/core";
 import { getLocalId, getVisualShape } from "./id";
 import { moveShapes } from "./operations/movement";
@@ -26,6 +26,21 @@ import { playerSystem } from "./systems/players";
 import { locationSettingsState } from "./systems/settings/location/state";
 import { addShape, selectionBoxFunction } from "./temp";
 import { handleDropFF } from "./ui/firefox";
+
+interface DropAssetInfoCore {
+    assetHash: string;
+    assetId: AssetId;
+}
+
+export type DropAssetInfo = DropAssetInfoCore &
+    (
+        | {
+              characterId: CharacterId;
+          }
+        | {
+              entryId: AssetEntryId;
+          }
+    );
 
 export async function handleDropEvent(event: DragEvent): Promise<void> {
     if (event === null || event.dataTransfer === null) return;
@@ -43,27 +58,20 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
         for (const asset of await assetSystem.upload(event.dataTransfer.files, {
             target: () => assetState.raw.root,
         })) {
-            if (asset.fileHash !== null)
+            if (asset.fileHash !== null && asset.assetId !== null)
                 // oxlint-disable-next-line no-await-in-loop
-                await dropHelper({ assetHash: asset.fileHash, assetId: asset.id }, location);
+                await dropHelper({ assetHash: asset.fileHash, entryId: asset.id, assetId: asset.assetId }, location);
         }
     } else if (transferInfo) {
-        const assetInfo = JSON.parse(transferInfo) as {
-            assetHash: string;
-            assetId: AssetId;
-            characterId?: CharacterId;
-        };
+        const assetInfo = JSON.parse(transferInfo) as DropAssetInfo;
         await dropHelper(assetInfo, location);
     }
 
     // assetState.mutable.modalActive = false;
 }
 
-async function dropHelper(
-    assetInfo: { assetHash: string; assetId: AssetId; characterId?: CharacterId },
-    location: GlobalPoint,
-): Promise<void> {
-    if (assetInfo.characterId !== undefined) {
+async function dropHelper(assetInfo: DropAssetInfo, location: GlobalPoint): Promise<void> {
+    if ("characterId" in assetInfo) {
         const character = characterState.readonly.characters.get(assetInfo.characterId);
         if (character === undefined) {
             throw new Error("Unknown character ID encountered");
@@ -88,16 +96,16 @@ async function dropHelper(
                 y: location.y,
             },
         });
-
-        return;
+    } else {
+        await dropAsset(
+            {
+                entryId: assetInfo.entryId,
+                assetId: assetInfo.assetId,
+                imageSource: getImageSrcFromHash(assetInfo.assetHash, { addBaseUrl: false }),
+            },
+            location,
+        );
     }
-    await dropAsset(
-        {
-            assetId: assetInfo.assetId,
-            imageSource: getImageSrcFromHash(assetInfo.assetHash, { addBaseUrl: false }),
-        },
-        location,
-    );
 }
 
 async function loadTemplate(template: AssetTemplateInfo, position: GlobalPoint): Promise<void> {
@@ -115,12 +123,12 @@ async function loadTemplate(template: AssetTemplateInfo, position: GlobalPoint):
 }
 
 export async function dropAsset(
-    data: { imageSource: string; assetId: AssetId },
+    data: { imageSource: string; entryId: AssetEntryId; assetId: AssetId },
     position: GlobalPoint,
 ): Promise<Asset | undefined> {
     let dimensions: { width: number; height: number } | undefined;
 
-    const assetInfo = await requestAssetOptions(data.assetId);
+    const assetInfo = await requestAssetTemplates({ assetId: data.assetId, entryId: data.entryId });
     if (assetInfo.success) {
         // First check if there are templates and if so, if we want to use one
         const choices = assetInfo.templates.map((template) => template.name);
@@ -136,8 +144,8 @@ export async function dropAsset(
                     await loadTemplate(template, position);
                     return;
                 }
-            } catch {
-                // no-op ; action cancelled
+            } catch (error) {
+                console.error(error);
             }
         }
 
@@ -160,6 +168,7 @@ export async function dropAsset(
     const image = document.createElement("img");
     const uuid = uuidv4();
     image.src = baseAdjust(data.imageSource);
+    const assetHash = data.imageSource.split("/").pop()!;
 
     const layer = floorState.currentLayer.value!;
 
@@ -170,14 +179,10 @@ export async function dropAsset(
                 position,
                 dimensions?.width ?? l2gz(image.width),
                 dimensions?.height ?? l2gz(image.height),
-                {
-                    assetId: data.assetId,
-                    uuid,
-                },
+                data.assetId,
+                assetHash,
+                { uuid },
             );
-
-            const pathname = new URL(image.src).pathname;
-            asset.src = pathname.replace(import.meta.env.BASE_URL, "/");
 
             asset.setLayer(layer.floor, layer.name); // set this early to avoid conflicts
 

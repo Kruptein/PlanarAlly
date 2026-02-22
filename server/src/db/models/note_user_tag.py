@@ -19,5 +19,5 @@ class NoteUserTag(BaseDbModel):
     user = cast("User", ForeignKeyField(User, backref="note_tags", on_delete="CASCADE"))
     tag = cast(str, TextField())
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         indexes = ((("user_id", "tag"), True),)

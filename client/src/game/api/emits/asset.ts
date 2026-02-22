@@ -1,6 +1,10 @@
-import type { AssetOptionsInfoFail, AssetOptionsInfoSuccess } from "../../../apiTypes";
+import type { AssetTemplatesInfoFail, AssetTemplatesInfoRequest, AssetTemplatesInfoSuccess } from "../../../apiTypes";
 import { socket } from "../socket";
 
-export async function requestAssetOptions(assetId: number): Promise<AssetOptionsInfoSuccess | AssetOptionsInfoFail> {
-    return (await socket.emitWithAck("Asset.Options.Get", assetId)) as AssetOptionsInfoSuccess | AssetOptionsInfoFail;
+export async function requestAssetTemplates(
+    data: AssetTemplatesInfoRequest,
+): Promise<AssetTemplatesInfoSuccess | AssetTemplatesInfoFail> {
+    return (await socket.emitWithAck("Asset.Templates.Get", data)) as
+        | AssetTemplatesInfoSuccess
+        | AssetTemplatesInfoFail;
 }

@@ -1,0 +1,92 @@
+A
+darragh|13|Waterdeep|D1|Unknown shape|3079e7b7-7be9-4f56-9ad7-dfba08ae0faf
+darragh|13|Waterdeep|D1|Unknown shape|337a49b1-8667-4024-9c88-20eae9729a74
+darragh|16|test4|test|Unknown shape|a8a56140-650c-45f8-b003-7ca94722cdd0
+darragh|13|Waterdeep|D2|Unknown shape|a568102e-a30e-429c-95c7-c27d9b16fd09
+darragh|13|Waterdeep|D2|Unknown shape|e3006884-a63b-4c15-bf9f-50493881ec98
+darragh|13|Waterdeep|D3|Unknown shape|9072ffbe-4e06-4ec1-913c-d3eec90a041b
+darragh|13|Waterdeep|D3|Unknown shape|e3e76a37-e9d4-4ab6-b6fe-44b2518bdc18
+darragh|13|Waterdeep|D3|Unknown shape|fee5b543-3039-4ada-9661-337adbe02896
+darragh|23|DiA|cemetary|Unknown shape|4154ff36-fb42-4361-ae29-0d8912e25368
+darragh|32|the Price of Beauty|start|Unknown shape|1b256019-bf03-48ae-a3aa-f8095a70b915
+darragh|32|the Price of Beauty|start|Unknown shape|2fd9e224-9c2d-48bd-9e3c-2d709f2e6f4b
+darragh|32|the Price of Beauty|start|Unknown shape|31b296be-faaa-48b5-b52a-6cf6c2cdca55
+darragh|32|the Price of Beauty|start|Unknown shape|6f245f37-9004-4c50-bedc-21d624fc8e18
+darragh|32|the Price of Beauty|start|Unknown shape|9d267c45-5f71-4df5-9a67-d589c1bc0e9d
+darragh|32|the Price of Beauty|start|Unknown shape|a2b86a3c-7f6a-4220-839b-26d02c342bcb
+darragh|32|the Price of Beauty|start|Unknown shape|a512ef27-2db3-4eb4-ae3e-5e6a0c51455f
+darragh|32|the Price of Beauty|start|Unknown shape|d0ef92da-4552-4796-9892-0d8699eb289c
+darragh|32|the Price of Beauty|start|Unknown shape|d5a4d331-48f2-4895-bbd3-9dd2a62af270
+darragh|33|Curse of Strahd|old bonegrinder|Unknown shape|03b36aeb-f547-4ea1-953b-a5aac9c01c51
+darragh|33|Curse of Strahd|old bonegrinder|Unknown shape|7db6fd73-2052-48ca-8076-44e4c001c9b7
+darragh|33|Curse of Strahd|old bonegrinder|Unknown shape|8863ead1-bb1c-4c79-83b7-d59f47316456
+darragh|13|Waterdeep|D5|Unknown shape|08488bc0-8486-4651-be6c-7dbe5e757774
+darragh|13|Waterdeep|D5|Unknown shape|0936d787-b9fd-4827-a12b-503407cce507
+darragh|13|Waterdeep|D5|Unknown shape|0b7ab191-bb38-46da-b4bb-2805b2bfb404
+darragh|13|Waterdeep|D5|Unknown shape|0d43cf9c-d198-466d-a5d6-09a5ba6b03b2
+darragh|13|Waterdeep|D5|Unknown shape|0f09f4f9-8657-48ed-bdf4-c427dc224e54
+darragh|13|Waterdeep|D5|Unknown shape|105d435b-35c2-4fe4-98ee-58095c7e2263
+darragh|13|Waterdeep|D5|Unknown shape|12e89888-8e93-4d7d-8ed8-6c109d0d903a
+darragh|13|Waterdeep|D5|Unknown shape|15539818-2137-4ca0-a188-c713d7f13e7c
+darragh|13|Waterdeep|D5|Unknown shape|2b5a1b65-6c35-458d-894b-375c4779c4ff
+darragh|13|Waterdeep|D5|Unknown shape|2d9ff96b-6d11-4208-8357-688f09fe2bb5
+darragh|13|Waterdeep|D5|Unknown shape|36a448e8-d5e7-4de4-94f5-447d40135996
+darragh|13|Waterdeep|D5|Unknown shape|37ecd484-aa73-4b8d-8ef2-83155aacf1b8
+darragh|13|Waterdeep|D5|Unknown shape|4c63475c-82cb-4838-9b56-b110097e0db5
+darragh|13|Waterdeep|D5|Unknown shape|65e8ce83-2a94-4217-ad78-f7d97cb09f6b
+darragh|13|Waterdeep|D5|Unknown shape|695364d5-e76f-452c-8fcb-30b671aa152a
+darragh|13|Waterdeep|D5|Unknown shape|6c8d5dd3-b008-404e-a41d-23817cd5ada3
+darragh|13|Waterdeep|D5|Unknown shape|8cc9bd47-ec73-47ce-b51d-7c1e4effa2f9
+darragh|13|Waterdeep|D5|Unknown shape|97f491f8-136d-4a13-8f3f-dbd6ae458a16
+darragh|13|Waterdeep|D5|Unknown shape|ace79e2b-496a-4435-a64c-bcb639ad6289
+darragh|13|Waterdeep|D5|Unknown shape|ad48ba02-4034-4e4a-a361-26ff9cd9d3b9
+darragh|13|Waterdeep|D5|Unknown shape|b3d044b3-46cf-4d9c-ac1c-9bd8b7c2e18c
+darragh|13|Waterdeep|D5|Unknown shape|bdd7516f-a386-40eb-8fdf-4f88631482b0
+darragh|13|Waterdeep|D5|Unknown shape|c38fdae3-2782-49cf-adf6-95b311a85b69
+darragh|13|Waterdeep|D5|Unknown shape|d63cd183-4faa-4f67-a1ee-80c658f81ad0
+darragh|13|Waterdeep|D5|Unknown shape|d9360223-d1b5-4218-b982-1d221106b9b5
+darragh|13|Waterdeep|D5|Unknown shape|dd12fee4-fc0e-4058-a3e8-e6cc9bee980d
+darragh|13|Waterdeep|D5|Unknown shape|e4dad889-d233-48a5-b033-ff1531ed1350
+darragh|13|Waterdeep|D5|Unknown shape|ea67e527-13f9-4567-969f-0c2daf440399
+darragh|13|Waterdeep|D5|Unknown shape|f49df3c1-d1e5-4592-b322-9da4169222e6
+darragh|13|Waterdeep|D5|Unknown shape|fd581036-4b6b-44e6-bfbe-6ff4bd6202c1
+darragh|13|Waterdeep|D9|Unknown shape|c71d4c6d-861d-43fd-b4b2-1558e48cad8e
+tmklk|25|Ravnica|Zonot 6|Unknown Shape|1257045f-1324-42a5-939c-be89e6c4445c
+tmklk|25|Ravnica|Zonot 6|Unknown Shape|e6d0ed15-68a2-4a49-9f04-5a51d4a3e4a1
+tmklk|25|Ravnica|Zonot 6|Unknown Shape|f7362542-d1c5-4cb5-8597-00f96984f69e
+frederik|39|Journeys through the Radiant Citadel|Hollow Mine|Unknown Shape|1bdbf763-d101-4aed-98b1-ccb41cf01daa
+frederik|39|Journeys through the Radiant Citadel|Hollow Mine|Unknown Shape|2646b13a-707f-4634-b1b9-ef93da41afa3
+frederik|39|Journeys through the Radiant Citadel|Hollow Mine|Unknown Shape|34a0addd-f486-43ee-b3db-293f32daf871
+frederik|39|Journeys through the Radiant Citadel|Hollow Mine|Unknown Shape|83f4f929-b123-4a3e-a661-a2d44e24ee32
+frederik|39|Journeys through the Radiant Citadel|Hollow Mine|Unknown Shape|9996caaa-0cd4-496d-813c-00314a519714
+frederik|39|Journeys through the Radiant Citadel|Hollow Mine|Unknown Shape|b5ae58b2-ad2a-4f69-8068-28f03fe57430
+frederik|39|Journeys through the Radiant Citadel|Hollow Mine|Unknown Shape|dc57a22b-0472-4f88-a30c-17c591025277
+frederik|39|Journeys through the Radiant Citadel|Hollow Mine|Unknown Shape|e3782201-ef1e-429f-9b58-b3485d8c01f4
+frederik|39|Journeys through the Radiant Citadel|Hollow Mine|Unknown Shape|fc8086db-a4d5-4851-8810-d5f2d3edd157
+frederik|39|Journeys through the Radiant Citadel|Hollow Mine|Unknown Shape|ff5a6745-5fcb-45e4-bfd9-8068bc83f01f
+darragh|13|Waterdeep|D14|Unknown Shape|39ed0ae2-bb11-44be-a8c1-1b0bb490cfea
+darragh|13|Waterdeep|D14|Unknown Shape|41cfe7c1-1051-436d-990d-64ae257e11d2
+darragh|13|Waterdeep|D14|Unknown Shape|67cd5b06-3200-4011-9f85-4fe76cd9b11e
+tmklk|25|Ravnica|Adelesia's mind|Unknown Shape|3b2337fe-8c3b-4f81-89a0-8ef1b12bf3e6
+darragh|13|Waterdeep|Yawning Portal|Unknown Shape|2e967223-16ad-4487-b838-cbae03c2ba0c
+darragh|13|Waterdeep|Yawning Portal|Unknown Shape|357b7151-bdfd-4d3e-8700-066f9936db4b
+darragh|13|Waterdeep|Yawning Portal|Unknown Shape|738b6f9e-696f-4c6d-bc1a-a8a38c38f522
+darragh|13|Waterdeep|Yawning Portal|Unknown Shape|fed2d552-5b1f-4848-90de-21e3a1120500
+darragh|13|Waterdeep|D18|Unknown shape|c8766072-43e7-4b0a-9238-f5697ca8c03b
+achiel|43|Curse of Strahd|Krezk|Unknown Shape|fb8cd73f-cbdf-4972-a937-12a3ea72a84a
+tmklk|25|Ravnica|Ruins|Unknown Shape|51016485-9669-4070-9c72-5ffcc495541f
+Farsad|135|Back to castle black|start|Unknown Shape|0a60eebd-adaa-483e-b4af-fc34415a695b
+achiel|43|Curse of Strahd|Abbey|Unknown Shape|d4f6e8ae-8a73-4380-9f38-c4f86f67e451
+achiel|43|Curse of Strahd|Werewolf Den|Unknown Shape|0f42cb38-6f55-45af-8618-89c42f3df2c2
+achiel|43|Curse of Strahd|Werewolf Den|Unknown Shape|133a7b14-f77b-4f17-8406-b6edc51ee54a
+achiel|43|Curse of Strahd|Werewolf Den|Unknown Shape|3e3fc393-661e-4e8d-b48f-7a14f9fa811d
+achiel|43|Curse of Strahd|Werewolf Den|Unknown Shape|46b422ec-9af4-48e5-9f16-be869a67f195
+achiel|43|Curse of Strahd|Werewolf Den|Unknown Shape|4954b722-9521-442c-a86d-438bff73333d
+achiel|43|Curse of Strahd|Werewolf Den|Unknown Shape|5216356e-d272-4a92-9395-f1946dfabf97
+tmklk|25|Ravnica|ship underwater|Unknown Shape|49e33603-7ca5-4674-9dd6-c7ebbb6cf810
+achiel|43|Curse of Strahd|Van Richten Tower|Unknown Shape|0f681bb7-c7a6-4a19-8ccb-be26bc8c305c
+achiel|43|Curse of Strahd|Van Richten Tower|Unknown Shape|1086a57d-3e8f-4b37-8911-20d95c8c5da4
+achiel|43|Curse of Strahd|Van Richten Tower|Unknown Shape|13d7e62d-82c8-47c1-a1a0-f08baf0e1378
+achiel|43|Curse of Strahd|Van Richten Tower|Unknown Shape|5a7e21a1-c6f2-40ef-96dd-73bb172e093e
+achiel|43|Curse of Strahd|Van Richten Tower|Unknown Shape|6c387d7c-ba3c-458c-ab44-504778e88ede
+achiel|43|Curse of Strahd|Van Richten Tower|Unknown Shape|83101323-fc93-4303-9669-489010683259

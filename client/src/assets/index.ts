@@ -7,7 +7,7 @@ import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
 
 import { sendAssetRemove, sendAssetRename, getFolder, sendInodeMove, getFolderPath, getFolderByPath } from "./emits";
-import type { AssetId } from "./models";
+import type { AssetEntryId } from "./models";
 import { socket } from "./socket";
 import { assetState } from "./state";
 // oxlint-disable-next-line import/no-unassigned-import
@@ -38,12 +38,12 @@ class AssetSystem implements System {
         $.folderPath = [];
     }
 
-    setRoot(root: AssetId): void {
+    setRoot(root: AssetEntryId): void {
         $.root = root;
         this.rootCallback.resolveAll();
     }
 
-    setPath(path: AssetId[]): void {
+    setPath(path: AssetEntryId[]): void {
         $.folderPath = [];
         let assetPath = router.currentRoute.value.path.slice("/assets/".length);
         if (assetPath.at(-1) === "/") assetPath = assetPath.slice(0, -1);
@@ -59,14 +59,14 @@ class AssetSystem implements System {
         }
     }
 
-    moveInode(inode: AssetId, targetFolder: AssetId): void {
+    moveInode(inode: AssetEntryId, targetFolder: AssetEntryId): void {
         let targetData = $.folders;
         if (raw.files.includes(inode)) targetData = $.files;
         targetData.splice(targetData.indexOf(inode), 1);
         sendInodeMove({ inode, target: targetFolder });
     }
 
-    async changeDirectory(targetFolder: AssetId | "POP"): Promise<void> {
+    async changeDirectory(targetFolder: AssetEntryId | "POP"): Promise<void> {
         $.loadingFolder = true;
         if (targetFolder === "POP") {
             $.folderPath.pop();
@@ -89,7 +89,7 @@ class AssetSystem implements System {
         await this.loadFolder(assetState.currentFolder.value);
     }
 
-    async loadFolder(folder: AssetId | string | undefined): Promise<void> {
+    async loadFolder(folder: AssetEntryId | string | undefined): Promise<void> {
         if (folder === undefined) return;
 
         const data = typeof folder === "string" ? await getFolderByPath(folder) : await getFolder(folder);
@@ -100,7 +100,7 @@ class AssetSystem implements System {
         assetState.mutableReactive.sharedRight = data.sharedRight;
     }
 
-    setFolderData(folder: AssetId, data: ApiAsset): void {
+    setFolderData(folder: AssetEntryId, data: ApiAsset): void {
         $.idMap.set(folder, data);
         if (data.children) {
             for (const child of data.children) {
@@ -113,7 +113,7 @@ class AssetSystem implements System {
 
     // SELECTED
 
-    addSelectedInode(inode: AssetId): void {
+    addSelectedInode(inode: AssetEntryId): void {
         $.selected.push(inode);
     }
 
@@ -132,7 +132,7 @@ class AssetSystem implements System {
 
     // ASSET
 
-    addAsset(asset: ApiAsset, parent?: AssetId): void {
+    addAsset(asset: ApiAsset, parent?: AssetEntryId): void {
         if (parent !== undefined && parent !== assetState.currentFolder.value) return;
 
         $.idMap.set(asset.id, asset);
@@ -152,7 +152,7 @@ class AssetSystem implements System {
         $[_target] = sorted_target;
     }
 
-    renameAsset(id: AssetId, name: string): void {
+    renameAsset(id: AssetEntryId, name: string): void {
         sendAssetRename({
             asset: id,
             name,
@@ -160,7 +160,7 @@ class AssetSystem implements System {
         $.idMap.get(id)!.name = name;
     }
 
-    removeAsset(asset: AssetId): void {
+    removeAsset(asset: AssetEntryId): void {
         let target = $.folders;
         if ($.files.includes(asset)) target = $.files;
         target.splice(target.indexOf(asset), 1);
@@ -184,7 +184,7 @@ class AssetSystem implements System {
     async upload(
         fls: FileList,
         // target is a function, because if the socket is closed, none of the usual targets exist yet
-        options?: { target?: () => AssetId | undefined; newDirectories?: string[] },
+        options?: { target?: () => AssetEntryId | undefined; newDirectories?: string[] },
     ): Promise<ApiAsset[]> {
         const closeSocket = socket.disconnected;
         if (closeSocket) {
@@ -273,7 +273,7 @@ class AssetSystem implements System {
 
     // SHARES
 
-    addShare(asset: AssetId, user: string, right: "view" | "edit"): void {
+    addShare(asset: AssetEntryId, user: string, right: "view" | "edit"): void {
         const data = $.idMap.get(asset);
         if (data === undefined) return console.error("Unknown asset was provided");
         data.shares.push({ user, right });

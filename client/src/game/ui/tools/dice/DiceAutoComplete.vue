@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onUnmounted, ref, watch } from "vue";
 
-import { baseAdjust } from "../../../../core/http";
 import type { LocalId } from "../../../../core/id";
 import type { DistributiveOmit } from "../../../../core/types";
 import { getShape } from "../../../id";
@@ -11,6 +10,7 @@ import type { UiShapeCustomData } from "../../../systems/customData/types";
 import { diceState } from "../../../systems/dice/state";
 import { getProperties } from "../../../systems/properties/state";
 import { selectedState } from "../../../systems/selected/state";
+import { getImageSrcFromHash } from "../../../../assets/utils";
 
 const showAutoComplete = ref(false);
 const autoCompleteSearchIndex = ref(0);
@@ -187,7 +187,7 @@ function getAutoCompleteOptions(): AutoCompleteOption[] {
         for (const data of shapeData) {
             if (data.name.toLowerCase().startsWith(pre) && data.name.toLowerCase().endsWith(post)) {
                 if (shape.type === "assetrect") {
-                    options.push({ src: baseAdjust((shape as IAsset).src), ...data, shapeId });
+                    options.push({ src: getImageSrcFromHash((shape as IAsset).assetHash), ...data, shapeId });
                 } else {
                     const props = getProperties(shapeId);
                     if (props === undefined) continue;

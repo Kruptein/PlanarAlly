@@ -45,7 +45,6 @@ from ...models.shape import (
 )
 from ...models.shape.position import ShapePositionUpdate, ShapesPositionUpdateList
 from .. import initiative
-from ..asset_manager.core import clean_filehash
 from ..constants import GAME_NS
 from ..groups import remove_group_if_empty
 from . import access, custom_data, options, toggle_composite  # noqa: F401
@@ -228,19 +227,18 @@ async def remove_shapes(sid: str, raw_data: Any):
                             break
 
             if not is_char_related:
-                file_hash_to_clean = None
+                asset_to_clean = None
                 if shape.type_ == "assetrect":
                     rect = cast(AssetRect, shape.subtype)
-                    if rect.src.startswith("/static/assets"):
-                        file_hash_to_clean = rect.src.split("/")[-1]
+                    asset_to_clean = rect.asset
 
                 old_index = shape.index
                 shape.delete_instance(True)
                 Shape.update(index=Shape.index - 1).where((Shape.layer == layer) & (Shape.index >= old_index)).execute()
 
                 # The Shape has to be removed before cleaning
-                if file_hash_to_clean:
-                    clean_filehash(file_hash_to_clean)
+                if asset_to_clean:
+                    asset_to_clean.cleanup_check()
             else:
                 shape.layer = None
                 shape.save()
@@ -587,8 +585,7 @@ async def change_asset_image(sid: str, raw_data: Any):
 
     asset_rect = AssetRect.get_by_id(data.uuid)
 
-    asset_rect.src = data.src
-    asset_rect.shape.asset_id = data.assetId
+    asset_rect.asset_id = data.assetId
     asset_rect.save()
 
     await _send_game("Shape.Asset.Image.Set", data, room=pr.active_location.get_path(), skip_sid=sid)
@@ -604,7 +601,7 @@ async def add_shape_template(sid: str, raw_data: Any):
     shape = Shape.get_by_id(data.shapeId)
     asset = Asset.get_by_id(data.assetId)
 
-    if not asset.can_be_accessed_by(pr.player, right="edit"):
+    if not asset.has_entry_with_access(pr.player, right="edit"):
         logger.error(f"{pr.player.name} attempted to add a shape template to an asset they do not have edit access to")
         return
 

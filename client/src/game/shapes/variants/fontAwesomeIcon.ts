@@ -2,10 +2,9 @@ import { type IconLookup, findIconDefinition, icon, type IconDefinition } from "
 
 import type { GlobalPoint } from "../../../core/geometry";
 import type { GlobalId, LocalId } from "../../../core/id";
-import type { IAsset } from "../../interfaces/shapes/asset";
 import type { SHAPE_TYPE } from "../types";
 
-import { Asset } from "./asset";
+import { IImage } from "./_image";
 
 const faBlobs = new Map<string, string>();
 
@@ -24,7 +23,7 @@ function getFaBlobUrl(iconDef: IconDefinition): string {
     return url;
 }
 
-export class FontAwesomeIcon extends Asset implements IAsset {
+export class FontAwesomeIcon extends IImage {
     type: SHAPE_TYPE = "fontawesome";
 
     constructor(

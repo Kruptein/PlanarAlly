@@ -1,10 +1,10 @@
 import { baseAdjust } from "../core/http";
 
-import type { AssetId } from "./models";
+import type { AssetEntryId } from "./models";
 import { assetState } from "./state";
 
 export function getImageSrcFromAssetId(
-    file: AssetId,
+    file: AssetEntryId,
     options?: { addBaseUrl?: boolean; thumbnailFormat?: string },
 ): string {
     const fileHash = assetState.raw.idMap.get(file)!.fileHash ?? "";

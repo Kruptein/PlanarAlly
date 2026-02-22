@@ -4,11 +4,11 @@ import { useI18n } from "vue-i18n";
 
 import Modal from "../../core/components/modals/Modal.vue";
 import { sendCreateShare, sendEditShareRight, sendRemoveShare } from "../emits";
-import type { AssetId } from "../models";
+import type { AssetEntryId } from "../models";
 import { socket } from "../socket";
 import { assetState } from "../state";
 
-const props = defineProps<{ visible: boolean; asset: AssetId | undefined }>();
+const props = defineProps<{ visible: boolean; asset: AssetEntryId | undefined }>();
 const emit = defineEmits<(e: "close") => void>();
 
 const { t } = useI18n();

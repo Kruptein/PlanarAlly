@@ -7,6 +7,7 @@ from .models.note_tag import NoteTag  # isort: skip
 
 from .base import BaseDbModel, BaseViewModel
 from .models.asset import Asset
+from .models.asset_entry import AssetEntry
 from .models.asset_rect import AssetRect
 from .models.asset_shortcut import AssetShortcut
 from .models.aura import Aura
@@ -55,6 +56,7 @@ from .signals import *  # noqa: F403
 ALL_NORMAL_MODELS: list[type[BaseDbModel]] = [
     AssetRect,
     Asset,
+    AssetEntry,
     AssetShare,
     AssetShortcut,
     Aura,

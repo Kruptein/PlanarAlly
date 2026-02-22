@@ -63,15 +63,15 @@ function swapNext(): void {
 }
 
 async function addVariant(): Promise<void> {
-    const assetId = await pickAsset();
-    if (assetId === null) return;
+    const entryId = await pickAsset();
+    if (entryId === null) return;
 
-    const assetInfo = assetState.raw.idMap.get(assetId);
+    const assetInfo = assetState.raw.idMap.get(entryId);
     if (assetInfo === undefined || assetInfo.fileHash === null) return;
 
     const shape = getShape(vState.id!)!;
 
-    if (assetInfo.fileHash === null) {
+    if (assetInfo.fileHash === null || assetInfo.assetId === null) {
         console.error("Missing fileHash for new variant");
         return;
     }
@@ -82,7 +82,8 @@ async function addVariant(): Promise<void> {
     const newShape = await dropAsset(
         {
             imageSource: getImageSrcFromHash(assetInfo.fileHash, { addBaseUrl: false }),
-            assetId: assetId,
+            assetId: assetInfo.assetId,
+            entryId,
         },
         shape.refPoint,
     );

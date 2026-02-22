@@ -3,7 +3,7 @@ import { useToast } from "vue-toastification";
 import type { ApiAssetAdd, ApiAssetCreateShare, ApiAssetRemoveShare } from "../apiTypes";
 import { coreStore } from "../store/core";
 
-import type { AssetId } from "./models";
+import type { AssetEntryId } from "./models";
 import { socket } from "./socket";
 import { assetState } from "./state";
 
@@ -28,7 +28,7 @@ socket.on("Toast.Warn", (msg: string) => {
     toast.warning(msg);
 });
 
-socket.on("Folder.Root.Set", (root: AssetId) => {
+socket.on("Folder.Root.Set", (root: AssetEntryId) => {
     assetSystem.setRoot(root);
 });
 

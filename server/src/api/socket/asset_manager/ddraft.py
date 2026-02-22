@@ -6,10 +6,11 @@ from typing_extensions import TypedDict
 
 from ....app import sio
 from ....db.models.asset import Asset
+from ....db.models.asset_entry import AssetEntry
 from ....state.asset import asset_state
 from ....transform.to_api.asset import transform_asset
 from ....utils import ASSETS_DIR, get_asset_hash_subpath
-from ...models.asset import ApiAssetUpload
+from ...models.asset import ApiAssetAdd, ApiAssetUpload
 from ..constants import ASSET_NS
 
 
@@ -55,32 +56,37 @@ async def handle_ddraft_file(upload_data: ApiAssetUpload, data: bytes, sid: str)
         with open(full_path, "wb") as f:
             f.write(image)
 
-    template = {
-        "version": "0",
-        "shape": "assetrect",
-        "templates": {
-            "ddraft/uvtt": {
-                "width": ddraft_file["resolution"]["map_size"]["x"] * 50,
-                "height": ddraft_file["resolution"]["map_size"]["y"] * 50,
-                "options": json.dumps([[f"ddraft_{k}", v] for k, v in ddraft_file.items() if k != "image"]),
-            }
-        },
-    }
+    # template = {
+    #     "version": "0",
+    #     "shape": "assetrect",
+    #     "templates": {
+    #         "ddraft/uvtt": {
+    #             "width": ddraft_file["resolution"]["map_size"]["x"] * 50,
+    #             "height": ddraft_file["resolution"]["map_size"]["y"] * 50,
+    #             "options": json.dumps([[f"ddraft_{k}", v] for k, v in ddraft_file.items() if k != "image"]),
+    #         }
+    #     },
+    # }
 
     user = asset_state.get_user(sid)
 
-    asset = Asset.create(
+    asset, created = Asset.get_or_create(owner=user, file_hash=hashname)
+    if created:
+        # todo: fix ddraft integration
+        # asset.templates.add(ShapeTemplate.create(asset=asset, name="ddraft/uvtt", options=json.dumps(template)))
+        pass
+
+    entry = AssetEntry.create(
         name=upload_data.name,
-        file_hash=hashname,
+        asset=asset,
         owner=user,
         parent=upload_data.directory,
-        options=json.dumps(template),
     )
 
-    asset_dict = transform_asset(asset, user)
+    asset_dict = transform_asset(entry, user)
     await sio.emit(
         "Asset.Upload.Finish",
-        {"asset": asset_dict, "parent": upload_data.directory},
+        ApiAssetAdd(asset=asset_dict, parent=upload_data.directory),
         room=sid,
         namespace=ASSET_NS,
     )

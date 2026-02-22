@@ -1,121 +1,46 @@
-import json
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 
-from peewee import ForeignKeyField, TextField
-from typing_extensions import Self, TypedDict
+from peewee import TextField
 
+
+from ...logs import logger
 from ...thumbnail import generate_thumbnail_for_asset
+from ...utils import ASSETS_DIR, get_asset_hash_subpath
 from ..base import BaseDbModel
 from ..typed import SelectSequence
-from .asset_share import AssetShare
 from .user import User
 
 if TYPE_CHECKING:
+    from .asset_entry import AssetEntry
     from .shape import Shape
     from .shape_template import ShapeTemplate
 
 
-class FileStructure(TypedDict):
-    __files: list["FileStructureElement"]
-
-
-class FileStructureElement(TypedDict):
-    id: int
-    name: str
-    hash: str
-
-
-AssetStructure = FileStructure | dict[str, "AssetStructure"]
-
-
 class Asset(BaseDbModel):
     id: int
-    parent_id: int
-    shares: SelectSequence["AssetShare"]
+
+    # !! When links are added update the cleanup function !!
+    entries: SelectSequence["AssetEntry"]
     shapes: SelectSequence["Shape"]
     templates: SelectSequence["ShapeTemplate"]
 
-    owner = cast(User, ForeignKeyField(User, backref="assets", on_delete="CASCADE"))
-    parent = cast(
-        "Asset | None",
-        ForeignKeyField("self", backref="children", null=True, on_delete="CASCADE"),
-    )
-    name = cast(str, TextField())
-    file_hash = cast(str | None, TextField(null=True))
+    file_hash = cast(str, TextField())
 
     def __repr__(self):
-        return f"<Asset {self.owner.name} - {self.name}>"
+        return f"<Asset {self.file_hash}>"
 
-    def get_options(self) -> dict[str, Any]:
-        return dict(json.loads(self.options or "[]"))
-
-    def set_options(self, options: dict[str, Any]) -> None:
-        self.options = json.dumps([[k, v] for k, v in options.items()])
-
-    def get_child(self, name: str) -> "Asset | None":
-        asset = Asset.get_or_none(
-            (Asset.owner == self.owner) & (Asset.parent == self) & (Asset.name == name)  # type: ignore
-        )
-        if not asset:
-            if share := AssetShare.get_or_none(user=self.owner, name=name, parent=self):
-                asset = share.asset
-        return asset
-
-    def can_be_accessed_by(self, user: User, *, right: Literal["edit", "view", "all"]) -> bool:
-        asset = self
-        while asset is not None:
-            if asset.owner == user:
-                return True
-            if any(share.user == user and (share.right == right or right == "all") for share in asset.shares):
-                return True
-            asset = asset.parent
-        return False
-
-    def get_shared_parent(self, user: User) -> AssetShare | None:
-        asset = self
-        while asset is not None:
-            for share in asset.shares:
-                if share.user == user:
-                    return share
-            asset = asset.parent
-        return None
+    def cleanup_check(self):
+        full_hash_path = get_asset_hash_subpath(self.file_hash)
+        if (ASSETS_DIR / full_hash_path).exists():
+            if self.entries.count() == 0 and self.shapes.count() == 0 and self.templates.count() == 0:
+                logger.info(f"No data maps to file {self.file_hash}, removing from server")
+                (ASSETS_DIR / full_hash_path).unlink()
 
     def generate_thumbnails(self) -> None:
-        if self.file_hash:
-            generate_thumbnail_for_asset(self.name, self.file_hash)
+        generate_thumbnail_for_asset(self.file_hash)
 
-    @classmethod
-    def get_root_folder(cls, user) -> Self:
-        try:
-            root = cls.get(name="/", owner=user, parent=None)
-        except Asset.DoesNotExist:
-            root = cls.create(name="/", owner=user, parent=None)
-        return root
+    def has_entry_with_access(self, user: User, right: Literal["edit", "view", "all"]) -> bool:
+        return any(entry.can_be_accessed_by(user, right=right) for entry in self.entries)
 
-    @classmethod
-    def get_user_structure(cls, user, parent=None):
-        if parent is None:
-            parent = cls.get_root_folder(user)
-        # ideally we change this to a single query to get all assets and process them as such
-        data: AssetStructure = {"__files": []}
-        assets = [*Asset.select().where((Asset.parent == parent))]
-        for asset_share in AssetShare().select().where((AssetShare.parent == parent)):
-            assets.append(asset_share.asset)
-        for asset in assets:
-            if asset.file_hash:
-                data["__files"].append({"id": asset.id, "name": asset.name, "hash": asset.file_hash})
-            else:
-                data[asset.name] = cls.get_user_structure(user, asset)
-        return data
-
-    @classmethod
-    def get_all_assets(cls, user: User, parent=None):
-        if parent is None:
-            parent = cls.get_root_folder(user)
-
-        assets = [*Asset.select().where((Asset.parent == parent))]
-        for asset_share in AssetShare().select().where((AssetShare.parent == parent)):
-            assets.append(asset_share.asset)
-        for asset in assets:
-            yield asset
-            yield from cls.get_all_assets(user, asset)
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
+        indexes = ((("file_hash",), True),)

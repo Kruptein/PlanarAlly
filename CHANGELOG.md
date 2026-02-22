@@ -10,6 +10,12 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2026.1.1]
+
+### Fixed
+
+-   Templates not properly loading on drop due to API error
+
 ## [2026.1]
 
 ### Added

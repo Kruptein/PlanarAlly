@@ -12,8 +12,6 @@ let uuids: GlobalId[] = [];
 const idMap = new Map<LocalId, IShape>();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).idMap = idMap;
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).uuids = uuids;
 
 // we're not giving id 0 on purpose to prevent potential unsafe if checks against this
 // Usually our explicit undefined check catches this, but because of our LocalId typing
@@ -24,6 +22,8 @@ const reservedIds = new Map<GlobalId, LocalId>();
 
 export function clearIds(): void {
     uuids = [];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    (window as any).uuids = uuids;
     idMap.clear();
     lastId = 0;
     freeIds = [];

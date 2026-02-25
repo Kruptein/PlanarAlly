@@ -7,17 +7,17 @@ from ..base import BaseDbModel
 from .user import User
 
 if TYPE_CHECKING:
-    from .asset import Asset
+    from .asset_entry import AssetEntry
 
 
 class AssetShare(BaseDbModel):
     id: int
     parent_id: int
 
-    asset = cast(
-        "Asset",
+    entry = cast(
+        "AssetEntry",
         DeferredForeignKey(
-            "Asset",
+            "AssetEntry",
             deferrable="INITIALLY DEFERRED",
             backref="shares",
             on_delete="CASCADE",
@@ -27,9 +27,9 @@ class AssetShare(BaseDbModel):
     right: Literal["view"] | Literal["edit"] = cast(Literal["view"] | Literal["edit"], TextField())
     name = cast(str, TextField())
     parent = cast(
-        "Asset",
+        "AssetEntry",
         DeferredForeignKey(
-            "Asset",
+            "AssetEntry",
             deferrable="INITIALLY DEFERRED",
             backref="share_children",
             on_delete="CASCADE",

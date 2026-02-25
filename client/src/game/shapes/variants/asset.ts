@@ -1,6 +1,5 @@
 import type { AssetId } from "../../../assets/models";
 import { getImageSrcFromHash } from "../../../assets/utils";
-import { g2l, g2lz } from "../../../core/conversions";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import { baseAdjust } from "../../../core/http";
@@ -8,27 +7,22 @@ import type { GlobalId, LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { sendAssetRectImageChange } from "../../api/emits/shape/asset";
-import { FOG_COLOUR } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { IAsset } from "../../interfaces/shapes/asset";
-import { LayerName } from "../../models/floor";
 import { loadSvgData } from "../../svg";
-import { accessSystem } from "../../systems/access";
-import { floorSystem } from "../../systems/floors";
 import { getProperties } from "../../systems/properties/state";
 import { VisionBlock } from "../../systems/properties/types";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import type { AssetRectCompactCore, CompactShapeCore } from "../transformations";
 import type { SHAPE_TYPE } from "../types";
 
-import { BaseRect } from "./baseRect";
+import { IImage } from "./_image";
 import { Polygon } from "./polygon";
 
-export class Asset extends BaseRect implements IAsset {
+export class Asset extends IImage implements IAsset {
     type: SHAPE_TYPE = "assetrect";
-    img: HTMLImageElement;
-    src = "";
-    #loaded: boolean;
+    assetId: AssetId;
+    assetHash: string;
 
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
 
@@ -37,61 +31,35 @@ export class Asset extends BaseRect implements IAsset {
         topleft: GlobalPoint,
         w: number,
         h: number,
+        assetId: AssetId,
+        assetHash: string,
         options?: {
             id?: LocalId;
             uuid?: GlobalId;
-            assetId?: AssetId;
             loaded?: boolean;
             isSnappable?: boolean;
             parentId?: LocalId;
         },
     ) {
-        super(topleft, w, h, { isSnappable: false, ...options }, { strokeColour: ["white"] });
-        this.img = img;
-        this.#loaded = options?.loaded ?? true;
+        super(img, topleft, w, h, { isSnappable: false, ...options });
+        this.assetId = assetId;
+        this.assetHash = assetHash;
     }
 
-    readonly isClosed = true;
-
     asCompact(): AssetRectCompactCore {
-        return { ...super.asCompact(), src: this.src };
+        return { ...super.asCompact(), assetId: this.assetId, assetHash: this.assetHash };
     }
 
     fromCompact(core: CompactShapeCore, subShape: AssetRectCompactCore): void {
         super.fromCompact(core, subShape);
-        this.src = subShape.src;
-    }
-
-    setLoaded(): void {
-        // Late image loading affects floor lighting
-        this.layer?.invalidate(true);
-
-        // invalidate token directions
-        if (accessSystem.hasAccessTo(this.id, "vision")) {
-            const floor = this.floor;
-            if (floor !== undefined) floorSystem.getLayer(floor, LayerName.Draw)?.invalidate(true);
-        }
-
-        floorSystem.invalidateLightAllFloors();
-        this.#loaded = true;
+        this.assetId = subShape.assetId;
+        this.assetHash = subShape.assetHash;
     }
 
     async onLayerAdd(): Promise<void> {
         if (this.options.svgAsset !== undefined && this.svgData === undefined) {
             await this.loadSvgs();
         }
-    }
-
-    resizeH(h: number, keepAspectratio: boolean): void {
-        const ar = this.h / this.w;
-        this.h = h;
-        if (keepAspectratio) this.w = h / ar;
-    }
-
-    resizeW(w: number, keepAspectratio: boolean): void {
-        const ar = this.h / this.w;
-        this.w = w;
-        if (keepAspectratio) this.h = w * ar;
     }
 
     async loadSvgs(): Promise<void> {
@@ -122,45 +90,11 @@ export class Asset extends BaseRect implements IAsset {
         }
     }
 
-    draw(
-        ctx: CanvasRenderingContext2D,
-        lightRevealRender: boolean,
-        customScale?: { center: GlobalPoint; width: number; height: number },
-    ): void {
-        super.draw(ctx, lightRevealRender, customScale);
-
-        const center = g2l(this.center);
-        const rp = g2l(this.refPoint);
-        const ogH = g2lz(this.h);
-        const ogW = g2lz(this.w);
-        const h = customScale ? customScale.height : ogH;
-        const w = customScale ? customScale.width : ogW;
-        const deltaH = (ogH - h) / 2;
-        const deltaW = (ogW - w) / 2;
-
-        if (!this.#loaded || lightRevealRender) {
-            if (!lightRevealRender) ctx.fillStyle = FOG_COLOUR;
-            ctx.fillRect(rp.x - center.x, rp.y - center.y, w, h);
-        } else {
-            try {
-                ctx.drawImage(this.img, rp.x - center.x + deltaW, rp.y - center.y + deltaH, w, h);
-            } catch {
-                console.warn(`Shape ${getGlobalId(this.id) ?? "unknown"} could not load the image ${this.src}`);
-            }
-        }
-
-        super.drawPost(ctx, lightRevealRender);
-    }
-
-    setImage(assetId: AssetId, url: string, sync: boolean): void {
+    setImage(assetId: AssetId, hash: string, sync: boolean): void {
         this.assetId = assetId;
-        this.#loaded = false;
-        this.src = url;
-        this.img.src = baseAdjust(url);
-        this.img.onload = () => {
-            this.setLoaded();
-        };
+        this.assetHash = hash;
+        this.changeImage(baseAdjust(hash));
         const uuid = getGlobalId(this.id);
-        if (uuid && sync) sendAssetRectImageChange({ uuid, src: url, assetId });
+        if (uuid && sync) sendAssetRectImageChange({ uuid, assetHash: hash, assetId });
     }
 }

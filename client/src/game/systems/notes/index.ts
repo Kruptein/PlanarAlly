@@ -409,7 +409,7 @@ class NoteSystem implements ShapeSystem<NoteId[]> {
     private createNoteIcon(shapeId: LocalId, noteId: NoteId): void {
         const shape = getShape(shapeId);
         if (shape?.layer === undefined) return;
-        const icon = new FontAwesomeIcon({ prefix: "fas", iconName: "sticky-note" }, toGP(0, 0), 15, {
+        const icon = new FontAwesomeIcon({ prefix: "fas", iconName: "note-sticky" }, toGP(0, 0), 15, {
             parentId: shapeId,
         });
         shape.addDependentShape({

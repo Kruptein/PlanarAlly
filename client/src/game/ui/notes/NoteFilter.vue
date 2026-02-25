@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 
 import { NO_FILTER } from "../../systems/notes/types";
+import { getImageSrcFromHash } from "../../../assets/utils";
 
 const props = defineProps<{
     label: string;
@@ -127,7 +128,12 @@ function onFocusOut(event: FocusEvent): void {
                             }"
                             @click="selectOption(option.value)"
                         >
-                            <img v-if="option.icon" :src="option.icon" width="20px" height="20px" />
+                            <img
+                                v-if="option.icon"
+                                :src="getImageSrcFromHash(option.icon)"
+                                width="20px"
+                                height="20px"
+                            />
                             {{ option.label }}
                         </div>
                         <div v-if="filteredOptions.length === 0" class="note-filter-no-results">No options found</div>

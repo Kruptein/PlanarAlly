@@ -19,6 +19,7 @@ from ...db.models.note_user_tag import NoteUserTag
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.shape import Shape
+from ...db.models.asset import Asset
 from ...db.models.asset_rect import AssetRect
 from ...db.models.shape_room_view import ShapeRoomView
 from ...db.models.user import User
@@ -651,9 +652,10 @@ async def get_shape_filters(sid: str):
     pr: PlayerRoom = game_state.get(sid)
 
     shape_options_query = (
-        NoteShape.select(Shape.uuid, Shape.name, AssetRect.src)
+        NoteShape.select(Shape.uuid, Shape.name, Asset.file_hash.alias("assetHash"))  # pyright: ignore[reportAttributeAccessIssue]
         .join(Shape, on=(NoteShape.shape_id == Shape.uuid))
         .join(AssetRect, on=(Shape.uuid == AssetRect.shape_id))
+        .join(Asset, on=(AssetRect.asset_id == Asset.id))
         .join(ShapeRoomView, on=(Shape.uuid == ShapeRoomView.shape_id))
         .where(ShapeRoomView.location_id == pr.active_location.id)
         .group_by(NoteShape.shape_id)

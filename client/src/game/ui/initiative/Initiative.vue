@@ -7,7 +7,6 @@ import { useI18n } from "vue-i18n";
 import Modal from "../../../core/components/modals/Modal.vue";
 import ResizingTextArea from "../../../core/components/ResizingTextArea.vue";
 import RollingCounter from "../../../core/components/RollingCounter.vue";
-import { baseAdjust } from "../../../core/http";
 import type { GlobalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { getTarget, getValue } from "../../../core/utils";
@@ -34,6 +33,7 @@ import { ClientSettingCategory } from "../settings/client/categories";
 
 import CreateEffectDialog from "./CreateEffectDialog.vue";
 import { initiativeStore } from "./state";
+import { getImageSrcFromHash } from "../../../assets/utils";
 
 const { t } = useI18n();
 
@@ -297,7 +297,7 @@ function hasImage(actor: InitiativeData): boolean {
 
 function getImage(actor: InitiativeData): string {
     if (actor.localId === undefined) return "";
-    return baseAdjust((getShape(actor.localId) as IAsset).src);
+    return getImageSrcFromHash((getShape(actor.localId) as IAsset).assetHash);
 }
 
 function canSee(actor: DeepReadonly<InitiativeData>): boolean {
@@ -1137,10 +1137,6 @@ function n(e: any): number {
     }
 }
 
-.initiative-actor:hover + .initiative-effect,
-.initiative-effect:hover {
-}
-
 #initiative-bar-dm {
     display: flex;
     flex-direction: column;
@@ -1298,9 +1294,6 @@ function n(e: any): number {
     transition: all 0.15s ease;
 }
 
-.effects-expand-enter-active,
-.effects-expand-leave-active {
-}
 .effects-expand-enter-from,
 .effects-expand-leave-to {
     opacity: 0;

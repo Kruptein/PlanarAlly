@@ -21,5 +21,5 @@ class NoteTag(BaseDbModel):
         "Note", DeferredForeignKey("Note", deferrable="INITIALLY DEFERRED", backref="tags", on_delete="CASCADE")
     )
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         indexes = ((("note_id", "tag_id"), True),)

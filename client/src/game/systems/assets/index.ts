@@ -1,4 +1,4 @@
-import type { AssetId } from "../../../assets/models";
+import type { AssetEntryId } from "../../../assets/models";
 import { registerSystem } from "../../../core/systems";
 import type { System } from "../../../core/systems/models";
 
@@ -13,12 +13,12 @@ class AssetGameSystem implements System {
         $.shortcuts = [];
     }
 
-    addShortcut(id: AssetId): void {
+    addShortcut(id: AssetEntryId): void {
         $.shortcuts.push(id);
         sendAssetShortcutAdd(id);
     }
 
-    removeShortcut(id: AssetId): void {
+    removeShortcut(id: AssetEntryId): void {
         $.shortcuts = $.shortcuts.filter((i) => i !== id);
         sendAssetShortcutRemove(id);
     }

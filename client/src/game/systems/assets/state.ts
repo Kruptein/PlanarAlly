@@ -1,11 +1,11 @@
-import type { AssetId } from "../../../assets/models";
+import type { AssetEntryId } from "../../../assets/models";
 import { buildState } from "../../../core/systems/state";
 
 interface ReactiveAssetState {
     managerOpen: boolean;
-    shortcuts: AssetId[];
+    shortcuts: AssetEntryId[];
 
-    picker: ((value: AssetId | null) => void) | null;
+    picker: ((value: AssetEntryId | null) => void) | null;
 }
 
 const state = buildState<ReactiveAssetState>({

@@ -7,7 +7,6 @@ from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, Smal
 from ...api.models.common import PositionTuple
 from ..base import BaseDbModel
 from ..typed import SelectSequence
-from .asset import Asset
 from .character import Character
 from .group import Group
 from .layer import Layer
@@ -18,6 +17,7 @@ if TYPE_CHECKING:
     from .circle import Circle
     from .circular_token import CircularToken
     from .composite_shape_association import CompositeShapeAssociation
+    from .font_awesome import FontAwesome
     from .line import Line
     from .polygon import Polygon
     from .rect import Rect
@@ -38,6 +38,7 @@ class Shape(BaseDbModel):
     assetrect_set: SelectSequence["AssetRect"]
     circle_set: SelectSequence["Circle"]
     circulartoken_set: SelectSequence["CircularToken"]
+    fontawesome_set: SelectSequence["FontAwesome"]
     line_set: SelectSequence["Line"]
     polygon_set: SelectSequence["Polygon"]
     rect_set: SelectSequence["Rect"]
@@ -78,10 +79,6 @@ class Shape(BaseDbModel):
     is_locked = cast(bool, BooleanField(default=False))
     angle = cast(float, FloatField(default=0))
     stroke_width = cast(int, IntegerField(default=2))
-    asset = cast(
-        Asset | None,
-        ForeignKeyField(Asset, backref="shapes", null=True, default=None, on_delete="SET NULL"),
-    )
     group = cast(
         Group | None,
         ForeignKeyField(Group, backref="members", null=True, default=None, on_delete="SET NULL"),
@@ -157,7 +154,6 @@ class Shape(BaseDbModel):
             is_locked=self.is_locked,
             angle=self.angle,
             stroke_width=self.stroke_width,
-            asset=self.asset,
             group=new_group,
             ignore_zoom_size=self.ignore_zoom_size,
         )

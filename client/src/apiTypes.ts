@@ -1,4 +1,4 @@
-import type { AssetId } from "./assets/models";
+import type { AssetId, AssetEntryId } from "./assets/models";
 import type { GlobalId } from "./core/id";
 import type { FloorIndex, LayerName } from "./game/models/floor";
 import type { Role } from "./game/models/role";
@@ -11,7 +11,7 @@ import type { VisionBlock } from "./game/systems/properties/types";
 import type { GridModeLabelFormat } from "./game/systems/settings/players/models";
 import type { TrackerId } from "./game/systems/trackers/models";
 
-export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
+export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape | ApiFontAwesomeShape
 export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock
 export type ApiShapeAdd = ApiShapeWithLayerAndTemporary | ApiTemplateShape
 export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumber | ApiShapeCustomDataBoolean | ApiShapeCustomDataDiceExpression
@@ -27,9 +27,10 @@ export type DefaultNoteFilter = "NO_FILTER" | "ACTIVE_FILTER" | "NO_LINK_FILTER"
 export type InitiativeDirection = -1 | 0 | 1;
 
 export interface ApiAsset {
-  id: AssetId;
+  id: AssetEntryId;
   name: string;
   owner: string;
+  assetId: AssetId | null;
   fileHash: string | null;
   children: ApiAsset[] | null;
   shares: ApiAssetShare[];
@@ -41,31 +42,30 @@ export interface ApiAssetShare {
 }
 export interface ApiAssetAdd {
   asset: ApiAsset;
-  parent: AssetId;
+  parent: AssetEntryId;
 }
 export interface ApiAssetCreateFolder {
   name: string;
-  parent: AssetId;
+  parent: AssetEntryId;
 }
 export interface ApiAssetCreateShare {
   right: "view" | "edit";
   user: string;
-  asset: AssetId;
+  asset: AssetEntryId;
 }
 export interface ApiAssetFolder {
   folder: ApiAsset;
-  path: AssetId[] | null;
+  path: AssetEntryId[] | null;
   sharedParent: ApiAsset | null;
   sharedRight: "view" | "edit" | null;
 }
 export interface ApiAssetInodeMove {
-  inode: AssetId;
-  target: AssetId;
+  inode: AssetEntryId;
+  target: AssetEntryId;
 }
-export interface ApiAssetRectShape extends ApiCoreShape {
-  width: number;
-  height: number;
-  src: string;
+export interface ApiAssetRectShape extends ApiBaseRectShape {
+  assetHash: string;
+  assetId: AssetId;
 }
 export interface ApiShapeCustomDataText extends ApiShapeCustomDataCore {
   kind: "text";
@@ -139,17 +139,17 @@ export interface ApiNoteAccess {
   can_view: boolean;
 }
 export interface ApiAssetRemoveShare {
-  asset: AssetId;
+  asset: AssetEntryId;
   user: string;
 }
 export interface ApiAssetRename {
-  asset: AssetId;
+  asset: AssetEntryId;
   name: string;
 }
 export interface ApiAssetUpload {
   uuid: string;
   name: string;
-  directory: AssetId;
+  directory: AssetEntryId;
   newDirectories: string[];
   slice: number;
   totalSlices: number;
@@ -163,7 +163,7 @@ export interface ApiCharacter {
   id: CharacterId;
   name: string;
   shapeId: GlobalId;
-  assetId: number;
+  assetId: AssetId;
   assetHash: string;
 }
 export interface ApiChatMessage {
@@ -213,7 +213,6 @@ export interface ApiCoreShape {
   is_locked: boolean;
   angle: number;
   stroke_width: number;
-  asset: AssetId | null;
   group: string | null;
   ignore_zoom_size: boolean;
   is_door: boolean;
@@ -261,6 +260,7 @@ export interface ApiLayer {
     | ApiRectShape
     | ApiCircleShape
     | ApiCircularTokenShape
+    | ApiFontAwesomeShape
     | ApiPolygonShape
     | ApiTextShape
     | ApiLineShape
@@ -271,6 +271,10 @@ export interface ApiLayer {
 export interface ApiRectShape extends ApiCoreShape {
   width: number;
   height: number;
+}
+export interface ApiFontAwesomeShape extends ApiBaseRectShape {
+  iconPrefix: string;
+  iconName: string;
 }
 export interface ApiPolygonShape extends ApiCoreShape {
   vertices: string;
@@ -479,22 +483,22 @@ export interface ApiUserOptions {
   initiative_open_on_activate: boolean;
   render_all_floors: boolean;
 }
-export interface AssetOptionsInfoFail {
-  error: string;
-  success: false;
-}
-export interface AssetOptionsInfoSuccess {
-  name: string;
-  templates: AssetTemplateInfo[];
-  success: true;
-}
 export interface AssetTemplateInfo {
   name: string;
   id: GlobalId;
 }
-export interface AssetOptionsSet {
-  asset: number;
-  options: string;
+export interface AssetTemplatesInfoFail {
+  error: string;
+  success: false;
+}
+export interface AssetTemplatesInfoRequest {
+  assetId: AssetId;
+  entryId: AssetEntryId;
+}
+export interface AssetTemplatesInfoSuccess {
+  name: string;
+  templates: AssetTemplateInfo[];
+  success: true;
 }
 export interface AuraMove {
   shape: GlobalId;
@@ -727,7 +731,7 @@ export interface RoomInfoSet {
 }
 export interface ShapeAssetImageSet {
   uuid: GlobalId;
-  src: string;
+  assetHash: string;
   assetId: AssetId;
 }
 export interface ShapeCircleSizeUpdate {

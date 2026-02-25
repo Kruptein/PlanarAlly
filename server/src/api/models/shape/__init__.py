@@ -97,7 +97,7 @@ class ShapeTextSizeUpdate(TypeIdModel):
 
 class ShapeAssetImageSet(TypeIdModel):
     uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
-    src: str
+    assetHash: str
     assetId: int = Field(json_schema_extra={"typeId": "AssetId"})
 
 

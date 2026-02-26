@@ -41,13 +41,13 @@ export function useAssetSearch(searchBar: Ref<HTMLInputElement | null>): AssetSe
 
     const debouncedSearch = debounce(search, 300);
 
-    watch([filter, includeSharedAssets], async ([filter]) => {
-        if (filter.length < 3) {
+    watch([filter, includeSharedAssets], async ([newFilter]) => {
+        if (newFilter.length < 3) {
             results.value = [];
             return;
         }
 
-        await debouncedSearch(filter);
+        await debouncedSearch(newFilter);
     });
 
     return { clear, filter, results, loading, includeSharedAssets };

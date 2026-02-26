@@ -153,8 +153,8 @@ function addLiteral(literal: (typeof literalOptions)[number]): void {
     }
 }
 
-function populateInputFromHistoryRoll(roll: DeepReadonly<RollResult<Part>>): void {
-    const parts = roll.parts;
+function populateInputFromHistoryRoll(rollResult: DeepReadonly<RollResult<Part>>): void {
+    const parts = rollResult.parts;
 
     let content = "";
 

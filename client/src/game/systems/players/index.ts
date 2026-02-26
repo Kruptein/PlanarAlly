@@ -96,8 +96,8 @@ class PlayerSystem implements System {
 
         player.showRect = showPlayerRect;
 
-        for (const [clientId, player] of clientState.raw.clientIds.entries()) {
-            if (playerId === player) clientSystem.showClientRect(clientId, showPlayerRect);
+        for (const [clientId, _playerId] of clientState.raw.clientIds.entries()) {
+            if (playerId === _playerId) clientSystem.showClientRect(clientId, showPlayerRect);
         }
     }
 

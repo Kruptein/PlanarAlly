@@ -109,13 +109,13 @@ export class Layer implements ILayer {
 
         for (i = sectorLeft; i <= sectorRight; i += SECTOR_SIZE) {
             for (j = sectorTop; j <= sectorBot; j += SECTOR_SIZE) {
-                const x = this.xSectors.get(i);
-                const y = this.ySectors.get(j);
-                if (x !== undefined && y !== undefined) {
-                    for (const id of filter(x, (x) => y.has(x))) {
+                const xShapes = this.xSectors.get(i);
+                const yShapes = this.ySectors.get(j);
+                if (xShapes !== undefined && yShapes !== undefined) {
+                    for (const id of filter(xShapes, (x) => yShapes.has(x))) {
                         this.shapeIdsInSector.add(id);
                     }
-                    for (const id of filter(y, (y) => x.has(y))) {
+                    for (const id of filter(yShapes, (y) => xShapes.has(y))) {
                         this.shapeIdsInSector.add(id);
                     }
                 }

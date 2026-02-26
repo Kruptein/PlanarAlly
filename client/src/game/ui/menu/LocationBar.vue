@@ -27,8 +27,8 @@ const activeLocations = computed({
     get() {
         return locationStore.activeLocations.value;
     },
-    set(locations: Location[]) {
-        locationStore.setActiveLocations(locations, true);
+    set(locs: Location[]) {
+        locationStore.setActiveLocations(locs, true);
     },
 });
 
@@ -53,14 +53,14 @@ const expanded = ref<Set<number>>(new Set());
 const hasArchivedLocations = computed(() => locationStore.archivedLocations.value.length > 0);
 
 async function showArchivedLocations(): Promise<void> {
-    const locations = locationStore.archivedLocations.value;
-    if (locations.length === 0) return;
+    const archivedLocations = locationStore.archivedLocations.value;
+    if (archivedLocations.length === 0) return;
 
     const choices = await modals.selectionBox(
         "Select a location to restore",
-        locations.map((l) => l.name),
+        archivedLocations.map((l) => l.name),
     );
-    const location = locations.find((l) => l.name === choices?.[0]);
+    const location = archivedLocations.find((l) => l.name === choices?.[0]);
     if (choices !== undefined && location !== undefined) {
         locationStore.unarchiveLocation(location.id, true);
     }

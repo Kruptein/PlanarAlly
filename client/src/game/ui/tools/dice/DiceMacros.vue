@@ -14,8 +14,8 @@ const { active } = defineProps<{
     active: LocalId | DiceUiState;
 }>();
 
-function isShape(active: LocalId | DiceUiState): active is LocalId {
-    return ![DiceUiState.Roll, DiceUiState.Macro].includes(active);
+function isShape(_active: LocalId | DiceUiState): _active is LocalId {
+    return ![DiceUiState.Roll, DiceUiState.Macro].includes(_active);
 }
 
 const macros = computed(() => {

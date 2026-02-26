@@ -42,16 +42,16 @@ function dragStart(event: DragEvent): void {
     characterId.value = undefined;
 }
 
-function focus(characterId: CharacterId): void {
-    const shape = characterSystem.getShape(characterId);
+function focus(charId: CharacterId): void {
+    const shape = characterSystem.getShape(charId);
     if (shape) setCenterPosition(shape.center);
 }
 
-async function remove(characterId: CharacterId): Promise<void> {
-    const name = characterState.readonly.characters.get(characterId)?.name ?? "??";
+async function remove(charId: CharacterId): Promise<void> {
+    const name = characterState.readonly.characters.get(charId)?.name ?? "??";
     const confirmed = await modals.confirm("Character Removal", `Are you sure you wish to remove character ${name}?`);
     if (confirmed ?? false) {
-        sendRemoveCharacter(characterId);
+        sendRemoveCharacter(charId);
     }
 }
 </script>

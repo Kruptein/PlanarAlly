@@ -317,8 +317,8 @@ class SelectTool extends Tool implements ISelectTool {
                     hit = true;
 
                     this.operationList = { type: "rotation", center: toGP(0, 0), shapes: [] };
-                    for (const shape of this.currentSelection)
-                        this.operationList.shapes.push({ uuid: shape.id, from: shape.angle, to: 0 });
+                    for (const selectionShape of this.currentSelection)
+                        this.operationList.shapes.push({ uuid: selectionShape.id, from: selectionShape.angle, to: 0 });
 
                     break;
                 }
@@ -381,15 +381,20 @@ class SelectTool extends Tool implements ISelectTool {
 
                     // don't use layerSelection here as it can be outdated by the pushSelection setSelection above
                     this.operationList = { type: "movement", shapes: [] };
-                    for (const shape of this.currentSelection) {
+                    for (const selectionShape of this.currentSelection) {
                         this.operationList.shapes.push({
-                            uuid: shape.id,
-                            from: toArrayP(shape.refPoint),
-                            to: toArrayP(shape.refPoint),
+                            uuid: selectionShape.id,
+                            from: toArrayP(selectionShape.refPoint),
+                            to: toArrayP(selectionShape.refPoint),
                         });
-                        if (props.blocksMovement && shape.layerName === LayerName.Tokens) {
-                            if (shape.floorId !== undefined)
-                                visionState.removeBlocker(TriangulationTarget.MOVEMENT, shape.floorId, shape, true);
+                        if (props.blocksMovement && selectionShape.layerName === LayerName.Tokens) {
+                            if (selectionShape.floorId !== undefined)
+                                visionState.removeBlocker(
+                                    TriangulationTarget.MOVEMENT,
+                                    selectionShape.floorId,
+                                    selectionShape,
+                                    true,
+                                );
                         }
                     }
                 } else {

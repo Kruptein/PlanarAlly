@@ -43,7 +43,7 @@ function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>
 }
 
 function removeTracker(tracker: TrackerId): void {
-    const id = trackerSystem.state.parentTrackers.some((t) => t.uuid === tracker)
+    const id = trackerSystem.state.parentTrackers.some((tr) => tr.uuid === tracker)
         ? activeShapeStore.state.parentUuid
         : activeShapeStore.state.id;
     if (!owned.value || id === undefined) return;

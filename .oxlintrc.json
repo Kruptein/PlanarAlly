@@ -10,6 +10,7 @@
         "eslint-plugin-unicorn/no-array-sort": "off",
         "eslint-plugin-unicorn/prefer-add-event-listener": "off",
         "eslint/no-debugger": "warn",
+        "eslint/no-shadow": ["error", { "ignoreOnInitialization": true }],
         "eslint/prefer-const": "warn",
         "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }],
         "no-map-spread": "off",

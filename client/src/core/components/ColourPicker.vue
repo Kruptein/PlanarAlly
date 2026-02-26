@@ -223,6 +223,7 @@ function onSaturationUp(event: PointerEvent): void {
 }
 
 function setRgba(options: { r?: number; g?: number; b?: number; a?: number }): void {
+    // oxlint-disable-next-line no-shadow
     const rgb = tc.value.toRgb();
     tc.value = tinycolor({
         ...rgb,
@@ -237,6 +238,7 @@ function setRgbaString(rgba: string): void {
 }
 
 function setHsla(options: { h?: number; s?: string; l?: string; a?: number }): void {
+    // oxlint-disable-next-line no-shadow
     const hsl = tc.value.toHsl();
 
     tc.value = tinycolor({
@@ -248,8 +250,8 @@ function setHsla(options: { h?: number; s?: string; l?: string; a?: number }): v
     emit("update:colour", rgbaString.value);
 }
 
-function setHex(hex: string): void {
-    tc.value = tinycolor(hex);
+function setHex(newHex: string): void {
+    tc.value = tinycolor(newHex);
     emit("update:colour", rgbaString.value);
 }
 </script>

@@ -29,6 +29,7 @@ import { activateTool, toolMap } from "../tools";
 
 export enum SpellShape {
     Square = "square",
+    // oxlint-disable-next-line no-shadow
     Circle = "circle",
     Cone = "cone",
     Hex = "hex",

@@ -1,7 +1,7 @@
 import {
     type IconLookup,
     findIconDefinition,
-    icon,
+    icon as faIcon,
     type IconDefinition,
     IconPrefix,
     IconName,
@@ -23,7 +23,7 @@ function getFaBlobUrl(
     const name = `${iconDef.prefix}-${iconDef.iconName}-${styleOptions.fill}-${styleOptions.stroke}-${styleOptions.strokeWidth}`;
     if (faBlobs.has(name)) return faBlobs.get(name)!;
 
-    const svg = icon(iconDef).node[0] as SVGElement;
+    const svg = faIcon(iconDef).node[0] as SVGElement;
     svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     const path = svg.firstChild as SVGTextPathElement;
     path.setAttribute("fill", styleOptions.fill);

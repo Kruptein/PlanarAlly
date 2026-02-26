@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pydantic-to-typescript==2.0.0", "ruff==0.15.1"]
+dev = ["pydantic-to-typescript==2.0.0", "ruff==0.15.3"]
 
 [tool.ruff]
 line-length = 120

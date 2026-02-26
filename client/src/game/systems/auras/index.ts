@@ -241,7 +241,6 @@ class AuraSystem implements ShapeSystem<Aura[]> {
         if (id === this._state.id || id === this._state.parentId) this.updateAuraState();
 
         if (oldAura?.active === true) {
-            const shape = getShape(id);
             if (shape && oldAura.visionSource) {
                 if (shape.floorId !== undefined) visionState.removeVisionSource(shape.floorId, auraId);
             }

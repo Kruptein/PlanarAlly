@@ -1,5 +1,5 @@
 import { type DxSegment, DxSegmentType } from "@planarally/dice/systems/dx";
-import { ref, watch, type Ref } from "vue";
+import { ref, watch } from "vue";
 
 import { diceState } from "./state";
 
@@ -23,12 +23,11 @@ function syncToState(): void {
     diceSystem.setInput(stringifySegments());
 }
 
-function addSegment(partsRef: Ref<DxSegment[]>, segment: DxSegment): void {
-    const parts = partsRef.value;
-    if (parts.length > 0 && parts.at(-1)?.type !== DxSegmentType.Operator) {
-        parts.push({ type: DxSegmentType.Operator, input: "+" });
+function addSegment(segment: DxSegment): void {
+    if (parts.value.length > 0 && parts.value.at(-1)?.type !== DxSegmentType.Operator) {
+        parts.value.push({ type: DxSegmentType.Operator, input: "+" });
     }
-    parts.push(segment);
+    parts.value.push(segment);
     syncToState();
 }
 
@@ -39,14 +38,14 @@ function addDie(die: (typeof addOptions)[number]): void {
         seg.input = `${seg.amount}${die}`;
     } else if (seg?.type === DxSegmentType.Literal) {
         parts.value.pop();
-        addSegment(parts, {
+        addSegment({
             type: DxSegmentType.Die,
             amount: seg.value,
             die,
             input: `${seg.value}${die}`,
         });
     } else {
-        addSegment(parts, { type: DxSegmentType.Die, amount: 1, die, input: `1${die}` });
+        addSegment({ type: DxSegmentType.Die, amount: 1, die, input: `1${die}` });
     }
     syncToState();
 }
@@ -59,13 +58,13 @@ function addLiteral(value: number): void {
     } else if (seg?.type === DxSegmentType.Literal) {
         seg.value = seg.value * 10 + value;
     } else {
-        addSegment(parts, { type: DxSegmentType.Literal, input: value.toString(), value });
+        addSegment({ type: DxSegmentType.Literal, input: value.toString(), value });
     }
     syncToState();
 }
 
 function addOperator(input: (typeof symbolOptions)[number]): void {
-    addSegment(parts, { type: DxSegmentType.Operator, input });
+    addSegment({ type: DxSegmentType.Operator, input });
     syncToState();
 }
 

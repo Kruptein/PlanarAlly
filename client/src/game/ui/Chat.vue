@@ -73,8 +73,7 @@ watch(
 );
 
 function scrollToBottom(): void {
-    const chatContainer = document.getElementById("chat-container");
-    chatContainer?.lastElementChild?.scrollIntoView({ behavior: "smooth" });
+    chatContainer.value?.lastElementChild?.scrollIntoView({ behavior: "smooth" });
 }
 
 // Dialog handling

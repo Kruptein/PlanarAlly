@@ -121,8 +121,11 @@ const totalCount = ref(0);
 const loading = ref(false);
 
 enum DefaultFilter {
+    // oxlint-disable-next-line no-shadow
     NO_FILTER = "NO_FILTER",
+    // oxlint-disable-next-line no-shadow
     ACTIVE_FILTER = "ACTIVE_FILTER",
+    // oxlint-disable-next-line no-shadow
     NO_LINK_FILTER = "NO_LINK_FILTER",
 }
 
@@ -155,7 +158,7 @@ async function search(): Promise<void> {
     searchResults.value = await Promise.all(
         serverNotes.map(async (n) => ({
             ...n,
-            tags: await Promise.all(n.tags.map(async (t) => ({ name: t, colour: await word2color(t) }))),
+            tags: await Promise.all(n.tags.map(async (tag) => ({ name: tag, colour: await word2color(tag) }))),
         })),
     );
     totalCount.value = count;
@@ -164,28 +167,28 @@ async function search(): Promise<void> {
 }
 
 async function updateLocationFilter(): Promise<void> {
-    const filters = (await socket.emitWithAck("Note.Filters.Location.Get")) as {
+    const locationFilters = (await socket.emitWithAck("Note.Filters.Location.Get")) as {
         id: number;
         name: string;
     }[];
-    customFilterOptions.locations = filters.sort((a, b) => a.name.localeCompare(b.name));
+    customFilterOptions.locations = locationFilters.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 async function updateShapeFilter(): Promise<void> {
-    const filters = (await socket.emitWithAck("Note.Filters.Shape.Get")) as {
+    const shapeFilters = (await socket.emitWithAck("Note.Filters.Shape.Get")) as {
         uuid: GlobalId;
         name: string;
         assetHash: string;
     }[];
-    customFilterOptions.shapes = filters
+    customFilterOptions.shapes = shapeFilters
         .map(({ uuid, ...s }) => ({ ...s, id: getLocalId(uuid, false)! }))
         .filter((s) => s.id !== undefined)
         .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 async function updateTagFilter(): Promise<void> {
-    const filters = (await socket.emitWithAck("Note.Filters.Tag.Get")) as string[];
-    customFilterOptions.tags = filters.sort((a, b) => a.localeCompare(b));
+    const tagFilters = (await socket.emitWithAck("Note.Filters.Tag.Get")) as string[];
+    customFilterOptions.tags = tagFilters.sort((a, b) => a.localeCompare(b));
 }
 
 // **** SEARCH TRIGGERS ****

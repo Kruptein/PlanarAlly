@@ -55,9 +55,12 @@ export enum DrawMode {
 
 export enum DrawShape {
     Square = "square",
+    // oxlint-disable-next-line no-shadow
     Circle = "circle",
+    // oxlint-disable-next-line no-shadow
     Polygon = "draw-polygon",
     Brush = "paint-brush",
+    // oxlint-disable-next-line no-shadow
     Text = "font",
 }
 

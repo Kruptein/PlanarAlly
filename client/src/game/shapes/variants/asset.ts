@@ -2,7 +2,6 @@ import type { AssetId } from "../../../assets/models";
 import { getImageSrcFromHash } from "../../../assets/utils";
 import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
-import { baseAdjust } from "../../../core/http";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { InvalidationMode, SyncMode } from "../../../core/models/types";
@@ -93,7 +92,7 @@ export class Asset extends IImage implements IAsset {
     setImage(assetId: AssetId, hash: string, sync: boolean): void {
         this.assetId = assetId;
         this.assetHash = hash;
-        this.changeImage(baseAdjust(hash));
+        this.changeImage(getImageSrcFromHash(hash));
         const uuid = getGlobalId(this.id);
         if (uuid && sync) sendAssetRectImageChange({ uuid, assetHash: hash, assetId });
     }

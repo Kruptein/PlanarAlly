@@ -3,7 +3,6 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { assetState } from "../../../../assets/state";
-import { getImageSrcFromHash } from "../../../../assets/utils";
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import ToggleGroup from "../../../../core/components/ToggleGroup.vue";
 import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
@@ -123,7 +122,7 @@ async function changeAsset(): Promise<void> {
     const assetInfo = assetState.raw.idMap.get(entryId);
     if (assetInfo === undefined || assetInfo.fileHash === null || assetInfo.assetId === null) return;
 
-    (shape as IAsset).setImage(assetInfo.assetId, getImageSrcFromHash(assetInfo.fileHash, { addBaseUrl: false }), true);
+    (shape as IAsset).setImage(assetInfo.assetId, assetInfo.fileHash, true);
 }
 </script>
 

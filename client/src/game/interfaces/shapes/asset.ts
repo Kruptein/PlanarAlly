@@ -13,6 +13,6 @@ export interface IAsset extends IShape {
     get w(): number;
     set w(w: number);
     resizeW: (w: number, keepAspectratio: boolean) => void;
-    setImage: (assetId: AssetId, url: string, sync: boolean) => void;
+    setImage: (assetId: AssetId, assetHash: string, sync: boolean) => void;
     loadSvgs: () => Promise<void>;
 }

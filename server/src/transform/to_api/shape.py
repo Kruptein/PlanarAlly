@@ -30,6 +30,11 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         for n in shape.notes
         if n.note.creator == pr.player or any((not a.user or a.user == pr.player) and a.can_view for a in n.note.access)
     ]
+    variants = None
+    if edit_access and shape.type_ == "assetrect":
+        assetrect = shape.assetrect_set.get()
+        if assetrect:
+            variants = [v.as_pydantic() for v in assetrect.variants]
     # Subtype
     shape_model = ApiCoreShape(
         uuid=shape.uuid,
@@ -71,5 +76,6 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         cell_stroke_colour=shape.cell_stroke_colour,
         cell_stroke_width=shape.cell_stroke_width,
         notes=notes,
+        variants=variants,
     )
     return shape.subtype.as_pydantic(shape_model)

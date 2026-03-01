@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Generic, Iterator, Sequence, Type, TypeVar
 
-from peewee import ModelDelete, ModelSelect, ModelUpdate
+from peewee import Database, ModelDelete, ModelSelect, ModelUpdate
 from playhouse.shortcuts import update_model_from_dict
 from typing_extensions import Self
 
@@ -37,6 +37,8 @@ class SelectSequence(Generic[T], Sequence[T], ModelSelect):
     def dicts(self, as_dict=True) -> Self: ...
 
     def group_by(self, *args) -> Self: ...
+
+    def get(self, database: Database | None = None) -> T | None: ...
 
 
 class UpdateSequence(Generic[T], Sequence[T], ModelUpdate):

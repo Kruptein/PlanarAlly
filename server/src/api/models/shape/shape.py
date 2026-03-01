@@ -6,6 +6,7 @@ from ..note import ApiNote
 from ..shape.custom_data import ApiShapeCustomData
 from ..tracker import ApiTracker
 from .owner import ApiShapeOwner
+from .variants import ApiVariant
 
 
 class ApiCoreShape(TypeIdModel):
@@ -49,3 +50,5 @@ class ApiCoreShape(TypeIdModel):
     cell_stroke_colour: str | None
     cell_stroke_width: int | None
     notes: list[ApiNote]
+    # unique to assetrect
+    variants: list[ApiVariant] | None

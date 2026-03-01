@@ -9,13 +9,13 @@ from .base import BaseDbModel, BaseViewModel
 from .models.asset import Asset
 from .models.asset_entry import AssetEntry
 from .models.asset_rect import AssetRect
+from .models.asset_rect_variant import AssetRectVariant
 from .models.asset_shortcut import AssetShortcut
 from .models.aura import Aura
 from .models.base_rect import BaseRect
 from .models.character import Character
 from .models.circle import Circle
 from .models.circular_token import CircularToken
-from .models.composite_shape_association import CompositeShapeAssociation
 from .models.constants import Constants
 from .models.floor import Floor
 from .models.font_awesome import FontAwesome
@@ -47,7 +47,6 @@ from .models.shape_template import ShapeTemplate
 from .models.shape_type import ShapeType
 from .models.stats import Stats
 from .models.text import Text
-from .models.toggle_composite import ToggleComposite
 from .models.tracker import Tracker
 from .models.user import User
 from .models.user_data_block import UserDataBlock
@@ -56,6 +55,7 @@ from .signals import *  # noqa: F403
 
 ALL_NORMAL_MODELS: list[type[BaseDbModel]] = [
     AssetRect,
+    AssetRectVariant,
     Asset,
     AssetEntry,
     AssetShare,
@@ -65,7 +65,6 @@ ALL_NORMAL_MODELS: list[type[BaseDbModel]] = [
     Character,
     Circle,
     CircularToken,
-    CompositeShapeAssociation,
     Constants,
     Floor,
     FontAwesome,
@@ -100,7 +99,6 @@ ALL_NORMAL_MODELS: list[type[BaseDbModel]] = [
     Shape,
     Stats,
     Text,
-    ToggleComposite,
     Tracker,
     UserDataBlock,
     UserOptions,

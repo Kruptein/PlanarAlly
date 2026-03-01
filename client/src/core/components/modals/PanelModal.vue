@@ -67,7 +67,6 @@ function hideModal(): void {
                         <component :is="activeTab.component" v-bind="activeTab.props" @close="hideModal" />
                     </KeepAlive>
                 </template>
-                <slot></slot>
             </div>
         </div>
     </Modal>

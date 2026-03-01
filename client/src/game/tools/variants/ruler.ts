@@ -286,11 +286,7 @@ class RulerTool extends Tool implements ITool {
             this.previousLength += this.currentLength;
             this.previousCellDistance += this.currentCellDistance;
 
-            layer.moveShapeOrder(
-                this.text!,
-                layer.size({ includeComposites: true, onlyInView: false }) - 1,
-                SyncMode.TEMP_SYNC,
-            );
+            layer.moveShapeOrder(this.text!, layer.size({ onlyInView: false }) - 1, SyncMode.TEMP_SYNC);
 
             event.preventDefault();
         }

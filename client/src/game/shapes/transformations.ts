@@ -32,7 +32,6 @@ import type {
     ApiShapeAdd,
     ApiShapeCustomData,
     ApiTextShape,
-    ApiToggleCompositeShape,
 } from "../../apiTypes";
 import type { AssetId } from "../../assets/models";
 import { getImageSrcFromHash } from "../../assets/utils";
@@ -44,7 +43,7 @@ import { getShapeSystems } from "../../core/systems";
 import type { SystemInformMode } from "../../core/systems/models";
 import { uuidv4 } from "../../core/utils";
 import { sendShapeAdd } from "../api/emits/shape/core";
-import { getGlobalId, getLocalId, getShape, reserveLocalId } from "../id";
+import { getGlobalId, getShape, reserveLocalId } from "../id";
 import type { IShape } from "../interfaces/shape";
 import type { FloorId, LayerName } from "../models/floor";
 import type { ServerShapeOptions, ShapeOptions } from "../models/shapes";
@@ -61,7 +60,6 @@ import { Line } from "./variants/line";
 import { Polygon } from "./variants/polygon";
 import { Rect } from "./variants/rect";
 import { Text } from "./variants/text";
-import { ToggleComposite } from "./variants/toggleComposite";
 
 export interface CompactForm {
     id: LocalId;
@@ -116,15 +114,11 @@ export function fromSystemForm(shapeId: LocalId): CompactForm {
  *
  * If the `mode` parameter is set to 'load', it will simply create the data as is,
  * otherwise it will re-generate unique identifiers.
- *
- * A shapeMap that maps old ids to new ids can be provided to help with duplicate remapping.
- * This is mostly needed for toggle composites.
  */
 export function instantiateCompactForm(
     originalCompact: CompactForm,
     mode: SystemInformMode,
     layerAddCallback: (shape: IShape) => void,
-    shapeMap?: Map<GlobalId, GlobalId>,
 ): IShape | undefined {
     // Ensure we don't end up mutating the original compact form
     // we can't use structuredClone, because we use Symbols :(
@@ -132,19 +126,6 @@ export function instantiateCompactForm(
 
     if (mode !== "load") {
         compact.core.uuid = uuidv4();
-
-        if (compact.core.type_ === "togglecomposite") {
-            const composite = compact.subShape as ToggleCompositeCompactCore;
-            if (composite.active_variant !== null) {
-                if (shapeMap === undefined) {
-                    console.error("Shape map is required for duplicate mode of toggle composite");
-                    return undefined;
-                }
-                // There is no point in trying to do any error recovery here if the shapeMap is incomplete
-                composite.active_variant = shapeMap.get(composite.active_variant)!;
-                composite.variants = composite.variants.map((v) => ({ ...v, uuid: shapeMap.get(v.uuid)! }));
-            }
-        }
     }
 
     const newShape = createShapeInstanceFromCore(compact);
@@ -273,11 +254,6 @@ export interface FontAwesomeCompactCore extends RectCompactCore {
     iconName: string;
 }
 
-export interface ToggleCompositeCompactCore {
-    active_variant: GlobalId;
-    variants: { uuid: GlobalId; name: string }[];
-}
-
 export type CompactSubShapeCore =
     | RectCompactCore
     | CircleCompactCore
@@ -285,8 +261,7 @@ export type CompactSubShapeCore =
     | LineCompactCore
     | PolygonCompactCore
     | TextCompactCore
-    | AssetRectCompactCore
-    | ToggleCompositeCompactCore;
+    | AssetRectCompactCore;
 
 function createShapeInstanceFromCore(compact: CompactForm): IShape | undefined {
     const { core, subShape } = compact;
@@ -327,14 +302,6 @@ function createShapeInstanceFromCore(compact: CompactForm): IShape | undefined {
             img.onload = () => {
                 (sh as Asset).setLoaded();
             };
-        } else if (core.type_ === "togglecomposite") {
-            const toggleComposite = subShape as ToggleCompositeCompactCore;
-            sh = new ToggleComposite(
-                refPoint,
-                getLocalId(toggleComposite.active_variant)!,
-                toggleComposite.variants.map((v) => ({ id: reserveLocalId(v.uuid), name: v.name })),
-                core,
-            );
         } else if (core.type_ === "fontawesome") {
             const fontAwesome = subShape as FontAwesomeCompactCore;
             sh = new FontAwesomeIcon(
@@ -399,6 +366,7 @@ function createServerDataFromCompact(compact: CompactForm): ApiShape {
         group: null,
         is_door: false,
         is_teleport_zone: false,
+        variants: [],
     };
 
     // Augment the data with the correct system data
@@ -435,9 +403,6 @@ function createServerDataFromCompact(compact: CompactForm): ApiShape {
     } else if (core.type_ === "assetrect") {
         const asset = subShape as AssetRectCompactCore;
         serverShape = { ...serverCoreShape, ...asset } as ApiAssetRectShape;
-    } else if (core.type_ === "togglecomposite") {
-        const toggleComposite = subShape as ToggleCompositeCompactCore;
-        serverShape = { ...serverCoreShape, ...toggleComposite } as ApiToggleCompositeShape;
     } else if (core.type_ === "fontawesome") {
         const fontAwesome = subShape as FontAwesomeCompactCore;
         serverShape = { ...serverCoreShape, ...fontAwesome } as ApiFontAwesomeShape;
@@ -479,8 +444,6 @@ async function createCompactFromServerData(
         subShape = serverShape as TextCompactCore;
     } else if (serverShape.type_ === "assetrect") {
         subShape = serverShape as AssetRectCompactCore;
-    } else if (serverShape.type_ === "togglecomposite") {
-        subShape = serverShape as ToggleCompositeCompactCore;
     } else if (serverShape.type_ === "fontawesome") {
         subShape = serverShape as FontAwesomeCompactCore;
     } else {

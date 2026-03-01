@@ -38,17 +38,17 @@ function toggleShowRuler(event: MouseEvent): void {
 }
 
 function cutPolygon(): void {
-    const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
+    const selection = selectedSystem.get()[0] as Polygon;
     selection.cutPolygon(getGlobalRefPoint(selection));
 }
 
 function addPoint(): void {
-    const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
+    const selection = selectedSystem.get()[0] as Polygon;
     selection.addPoint(getGlobalRefPoint(selection));
 }
 
 function removePoint(): void {
-    const selection = selectedSystem.get({ includeComposites: false })[0] as Polygon;
+    const selection = selectedSystem.get()[0] as Polygon;
     selection.removePoint(getGlobalRefPoint(selection));
 }
 

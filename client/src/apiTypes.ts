@@ -11,7 +11,7 @@ import type { VisionBlock } from "./game/systems/properties/types";
 import type { GridModeLabelFormat } from "./game/systems/settings/players/models";
 import type { TrackerId } from "./game/systems/trackers/models";
 
-export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape | ApiFontAwesomeShape
+export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiFontAwesomeShape
 export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock
 export type ApiShapeAdd = ApiShapeWithLayerAndTemporary | ApiTemplateShape
 export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumber | ApiShapeCustomDataBoolean | ApiShapeCustomDataDiceExpression
@@ -138,6 +138,14 @@ export interface ApiNoteAccess {
   can_edit: boolean;
   can_view: boolean;
 }
+export interface ApiVariant {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
+  id: number;
+  assetHash: string;
+}
 export interface ApiAssetRemoveShare {
   asset: AssetEntryId;
   user: string;
@@ -230,6 +238,7 @@ export interface ApiCoreShape {
   cell_stroke_colour: string | null;
   cell_stroke_width: number | null;
   notes: ApiNote[];
+  variants: ApiVariant[] | null;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
@@ -264,7 +273,6 @@ export interface ApiLayer {
     | ApiPolygonShape
     | ApiTextShape
     | ApiLineShape
-    | ApiToggleCompositeShape
   )[];
   groups: ApiGroup[];
 }
@@ -289,14 +297,6 @@ export interface ApiLineShape extends ApiCoreShape {
   x2: number;
   y2: number;
   line_width: number;
-}
-export interface ApiToggleCompositeShape extends ApiCoreShape {
-  active_variant: GlobalId;
-  variants: ToggleVariant[];
-}
-export interface ToggleVariant {
-  uuid: GlobalId;
-  name: string;
 }
 export interface ApiGroup {
   uuid: string;
@@ -858,15 +858,6 @@ export interface TemporaryShapes {
   uuids: GlobalId[];
   temporary: boolean;
 }
-export interface ToggleCompositeNewVariant {
-  shape: GlobalId;
-  variant: GlobalId;
-  name: string;
-}
-export interface ToggleCompositeVariant {
-  shape: GlobalId;
-  variant: GlobalId;
-}
 export interface TypeIdModel {}
 export interface ApiLocation {
   id: number;
@@ -970,4 +961,30 @@ export interface TrackerMove {
 export interface TrackerRef {
   uuid: TrackerId;
   shape: GlobalId;
+}
+export interface ApiAddVariant {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
+  id: number;
+  assetHash: string;
+  shapeId: GlobalId;
+}
+export interface ApiCreateVariant {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
+  shapeId: GlobalId;
+}
+export interface ApiVariantIdentifier {
+  shapeId: GlobalId;
+  variantId: number;
+}
+export interface ApiVariantWithoutId {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
 }

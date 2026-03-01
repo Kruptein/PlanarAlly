@@ -1,3 +1,4 @@
+import { AssetId } from "../../../assets/models";
 import type { ShapeSize } from "../../interfaces/shape";
 
 // Order is important
@@ -27,6 +28,8 @@ export interface ShapeProperties {
     cellStrokeColour?: string;
     cellStrokeWidth?: number;
     oddHexOrientation: boolean;
+    // unique to assetrect
+    variants?: { name: string | null; assetId: AssetId; width: number; height: number }[];
 }
 
 export interface ServerShapeProperties {

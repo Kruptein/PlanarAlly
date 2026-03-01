@@ -24,7 +24,7 @@ import { fromSystemForm, instantiateCompactForm } from "./transformations";
 export function copyShapes(): void {
     if (!selectedSystem.hasSelection) return;
     const clipboard: CompactForm[] = [];
-    for (const shape of selectedSystem.get({ includeComposites: true })) {
+    for (const shape of selectedSystem.get()) {
         if (!accessSystem.hasAccessTo(shape.id, "edit")) continue;
         // todo: check if we can delay this to the paste phase, to prevent over-eager group creation
         if (groupSystem.getGroupId(shape.id) === undefined) {
@@ -51,24 +51,14 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
         offset = new Vector(10, 10);
     }
 
-    const shapeMap = new Map<GlobalId, GlobalId>();
     const compactShapes = clipboardState.raw.clipboard as CompactForm[];
 
-    for (const clip of compactShapes.sort((a, b) =>
-        a.core.type_ === b.core.type_ ? 0 : a.core.type_ === "togglecomposite" ? 1 : -1,
-    )) {
-        const newShape = instantiateCompactForm(
-            clip,
-            "duplicate",
-            (shape) => {
-                shape.refPoint = addP(shape.refPoint, offset);
-                layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
-            },
-            shapeMap,
-        );
+    for (const clip of compactShapes) {
+        const newShape = instantiateCompactForm(clip, "duplicate", (shape) => {
+            shape.refPoint = addP(shape.refPoint, offset);
+            layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+        });
         if (newShape === undefined) continue;
-
-        shapeMap.set(clip.core.uuid, getGlobalId(newShape.id)!);
 
         if (!(newShape.options.skipDraw ?? false)) {
             selectedSystem.push(newShape.id);
@@ -76,7 +66,7 @@ export function pasteShapes(targetLayer?: LayerName): readonly IShape[] {
     }
 
     layer.invalidate(false);
-    return selectedSystem.get({ includeComposites: false });
+    return selectedSystem.get();
 }
 
 export function deleteShapes(shapes: readonly IShape[], sync: SyncMode, invalidateVision = true): void {

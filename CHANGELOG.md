@@ -12,6 +12,9 @@ tech changes will usually be stripped from release notes for the public
 
 ### Changed
 
+-   Variant shapes are completely reworked
+    -   UI should be more intuitive
+    -   No longer completely separate shapes with their own state
 -   [tech] DB storage of asset data is reworked
 
 ### Fixed

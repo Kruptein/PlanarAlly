@@ -17,7 +17,7 @@ socket.on("Shape.Options.Aura.Move", (data: AuraMove): void => {
     const shape = getLocalId(data.shape);
     const newShape = getLocalId(data.new_shape);
     if (shape === undefined || newShape === undefined) return;
-    const aura = auraSystem.get(shape, data.aura, false);
+    const aura = auraSystem.get(shape, data.aura);
     if (aura === undefined) return;
 
     auraSystem.remove(shape, aura.uuid, UI_SYNC);

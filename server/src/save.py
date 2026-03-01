@@ -15,7 +15,7 @@ When writing migrations make sure that these things are respected:
 - It's often a good idea to start the server with a clean save and use `.schema <table_name>` in sqlite to get the exact schema output that a clean save creates
 """
 
-SAVE_VERSION = 115
+SAVE_VERSION = 116
 
 import asyncio
 import json
@@ -529,7 +529,7 @@ def upgrade(
             file_map = {}  # file_hash -> { asset_id, entries: [(old_id, new_id)] }
             entry_map = {}  # old_id (Asset) -> (new AssetId, new AssetEntryId, owner_id)
             parent_patch = []  # (asset_needing_patch_id, old_parent_id), this is used to patch parent_id's for parents that aren't processed yet
-            for _id, owner_id, file_hash, parent_id, name in asset_data:
+            for _id, owner_id, file_hash, parent_id, variant_name in asset_data:
                 asset_id = None
                 if file_hash:
                     if file_hash not in file_map:
@@ -537,8 +537,8 @@ def upgrade(
                             "INSERT INTO asset (file_hash, kind, extension) VALUES (?,?,?) RETURNING id",
                             (
                                 file_hash,
-                                "regular" if ".dd2vtt" not in name else "ddraft",
-                                None if "." not in name else name.split(".")[-1],
+                                "regular" if ".dd2vtt" not in variant_name else "ddraft",
+                                None if "." not in variant_name else variant_name.split(".")[-1],
                             ),
                         )
                         asset_id = query.fetchone()[0]
@@ -547,9 +547,9 @@ def upgrade(
                     asset_id = file_map[file_hash]["asset_id"]
 
                 # Drop extensions from asset entry names (skip folders)
-                cleaned_name = name
-                if file_hash and "." in name and len(name.split(".")[-1]) <= 4:
-                    cleaned_name = ".".join(name.split(".")[:-1])
+                cleaned_name = variant_name
+                if file_hash and "." in variant_name and len(variant_name.split(".")[-1]) <= 4:
+                    cleaned_name = ".".join(variant_name.split(".")[:-1])
 
                 new_parent_id = None
                 if parent_id and parent_id in entry_map:
@@ -635,10 +635,16 @@ def upgrade(
             db.execute_sql('CREATE INDEX "asset_share_entry_id" ON "asset_share" ("entry_id")')
             db.execute_sql('CREATE INDEX "asset_share_parent_id" ON "asset_share" ("parent_id")')
 
-            for asset_id, user_id, right, name, parent_id in asset_share_data:
+            for asset_id, user_id, right, variant_name, parent_id in asset_share_data:
                 db.execute_sql(
                     "INSERT INTO asset_share (user_id, right, name, entry_id, parent_id) VALUES (?, ?, ?, ?, ?)",
-                    (user_id, right, name, entry_map[asset_id][1], entry_map[parent_id][1] if parent_id else None),
+                    (
+                        user_id,
+                        right,
+                        variant_name,
+                        entry_map[asset_id][1],
+                        entry_map[parent_id][1] if parent_id else None,
+                    ),
                 )
 
             # STEP 4: MIGRATE SHAPE TEMPLATES
@@ -652,10 +658,10 @@ def upgrade(
             db.execute_sql('CREATE INDEX "shape_template_shape_id" ON "shape_template" ("shape_id")')
             db.execute_sql('CREATE INDEX "shape_template_asset_id" ON "shape_template" ("asset_id")')
 
-            for shape_id, asset_id, name in shape_template_data:
+            for shape_id, asset_id, variant_name in shape_template_data:
                 db.execute_sql(
                     "INSERT INTO shape_template (owner_id, shape_id, asset_id, name) VALUES (?, ?, ?, ?)",
-                    (entry_map[asset_id][2], shape_id, entry_map[asset_id][0], name),
+                    (entry_map[asset_id][2], shape_id, entry_map[asset_id][0], variant_name),
                 )
 
             # STEP 5: MIGRATE CHARACTERS
@@ -708,7 +714,159 @@ def upgrade(
                     (shape_id,),
                 )
                 db.execute_sql("DELETE FROM asset_rect WHERE shape_id = ?", (shape_id,))
+    elif version == 115:
+        # Add AssetRectVariant & Migrate/Remove old variant setup
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "asset_rect_variant" ("id" INTEGER NOT NULL PRIMARY KEY, "shape_id" TEXT NOT NULL, "name" TEXT, "asset_id" INTEGER NOT NULL, "width" REAL NOT NULL, "height" REAL NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "asset_rect" ("shape_id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id") ON DELETE RESTRICT)'
+            )
+            db.execute_sql('CREATE INDEX "asset_rect_variant_shape_id" ON "asset_rect_variant" ("shape_id")')
+            db.execute_sql('CREATE INDEX "asset_rect_variant_asset_id" ON "asset_rect_variant" ("asset_id")')
 
+            data = db.execute_sql("SELECT variant_id, parent_id, name FROM composite_shape_association").fetchall()
+            composite_data = {}
+            parents = set()
+            variants = set()
+            for variant_id, parent_id, variant_name in data:
+                parents.add(parent_id)
+                variants.add(variant_id)
+                if parent_id not in composite_data:
+                    try:
+                        composite = db.execute_sql(
+                            "SELECT active_variant FROM toggle_composite WHERE shape_id = ?", (parent_id,)
+                        ).fetchone()
+                    except:
+                        logger.exception(f"Error getting composite data for parent {parent_id} - skipping")
+                        continue
+                    composite_data[parent_id] = {
+                        "active": composite[0],
+                        "variants": [],
+                    }
+                try:
+                    shape_name, asset_id, type_ = db.execute_sql(
+                        "SELECT s.name, ar.asset_id, type_ FROM shape s LEFT JOIN asset_rect ar ON s.uuid = ar.shape_id WHERE s.uuid = ?",
+                        (variant_id,),
+                    ).fetchone()
+                except:
+                    logger.exception(f"Error getting variant data for {variant_id} - skipping")
+                    continue
+
+                # We only support assetrects from now on
+                if type_ != "assetrect" or not asset_id:
+                    continue
+
+                try:
+                    width, height = db.execute_sql(
+                        "SELECT width, height FROM asset_rect WHERE shape_id = ?", (variant_id,)
+                    ).fetchone()
+                except:
+                    logger.exception(f"Error getting width/height data for {variant_id} - skipping")
+                    continue
+
+                # Attempt to grab trackers/auras/notes
+                tracker_data = []
+                aura_data = []
+                note_data = []
+                try:
+                    tracker_data = db.execute_sql(
+                        "SELECT uuid FROM tracker WHERE shape_id = ?", (variant_id,)
+                    ).fetchall()
+                except:
+                    pass
+                try:
+                    aura_data = db.execute_sql("SELECT uuid FROM aura WHERE shape_id = ?", (variant_id,)).fetchall()
+                except:
+                    pass
+                try:
+                    note_data = db.execute_sql("SELECT id FROM note_shape WHERE shape_id = ?", (variant_id,)).fetchall()
+                except:
+                    pass
+
+                # Use the actual shape name if defined, otherwise fall back to the name given to the variant
+                final_name = shape_name
+                if not final_name or final_name.strip().lower() in ["", "unknown shape"]:
+                    final_name = variant_name
+                if not final_name or final_name.strip().lower() in ["", "unknown shape"]:
+                    final_name = None
+                composite_data[parent_id]["variants"].append(
+                    {
+                        "id": variant_id,
+                        "name": final_name,
+                        "asset_id": asset_id,
+                        "width": width,
+                        "height": height,
+                        "trackers": tracker_data,
+                        "auras": aura_data,
+                        "notes": note_data,
+                    }
+                )
+
+            for data in composite_data.values():
+                # No valid variants found, skipping
+                if len(data["variants"]) == 0:
+                    continue
+                # Use active variant as base shape
+                active_variant_id = data["active"]
+                # If however the original active version is not valid, use the first valid variant
+                if not any(variant["id"] == active_variant_id for variant in data["variants"]):
+                    active_variant_id = data["variants"][0]["id"]
+
+                # Attempt to unset skipDraw on the main shape if it is set
+                try:
+                    options_q = db.execute_sql(
+                        "SELECT options FROM shape WHERE uuid = ?", (active_variant_id,)
+                    ).fetchone()
+                    if options_q is not None and options_q[0] != "":
+                        options = dict(json.loads(options_q[0]))
+                        if options.get("skipDraw", False):
+                            del options["skipDraw"]
+                            db.execute_sql(
+                                "UPDATE shape SET options = ? WHERE uuid = ?",
+                                (json.dumps([[k, v] for k, v in options.items()]), active_variant_id),
+                            )
+                except:
+                    pass
+
+                for variant in data["variants"]:
+                    db.execute_sql(
+                        "INSERT INTO 'asset_rect_variant' ('shape_id', 'name', 'asset_id', 'width', 'height') VALUES (?, ?, ?, ?, ?)",
+                        (active_variant_id, variant["name"], variant["asset_id"], variant["width"], variant["height"]),
+                    )
+
+                    for tracker in variant["trackers"]:
+                        db.execute_sql(
+                            "UPDATE tracker SET shape_id = ? WHERE uuid = ?",
+                            (active_variant_id, tracker[0]),
+                        )
+
+                    for aura in variant["auras"]:
+                        db.execute_sql(
+                            "UPDATE aura SET shape_id = ? WHERE uuid = ?",
+                            (active_variant_id, aura[0]),
+                        )
+
+                    for note in variant["notes"]:
+                        note_query = db.execute_sql(
+                            "SELECT id FROM note_shape WHERE id = ? AND shape_id = ?", (note[0], active_variant_id)
+                        ).fetchone()
+                        # Ensure we don't hook up a note to a shape that already has it
+                        if note_query is not None:
+                            continue
+                        db.execute_sql(
+                            "UPDATE note_shape SET shape_id = ? WHERE id = ?",
+                            (active_variant_id, note[0]),
+                        )
+
+                variants.remove(active_variant_id)
+
+            # Remove all parent shapes and variants that are not used anymore
+            for parent_id in parents:
+                db.execute_sql("DELETE FROM shape WHERE uuid = ?", (parent_id,))
+            for variant_id in variants:
+                db.execute_sql("DELETE FROM shape WHERE uuid = ?", (variant_id,))
+
+            db.execute_sql("DROP TABLE toggle_composite")
+            db.execute_sql("DROP TABLE composite_shape_association")
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

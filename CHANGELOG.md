@@ -15,11 +15,13 @@ tech changes will usually be stripped from release notes for the public
 -   Variant shapes are completely reworked
     -   UI should be more intuitive
     -   No longer completely separate shapes with their own state
+-   Asset size is now also stored in DB for easier user total size calculation
 -   [tech] DB storage of asset data is reworked
 
 ### Fixed
 
 -   Note icons on shapes no longer rendering
+-   Asset thumbnails not cleaning up on asset removal
 
 ### Fixed
 

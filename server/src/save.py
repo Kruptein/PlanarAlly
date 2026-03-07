@@ -15,7 +15,7 @@ When writing migrations make sure that these things are respected:
 - It's often a good idea to start the server with a clean save and use `.schema <table_name>` in sqlite to get the exact schema output that a clean save creates
 """
 
-SAVE_VERSION = 116
+SAVE_VERSION = 117
 
 import asyncio
 import json
@@ -867,6 +867,25 @@ def upgrade(
 
             db.execute_sql("DROP TABLE toggle_composite")
             db.execute_sql("DROP TABLE composite_shape_association")
+    elif version == 116:
+        # Add file_size column to asset & clean up orphaned thumbnail files
+        with db.atomic():
+            db.execute_sql('ALTER TABLE "asset" ADD COLUMN "file_size" INTEGER')
+            if not is_import:
+                rows = db.execute_sql("SELECT id, file_hash FROM asset WHERE file_hash IS NOT NULL").fetchall()
+                for asset_id, file_hash in rows:
+                    path = ASSETS_DIR / get_asset_hash_subpath(file_hash)
+                    if path.exists():
+                        db.execute_sql("UPDATE asset SET file_size = ? WHERE id = ?", (path.stat().st_size, asset_id))
+
+        if not is_import:
+            known_hashes = {
+                row[0] for row in db.execute_sql("SELECT file_hash FROM asset WHERE file_hash IS NOT NULL").fetchall()
+            }
+            for subdir in ASSETS_DIR.rglob("*.thumb.*"):
+                asset_hash = subdir.name.split(".thumb.")[0]
+                if asset_hash not in known_hashes:
+                    subdir.unlink()
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

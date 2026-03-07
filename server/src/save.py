@@ -30,7 +30,7 @@ from playhouse.sqlite_ext import SqliteExtDatabase
 from .db.all import ALL_NORMAL_MODELS, ALL_VIEWS
 from .db.db import db as ACTIVE_DB
 from .db.models.constants import Constants
-from .thumbnail import generate_thumbnail_for_asset
+from .thumbnail import generate_thumbnail_for_asset_sync
 from .utils import ASSETS_DIR, FILE_DIR, SAVE_PATH, OldVersionException, UnknownVersionException, get_asset_hash_subpath
 from .logs import logger
 
@@ -975,7 +975,7 @@ async def generate_thumbnails(data, loop):
 
     def generate():
         for i, (asset_name, file_hash) in enumerate(data):
-            generate_thumbnail_for_asset(file_hash)
+            generate_thumbnail_for_asset_sync(file_hash)
 
             if i % 100 == 0:
                 print(f"Generated {i} / {total_size} thumbnails")

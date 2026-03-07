@@ -6,10 +6,10 @@ import { getImageSrcFromHash } from "../assets/utils";
 import { l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
 import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../core/grid";
-import { baseAdjust } from "../core/http";
 import { SyncMode, InvalidationMode, UI_SYNC } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
+import { coreStore } from "../store/core";
 
 import { requestAssetTemplates } from "./api/emits/asset";
 import { fetchFullShape, sendShapesMove } from "./api/emits/shape/core";
@@ -101,7 +101,7 @@ async function dropHelper(assetInfo: DropAssetInfo, location: GlobalPoint): Prom
             {
                 entryId: assetInfo.entryId,
                 assetId: assetInfo.assetId,
-                imageSource: getImageSrcFromHash(assetInfo.assetHash, { addBaseUrl: false }),
+                imageSource: getImageSrcFromHash(assetInfo.assetHash),
             },
             location,
         );
@@ -164,10 +164,14 @@ export async function dropAsset(
         }
     }
 
-    if (!data.imageSource.startsWith("/static")) return;
+    if (
+        !data.imageSource.startsWith("/static") &&
+        (coreStore.state.assetUrlBase === null || !data.imageSource.startsWith(coreStore.state.assetUrlBase))
+    )
+        return;
     const image = document.createElement("img");
     const uuid = uuidv4();
-    image.src = baseAdjust(data.imageSource);
+    image.src = data.imageSource;
     const assetHash = data.imageSource.split("/").pop()!;
 
     const layer = floorState.currentLayer.value!;

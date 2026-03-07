@@ -1,10 +1,9 @@
 import io
 import warnings
-from pathlib import Path
 
 from PIL import Image
 
-from .utils import ASSETS_DIR, get_asset_hash_subpath
+from .storage import get_storage
 
 warnings.simplefilter("ignore", Image.DecompressionBombWarning)
 
@@ -48,23 +47,41 @@ def create_thumbnail_from_bytes(input_bytes, max_size=(200, 200)):
     return {"webp": webp_output.getvalue(), "jpeg": jpeg_output.getvalue()}
 
 
-def generate_thumbnail_for_asset(file_hash: str) -> None:
-    full_hash_name = get_asset_hash_subpath(file_hash)
-    asset_path = ASSETS_DIR / full_hash_name
+async def generate_thumbnail_for_asset(file_hash: str) -> None:
+    storage = get_storage()
 
-    if not asset_path.exists():
+    if not await storage.exists(file_hash):
         return
 
     try:
-        with open(asset_path, "rb") as f:
-            thumbnail = create_thumbnail_from_bytes(f.read())
-        if thumbnail is None:
+        data = await storage.retrieve(file_hash)
+        thumbnails = create_thumbnail_from_bytes(data)
+        if thumbnails is None:
             return
-        for format, data in thumbnail.items():
-            path = ASSETS_DIR / Path(f"{full_hash_name}.thumb.{format}")
+        for fmt, thumb_data in thumbnails.items():
+            await storage.store(file_hash, thumb_data, suffix=f".thumb.{fmt}")
+    except Image.DecompressionBombError:
+        print()
+        print(f"Thumbnail generation failed for {file_hash}: The asset is too large")
+    except Exception as e:
+        print()
+        print(f"Thumbnail generation failed for {file_hash}: {e}")
 
-            with open(path, "wb") as f:
-                f.write(data)
+
+def generate_thumbnail_for_asset_sync(file_hash: str) -> None:
+    """Sync version for use in thread-executor contexts (save migrations)."""
+    storage = get_storage()
+
+    if not storage.exists_sync(file_hash):
+        return
+
+    try:
+        data = storage.retrieve_sync(file_hash)
+        thumbnails = create_thumbnail_from_bytes(data)
+        if thumbnails is None:
+            return
+        for fmt, thumb_data in thumbnails.items():
+            storage.store_sync(file_hash, thumb_data, suffix=f".thumb.{fmt}")
     except Image.DecompressionBombError:
         print()
         print(f"Thumbnail generation failed for {file_hash}: The asset is too large")

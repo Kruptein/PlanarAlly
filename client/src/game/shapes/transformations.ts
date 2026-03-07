@@ -36,7 +36,6 @@ import type {
 import type { AssetId } from "../../assets/models";
 import { getImageSrcFromHash } from "../../assets/utils";
 import { toGP } from "../../core/geometry";
-import { baseAdjust } from "../../core/http";
 import type { GlobalId, LocalId } from "../../core/id";
 import { SyncMode } from "../../core/models/types";
 import { getShapeSystems } from "../../core/systems";
@@ -296,8 +295,7 @@ function createShapeInstanceFromCore(compact: CompactForm): IShape | undefined {
         } else if (core.type_ === "assetrect") {
             const asset = subShape as AssetRectCompactCore;
             const img = new Image(asset.width, asset.height);
-            if (asset.assetHash.startsWith("http")) img.src = baseAdjust(new URL(asset.assetHash).pathname);
-            else img.src = getImageSrcFromHash(asset.assetHash);
+            img.src = getImageSrcFromHash(asset.assetHash);
             sh = new Asset(img, refPoint, asset.width, asset.height, asset.assetId, asset.assetHash, { uuid });
             img.onload = () => {
                 (sh as Asset).setLoaded();

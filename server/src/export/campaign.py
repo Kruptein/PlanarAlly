@@ -60,7 +60,8 @@ from ..db.typed import SelectSequence
 from ..logs import logger
 from ..save import SAVE_VERSION, upgrade_save
 from ..state.dashboard import dashboard_state
-from ..utils import ASSETS_DIR, SAVE_PATH, TEMP_DIR, get_asset_hash_subpath
+from ..storage import get_storage
+from ..utils import SAVE_PATH, TEMP_DIR, get_asset_hash_subpath
 
 
 async def export_campaign(
@@ -256,19 +257,22 @@ class CampaignExporter:
             tar.addfile(sqlite_info, open(self.sqlite_path, "rb"))
             tar.addfile(assets_dir_info)
 
+            storage = get_storage()
             for asset_id in self.migrator._asset_mapping.keys():
                 asset: Asset = Asset[asset_id]
                 if not asset.file_hash:
                     continue
                 try:
+                    if not storage.exists_sync(asset.file_hash):
+                        continue
+                    data = storage.retrieve_sync(asset.file_hash)
                     full_hash_name = get_asset_hash_subpath(asset.file_hash)
-                    file_path = ASSETS_DIR / full_hash_name
-                    info = tar.gettarinfo(str(file_path))
-                    info.name = str(Path("assets") / full_hash_name)
+                    info = tarfile.TarInfo(str(Path("assets") / full_hash_name))
+                    info.size = len(data)
                     info.mtime = time()  # type: ignore
                     info.mode = 0o755
-                    tar.addfile(info, open(file_path, "rb"))  # type: ignore
-                except FileNotFoundError:
+                    tar.addfile(info, BytesIO(data))
+                except Exception:
                     pass
 
         self.migrator.from_db.close()
@@ -385,7 +389,7 @@ class CampaignImporter:
                     if member.name != str(Path("assets") / full_hash_name):
                         continue
 
-                    if (ASSETS_DIR / full_hash_name).exists():
+                    if get_storage().exists_sync(filehash):
                         continue
 
                     assets.append(member)
@@ -404,7 +408,13 @@ class CampaignImporter:
 
             if len(assets) > 0:
                 send_status(self.loop, "import", self.sid, f"> Importing {len(assets)} asset(s)")
-                tar.extractall(path=ASSETS_DIR.parent, members=assets)
+                storage = get_storage()
+                for member in assets:
+                    f = tar.extractfile(member)
+                    if f is None:
+                        continue
+                    filehash = member.name.split("/")[-1]
+                    storage.store_sync(filehash, f.read())
 
     def import_users(self, room: Room):
         # Different modes should be available

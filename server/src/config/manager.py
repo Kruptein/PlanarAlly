@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from ..utils import set_save_path
+from ..utils import ASSETS_DIR, set_save_path
 from .types import ServerConfig
 
 
@@ -34,6 +34,7 @@ class ConfigManager:
         self._file_observer = Observer()
 
         self.load_config(startup=True)
+        self._init_storage_backend()
 
         # Setup file watching
         event_handler = ConfigFileHandler(self.load_config)
@@ -47,6 +48,7 @@ class ConfigManager:
                 config_data = rtoml.loads(self.config_path.read_text())
                 self.config = ServerConfig(**config_data)
                 set_save_path(self.config.general.save_file)
+                self._init_storage_backend()
 
                 if not startup:
                     from ..logs import logger
@@ -60,6 +62,20 @@ class ConfigManager:
             print(f"Error validating config: {e}")
             if startup:
                 sys.exit(1)
+
+    def _init_storage_backend(self) -> None:
+        from ..storage import set_storage
+        from ..storage.local import LocalStorageBackend
+        from .types import LocalStorageConfig
+
+        storage_cfg = self.config.assets.storage
+        if isinstance(storage_cfg, LocalStorageConfig):
+            assets_dir = Path(storage_cfg.directory) if storage_cfg.directory else ASSETS_DIR
+            set_storage(LocalStorageBackend(assets_dir))
+        else:
+            from ..storage.s3 import S3StorageBackend
+
+            set_storage(S3StorageBackend(storage_cfg))
 
     def save_config(self) -> None:
         """Save current config to file (debounced)"""

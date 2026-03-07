@@ -225,7 +225,7 @@ async def remove_shapes(sid: str, raw_data: Any):
 
                 # The Shape has to be removed before cleaning
                 if asset_to_clean:
-                    asset_to_clean.cleanup_check()
+                    await asset_to_clean.cleanup_check()
             else:
                 shape.layer = None
                 shape.save()

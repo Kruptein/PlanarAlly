@@ -62,13 +62,7 @@ function setLogo(data: { id: AssetId; fileHash: string }): void {
             <div class="logo">
                 <img
                     alt="Campaign Logo Preview"
-                    :src="
-                        baseAdjust(
-                            logo.id >= 0
-                                ? getImageSrcFromHash(logo.path, { addBaseUrl: false })
-                                : '/static/img/d20.svg',
-                        )
-                    "
+                    :src="logo.id >= 0 ? getImageSrcFromHash(logo.path) : baseAdjust('/static/img/d20.svg')"
                 />
                 <div class="edit" @click="showAssetPicker = true">
                     <font-awesome-icon icon="pencil-alt" />

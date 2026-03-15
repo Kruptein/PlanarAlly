@@ -324,18 +324,23 @@ class VisionState extends Store<State> {
         }
         const found = new Set<LocalId>();
         // 1. Wipe all layer sources no longer in view
-        for (let i = sources.length - 1; i >= 0; i--) {
+        // We keep track of a moving write index, moving sources we need to keep to the current write index
+        // and at the end truncating the length of the array to retain the correct size.
+        // This ensures that we iterate exactly once over the array.
+        let writeIndex = 0;
+        for (let i = 0; i < sources.length; i++) {
             const source = sources[i]!;
             const shape = getShape(source.shape);
-            if (shape === undefined) continue;
-            if (shape.layerName === layer) {
+            if (shape !== undefined && shape.layerName === layer) {
                 if (shapeIds.has(shape.id)) {
                     found.add(shape.id);
-                } else {
-                    sources.splice(i, 1);
+                    sources[writeIndex++] = source;
                 }
+            } else {
+                sources[writeIndex++] = source;
             }
         }
+        sources.length = writeIndex;
         // 2. Add layer sources new to view
         for (const source of this.visionSources.get(floor)!) {
             if (found.has(source.shape)) continue;

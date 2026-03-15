@@ -299,6 +299,7 @@ export class Layer implements ILayer {
             shape.resetVisionIteration();
             this.addShapeToSectors(shape.id, shape.getAuraAABB());
         }
+        this.shapesInSector = [];
         this.updateView();
     }
 
@@ -311,6 +312,7 @@ export class Layer implements ILayer {
             shape.resetVisionIteration();
             this.addShapeToSectors(shape.id, shape.getAuraAABB());
         }
+        this.shapesInSector = [];
         this.updateView();
     }
 

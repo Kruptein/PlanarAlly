@@ -84,28 +84,30 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
         await toolMap[permitted.name].onMouseMove(event, permitted.features);
     }
 
-    // HOVER code
-    const eventPoint = l2g(getLocalPointFromEvent(event));
-    // Annotation hover
-    let foundAnnotation = false;
-    if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
-        for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
-            const shape = getShape(shapeId);
-            if (shape && shape.floorId === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
-                for (const noteId of notes) {
-                    const note = noteState.raw.notes.get(noteId);
-                    if (note?.showOnHover === true) {
-                        foundAnnotation = true;
-                        uiSystem.setAnnotationText(note.text);
-                        break;
+    // HOVER code — skip during pan since positions are shifting anyway
+    if (targetTool !== ToolName.Pan) {
+        const eventPoint = l2g(getLocalPointFromEvent(event));
+        // Annotation hover
+        let foundAnnotation = false;
+        if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
+            for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
+                const shape = getShape(shapeId);
+                if (shape && shape.floorId === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
+                    for (const noteId of notes) {
+                        const note = noteState.raw.notes.get(noteId);
+                        if (note?.showOnHover === true) {
+                            foundAnnotation = true;
+                            uiSystem.setAnnotationText(note.text);
+                            break;
+                        }
                     }
+                    if (foundAnnotation) break;
                 }
-                if (foundAnnotation) break;
             }
         }
-    }
-    if (!foundAnnotation && uiState.raw.annotationText.length > 0) {
-        uiSystem.setAnnotationText("");
+        if (!foundAnnotation && uiState.raw.annotationText.length > 0) {
+            uiSystem.setAnnotationText("");
+        }
     }
 }
 
@@ -281,30 +283,32 @@ export async function touchMove(event: TouchEvent): Promise<void> {
         else await otherTool.onTouchMove(event, permitted.features);
     }
 
-    // Annotation hover
-    let found = false;
-    if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
-        for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
-            const shape = getShape(shapeId);
-            if (
-                shape &&
-                shape.floorId === floorState.currentFloor.value!.id &&
-                shape.contains(l2g(getLocalPointFromEvent(event)))
-            ) {
-                for (const noteId of notes) {
-                    const note = noteState.raw.notes.get(noteId);
-                    if (note?.showOnHover === true) {
-                        found = true;
-                        uiSystem.setAnnotationText(note.text);
-                        break;
+    // Annotation hover — skip during pinch/pan gestures
+    if (!tool.scaling && event.touches.length < 3) {
+        let found = false;
+        if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
+            for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
+                const shape = getShape(shapeId);
+                if (
+                    shape &&
+                    shape.floorId === floorState.currentFloor.value!.id &&
+                    shape.contains(l2g(getLocalPointFromEvent(event)))
+                ) {
+                    for (const noteId of notes) {
+                        const note = noteState.raw.notes.get(noteId);
+                        if (note?.showOnHover === true) {
+                            found = true;
+                            uiSystem.setAnnotationText(note.text);
+                            break;
+                        }
                     }
+                    if (found) break;
                 }
-                if (found) break;
             }
         }
-    }
-    if (!found && uiState.raw.annotationText.length > 0) {
-        uiSystem.setAnnotationText("");
+        if (!found && uiState.raw.annotationText.length > 0) {
+            uiSystem.setAnnotationText("");
+        }
     }
 }
 

@@ -125,6 +125,11 @@ class PositionSystem implements System {
 
     checkOutOfBounds(): void {
         mutable.performOobCheck = false;
+        const oob = this.computeOutOfBounds();
+        if (oob !== $.outOfBounds) $.outOfBounds = oob;
+    }
+
+    private computeOutOfBounds(): boolean {
         // First check if there are any shapes at all
         // Displaying a "return to content" when there is no content is pretty silly.
         // We however don't want to iterate over _all_ shapes if there are a lot
@@ -137,38 +142,27 @@ class PositionSystem implements System {
                     break;
                 }
             }
-            if (!foundShape) {
-                $.outOfBounds = false;
-                return;
-            }
+            if (!foundShape) return false;
         }
 
-        $.outOfBounds = true;
         const floor = floorState.currentFloor.value;
         if (floor !== undefined && !gameState.raw.isDm && locationSettingsState.raw.fullFow.value) {
             if (locationSettingsSystem.isLosActive()) {
                 const visionLayer = floorSystem.getLayer(floor, LayerName.Vision) as FowLayer;
-                if (!visionLayer.isEmpty) {
-                    $.outOfBounds = false;
-                    return;
-                }
+                if (!visionLayer.isEmpty) return false;
             }
             const lightingLayer = floorSystem.getLayer(floor, LayerName.Lighting) as FowLayer;
-            if (!lightingLayer.isEmpty) {
-                $.outOfBounds = false;
-                return;
-            }
+            if (!lightingLayer.isEmpty) return false;
 
-            if ($.outOfBounds) return;
+            // fow is active but no vision/lighting layers have content — truly OOB
+            return true;
         }
         for (const layer of floorState.raw.layers) {
             for (const sh of layer.shapesInSector) {
-                if (!(sh.options.skipDraw ?? false)) {
-                    $.outOfBounds = false;
-                    return;
-                }
+                if (!(sh.options.skipDraw ?? false)) return false;
             }
         }
+        return true;
     }
 
     returnToBounds(): void {

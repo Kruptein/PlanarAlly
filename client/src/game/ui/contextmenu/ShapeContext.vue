@@ -462,6 +462,7 @@ const currentFloorIndex = toRef(floorState.reactive, "floorIndex");
 const floors = toRef(floorState.reactive, "floors");
 
 const sections = computed(() => {
+    if (!showShapeContextMenu.value) return [];
     const focus = selectedState.reactive.focus;
     if (focus === undefined) return [];
     // MOVE [group A] >

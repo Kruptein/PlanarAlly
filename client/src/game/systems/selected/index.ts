@@ -33,6 +33,7 @@ class SelectedSystem implements System {
     }
 
     set(...ids: LocalId[]): void {
+        if (ids.length === $.selected.size && ids.every((id) => $.selected.has(id))) return;
         this.clear();
         this.push(...ids);
     }

@@ -97,6 +97,7 @@ function showTokenDialog(): boolean {
 }
 
 const sections = computed<Section[]>(() => {
+    if (!showDefaultContextMenu.value) return [];
     return [
         {
             title: t("game.ui.tools.DefaultContext.bring_pl"),

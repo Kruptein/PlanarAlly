@@ -38,6 +38,7 @@ const visible = computed({
 const owned = accessState.hasEditAccess;
 
 watchEffect(() => {
+    if (!visible.value) return;
     const id = selectedState.reactive.focus;
     if (id !== undefined) {
         accessSystem.loadState(id);
@@ -104,7 +105,7 @@ const ownedTabs = computed<PanelTab[]>(() => [
 
 const tabs = computed(() => {
     const tabs: PanelTab[] = [];
-    if (!hasShape.value) return tabs;
+    if (!visible.value || !hasShape.value) return tabs;
 
     tabs.push(...fixedTabs);
     if (owned.value) {

@@ -2,16 +2,16 @@
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useModal } from "../../../../core/plugins/modals/plugin";
-import { getShape } from "../../../id";
-import { selectedState } from "../../../systems/selected/state";
-import { pickAsset } from "../../../systems/assets/ui";
-import { variantsState } from "../../../systems/variants/state";
-import { variantsSystem } from "../../../systems/variants";
-import { IAsset } from "../../../interfaces/shapes/asset";
-import { propertiesState } from "../../../systems/properties/state";
 import { assetState } from "../../../../assets/state";
 import { getImageSrcFromHash } from "../../../../assets/utils";
+import { useModal } from "../../../../core/plugins/modals/plugin";
+import { getShape } from "../../../id";
+import { IAsset } from "../../../interfaces/shapes/asset";
+import { pickAsset } from "../../../systems/assets/ui";
+import { propertiesState } from "../../../systems/properties/state";
+import { selectedState } from "../../../systems/selected/state";
+import { variantsSystem } from "../../../systems/variants";
+import { variantsState } from "../../../systems/variants/state";
 
 const { t } = useI18n();
 const modals = useModal();

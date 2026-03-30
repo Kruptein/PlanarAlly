@@ -4,6 +4,8 @@ import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { activeShapeStore } from "../../../../store/activeShape";
+import { getShape } from "../../../id";
+import { IShape } from "../../../interfaces/shape";
 import { accessSystem } from "../../../systems/access";
 import { accessState } from "../../../systems/access/state";
 import { selectedState } from "../../../systems/selected/state";
@@ -20,8 +22,6 @@ import LogicSettings from "./LogicSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
 import VariantSettings from "./VariantSettings.vue";
-import { getShape } from "../../../id";
-import { IShape } from "../../../interfaces/shape";
 
 const { t } = useI18n();
 const shape = ref<IShape | null>(null);

@@ -4,13 +4,13 @@ import { useI18n } from "vue-i18n";
 
 import { getImageSrcFromHash } from "../../../assets/utils";
 import { useModal } from "../../../core/plugins/modals/plugin";
+import { DropAssetInfo } from "../../dropAsset";
 import { setCenterPosition } from "../../position";
 import { characterSystem } from "../../systems/characters";
 import { sendRemoveCharacter } from "../../systems/characters/emits";
 import type { CharacterId } from "../../systems/characters/models";
 import { characterState } from "../../systems/characters/state";
 import { gameState } from "../../systems/game/state";
-import { DropAssetInfo } from "../../dropAsset";
 
 const { t } = useI18n();
 

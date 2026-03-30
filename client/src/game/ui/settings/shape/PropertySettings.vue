@@ -9,6 +9,7 @@ import { NO_SYNC, SERVER_SYNC, SyncMode } from "../../../../core/models/types";
 import { activeShapeStore } from "../../../../store/activeShape";
 import { getColour } from "../../../colour";
 import { getShape } from "../../../id";
+import { IAsset } from "../../../interfaces/shapes/asset";
 import type { IText } from "../../../interfaces/shapes/text";
 import type { CircularToken } from "../../../shapes/variants/circularToken";
 import { accessState } from "../../../systems/access/state";
@@ -17,7 +18,6 @@ import { propertiesSystem } from "../../../systems/properties";
 import { useShapeProps } from "../../../systems/properties/composables";
 import { VisionBlock, visionBlocks } from "../../../systems/properties/types";
 import { selectedState } from "../../../systems/selected/state";
-import { IAsset } from "../../../interfaces/shapes/asset";
 
 const { t } = useI18n();
 const shapeProps = useShapeProps();

@@ -2,6 +2,7 @@
 import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { getImageSrcFromHash } from "../../../../assets/utils";
 import type { GlobalId } from "../../../../core/id";
 import { getLocalId, getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
@@ -9,7 +10,6 @@ import { getVariableSegments } from "../../../systems/customData/utils";
 import { diceState } from "../../../systems/dice/state";
 
 import DiceAutoComplete from "./DiceAutoComplete.vue";
-import { getImageSrcFromHash } from "../../../../assets/utils";
 
 const { t } = useI18n();
 

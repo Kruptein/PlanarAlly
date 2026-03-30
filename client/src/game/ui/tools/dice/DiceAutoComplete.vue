@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onUnmounted, ref, watch } from "vue";
 
+import { getImageSrcFromHash } from "../../../../assets/utils";
 import type { LocalId } from "../../../../core/id";
 import type { DistributiveOmit } from "../../../../core/types";
 import { getShape } from "../../../id";
@@ -10,7 +11,6 @@ import type { UiShapeCustomData } from "../../../systems/customData/types";
 import { diceState } from "../../../systems/dice/state";
 import { getProperties } from "../../../systems/properties/state";
 import { selectedState } from "../../../systems/selected/state";
-import { getImageSrcFromHash } from "../../../../assets/utils";
 
 const showAutoComplete = ref(false);
 const autoCompleteSearchIndex = ref(0);

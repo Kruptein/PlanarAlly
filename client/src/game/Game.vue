@@ -28,7 +28,6 @@ import {
 } from "./tools/events";
 // import DebugInfo from "./ui/DebugInfo.vue";
 import UI from "./ui/UI.vue";
-
 // oxlint-disable-next-line import/no-unassigned-import
 import "./api/events";
 

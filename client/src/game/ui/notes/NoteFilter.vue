@@ -1,8 +1,8 @@
 <script setup lang="ts" generic="T extends PropertyKey">
 import { computed, ref } from "vue";
 
-import { NO_FILTER } from "../../systems/notes/types";
 import { getImageSrcFromHash } from "../../../assets/utils";
+import { NO_FILTER } from "../../systems/notes/types";
 
 const props = defineProps<{
     label: string;

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import { getImageSrcFromHash } from "../../../assets/utils";
 import type { LocalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { getShape } from "../../id";
@@ -10,7 +11,6 @@ import { accessSystem } from "../../systems/access";
 import { accessState } from "../../systems/access/state";
 import { getProperties } from "../../systems/properties/state";
 import { visionTool } from "../../tools/variants/vision";
-import { getImageSrcFromHash } from "../../../assets/utils";
 
 const selected = visionTool.isActiveTool;
 

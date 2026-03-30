@@ -11,6 +11,7 @@ import { useModal } from "../../../core/plugins/modals/plugin";
 import { sendBringPlayers } from "../../api/emits/players";
 import { getGlobalId, getLocalId } from "../../id";
 import { LayerName } from "../../models/floor";
+import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
@@ -22,7 +23,6 @@ import { initiativeStore } from "../initiative/state";
 import { openCreateTokenDialog } from "../tokendialog/state";
 
 import { defaultContextLeft, defaultContextTop, showDefaultContextMenu } from "./state";
-import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
 
 const { t } = useI18n();
 const modals = useModal();

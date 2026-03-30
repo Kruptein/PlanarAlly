@@ -2,11 +2,11 @@
 import { onMounted, useTemplateRef } from "vue";
 
 import { assetSystem } from "../../../assets";
+import { AssetId } from "../../../assets/models";
 import { socket } from "../../../assets/socket";
 import { assetState } from "../../../assets/state";
 import AssetListCore from "../../../assets/ui/AssetListCore.vue";
 import AssetSearchCore from "../../../assets/ui/AssetSearchCore.vue";
-import { AssetId } from "../../../assets/models";
 
 defineProps<{ visible: boolean }>();
 const emit = defineEmits<{

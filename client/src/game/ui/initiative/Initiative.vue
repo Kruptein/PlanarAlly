@@ -4,6 +4,7 @@ import { computed, type DeepReadonly, onMounted, nextTick, ref, useTemplateRef, 
 import { type DraggableEvent, VueDraggable } from "vue-draggable-plus";
 import { useI18n } from "vue-i18n";
 
+import { getImageSrcFromHash } from "../../../assets/utils";
 import Modal from "../../../core/components/modals/Modal.vue";
 import ResizingTextArea from "../../../core/components/ResizingTextArea.vue";
 import RollingCounter from "../../../core/components/RollingCounter.vue";
@@ -33,7 +34,6 @@ import { ClientSettingCategory } from "../settings/client/categories";
 
 import CreateEffectDialog from "./CreateEffectDialog.vue";
 import { initiativeStore } from "./state";
-import { getImageSrcFromHash } from "../../../assets/utils";
 
 const { t } = useI18n();
 

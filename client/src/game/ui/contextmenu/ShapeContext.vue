@@ -18,6 +18,7 @@ import { sendShapePositionUpdate, sendShapesMove } from "../../api/emits/shape/c
 import { getGlobalId, getShape } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
+import { IAsset } from "../../interfaces/shapes/asset";
 import type { Floor, LayerName } from "../../models/floor";
 import { fromSystemForm, instantiateCompactForm } from "../../shapes/transformations";
 import { deleteShapes } from "../../shapes/utils";
@@ -43,7 +44,6 @@ import { initiativeStore } from "../initiative/state";
 import { layerTranslationMapping } from "../translations";
 
 import { shapeContextLeft, shapeContextTop, showShapeContextMenu } from "./state";
-import { IAsset } from "../../interfaces/shapes/asset";
 
 const { t } = useI18n();
 const modals = useModal();

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
+
 import ColourPicker from "../../../core/components/ColourPicker.vue";
 import { LightMode, lightTool } from "../../tools/variants/light";
 

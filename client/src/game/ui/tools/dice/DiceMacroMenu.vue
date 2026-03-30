@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from "vue";
 
+import { getImageSrcFromHash } from "../../../../assets/utils";
 import type { LocalId } from "../../../../core/id";
 import { getGlobalId, getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
@@ -9,7 +10,6 @@ import { customDataState } from "../../../systems/customData/state";
 import { DiceUiState } from "../../../systems/dice/types";
 import { getProperties } from "../../../systems/properties/state";
 import { selectedState } from "../../../systems/selected/state";
-import { getImageSrcFromHash } from "../../../../assets/utils";
 
 const active = defineModel<LocalId | DiceUiState>({ required: true });
 

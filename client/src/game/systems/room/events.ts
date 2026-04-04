@@ -26,7 +26,7 @@ socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
 });
 
 socket.on("Room.Info.Players.Add", (data: RoomInfoPlayersAdd) => {
-    playerSystem.addPlayer({ ...data, role: Role.Player, showRect: false });
+    playerSystem.addPlayer({ ...data, role: Role.Player });
 });
 
 socket.on("Room.Features.Chat.Set", (data: boolean) => {

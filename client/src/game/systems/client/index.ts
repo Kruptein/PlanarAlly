@@ -5,23 +5,16 @@ import { toGP } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import type { LocalId } from "../../../core/id";
 import { filter, map } from "../../../core/iter";
-import { InvalidationMode, SyncMode } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
 import type { System } from "../../../core/systems/models";
 import { setLocalStorageObject } from "../../../localStorageHelpers";
 import { sendMoveClient, sendOffset, sendViewport } from "../../api/emits/client";
 import { getClientId } from "../../api/socket";
 import { getShape } from "../../id";
-import { LayerName } from "../../models/floor";
-import { Polygon } from "../../shapes/variants/polygon";
-import { floorSystem } from "../floors";
-import { floorState } from "../floors/state";
 import { playerSystem } from "../players";
 import type { PlayerId } from "../players/models";
-import { playerState } from "../players/state";
 import { positionSystem } from "../position";
 import { positionState } from "../position/state";
-import { locationSettingsState } from "../settings/location/state";
 
 import type { ClientId } from "./models";
 import { clientState } from "./state";
@@ -43,7 +36,6 @@ class ClientSystem implements System {
 
     removeClient(client: ClientId): void {
         $.clientIds.delete(client);
-        this.removeClientRect(client);
         $.clientViewports.delete(client);
     }
 
@@ -58,114 +50,14 @@ class ClientSystem implements System {
         }
     }
 
-    updatePlayerRect(player: PlayerId): void {
-        for (const [c, p] of $.clientIds.entries()) {
-            if (player === p) this.updateClientRect(c);
-        }
-    }
-
-    updateAllClientRects(): void {
-        for (const client of $.clientIds.keys()) {
-            this.updateClientRect(client);
-        }
-    }
-
-    private updateClientRect(client: ClientId): void {
-        const shapeId = $.clientRectIds.get(client);
-        const playerId = $.clientIds.get(client);
-        if (playerId === undefined) return;
-
-        if (playerState.raw.players.get(playerId)?.location === locationSettingsState.raw.activeLocation) {
-            let shape: Polygon;
-            if (shapeId === undefined) {
-                shape = this.createClientRect(client)!;
-                if (shape === undefined) return;
-            } else {
-                shape = getShape(shapeId) as Polygon;
-                if (shape === undefined) return;
-                this.moveClientRect(client, shape);
-            }
-        } else if (shapeId !== undefined) {
-            this.removeClientRect(client);
-        }
-    }
-
-    private removeClientRect(client: ClientId): void {
-        const rect = $.clientRectIds.get(client);
-        if (rect !== undefined) {
-            const shape = getShape(rect);
-            if (shape !== undefined) {
-                shape.layer?.removeShape(shape, {
-                    sync: SyncMode.NO_SYNC,
-                    recalculate: false,
-                    dropShapeId: true,
-                });
-            }
-            $.clientRectIds.delete(client);
-        }
-    }
-
-    private moveClientRect(client: ClientId, polygon: Polygon): void {
-        const dimensions = this.getDimensions(client);
-        if (dimensions === undefined) return;
-        const { center, h, w } = dimensions;
-        polygon.vertices = [toGP(0, 0), toGP(0, h), toGP(w, h), toGP(w, 0), toGP(0, 0)];
-        polygon.center = center;
-        polygon.invalidate(true);
-    }
-
     private getClientPosition(client: ClientId): ClientPosition | undefined {
         const player = $.clientIds.get(client);
         if (player === undefined) return undefined;
         return playerSystem.getPosition(player);
     }
 
-    private createClientRect(client: ClientId): Polygon | undefined {
-        const locationData = this.getClientPosition(client);
-        const viewport = $.clientViewports.get(client);
-        if (locationData === undefined || viewport === undefined) {
-            console.error("Could not create new client rect: missing data.");
-            return;
-        }
-        if ($.clientRectIds.has(client)) {
-            console.error("Could not create new client rect: already exists.");
-            return;
-        }
-        const playerId = $.clientIds.get(client);
-        if (playerId === undefined) {
-            console.error("Could not find player for client");
-            return;
-        }
-
-        const polygon = new Polygon(
-            toGP(0, 0),
-            undefined,
-            {
-                lineWidth: [30, 15],
-                openPolygon: true,
-                isSnappable: false,
-            },
-            {
-                fillColour: "rgba(0, 0, 0, 0)",
-                strokeColour: ["rgba(0, 0, 0, 1)", "rgba(255, 255, 255, 1)"],
-            },
-        );
-        $.clientRectIds.set(client, polygon.id);
-        polygon.options.isPlayerRect = true;
-        polygon.options.skipDraw = !(playerSystem.getPlayer(playerId)?.showRect ?? false);
-        polygon.preventSync = true;
-
-        const layer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Dm)!;
-        layer.addShape(polygon, SyncMode.NO_SYNC, InvalidationMode.NO);
-
-        this.moveClientRect(client, polygon);
-
-        return polygon;
-    }
-
-    setClientViewport(client: ClientId, viewport: Viewport, update: boolean): void {
+    setClientViewport(client: ClientId, viewport: Viewport): void {
         $.clientViewports.set(client, viewport);
-        if (update) this.updateClientRect(client);
     }
 
     moveClient(rectUuid: LocalId): void {
@@ -296,8 +188,6 @@ class ClientSystem implements System {
 
         if (offset.x !== undefined) viewport.offset_x = offset.x;
         if (offset.y !== undefined) viewport.offset_y = offset.y;
-
-        this.updateClientRect(client);
 
         if (sync) sendOffset({ client, x: viewport.offset_x, y: viewport.offset_y });
         if (client === getClientId()) {

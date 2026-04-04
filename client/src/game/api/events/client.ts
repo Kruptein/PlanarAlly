@@ -38,7 +38,7 @@ socket.on("Client.Move", (data: ClientMove) => {
 });
 
 socket.on("Client.Viewport.Set", (data: ClientViewport) => {
-    clientSystem.setClientViewport(data.client, data.viewport, true);
+    clientSystem.setClientViewport(data.client, data.viewport);
 });
 
 socket.on("Client.Offset.Set", (data: ClientOffsetSet) => {

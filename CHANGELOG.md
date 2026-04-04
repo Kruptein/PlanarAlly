@@ -28,6 +28,10 @@ tech changes will usually be stripped from release notes for the public
 -   [tech] DB storage of asset data is reworked
     -   Asset size is now also stored in DB for easier user total size calculation
 
+### Removed
+
+-   [DM] Client viewport visualization
+
 ### Fixed
 
 -   Note icons on shapes no longer rendering

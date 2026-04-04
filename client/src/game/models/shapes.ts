@@ -5,8 +5,6 @@ import type { TeleportOptions } from "../systems/logic/tp/models";
 import type { NoteId } from "../systems/notes/types";
 
 export interface ShapeOptions {
-    isPlayerRect: boolean;
-
     preFogShape: boolean;
     skipDraw: boolean;
     borderOperation: GlobalCompositeOperation;

@@ -1,10 +1,11 @@
+import { PlayerInfoCore } from "../../../apiTypes";
 import { buildState } from "../../../core/systems/state";
 import type { ServerUserLocationOptions } from "../../models/settings";
 
-import type { Player, PlayerId } from "./models";
+import type { PlayerId } from "./models";
 
 interface PlayerState {
-    players: Map<PlayerId, Player>;
+    players: Map<PlayerId, PlayerInfoCore>;
     playerLocation: Map<PlayerId, ServerUserLocationOptions>;
 }
 

@@ -5,7 +5,6 @@ import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { getShape } from "../id";
 import type { IShape } from "../interfaces/shape";
 import { accessSystem } from "../systems/access";
-import { clientSystem } from "../systems/client";
 import { gameState } from "../systems/game/state";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { getProperties } from "../systems/properties/state";
@@ -90,9 +89,6 @@ export async function moveShapes(
             visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: shape.id });
 
         if (!shape.preventSync) updateList.push(shape);
-        if (shape.options.isPlayerRect ?? false) {
-            clientSystem.moveClient(shape.id);
-        }
     }
 
     sendShapePositionUpdate(updateList, temporary);

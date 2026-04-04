@@ -40,6 +40,7 @@ tech changes will usually be stripped from release notes for the public
 -   [tech] Updated sector system to be more performant (impacts rendering)
 -   [tech] Fixed some unnecessary Vue rerenders on a variety of mouse interactions in the select tool (impacts general performance)
 -   [tech] Removed some unnecessary work during panning (e.g. note hover logic, some ws events)
+-   [tech] Vue-router deprecation issues
 
 ### Fixed
 

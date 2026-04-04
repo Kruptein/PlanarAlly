@@ -38,14 +38,12 @@ export default defineComponent({
     // eslint-disable-next-line vue/multi-word-component-names
     name: "Game",
     components: { UI }, // DebugInfo
-    beforeRouteEnter(to, _from, next) {
+    beforeRouteEnter(to) {
         coreStore.setLoading(true);
         createConnection(to);
-        next();
     },
-    beforeRouteLeave(_to, _from, next) {
+    beforeRouteLeave() {
         socket.disconnect();
-        next();
     },
     setup() {
         const modals = useModal();

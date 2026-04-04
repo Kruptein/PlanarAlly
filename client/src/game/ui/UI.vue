@@ -161,13 +161,18 @@ function setTempZoomDisplay(value: number): void {
                             id="rm-locations"
                             class="rm-item"
                             :title="t('game.ui.ui.open_loc_menu')"
-                            @click="toggleLocations"
+                            @click.prevent="toggleLocations"
                         >
                             <a href="#">
                                 <font-awesome-icon :icon="['far', 'compass']" />
                             </a>
                         </li>
-                        <li id="rm-settings" class="rm-item" :title="t('game.ui.ui.open_settings')" @click="toggleMenu">
+                        <li
+                            id="rm-settings"
+                            class="rm-item"
+                            :title="t('game.ui.ui.open_settings')"
+                            @click.prevent="toggleMenu"
+                        >
                             <a href="#">
                                 <font-awesome-icon icon="cog" />
                             </a>

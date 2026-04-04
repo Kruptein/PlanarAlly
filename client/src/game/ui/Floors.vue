@@ -82,7 +82,7 @@ const selectedLayer = computed(() => {
             v-if="visible"
             id="floor-selector"
             :title="t('game.ui.FloorSelect.title')"
-            @click="detailsOpen = !detailsOpen"
+            @click.prevent="detailsOpen = !detailsOpen"
         >
             <a href="#">
                 <template v-if="playerSettingsState.reactive.useToolIcons.value">
@@ -130,7 +130,7 @@ const selectedLayer = computed(() => {
                 :key="layer"
                 class="layer"
                 :class="{ 'layer-selected': layer === selectedLayer }"
-                @click="selectLayer(layer)"
+                @click.prevent="selectLayer(layer)"
             >
                 <a href="#" :title="layerTranslationMapping[layer]">
                     <template v-if="playerSettingsState.reactive.useToolIcons.value">

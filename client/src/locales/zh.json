@@ -8,7 +8,8 @@
         "ru": "Русский",
         "dk": "Dansk",
         "es": "Español",
-        "it": "Italiano"
+        "it": "Italiano",
+        "fr": "Français"
     },
     "assetManager": {
         "AssetContextMenu": {
@@ -40,6 +41,7 @@
         "warning": "警告",
         "value": "值",
         "toggle_public_private": "切换公开/私有",
+        "toggle_draw": "指示物绘画",
         "initiative": "先攻",
         "search": "搜索",
         "name": "名称",
@@ -51,6 +53,8 @@
         "markers": "记号",
         "border_color": "描边色",
         "fill_color": "填充色",
+        "fill_color_short": "填充",
+        "stroke_color_short": "描边",
         "trackers": "追踪值",
         "auras": "光晕",
         "annotation": "注释",
@@ -62,6 +66,7 @@
         "vision": "视野",
         "tokens": "指示物",
         "shape": "图形",
+        "colour": "颜色",
         "colours": "颜色",
         "version": "版本号",
         "confirm": "确认",
@@ -71,10 +76,8 @@
         "varia": "杂项",
         "select": "选择",
         "or": "或",
-        "colour": "颜色",
-        "toggle_draw": "指示物绘画",
-        "you": "你",
         "features": "特性",
+        "you": "你",
         "all": "全部",
         "stroke_color": "边框色",
         "stroke_width": "边框线宽",
@@ -91,15 +94,32 @@
         "actions": "操作",
         "upload": "上传",
         "apply": "应用",
-        "fill_color_short": "填充",
-        "stroke_color_short": "描边",
         "type": "类型",
-        "background": "背景"
+        "background": "背景",
+        "mods": "模组",
+        "ok": "确定",
+        "link": "链接"
+    },
+    "errors": {
+        "shape-order-mismatch": "服务器检测到图形顺序不一致。已自动更正。请刷新页面以确保您看到的是正确的顺序。"
+    },
+    "assets": {
+        "add_shortcut": "添加快捷方式",
+        "all_assets": "所有素材",
+        "remove_shortcut": "移除快捷方式"
     },
     "auth": {
         "login": {
             "register": "注册",
-            "login": "登录"
+            "login": "登录",
+            "forgotPassword": "忘记密码？",
+            "forgotPasswordNote1": "请注意，只有在您的帐户配置了电子邮件地址的情况下，才可以通过邮件找回密码。",
+            "forgotPasswordNote2": "如果您没有这样做，或者不确定，请联系此服务器的管理员。",
+            "forgotPasswordSuccess": "邮件已发送",
+            "resetPassword": "重置密码",
+            "resetPasswordSuccess": "密码已重置",
+            "resetPasswordFailed": "重置密码失败 - 令牌错误或已过期",
+            "resetPasswordNote": "在下面输入您的新密码，然后点击提交以重置您的密码。"
         }
     },
     "core": {
@@ -123,6 +143,9 @@
             "no_sessions": "无可用战局",
             "create_session": "创建战局",
             "create_new_session": "创建一个新的战局"
+        },
+        "settings": {
+            "email_changed": "电子邮件更换成功"
         }
     },
     "game": {
@@ -140,19 +163,32 @@
             },
             "initiative": {
                 "new_effect": "新的效果",
+                "add_effect": "添加效果",
                 "add_timed_effect": "添加倒计时效果",
-                "delete_effect": "删除效果",
                 "toggle_group": "切换个体/群体先攻",
                 "delete_init": "移除先攻",
+                "delete_effect": "删除效果",
                 "round_N": "第{n}轮",
                 "vision_log_msg": "自动锁定视野（只显示视野可用的指示物）",
                 "camera_log_msg": "自动跟踪指示物所在的视角",
                 "reset_round": "重置轮次/回合",
                 "next": "下一个",
-                "clear": "清除先攻",
                 "previous": "上一个",
+                "next_round": "下一轮",
+                "previous_round": "上一轮",
+                "clear": "清除先攻",
+                "clear_entries": "清除条目",
                 "change_sort": "修改排序",
-                "settings": "设置"
+                "settings": "设置",
+                "remove_group_msg": "您确定要从先攻顺序中移除此小组吗？",
+                "clear_entries_msg": "您确定要清除所有先攻条目吗？",
+                "clear_initiatives_msg": "您确定要清除所有先攻数值吗？",
+                "empty_initiative": "无可见条目",
+                "infinite_toggle_hint": "该效果是否具有无限持续时间？",
+                "end_turn_toggle_hint": "在回合结束时更新",
+                "start_turn_toggle_hint": "在回合开始时更新",
+                "effect_duration_hint": "此效果将持续的轮数",
+                "effect_name_hint": "效果名称"
             },
             "menu": {
                 "LocationBar": {
@@ -192,22 +228,6 @@
                         "default": "默认",
                         "add_access": "添加权限"
                     },
-                    "dialog": {
-                        "current_value": "当前值",
-                        "remove_tracker": "移除追踪值",
-                        "dim_value": "模糊值",
-                        "toggle_light_source": "切换光源",
-                        "delete_aura": "移除光晕",
-                        "is_a_token": "指示物属性",
-                        "is_invisible": "不可见状态",
-                        "is_locked": "锁定状态",
-                        "show_badge": "显示数字标识",
-                        "block_vision_light": "阻挡视野/光照",
-                        "block_movement": "阻挡移动",
-                        "is_defeated": "被击败",
-                        "show_annotation": "公开",
-                        "edit_shape": "编辑图形"
-                    },
                     "logic": {
                         "logic": "逻辑",
                         "door": "门",
@@ -220,6 +240,22 @@
                             "request": "询问",
                             "disabled": "禁止"
                         }
+                    },
+                    "dialog": {
+                        "current_value": "当前值",
+                        "remove_tracker": "移除追踪值",
+                        "dim_value": "模糊值",
+                        "toggle_light_source": "切换光源",
+                        "delete_aura": "移除光晕",
+                        "edit_shape": "编辑图形",
+                        "is_a_token": "指示物属性",
+                        "is_invisible": "不可见状态",
+                        "is_defeated": "被击败",
+                        "is_locked": "锁定状态",
+                        "show_badge": "显示数字标识",
+                        "show_annotation": "公开",
+                        "block_vision_light": "阻挡视野/光照",
+                        "block_movement": "阻挡移动"
                     },
                     "properties": {
                         "properties": "属性",
@@ -259,6 +295,8 @@
                         "appearance": "外观",
                         "infer_size": "自动推断大小",
                         "size": "大小",
+                        "width": "宽度",
+                        "height": "高度",
                         "show_cells": "显示占据的格子",
                         "hex_settings": "六边形格设置",
                         "odd_hex_orientation": "更改为另一朝向"
@@ -268,15 +306,34 @@
                         "light_source": "光源",
                         "angle": "角度",
                         "display_on_token": "在指示物上显示"
+                    },
+                    "customData": {
+                        "customData": "自定义数据",
+                        "addBranch": "添加分支",
+                        "addElement": "添加元素",
+                        "nameConflictTitle": "名称冲突",
+                        "nameConflictText": "您输入的名称已存在。请输入一个不同的名称。",
+                        "newBranchPrompt": "此分支应该叫什么名称？",
+                        "noChildren": "在这里您可以为此图形添加自定义数据。\n\n这可以用于实现简陋的角色表，\n也可以被追踪值、光晕和骰子系统使用！",
+                        "removeBranchTitle": "移除分支",
+                        "removeBranchPrompt": "您确定要移除此分支及其所有子项吗？",
+                        "removeElementTitle": "移除元素",
+                        "removeElementPrompt": "您确定要移除此元素吗？"
+                    },
+                    "variants": {
+                        "variants": "变体",
+                        "addVariant": "添加新变体",
+                        "storeAsVariant": "将当前数据存为变体",
+                        "empty": "在这里您可以为该图形添加备用的视觉表现形式。\n\n这可以用于具有备用服装或形态（例如 Boss 阶段）的图形。\n\n可以为每个变体配置名称和自定义素材。\n当您激活一个变体时，其数据将被复制到主图形并对所有玩家可见。\n您在棋盘上对素材进行的任何缩放都只会应用于当前处于活动状态的变体。\n这允许您在不同尺寸的变体之间进行切换。"
                     }
                 },
                 "SelectionInfo": {
                     "open_shape_props": "打开图形属性",
                     "quick_edit_tracker": "快速编辑追踪值",
                     "quick_edit_aura": "快速编辑光晕",
+                    "lock": "切换锁定状态",
                     "new_value_NAME": "赋值 {name}：",
                     "updating_NAME": "更新 {name}",
-                    "lock": "切换锁定状态",
                     "notes": "个便签",
                     "open_note_manager_title": "打开便签管理器",
                     "collapse_notes": "收起便签列表",
@@ -302,59 +359,59 @@
                         "client_settings": "客户端设置"
                     },
                     "DisplaySettings": {
-                        "grid_size_in_pixels": "网格尺寸（像素）：",
                         "use_high_dpi": "适用时，启用 HiDPI/Retina 显示",
+                        "grid_size_in_pixels": "网格尺寸（像素）：",
                         "use_as_physical_gameboard": "用作物理游戏板",
                         "mini_size_in_inches": "棋子尺寸（英寸）",
                         "ppi": "像素密度（PPI）",
                         "Gameboard": "游戏板"
                     },
-                    "BehaviourSettings": {
-                        "invert_alt_set": "反转ALT使用",
-                        "disable_scroll_to_zoom": "禁用滚动缩放",
-                        "snapping": "网格吸附",
-                        "mouse_pan_mode": "鼠标平移模式",
-                        "mouse_pan_mode_0": "无",
-                        "mouse_pan_mode_1": "中键",
-                        "mouse_pan_mode_2": "右键",
-                        "mouse_pan_mode_3": "右键和中键",
-                        "mouse_gestures": "鼠标与手势",
-                        "selection_info": "选择信息面板",
-                        "selection_info_tracker_mode": "追踪值默认修改模式",
-                        "selection_info_tracker_mode_absolute": "绝对",
-                        "selection_info_tracker_mode_relative": "相对"
-                    },
-                    "InitiativeSettings": {
-                        "vision_lock": "锁定视野到激活（拥有）的指示物",
-                        "camera_lock": "锁定摄像机到激活（拥有）的指示物",
-                        "effect_visibility": "何时显示效果",
-                        "effect_always": "总是",
-                        "effect_active": "激活且鼠标悬停",
-                        "open_on_activate": "当先攻开始时自动打开"
-                    },
                     "AppearanceSettings": {
                         "toolbars": "工具栏",
                         "use_tool_icons": "使用图标",
+                        "fog": "迷雾",
                         "show_token_directions": "显示屏幕外指示物的方向",
                         "grid_mode_label_format": "网格模式下标签格式",
                         "grid_mode_label_format_0": "全部",
                         "grid_mode_label_format_1": "仅距离",
                         "grid_mode_label_format_2": "仅格数",
-                        "fog": "迷雾",
                         "wall": "墙壁默认颜色",
                         "window": "窗户默认颜色",
                         "closed_door": "打开的门默认颜色",
                         "open_door": "关着的门默认颜色"
+                    },
+                    "BehaviourSettings": {
+                        "invert_alt_set": "反转ALT使用",
+                        "disable_scroll_to_zoom": "禁用滚动缩放",
+                        "selection_info_tracker_mode": "追踪值默认修改模式",
+                        "selection_info_tracker_mode_absolute": "绝对",
+                        "selection_info_tracker_mode_relative": "相对",
+                        "mouse_pan_mode": "鼠标平移模式",
+                        "mouse_pan_mode_0": "无",
+                        "mouse_pan_mode_1": "中键",
+                        "mouse_pan_mode_2": "右键",
+                        "mouse_pan_mode_3": "右键和中键",
+                        "snapping": "网格吸附",
+                        "mouse_gestures": "鼠标与手势",
+                        "selection_info": "选择信息面板"
+                    },
+                    "InitiativeSettings": {
+                        "open_on_activate": "当先攻开始时自动打开",
+                        "camera_lock": "锁定摄像机到激活（拥有）的指示物",
+                        "vision_lock": "锁定视野到激活（拥有）的指示物",
+                        "effect_visibility": "何时显示效果",
+                        "effect_always": "总是",
+                        "effect_active": "激活且鼠标悬停"
+                    },
+                    "PerformanceSettings": {
+                        "only_render_active_floor": "仅渲染当前楼层",
+                        "Rendering": "渲染"
                     },
                     "common": {
                         "Appearance": "外观",
                         "Behaviour": "行为",
                         "Display": "显示",
                         "Performance": "性能"
-                    },
-                    "PerformanceSettings": {
-                        "only_render_active_floor": "仅渲染当前楼层",
-                        "Rendering": "渲染"
                     }
                 },
                 "dm": {
@@ -383,12 +440,15 @@
                         "dice": "开启骰子"
                     }
                 },
+                "floor": {
+                    "title": "楼层设置"
+                },
                 "common": {
                     "overridden_msg": "这些设置可能被特定地点的设置覆盖",
                     "overridden_highlight": "被高亮",
                     "reset_default": "重设为战局默认值",
-                    "overridden_highlight_path": "覆盖了战局设置的选项会{0}",
-                    "sync_default": "令此项为新的默认值"
+                    "sync_default": "令此项为新的默认值",
+                    "overridden_highlight_path": "覆盖了战局设置的选项有{0}"
                 },
                 "GridSettings": {
                     "unit_size_in_UNIT": "单位尺寸（{unit}）",
@@ -401,6 +461,19 @@
                     "drop_ratio": "图形缩放比例",
                     "drop_ratio_title": "图形缩放比例作用于具有大小信息的图形（例如：哥布林_1x1），该大小会乘以缩放比例得到图形的最终大小。"
                 },
+                "FloorSettings": {
+                    "backgrounds": "地图背景",
+                    "air_background": "空中楼层",
+                    "ground_background": "地面楼层",
+                    "underground_background": "地下楼层",
+                    "pattern": "图案",
+                    "offset": "偏移量",
+                    "scale": "缩放"
+                },
+                "VariaSettings": {
+                    "movePlayerOnTokenChange": "在玩家拥有的指示物改变位置时移动玩家",
+                    "limitMovementDuringInitiative": "在开启先攻时限制非当前行动图形的移动"
+                },
                 "LocationBar": {
                     "LocationAdminSettings": {
                         "remove_location_msg_NAME": "你确定要移除地点 {name} 吗",
@@ -408,10 +481,10 @@
                         "remove_location_no": "否",
                         "move_existing_pl": "移动此地点的玩家",
                         "delete_this_location": "移除该地点",
-                        "remove_location": "移除地点",
                         "archive_this_location": "存档此地点",
                         "clone_this_location": "克隆此地点",
-                        "choose_room": "选择房间"
+                        "choose_room": "选择房间",
+                        "remove_location": "移除地点"
                     },
                     "LocationSettings": {
                         "location_settings": "地点设置："
@@ -422,34 +495,19 @@
                     "move_owned_tokens": "移动拥有的指示物：",
                     "resize_owned_tokens": "缩放拥有的指示物："
                 },
-                "VariaSettings": {
-                    "movePlayerOnTokenChange": "在玩家拥有的指示物改变位置时移动玩家",
-                    "limitMovementDuringInitiative": "在开启先攻时限制非当前行动图形的移动"
-                },
                 "VisionSettings": {
                     "min_full_vision_UNIT": "最短完全视距（{unit}）：",
                     "max_vision_UNIT": "最长视距（{unit}）：",
                     "core": "核心",
                     "fake_player": "模拟玩家：",
                     "fill_fow": "整片区域填满迷雾：",
+                    "ambient_light": "环境光（户外模式）：",
                     "only_show_lights_los": "只显示视线所及光照：",
                     "fow_opacity": "迷雾不透明度：",
                     "advanced": "高级",
                     "vision_mode": "视野模式：",
                     "default": "默认",
                     "experimental": "实验性"
-                },
-                "floor": {
-                    "title": "楼层设置"
-                },
-                "FloorSettings": {
-                    "backgrounds": "地图背景",
-                    "air_background": "空中楼层",
-                    "ground_background": "地面楼层",
-                    "underground_background": "地下楼层",
-                    "pattern": "图案",
-                    "offset": "偏移量",
-                    "scale": "缩放"
                 }
             },
             "templates": {
@@ -479,6 +537,7 @@
                     "mode": "模式",
                     "closed_polygon": "闭合多边形？",
                     "brush_size": "笔刷尺寸",
+                    "font_size": "字体大小",
                     "square": "方块",
                     "circle": "圆圈",
                     "draw-polygon": "多边形",
@@ -486,13 +545,35 @@
                     "normal": "普通",
                     "reveal": "揭示",
                     "hide": "隐藏",
-                    "font_size": "字体大小",
                     "erase": "擦除",
+                    "ambient_barrier": "环境障碍",
                     "cone": "锥形",
                     "text": "文本",
                     "shape-category": "基础设置",
                     "vision-category": "视野设置",
-                    "logic-category": "逻辑设置"
+                    "logic-category": "逻辑设置",
+                    "door": "添加简单门逻辑"
+                },
+                "LightTool": {
+                    "place": "放置",
+                    "edit": "编辑",
+                    "point": "点",
+                    "ambient": "环境",
+                    "barrier": "障碍",
+                    "bright_radius": "明亮半径",
+                    "dim_radius": "昏暗半径",
+                    "angle": "角度 (°)",
+                    "colour": "颜色",
+                    "click_to_place": "在地图上点击以放置光源。",
+                    "click_to_place_ambient": "在地图上点击以放置环境光源。",
+                    "ambient_light_hint": "环境光模拟户外/阳光。将其添加到某处以使整个区域充满光亮。",
+                    "click_light_on_map_to_select": "点击地图上的光源以进行编辑/移动。",
+                    "delete_light": "删除光源",
+                    "click_on_highlighted_vertex": "点击高亮的顶点",
+                    "add_extra_points": "添加额外点（可选）",
+                    "click_highlighted_point_to_close": "点击高亮的点以闭合",
+                    "press_escape_to_cancel": "按 Escape 键取消",
+                    "define_natural_barriers": "为环境光定义室外与室内之间的自然障碍。"
                 },
                 "MapTool": {
                     "drag_to_resize": "拖动出你想要作为缩放基准的区域",
@@ -507,16 +588,18 @@
                     "share": "公开",
                     "grid": "网格模式"
                 },
+                "SpellTool": {
+                    "size": "尺寸",
+                    "range": "距离（半径）"
+                },
                 "tools": {
                     "change_mode": "改变模式",
                     "FP": "模拟玩家",
                     "INI": "先攻",
                     "FP_title": "切换模拟玩家",
-                    "INI_title": "切换先攻面板"
-                },
-                "SpellTool": {
-                    "size": "尺寸",
-                    "range": "距离（半径）"
+                    "INI_title": "切换先攻面板",
+                    "LOS": "视野",
+                    "LOS_title": "视野状态（仅限 DM）"
                 },
                 "DiceTool": {
                     "rolling": "掷骰中..",
@@ -525,6 +608,12 @@
                     "empty_history": "尚无掷骰记录",
                     "3D_dice": "3D骰子",
                     "share": "将结果共享给",
+                    "history": "历史记录",
+                    "previous_roll": "上次掷骰",
+                    "details": "详情",
+                    "open_options_title": "显示附加选项",
+                    "toggle_advanced": "切换高级模式",
+                    "toggle_breakdown": "切换骰点分解",
                     "3D_options": {
                         "off": "关闭",
                         "on": "打开",
@@ -534,6 +623,10 @@
                         "all": "所有人",
                         "dm": "DM",
                         "none": "无"
+                    },
+                    "breakdown_options": {
+                        "detailed": "详细",
+                        "simple": "简单"
                     },
                     "advanced": "高级",
                     "advanced_options": {
@@ -580,6 +673,13 @@
                     "title": "标题：",
                     "title_placeholder": "新标签...",
                     "type": "类型：",
+                    "type_description": "（稍后可以修改；便签也可以链接到多个战局或地点。）",
+                    "campaign_note_title": "战局便签",
+                    "campaign_note_body": "与当前整个战局相关的便签。通常用于记录设定、背景故事或个人笔记等。",
+                    "location_note_title": "特定地点便签",
+                    "location_note_body": "仅与当前地点相关的便签。通常用于记录不适用于其他地点的说明（例如：特殊规则、隐藏房间信息等）。",
+                    "no_link_note_title": "无链接便签",
+                    "no_link_note_body": "未链接到任何战局或地点的便签。通常用于素材模板或通用系统规则（例如：怪物数据、状态规则、随机表等）。",
                     "local_note_title": "战局内便签",
                     "local_note_body": "仅与当前战局相关的便签，最常见的便签类型，适用于大多数情况。",
                     "global_note_title": "全局便签",
@@ -632,15 +732,21 @@
                     "back": "返回便签列表",
                     "no_tags": "尚无标签。",
                     "add_tag": "添加标签",
+                    "add_new_tag": "添加新标签",
                     "md_aware": "支持MarkDown语法",
                     "shapes": {
                         "linked": "该便签关联于",
                         "linked_shape": "个图形",
                         "used": "个其中的图形位于该地点",
+                        "and": "及",
                         "listed": "已列于下方。",
                         "add": "添加图形",
                         "go_to_map": "在地图上选择图形",
                         "remove": "移除与图形的关联"
+                    },
+                    "campaigns": {
+                        "link_to_current_campaign": "链接到当前战局",
+                        "link_to_current_location": "链接到当前地点"
                     },
                     "show_icon": "在图形上显示便签图标",
                     "show_icon_title": "在图形左下角显示一个图标，有助于提醒注意一些重要便签。",
@@ -657,7 +763,9 @@
                         "access_title": "设置权限",
                         "shapes": "图形",
                         "shapes_title": "查看该便签关联的图形",
-                        "access": "权限"
+                        "access": "权限",
+                        "campaigns": "战局",
+                        "campaigns_title": "查看有哪些战局和地点链接到了此便签"
                     }
                 },
                 "note_types": {
@@ -698,6 +806,7 @@
         "Ruler": "直尺",
         "Ping": "指示",
         "Map": "缩图",
+        "Light": "光源",
         "Filter": "筛选",
         "Vision": "视野",
         "Spell": "法术",

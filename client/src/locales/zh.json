@@ -119,7 +119,8 @@
             "resetPassword": "重置密码",
             "resetPasswordSuccess": "密码已重置",
             "resetPasswordFailed": "重置密码失败 - 令牌错误或已过期",
-            "resetPasswordNote": "在下面输入您的新密码，然后点击提交以重置您的密码。"
+            "resetPasswordNote": "在下面输入您的新密码，然后点击提交以重置您的密码。",
+            "title": "登录 PlanarAlly"
         }
     },
     "core": {
@@ -260,7 +261,13 @@
                     "properties": {
                         "properties": "属性",
                         "common": "通用",
-                        "advanced": "高级"
+                        "advanced": "高级",
+                        "change_asset": "更改图片",
+                        "block_toggle": {
+                            "no": "否",
+                            "complete": "完全",
+                            "behind": "遮挡"
+                        }
                     },
                     "groups": {
                         "groups": "集群",
@@ -350,7 +357,36 @@
                     "remove_marker": "移除记号",
                     "set_marker": "设置记号",
                     "no_spawn_set_title": "无法移动图形",
-                    "no_spawn_set_text": "目的地暂无刷新点，请先至少创建一个。"
+                    "no_spawn_set_text": "目的地暂无刷新点，请先至少创建一个。",
+                    "open-notes": "查看便签",
+                    "create_character": "创建角色",
+                    "move": "移动至",
+                    "group": "集群",
+                    "create_group": "创建集群",
+                    "enlarge_group": "扩大集群",
+                    "remove_group": "移除集群",
+                    "split_from_group": "从集群中拆分",
+                    "merge_groups": "合并集群",
+                    "expand": "展开",
+                    "collapse": "折叠",
+                    "merging_group_title": "合并集群",
+                    "merging_group_text": "您是否希望保留原始标记？这可能会导致重复的标记！",
+                    "merging_group_no": "否，重置它们",
+                    "add_to_initiative": {
+                        "title": "添加先攻",
+                        "text": "部分选中的图形属于同一个集群。您是否希望为这些图形仅添加一条先攻条目？",
+                        "no": "否，为每个图形创建单独的条目"
+                    },
+                    "choose_spawn_location": {
+                        "title": "选择所需的出生点"
+                    },
+                    "enter_name_for_template": "输入模板名称",
+                    "splitting_group": {
+                        "title": "拆分集群",
+                        "text": "您是否希望保留原始标记？",
+                        "no": "否，重置它们"
+                    },
+                    "open_notes": "打开便签页"
                 }
             },
             "settings": {

@@ -10,6 +10,8 @@ export enum VisionBlock {
 
 export const visionBlocks = [VisionBlock.No, VisionBlock.Complete, VisionBlock.Behind];
 
+export const visionBlockI18nLabels = ["no", "complete", "behind"]
+
 export interface ShapeProperties {
     name: string;
     nameVisible: boolean;

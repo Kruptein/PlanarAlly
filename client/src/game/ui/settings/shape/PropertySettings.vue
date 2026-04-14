@@ -16,7 +16,7 @@ import { accessState } from "../../../systems/access/state";
 import { pickAsset } from "../../../systems/assets/ui";
 import { propertiesSystem } from "../../../systems/properties";
 import { useShapeProps } from "../../../systems/properties/composables";
-import { VisionBlock, visionBlocks } from "../../../systems/properties/types";
+import { VisionBlock, visionBlocks, visionBlockI18nLabels } from "../../../systems/properties/types";
 import { selectedState } from "../../../systems/selected/state";
 
 const { t } = useI18n();
@@ -212,7 +212,7 @@ async function changeAsset(): Promise<void> {
         </div>
         <div v-if="isAsset" class="row">
             <label></label>
-            <button @click.stop="changeAsset">Change asset</button>
+            <button @click.stop="changeAsset">{{ t('game.ui.selection.edit_dialog.properties.change_asset') }}</button>
         </div>
         <div class="spanrow header">{{ t("game.ui.selection.edit_dialog.properties.advanced") }}</div>
         <div class="row">
@@ -223,7 +223,7 @@ async function changeAsset(): Promise<void> {
                 <ToggleGroup
                     id="kind-selector"
                     :model-value="shapeProps.blocksVision"
-                    :options="visionBlocks.map((v) => ({ label: VisionBlock[v], value: v }))"
+                    :options="visionBlocks.map((v) => ({ label: t(`game.ui.selection.edit_dialog.properties.block_toggle.${visionBlockI18nLabels[v]}`), value: v }))"
                     :disabled="!owned"
                     :multi-select="false"
                     active-color="rgba(173, 216, 230, 0.5)"

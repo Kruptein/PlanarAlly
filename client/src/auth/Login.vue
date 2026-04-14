@@ -108,7 +108,7 @@ async function resetPassword(): Promise<void> {
             <form @submit.prevent>
                 <template v-if="mode === Mode.Login">
                     <div id="title">
-                        LOG INTO PLANARALLY
+                        {{ t('auth.login.title') }}
                         <span style="flex-grow: 1"></span>
                         <a href="https://planarally.io" target="blank">
                             <font-awesome-icon icon="book" title="Show documentation" />

@@ -119,7 +119,8 @@
             "resetPassword": "Reset password",
             "resetPasswordSuccess": "Password reset",
             "resetPasswordFailed": "Failed to reset password - Token incorrect or expired",
-            "resetPasswordNote": "Enter your new password below and click submit to reset your password."
+            "resetPasswordNote": "Enter your new password below and click submit to reset your password.",
+            "title": "LOG INTO PLANARALLY"
         }
     },
     "core": {
@@ -260,7 +261,13 @@
                     "properties": {
                         "properties": "Properties",
                         "common": "Common",
-                        "advanced": "Advanced"
+                        "advanced": "Advanced",
+                        "change_asset": "Change asset",
+                        "block_toggle": {
+                            "no": "No",
+                            "complete": "Complete",
+                            "behind": "Behind"
+                        }
                     },
                     "groups": {
                         "groups": "Groups",
@@ -350,7 +357,35 @@
                     "remove_marker": "Remove marker",
                     "set_marker": "Set marker",
                     "no_spawn_set_title": "Could not move shapes",
-                    "no_spawn_set_text": "The destination has no spawn locations configured. Make sure to create at least one by using the context-menu in the destination location."
+                    "no_spawn_set_text": "The destination has no spawn locations configured. Make sure to create at least one by using the context-menu in the destination location.",
+                    "open-notes": "Open notes",
+                    "create_character": "Create character",
+                    "move": "Move",
+                    "group": "Group",
+                    "create_group": "Create group",
+                    "enlarge_group": "Enlarge group",
+                    "remove_group": "Remove group",
+                    "split_from_group": "Split from group",
+                    "merge_groups": "Merge groups",
+                    "expand": "Expand",
+                    "collapse": "Collapse",
+                    "merging_group_title": "Merging group",
+                    "merging_group_text": "Do you wish to keep the original badges? This can lead to duplicate badges!",
+                    "merging_group_no": "No, reset them",
+                    "add_to_initiative": {
+                        "title": "Adding initiative",
+                        "text": "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
+                        "no": "no, create a separate entry for each"
+                    },
+                    "choose_spawn_location": {
+                        "title": "Choose the desired spawn location"
+                    },
+                    "enter_name_for_template": "Enter a name for the template",
+                    "splitting_group": {
+                        "title": "Splitting group",
+                        "text": "Do you wish to keep the original badges?",
+                        "no": "No, reset them"
+                    }
                 }
             },
             "settings": {

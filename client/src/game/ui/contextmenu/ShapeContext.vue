@@ -109,9 +109,9 @@ async function addToInitiative(): Promise<boolean> {
         if (groupsFound.has(group)) {
             // oxlint-disable-next-line no-await-in-loop
             const answer = await modals.confirm(
-                t('game.ui.selection.ShapeContext.add_to_initiative.title'),
-                t('game.ui.selection.ShapeContext.add_to_initiative.text'),
-                { no: t('game.ui.selection.ShapeContext.add_to_initiative.no'), focus: "confirm" },
+                t("game.ui.selection.ShapeContext.add_to_initiative.title"),
+                t("game.ui.selection.ShapeContext.add_to_initiative.text"),
+                { no: t("game.ui.selection.ShapeContext.add_to_initiative.no"), focus: "confirm" },
             );
             if (answer === undefined) return false;
             groupInitiatives = answer;
@@ -218,7 +218,7 @@ async function setLocation(newLocation: number): Promise<boolean> {
             break;
         default: {
             const choices = await modals.selectionBox(
-                t('game.ui.selection.ShapeContext.choose_spawn_location.title'),
+                t("game.ui.selection.ShapeContext.choose_spawn_location.title"),
                 spawnInfo.map((s) => s.name),
             );
             if (choices === undefined) return false;
@@ -281,7 +281,7 @@ function saveTemplate(): boolean {
     // and TEMPLATE_SYNC it to the server, ensuring that we don't actually save the layer/floor
     // afterwards we delete it from the game
 
-    const name = window.prompt(t('game.ui.selection.ShapeContext.enter_name_for_template'));
+    const name = window.prompt(t("game.ui.selection.ShapeContext.enter_name_for_template"));
     if (name === null || name.trim() === "") return false;
 
     const ogCompact = fromSystemForm(ogShape.id);
@@ -383,9 +383,13 @@ function createGroup(): boolean {
 }
 
 async function splitGroup(): Promise<boolean> {
-    const keepBadges = await modals.confirm(t('game.ui.selection.ShapeContext.splitting_group.title'), t('game.ui.selection.ShapeContext.splitting_group.text'), {
-        no: t('game.ui.selection.ShapeContext.splitting_group.no'),
-    });
+    const keepBadges = await modals.confirm(
+        t("game.ui.selection.ShapeContext.splitting_group.title"),
+        t("game.ui.selection.ShapeContext.splitting_group.text"),
+        {
+            no: t("game.ui.selection.ShapeContext.splitting_group.no"),
+        },
+    );
     if (keepBadges === undefined) return false;
     groupSystem.createNewGroupForShapes([...selectedState.raw.selected], keepBadges);
     return true;
@@ -393,10 +397,10 @@ async function splitGroup(): Promise<boolean> {
 
 async function mergeGroups(): Promise<boolean> {
     const keepBadges = await modals.confirm(
-        t('game.ui.selection.ShapeContext.merging_group_title'),
-        t('game.ui.selection.ShapeContext.merging_group_text'),
+        t("game.ui.selection.ShapeContext.merging_group_title"),
+        t("game.ui.selection.ShapeContext.merging_group_text"),
         {
-            no: t('game.ui.selection.ShapeContext.merging_group_no'),
+            no: t("game.ui.selection.ShapeContext.merging_group_no"),
         },
     );
     if (keepBadges === undefined) return false;
@@ -519,31 +523,31 @@ const sections = computed(() => {
         const groupSize = groups.value.size;
         if (groupSize === 0) {
             groupsSection.push({
-                title: t('game.ui.selection.ShapeContext.create_group'),
+                title: t("game.ui.selection.ShapeContext.create_group"),
                 action: createGroup,
             });
         } else if (groupSize === 1) {
             if (hasUngrouped.value) {
                 groupsSection.push({
-                    title: t('game.ui.selection.ShapeContext.enlarge_group'),
+                    title: t("game.ui.selection.ShapeContext.enlarge_group"),
                     action: enlargeGroup,
                 });
             } else {
                 if (hasEntireGroup.value) {
                     groupsSection.push({
-                        title: t('game.ui.selection.ShapeContext.remove_group'),
+                        title: t("game.ui.selection.ShapeContext.remove_group"),
                         action: removeEntireGroup,
                     });
                 } else if (!hasEntireGroup.value) {
                     groupsSection.push({
-                        title: t('game.ui.selection.ShapeContext.split_from_group'),
+                        title: t("game.ui.selection.ShapeContext.split_from_group"),
                         action: splitGroup,
                     });
                 }
             }
         } else {
             groupsSection.push({
-                title: t('game.ui.selection.ShapeContext.merge_groups'),
+                title: t("game.ui.selection.ShapeContext.merge_groups"),
                 action: mergeGroups,
             });
         }
@@ -551,11 +555,11 @@ const sections = computed(() => {
 
     const rootGroupA: Section[] = [
         {
-            title: t('game.ui.selection.ShapeContext.move'),
+            title: t("game.ui.selection.ShapeContext.move"),
             subitems: moveSection,
         },
         {
-            title: t('game.ui.selection.ShapeContext.group'),
+            title: t("game.ui.selection.ShapeContext.group"),
             subitems: groupsSection,
         },
     ];
@@ -564,13 +568,13 @@ const sections = computed(() => {
         const selection = selectedState.reactive.focus!;
         if ((getShape(selection)?.options?.collapsedIds?.length ?? 0) > 0) {
             rootGroupA.push({
-                title: t('game.ui.selection.ShapeContext.expand'),
+                title: t("game.ui.selection.ShapeContext.expand"),
                 action: _expandSelection,
             });
         }
     } else {
         rootGroupA.push({
-            title: t('game.ui.selection.ShapeContext.collapse'),
+            title: t("game.ui.selection.ShapeContext.collapse"),
             action: _collapseSelection,
         });
     }
@@ -606,7 +610,7 @@ const sections = computed(() => {
 
         if (isOwned.value && canHaveCharacter.value) {
             rootGroupB.push({
-                title: t('game.ui.selection.ShapeContext.create_character'),
+                title: t("game.ui.selection.ShapeContext.create_character"),
                 action: createCharacter,
             });
         }
@@ -629,7 +633,7 @@ const sections = computed(() => {
                 action: openEditDialog,
             },
             {
-                title: t('game.ui.selection.ShapeContext.open_notes'),
+                title: t("game.ui.selection.ShapeContext.open_notes"),
                 action: openNotes,
             },
         ]);
@@ -646,8 +650,13 @@ const sections = computed(() => {
 </script>
 
 <template>
-    <ContextMenu :visible="showShapeContextMenu" :left="shapeContextLeft" :top="shapeContextTop" :sections="sections"
-        @cm:close="close" />
+    <ContextMenu
+        :visible="showShapeContextMenu"
+        :left="shapeContextLeft"
+        :top="shapeContextTop"
+        :sections="sections"
+        @cm:close="close"
+    />
 </template>
 
 <style scoped lang="scss">

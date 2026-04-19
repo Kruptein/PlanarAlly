@@ -519,8 +519,7 @@
                         "delete_this_location": "移除该地点",
                         "archive_this_location": "存档此地点",
                         "clone_this_location": "克隆此地点",
-                        "choose_room": "选择房间",
-                        "remove_location": "移除地点"
+                        "choose_room": "选择房间"
                     },
                     "LocationSettings": {
                         "location_settings": "地点设置："
@@ -715,11 +714,7 @@
                     "location_note_title": "特定地点便签",
                     "location_note_body": "仅与当前地点相关的便签。通常用于记录不适用于其他地点的说明（例如：特殊规则、隐藏房间信息等）。",
                     "no_link_note_title": "无链接便签",
-                    "no_link_note_body": "未链接到任何战局或地点的便签。通常用于素材模板或通用系统规则（例如：怪物数据、状态规则、随机表等）。",
-                    "local_note_title": "战局内便签",
-                    "local_note_body": "仅与当前战局相关的便签，最常见的便签类型，适用于大多数情况。",
-                    "global_note_title": "全局便签",
-                    "global_note_body": "在所有战局中均可见的便签，一种特殊类型，可以用于记录例如怪物能力等在多个战局中通用的信息。"
+                    "no_link_note_body": "未链接到任何战局或地点的便签。通常用于素材模板或通用系统规则（例如：怪物数据、状态规则、随机表等）。"
                 },
                 "NoteDialog": {
                     "show": "预览",
@@ -746,8 +741,6 @@
                         "archived_location": "包含留档地点",
                         "local_shapes": "战局内：图形",
                         "note_with_shape": "显示与图形有关联的便签",
-                        "global_note": "显示战局内图形关联的全局便签",
-                        "global_note_title": "全局便签有时因为模板会关联于某个图形，勾选该选项以显示关联于本战局内图形的全局便签。",
                         "active_location_title": "仅显示在当前地点创建的便签。"
                     },
                     "empty_note": "这里还没有便签呢！",

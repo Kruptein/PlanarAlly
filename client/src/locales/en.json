@@ -358,7 +358,7 @@
                     "set_marker": "Set marker",
                     "no_spawn_set_title": "Could not move shapes",
                     "no_spawn_set_text": "The destination has no spawn locations configured. Make sure to create at least one by using the context-menu in the destination location.",
-                    "open-notes": "Open notes",
+                    "open_notes": "Open notes",
                     "create_character": "Create character",
                     "move": "Move",
                     "group": "Group",
@@ -740,8 +740,6 @@
                         "archived_location": "include archived locations",
                         "local_shapes": "Local: Shapes",
                         "note_with_shape": "show notes with shapes",
-                        "global_note": "show global note if local shape",
-                        "global_note_title": "Global notes might be associated with a specific shape due to templating. Toggle this setting if you wish to list global notes that are associated with a shape in the current campaign",
                         "active_location_title": "Show only notes that were made in the current location"
                     },
                     "empty_note": "You don't have any notes yet!",

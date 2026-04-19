@@ -228,8 +228,7 @@
                         "remove_location_yes": "Да, удалить этот регион",
                         "remove_location_no": "пожалуйста не надо",
                         "move_existing_pl": "Перенести существующих игроков в этот регион",
-                        "delete_this_location": "Удалить этот регион",
-                        "remove_location": "Удалить регион"
+                        "delete_this_location": "Удалить этот регион"
                     },
                     "LocationSettings": {
                         "location_settings": "Настройки региона:"

@@ -248,8 +248,7 @@
                         "remove_location_yes": "Sì, rimuovi questa location",
                         "remove_location_no": "No, per favore!",
                         "move_existing_pl": "Sposta i giocatori in questa location",
-                        "delete_this_location": "Elimina questa location",
-                        "remove_location": "Rimuovi Location"
+                        "delete_this_location": "Elimina questa location"
                     },
                     "LocationSettings": {
                         "location_settings": "Impostazioni Location:"

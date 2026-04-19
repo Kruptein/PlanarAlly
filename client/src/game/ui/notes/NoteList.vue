@@ -140,11 +140,12 @@ function filterToServer<T extends number | string>(value: symbol | T): DefaultNo
 async function search(): Promise<void> {
     if (!isOpen.value) return;
     loading.value = true;
+    const shapes = noteState.raw.shapeFilter ? [noteState.raw.shapeFilter] : filters.shapes;
     const [serverNotes, count] = (await socket.emitWithAck("Note.Search", {
         search: searchFilter.value,
         campaign_filter: filterToServer(filters.rooms[0]!),
         location_filter: filters.locations.map(filterToServer),
-        shape_filter: filters.shapes
+        shape_filter: shapes
             .map((s) => (typeof s !== "symbol" ? getGlobalId(s) : s))
             .filter((s) => s !== undefined)
             .map(filterToServer),
@@ -198,7 +199,7 @@ watch([searchFilter], debouncedSearch, {
 });
 
 watch(
-    [filters, pageSize],
+    [filters, pageSize, () => noteState.reactive.shapeFilter],
     async () => {
         currentPage.value = 1;
         await search();

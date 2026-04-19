@@ -228,8 +228,7 @@
                         "remove_location_yes": "Ja, slet placeringen",
                         "remove_location_no": "Vær sød at lade være",
                         "move_existing_pl": "Flyt eksisterende spiller til denne placering",
-                        "delete_this_location": "Slet denne placering",
-                        "remove_location": "Fjern placering"
+                        "delete_this_location": "Slet denne placering"
                     },
                     "LocationSettings": {
                         "location_settings": "Placeringsinstillinger:"

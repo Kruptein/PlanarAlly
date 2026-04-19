@@ -607,11 +607,7 @@
                         "header": "Créer une nouvelle note",
                         "title": "Titre :",
                         "title_placeholder": "Nouvelle note...",
-                        "type": "Type :",
-                        "local_note_title": "Note locale",
-                        "local_note_body": "Une note qui ne concerne que la campagne actuelle. C'est le type le plus courant et à privilégier dans la majorité des cas.",
-                        "global_note_title": "Note globale",
-                        "global_note_body": "Une note visible dans toutes les campagnes. Ce type spécial est utile pour enregistrer des informations communes, comme des statistiques de monstres utilisées dans plusieurs campagnes."
+                        "type": "Type :"
                     },
                     "NoteDialog": {
                         "show": "afficher",
@@ -638,8 +634,6 @@
                             "archived_location": "inclure les lieux archivés",
                             "local_shapes": "Local : Formes",
                             "note_with_shape": "afficher les notes avec des formes",
-                            "global_note": "afficher les notes globales si une forme locale existe",
-                            "global_note_title": "Les notes globales peuvent être associées à une forme via un modèle. Activez ce paramètre pour afficher les notes globales associées à une forme dans la campagne actuelle",
                             "active_location_title": "Afficher uniquement les notes créées dans le lieu actuel"
                         },
                         "empty_note": "Vous n'avez encore aucune note !",

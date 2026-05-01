@@ -138,7 +138,6 @@ function filterToServer<T extends number | string>(value: symbol | T): DefaultNo
 }
 
 async function search(): Promise<void> {
-    if (!isOpen.value) return;
     loading.value = true;
     const shapes = noteState.raw.shapeFilter ? [noteState.raw.shapeFilter] : filters.shapes;
     const [serverNotes, count] = (await socket.emitWithAck("Note.Search", {
@@ -194,9 +193,7 @@ async function updateTagFilter(): Promise<void> {
 
 // **** SEARCH TRIGGERS ****
 
-watch([searchFilter], debouncedSearch, {
-    immediate: true,
-});
+watch([searchFilter], debouncedSearch);
 
 watch(
     [filters, pageSize, () => noteState.reactive.shapeFilter],

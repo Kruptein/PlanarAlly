@@ -50,9 +50,9 @@ export const PlanarAllyModalsPlugin: Plugin = async (App) => {
 };
 
 export function useModal(): Modals {
-    const modals = inject(modalSymbol);
-    if (modals === undefined) {
+    const _modals = inject(modalSymbol);
+    if (_modals === undefined) {
         throw new Error("Could not inject modals");
     }
-    return modals;
+    return _modals;
 }

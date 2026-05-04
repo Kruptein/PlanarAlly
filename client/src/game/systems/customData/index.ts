@@ -1,4 +1,6 @@
 import type { ApiCoreShape, ApiShapeCustomData, ApiShapeCustomDataIdentifier } from "../../../apiTypes";
+import { eventBus } from "../../../core/eventBus";
+import { hooks } from "../../../core/hooks";
 import type { LocalId } from "../../../core/id";
 import { filter, map, some } from "../../../core/iter";
 import { registerSystem } from "../../../core/systems";
@@ -125,7 +127,12 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
         if (element === undefined) return;
+
+        const syncTo = { server: false, ui: true };
+        data = hooks.pipe("pre:customData:update", data, { id, element, syncTo }) as ApiShapeCustomData;
+
         Object.assign(element, data);
+        eventBus.emit("customData:updated", { id, elementId, delta: data, syncTo });
     }
 
     setName(id: LocalId, elementId: ElementId, newName: string, sync: boolean): void {
@@ -136,6 +143,10 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         if (element === undefined || this.getElementId({ ...getIdentifier(element), name: newName }) !== undefined)
             return;
 
+        const syncTo = { server: sync, ui: true };
+        const delta = hooks.pipe("pre:customData:update", { name: newName }, { id, element, syncTo });
+        if (delta.name !== undefined) newName = delta.name;
+
         const ogName = element.name;
         element.name = newName;
         if (element.pending === ShapeCustomDataPending.Leaf) {
@@ -144,23 +155,40 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         } else if (sync) {
             sendShapeCustomDataUpdateName([{ ...getIdentifier(element), name: ogName }, newName]);
         }
+        eventBus.emit("customData:updated", { id, elementId, delta: { name: newName }, syncTo });
     }
 
     updateKind(id: LocalId, elementId: ElementId, newKind: keyof CustomDataKindMap, sync: boolean): void {
         const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
         if (element === undefined) return;
+
+        const syncTo = { server: sync, ui: true };
+        const delta = hooks.pipe("pre:customData:update", { kind: newKind }, { id, element, syncTo });
+        if (delta.kind !== undefined) newKind = delta.kind;
+
         element.kind = newKind;
         element.value = customDataKindMap[newKind].defaultValue;
         if (sync) {
             sendShapeCustomDataUpdate(toApiShapeCustomData(element));
         }
+        eventBus.emit("customData:updated", {
+            id,
+            elementId,
+            delta: { kind: newKind, value: element.value } as Partial<ApiShapeCustomData>,
+            syncTo,
+        });
     }
 
     updateValue(id: LocalId, elementId: ElementId, newValue: unknown, sync: boolean): void {
         const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
         if (element === undefined) return;
+
+        const syncTo = { server: sync, ui: true };
+        const delta = hooks.pipe("pre:customData:update", { value: newValue as any }, { id, element, syncTo });
+        if (delta.value !== undefined) newValue = delta.value;
+
         if (typeof newValue !== typeof element.value) {
             console.error(`Value type mismatch: ${typeof newValue} !== ${typeof element.value}`);
             return;
@@ -169,26 +197,39 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         if (sync) {
             sendShapeCustomDataUpdate(toApiShapeCustomData(element));
         }
+        eventBus.emit("customData:updated", { id, elementId, delta: { value: element.value as any }, syncTo });
     }
 
     setReference(id: LocalId, elementId: ElementId, newReference: string, sync: boolean): void {
         const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
         if (element === undefined) return;
+
+        const syncTo = { server: sync, ui: true };
+        const delta = hooks.pipe("pre:customData:update", { reference: newReference }, { id, element, syncTo });
+        if (delta.reference !== undefined) newReference = delta.reference!;
+
         element.reference = newReference;
         if (sync) {
             sendShapeCustomDataUpdate(toApiShapeCustomData(element));
         }
+        eventBus.emit("customData:updated", { id, elementId, delta: { reference: newReference }, syncTo });
     }
 
     setDescription(id: LocalId, elementId: ElementId, newDescription: string, sync: boolean): void {
         const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const element = target.find((element) => element.id === elementId);
         if (element === undefined) return;
+
+        const syncTo = { server: sync, ui: true };
+        const delta = hooks.pipe("pre:customData:update", { description: newDescription }, { id, element, syncTo });
+        if (delta.description !== undefined) newDescription = delta.description!;
+
         element.description = newDescription;
         if (sync) {
             sendShapeCustomDataUpdate(toApiShapeCustomData(element));
         }
+        eventBus.emit("customData:updated", { id, elementId, delta: { description: newDescription }, syncTo });
     }
 
     getElementId(element: ApiShapeCustomDataIdentifier): ElementId | undefined {
@@ -221,7 +262,7 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         )
             return;
 
-        target.push({
+        const branchElement: UiShapeCustomData = {
             shapeId,
             source: "planarally",
             prefix,
@@ -232,7 +273,9 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
             pending: ShapeCustomDataPending.Branch,
             reference: null,
             description: null,
-        });
+        };
+        target.push(branchElement);
+        eventBus.emit("customData:added", { id, element: branchElement, syncTo: { server: false, ui: true } });
     }
 
     addElement(element: DistributiveOmit<UiShapeCustomData, "id">, sync: boolean): void {
@@ -257,6 +300,7 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         if (sync && element.pending === undefined) {
             sendShapeCustomDataAdd(toApiShapeCustomData(fullElement));
         }
+        eventBus.emit("customData:added", { id, element: fullElement, syncTo: { server: sync, ui: true } });
     }
 
     removeElement(id: LocalId, elementId: ElementId, sync: boolean): void {
@@ -268,6 +312,7 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         if (sync) {
             sendShapeCustomDataRemove(getIdentifier(element));
         }
+        eventBus.emit("customData:removed", { id, elementId, syncTo: { server: sync, ui: true } });
     }
 
     removeBranch(id: LocalId, prefix: string): void {
@@ -278,6 +323,7 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
                 filteredElements.push(element);
             } else {
                 sendShapeCustomDataRemove(getIdentifier(element));
+                eventBus.emit("customData:removed", { id, elementId: element.id, syncTo: { server: true, ui: true } });
             }
         }
         target.splice(0, target.length, ...filteredElements);

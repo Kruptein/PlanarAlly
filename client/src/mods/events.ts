@@ -1,3 +1,5 @@
+import { eventBus } from "../core/eventBus";
+import { hooks } from "../core/hooks";
 import { SYSTEMS, SYSTEMS_STATE } from "../core/systems";
 import { getGlobalId, getShape } from "../game/id";
 import { registerContextMenuEntry, registerTab } from "../game/systems/ui/mods";
@@ -27,6 +29,8 @@ async function gameOpened(mods?: (typeof loadedMods.value)[number][]): Promise<v
                     ui,
                     getGlobalId,
                     getShape,
+                    eventBus,
+                    hooks,
                     ...getDataBlockFunctions(meta.tag),
                 }),
             );

@@ -42,8 +42,10 @@ async function createModals(): Promise<Modals> {
     };
 }
 
+export let modals: Modals | undefined = undefined;
+
 export const PlanarAllyModalsPlugin: Plugin = async (App) => {
-    const modals = await createModals();
+    modals = await createModals();
     App.provide(modalSymbol, modals);
 };
 

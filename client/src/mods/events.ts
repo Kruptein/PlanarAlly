@@ -1,6 +1,8 @@
+import { modals } from "../core/plugins/modals/plugin";
 import { SYSTEMS, SYSTEMS_STATE } from "../core/systems";
 import { getGlobalId, getShape } from "../game/id";
 import { registerContextMenuEntry, registerTab } from "../game/systems/ui/mods";
+import { activateTool } from "../game/tools/tools";
 
 import { getDataBlockFunctions } from "./db";
 
@@ -10,6 +12,13 @@ const ui = {
     shape: {
         registerContextMenuEntry,
         registerTab,
+    },
+    activateTool,
+    modals: {
+        confirm: (title: string, text?: string, buttons?: any) => modals?.confirm(title, text, buttons),
+        prompt: (question: string, title: string, validation?: any) => modals?.prompt(question, title, validation),
+        selectionBox: (title: string, choices: string[], options?: any) =>
+            modals?.selectionBox(title, choices, options),
     },
 };
 

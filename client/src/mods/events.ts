@@ -15,10 +15,10 @@ const ui = {
     },
     activateTool,
     modals: {
-        confirm: (title: string, text?: string, buttons?: any) => modals?.confirm(title, text, buttons),
-        prompt: (question: string, title: string, validation?: any) => modals?.prompt(question, title, validation),
+        confirm: (title: string, text?: string, buttons?: any) => modals.confirm?.(title, text, buttons),
+        prompt: (question: string, title: string, validation?: any) => modals.prompt?.(question, title, validation),
         selectionBox: (title: string, choices: string[], options?: any) =>
-            modals?.selectionBox(title, choices, options),
+            modals.selectionBox?.(title, choices, options),
     },
 };
 

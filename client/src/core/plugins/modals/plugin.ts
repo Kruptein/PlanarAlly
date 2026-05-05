@@ -13,7 +13,7 @@ import type { SelectionBoxFunction } from "./selectionBox";
 
 const modalSymbol: InjectionKey<Modals> = Symbol("PlanarAllyModals");
 
-interface Modals {
+export interface Modals {
     confirm: ConfirmFunction;
     prompt: PromptFunction;
     selectionBox: SelectionBoxFunction;
@@ -42,17 +42,23 @@ async function createModals(): Promise<Modals> {
     };
 }
 
-export const modals = shallowReactive<Partial<Modals>>({});
+const _modals = shallowReactive<Partial<Modals>>({});
+
+export const modals: Modals = {
+    confirm: (...args) => _modals.confirm!(...args),
+    prompt: (...args) => _modals.prompt!(...args),
+    selectionBox: (...args) => _modals.selectionBox!(...args),
+};
 
 export const PlanarAllyModalsPlugin: Plugin = async (App) => {
-    Object.assign(modals, await createModals());
-    App.provide(modalSymbol, modals as Modals);
+    Object.assign(_modals, await createModals());
+    App.provide(modalSymbol, modals);
 };
 
 export function useModal(): Modals {
-    const _modals = inject(modalSymbol);
-    if (_modals === undefined) {
+    const modalsInstance = inject(modalSymbol);
+    if (modalsInstance === undefined) {
         throw new Error("Could not inject modals");
     }
-    return _modals;
+    return modalsInstance;
 }

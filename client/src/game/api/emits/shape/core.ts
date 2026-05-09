@@ -7,6 +7,7 @@ import type {
     ShapeLayerChange,
     ShapeLocationMove,
     ShapeOrder,
+    ShapePositionUpdate,
     ShapeRectSizeUpdate,
     ShapesPositionUpdateList,
     ShapeTextSizeUpdate,
@@ -42,7 +43,8 @@ export const sendShapesMove = wrapSocket<ShapeLocationMove>("Shapes.Location.Mov
 export function sendShapePositionUpdate(shapes: readonly IShape[], temporary: boolean): void {
     const positions = shapes
         .filter((s) => !s.preventSync)
-        .map((s) => ({ uuid: getGlobalId(s.id)!, position: s.getPositionRepresentation() }));
+        .map((s) => ({ uuid: getGlobalId(s.id), position: s.getPositionRepresentation() }))
+        .filter((s): s is ShapePositionUpdate => s.uuid !== undefined);
     if (positions.length > 0) _sendShapePositionUpdate({ shapes: positions, temporary });
 }
 

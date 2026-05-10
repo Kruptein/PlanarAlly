@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-unnecessary-type-parameters
 import type { Socket } from "socket.io-client";
 import { Manager } from "socket.io-client";
 

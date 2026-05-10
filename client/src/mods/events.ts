@@ -17,18 +17,20 @@ async function gameOpened(mods?: (typeof loadedMods.value)[number][]): Promise<v
     // It's timing dependent whether the main Game.vue loads before or after the mod info is transferred over the socket
     // So we wait here for the mods to have loaded, to ensure that they all receive the initGame call
     await modsLoading;
-    const promises = [];
+    const promises: Promise<void>[] = [];
     for (const { id, mod, meta } of mods ?? loadedMods.value) {
         try {
             promises.push(
-                mod.events?.initGame?.({
-                    systems: SYSTEMS,
-                    systemsState: SYSTEMS_STATE,
-                    ui,
-                    getGlobalId,
-                    getShape,
-                    ...getDataBlockFunctions(meta.tag),
-                }),
+                Promise.resolve(
+                    mod.events?.initGame?.({
+                        systems: SYSTEMS,
+                        systemsState: SYSTEMS_STATE,
+                        ui,
+                        getGlobalId,
+                        getShape,
+                        ...getDataBlockFunctions(meta.tag),
+                    }),
+                ),
             );
         } catch (e) {
             console.error("Failed to call initGame on mod", id, "\n", e);
@@ -38,7 +40,9 @@ async function gameOpened(mods?: (typeof loadedMods.value)[number][]): Promise<v
 }
 
 async function locationLoaded(mods?: (typeof loadedMods.value)[number][]): Promise<void> {
-    await Promise.allSettled((mods ?? loadedMods.value).map(({ mod }) => mod.events?.loadLocation?.()));
+    await Promise.allSettled(
+        (mods ?? loadedMods.value).map(({ mod }) => Promise.resolve(mod.events?.loadLocation?.())),
+    );
 }
 
 export const modEvents = {

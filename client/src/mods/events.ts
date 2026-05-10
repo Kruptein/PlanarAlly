@@ -23,13 +23,15 @@ async function gameOpened(mods?: (typeof loadedMods.value)[number][]): Promise<v
                         systems: SYSTEMS,
                         systemsState: SYSTEMS_STATE,
                         ui: {
-                        shape: {
-                            registerContextMenuEntry,
-                            registerTab,
+                            shape: {
+                                registerContextMenuEntry,
+                                registerTab,
+                            },
+                            modals,
                         },
-                        activateTool,
-                        modals,
-                    },
+                        gameplay: {
+                            activateTool,
+                        },
                         getGlobalId,
                         getShape,
                         ...getDataBlockFunctions(meta.tag),

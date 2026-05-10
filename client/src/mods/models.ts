@@ -31,8 +31,10 @@ interface ModLoad {
             registerContextMenuEntry: (entry: (shape: LocalId) => Section[]) => void;
             registerTab: (tab: PanelTab, filter: (shape: LocalId) => boolean) => void;
         };
-        activateTool: (toolName: ToolName) => void;
         modals: Modals;
+    };
+    gameplay: {
+        activateTool: (toolName: ToolName) => void;
     };
 
     getShape: (shape: LocalId) => IShape | undefined;

@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { createApp, inject, nextTick, shallowReactive } from "vue";
+import { createApp, inject, nextTick } from "vue";
 import type { InjectionKey, Plugin } from "vue";
 
 import PluginContainer from "../../components/PluginContainer.vue";
@@ -42,16 +42,10 @@ async function createModals(): Promise<Modals> {
     };
 }
 
-const _modals = shallowReactive<Partial<Modals>>({});
-
-export const modals: Modals = {
-    confirm: (...args) => _modals.confirm!(...args),
-    prompt: (...args) => _modals.prompt!(...args),
-    selectionBox: (...args) => _modals.selectionBox!(...args),
-};
+export let modals: Modals;
 
 export const PlanarAllyModalsPlugin: Plugin = async (App) => {
-    Object.assign(_modals, await createModals());
+    modals = await createModals();
     App.provide(modalSymbol, modals);
 };
 

@@ -64,7 +64,7 @@ export function toLP(x: number, y: number): LocalPoint {
     return { x, y } as LocalPoint;
 }
 
-export function toArrayP<T extends Point>(a: T): [number, number] {
+export function toArrayP(a: Point): [number, number] {
     return [a.x, a.y];
 }
 

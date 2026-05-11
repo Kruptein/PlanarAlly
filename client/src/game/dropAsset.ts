@@ -134,10 +134,7 @@ export async function dropAsset(
         const choices = assetInfo.templates.map((template) => template.name);
         if (choices.length > 0) {
             try {
-                const choice = await selectionBoxFunction!(
-                    i18n.global.t("game.ui.templates.choose").toString(),
-                    choices,
-                );
+                const choice = await selectionBoxFunction!(i18n.global.t("game.ui.templates.choose"), choices);
                 if (choice === undefined || choice.length === 0) return;
                 const template = assetInfo.templates.find((template) => template.name === choice[0]);
                 if (template) {

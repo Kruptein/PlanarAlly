@@ -45,4 +45,10 @@ function off<K extends keyof EventMap>(event: K, handler: EventHandler<K>): void
     if (idx !== -1) handlers.splice(idx, 1);
 }
 
-export const eventBus = { on, once, emit };
+export interface EventBus {
+    on<K extends keyof EventMap>(event: K, handler: EventHandler<K>): () => void;
+    once<K extends keyof EventMap>(event: K, handler: EventHandler<K>): () => void;
+    emit<K extends keyof EventMap>(event: K, payload: EventMap[K]): void;
+}
+
+export const eventBus: EventBus = { on, once, emit };

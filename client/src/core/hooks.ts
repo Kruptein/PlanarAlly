@@ -48,4 +48,13 @@ function untap<K extends keyof HookMap>(hook: K, handler: HookHandler<K>): void 
     if (idx !== -1) hookHandlers.splice(idx, 1);
 }
 
-export const hooks = { tap, pipe };
+export interface HookSystem {
+    tap<K extends keyof HookMap>(hook: K, handler: HookHandler<K>): () => void;
+    pipe<K extends keyof HookMap, V extends HookMap[K]["value"]>(
+        hook: K,
+        initialValue: V,
+        context: HookMap[K]["args"],
+    ): V;
+}
+
+export const hooks: HookSystem = { tap, pipe };

@@ -164,7 +164,11 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         if (element === undefined) return;
 
         const syncTo = { server: sync, ui: true };
-        const delta = hooks.pipe("pre:customData:update", { kind: newKind } as Partial<ApiShapeCustomData>, { id, element, syncTo });
+        const delta = hooks.pipe("pre:customData:update", { kind: newKind } as Partial<ApiShapeCustomData>, {
+            id,
+            element,
+            syncTo,
+        });
         if (delta.kind !== undefined) newKind = delta.kind;
 
         element.kind = newKind;

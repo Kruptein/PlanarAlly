@@ -8,17 +8,14 @@ import { getDataBlockFunctions } from "./db";
 
 import { loadedMods, modsLoading } from ".";
 
-const ui = {
-    shape: {
-        registerContextMenuEntry,
-        registerTab,
-    },
-};
-
 async function gameOpened(mods?: (typeof loadedMods.value)[number][]): Promise<void> {
     // It's timing dependent whether the main Game.vue loads before or after the mod info is transferred over the socket
     // So we wait here for the mods to have loaded, to ensure that they all receive the initGame call
     await modsLoading;
+
+    const { activateTool } = await import("../game/tools/tools");
+    const { modals } = await import("../core/plugins/modals/plugin");
+
     const promises: Promise<void>[] = [];
     for (const { id, mod, meta } of mods ?? loadedMods.value) {
         try {
@@ -27,7 +24,16 @@ async function gameOpened(mods?: (typeof loadedMods.value)[number][]): Promise<v
                     mod.events?.initGame?.({
                         systems: SYSTEMS,
                         systemsState: SYSTEMS_STATE,
-                        ui,
+                        ui: {
+                            shape: {
+                                registerContextMenuEntry,
+                                registerTab,
+                            },
+                            modals,
+                        },
+                        gameplay: {
+                            activateTool,
+                        },
                         getGlobalId,
                         getShape,
                         eventBus,

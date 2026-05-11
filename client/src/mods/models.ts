@@ -3,9 +3,11 @@ import type { Section } from "../core/components/contextMenu/types";
 import type { EventBus } from "../core/eventBus";
 import type { HookSystem } from "../core/hooks";
 import { type GlobalId, type LocalId } from "../core/id";
+import type { Modals } from "../core/plugins/modals/plugin";
 import type { SYSTEMS_STATE } from "../core/systems";
 import type { System } from "../core/systems/models";
 import type { IShape } from "../game/interfaces/shape";
+import type { ToolName } from "../game/models/tools";
 import type { PanelTab } from "../game/systems/ui/types";
 
 import type { ModDataBlockFunctions } from "./db";
@@ -27,6 +29,10 @@ interface ModLoad {
             registerContextMenuEntry: (entry: (shape: LocalId) => Section[]) => void;
             registerTab: (tab: PanelTab, filter: (shape: LocalId) => boolean) => void;
         };
+        modals: Modals;
+    };
+    gameplay: {
+        activateTool: (toolName: ToolName) => void;
     };
 
     getShape: (shape: LocalId) => IShape | undefined;

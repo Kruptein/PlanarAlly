@@ -13,7 +13,7 @@ import type { SelectionBoxFunction } from "./selectionBox";
 
 const modalSymbol: InjectionKey<Modals> = Symbol("PlanarAllyModals");
 
-interface Modals {
+export interface Modals {
     confirm: ConfirmFunction;
     prompt: PromptFunction;
     selectionBox: SelectionBoxFunction;
@@ -42,15 +42,17 @@ async function createModals(): Promise<Modals> {
     };
 }
 
+export let modals: Modals;
+
 export const PlanarAllyModalsPlugin: Plugin = async (App) => {
-    const modals = await createModals();
+    modals = await createModals();
     App.provide(modalSymbol, modals);
 };
 
 export function useModal(): Modals {
-    const modals = inject(modalSymbol);
-    if (modals === undefined) {
+    const modalsInstance = inject(modalSymbol);
+    if (modalsInstance === undefined) {
         throw new Error("Could not inject modals");
     }
-    return modals;
+    return modalsInstance;
 }

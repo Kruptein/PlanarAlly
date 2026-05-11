@@ -17,7 +17,6 @@ import "../systems/notes/events";
 import "../systems/room/events";
 import "../systems/trackers/events";
 import "../systems/variants/events";
-
 import "./events/client";
 import "./events/floor";
 import "./events/initiative";

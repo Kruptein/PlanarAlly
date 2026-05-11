@@ -68,7 +68,8 @@ export function dropId(id: LocalId): void {
 
     const gId = getGlobalId(id);
     if (gId) reservedIds.delete(gId);
-    // oxlint-disable-next-line typescript/no-array-delete - we're leaving gaps very deliberately
+    // we're leaving gaps very deliberately
+    // oxlint-disable-next-line typescript/no-array-delete
     delete uuids[id];
     idMap.delete(id);
     freeIds.push(id);

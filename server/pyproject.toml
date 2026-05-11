@@ -6,14 +6,14 @@ readme = "README.md"
 requires-python = ">=3.13.2"
 
 dependencies = [
-    "aiohttp[speedups]==3.13.4",
+    "aiohttp[speedups]==3.13.5",
     "aiohttp-security==0.5.0",
     "aiohttp-session==2.12.1",
     "bcrypt==5.0.0",
-    "cryptography==46.0.6",
+    "cryptography==48.0.0",
     "peewee==3.19.0",
-    "pillow==12.1.1",
-    "pydantic[email]==2.12.5",
+    "pillow==12.2.0",
+    "pydantic[email]==2.13.4",
     "python-engineio==4.13.1",
     "python-socketio==5.16.1",
     "redmail==0.6.0",
@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pydantic-to-typescript==2.0.0", "ruff==0.15.8"]
+dev = ["pydantic-to-typescript==2.0.0", "ruff==0.15.12"]
 
 [tool.ruff]
 line-length = 120

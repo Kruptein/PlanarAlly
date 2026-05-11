@@ -129,7 +129,7 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         if (element === undefined) return;
 
         const syncTo = { server: false, ui: true };
-        data = hooks.pipe("pre:customData:update", data, { id, element, syncTo }) as ApiShapeCustomData;
+        data = hooks.pipe("pre:customData:update", data, { id, element, syncTo });
 
         Object.assign(element, data);
         eventBus.emit("customData:updated", { id, elementId, delta: data, syncTo });
@@ -164,7 +164,7 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         if (element === undefined) return;
 
         const syncTo = { server: sync, ui: true };
-        const delta = hooks.pipe("pre:customData:update", { kind: newKind }, { id, element, syncTo });
+        const delta = hooks.pipe("pre:customData:update", { kind: newKind } as Partial<ApiShapeCustomData>, { id, element, syncTo });
         if (delta.kind !== undefined) newKind = delta.kind;
 
         element.kind = newKind;

@@ -1,7 +1,8 @@
 import { defineAsyncComponent, type Component } from "vue";
 
 import type { ApiShapeCustomData } from "../../../apiTypes";
-import type { NumberId } from "../../../core/id";
+import type { LocalId, NumberId } from "../../../core/id";
+import type { Sync } from "../../../core/models/types";
 
 const DiceFormat = defineAsyncComponent(() => import("./components/DiceFormat.vue"));
 const ToggleFormat = defineAsyncComponent(() => import("./components/ToggleFormat.vue"));
@@ -69,3 +70,20 @@ export const customDataKindMap: CustomDataKindMap = {
         }),
     },
 };
+
+declare module "../../../core/eventBus" {
+    interface EventMap {
+        "customData:added": { id: LocalId; element: UiShapeCustomData; syncTo: Sync };
+        "customData:updated": { id: LocalId; elementId: ElementId; delta: Partial<ApiShapeCustomData>; syncTo: Sync };
+        "customData:removed": { id: LocalId; elementId: ElementId; syncTo: Sync };
+    }
+}
+
+declare module "../../../core/hooks" {
+    interface HookMap {
+        "pre:customData:update": {
+            args: { id: LocalId; element: UiShapeCustomData; syncTo: Sync };
+            value: Partial<ApiShapeCustomData> | ApiShapeCustomData;
+        };
+    }
+}

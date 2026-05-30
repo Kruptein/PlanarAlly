@@ -85,14 +85,15 @@ function startDrag(event: DragEvent, file: AssetEntryId): void {
 
     const assetInfo = assetState.raw.entryIdMap.get(file);
 
-    if (assetInfo?.assetId !== undefined) {
+    if (assetInfo?.asset?.id !== undefined) {
+        const asset = assetInfo.asset;
         // Add file info in case we drop it on the canvas
         event.dataTransfer.setData(
             "text/plain",
             JSON.stringify({
-                assetHash: assetInfo.fileHash,
+                assetHash: asset.fileHash,
                 entryId: file,
-                assetId: assetInfo.assetId,
+                assetId: asset.id,
             } as DropAssetInfo),
         );
     }

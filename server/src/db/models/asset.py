@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Literal, cast
 
 from peewee import IntegerField, TextField
 
-
+from ...api.models.asset import ApiAssetCore
 from ...logs import logger
 from ...storage import get_storage
 from ...thumbnail import generate_thumbnail_for_asset
@@ -46,6 +46,15 @@ class Asset(BaseDbModel):
 
     def has_entry_with_access(self, user: User, right: Literal["edit", "view", "all"]) -> bool:
         return any(entry.can_be_accessed_by(user, right=right) for entry in self.entries)
+    
+    def as_pydantic(self) -> ApiAssetCore:
+        return ApiAssetCore(
+            id=self.id,
+            file_hash=self.file_hash,
+            kind=self.kind,
+            has_templates=self.templates.count() > 0,
+            has_extra_data=self.kind_specific_data is not None,
+        )
 
     class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         indexes = ((("file_hash",), True),)

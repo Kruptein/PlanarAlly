@@ -120,9 +120,9 @@ async function changeAsset(): Promise<void> {
     if (entryId === null) return;
 
     const assetInfo = assetState.raw.entryIdMap.get(entryId);
-    if (assetInfo === undefined || assetInfo.fileHash === null || assetInfo.assetId === null) return;
+    if (assetInfo === undefined || assetInfo.asset === null) return;
 
-    (shape as IAsset).setImage(assetInfo.assetId, assetInfo.fileHash, true);
+    (shape as IAsset).setImage(assetInfo.asset.id, assetInfo.asset.fileHash, true);
 }
 </script>
 

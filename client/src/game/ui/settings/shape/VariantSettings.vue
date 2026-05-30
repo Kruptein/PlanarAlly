@@ -35,11 +35,11 @@ async function addVariant(): Promise<void> {
     const assetId = await pickAsset();
     if (assetId === null) return;
     const assetInfo = assetState.raw.entryIdMap.get(assetId);
-    if (assetInfo === undefined || assetInfo.assetId === null) return;
+    if (assetInfo === undefined || assetInfo.asset === null) return;
 
     variantsSystem.create(shape.value.id, {
         name: null,
-        assetId: assetInfo.assetId,
+        assetId: assetInfo.asset.id,
         width: shape.value.w,
         height: shape.value.h,
     });

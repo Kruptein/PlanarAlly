@@ -26,15 +26,20 @@ export type InitiativeEffectUpdateTiming = 0 | 1;
 export type DefaultNoteFilter = "NO_FILTER" | "ACTIVE_FILTER" | "NO_LINK_FILTER";
 export type InitiativeDirection = -1 | 0 | 1;
 
+export interface ApiAssetCore {
+  id: AssetId;
+  fileHash: string;
+  kind: string;
+  has_templates: boolean;
+  has_extra_data: boolean;
+}
 export interface ApiAssetEntry {
   id: AssetEntryId;
   name: string;
   owner: string;
-  assetId: AssetId | null;
-  fileHash: string | null;
+  asset: ApiAssetCore | null;
   children: ApiAssetEntry[] | null;
   shares: ApiAssetShare[];
-  has_templates: boolean;
 }
 export interface ApiAssetShare {
   user: string;

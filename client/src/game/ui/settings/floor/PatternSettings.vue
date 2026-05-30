@@ -29,9 +29,9 @@ async function setPatternImage(): Promise<void> {
     if (assetId === null) return;
 
     const assetInfo = assetState.raw.entryIdMap.get(assetId);
-    if (assetInfo === undefined || assetInfo.fileHash === null) return;
+    if (assetInfo === undefined || assetInfo.asset === null) return;
 
-    emit("update:pattern", patternToString({ ...backgroundPattern.value, hash: assetInfo.fileHash }));
+    emit("update:pattern", patternToString({ ...backgroundPattern.value, hash: assetInfo.asset.fileHash }));
 }
 
 function setPatternData(data: { offsetX?: Event; offsetY?: Event; scaleX?: Event; scaleY?: Event }): void {

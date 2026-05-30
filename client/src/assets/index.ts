@@ -141,16 +141,16 @@ class AssetSystem implements System {
 
     // ASSET
 
-    addAsset(asset: ApiAssetEntry, parent?: AssetEntryId): void {
+    addAsset(entry: ApiAssetEntry, parent?: AssetEntryId): void {
         if (parent !== undefined && parent !== assetState.currentFolder.value) return;
 
-        $.entryIdMap.set(asset.id, asset);
+        $.entryIdMap.set(entry.id, entry);
         let _target: "folders" | "files" = "folders";
-        if (asset.fileHash !== null) {
+        if (entry.asset !== null) {
             _target = "files";
         }
         const target = $[_target];
-        target.push(asset.id);
+        target.push(entry.id);
 
         const sorted_target = target
             .map((i) => raw.entryIdMap.get(i))

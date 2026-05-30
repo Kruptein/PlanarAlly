@@ -87,7 +87,7 @@ const canShortcut = computed(() => {
     if (assetState.reactive.selected.length !== 1) return false;
     if (contextAsset.value === undefined) return false;
     if (assetGameState.reactive.shortcuts.includes(contextAsset.value.id)) return false;
-    return contextAsset.value.fileHash === null;
+    return contextAsset.value.asset === null;
 });
 
 const canRemoveShortcut = computed(() => {
@@ -129,7 +129,7 @@ const canPick = computed(() => {
     return (
         assetState.reactive.selected.length === 1 &&
         assetGameState.reactive.picker !== null &&
-        assetState.reactive.entryIdMap.get(selection)?.fileHash !== null
+        assetState.reactive.entryIdMap.get(selection)?.asset !== null
     );
 });
 

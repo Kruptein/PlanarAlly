@@ -49,14 +49,14 @@ async function uploadSvg(): Promise<void> {
     if (assetId === null) return;
 
     const assetInfo = assetState.raw.entryIdMap.get(assetId);
-    if (assetInfo === undefined || assetInfo.fileHash === null) return;
+    if (assetInfo === undefined || assetInfo.asset === null) return;
 
     const shape = getShape(activeShapeStore.state.id!);
     if (shape === undefined) return;
     if (shape.options === undefined) {
         shape.options = {};
     }
-    await activeShapeStore.setSvgAsset(assetInfo.fileHash, SERVER_SYNC);
+    await activeShapeStore.setSvgAsset(assetInfo.asset.fileHash, SERVER_SYNC);
 }
 
 async function removeSvg(): Promise<void> {

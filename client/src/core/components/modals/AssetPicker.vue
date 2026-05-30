@@ -33,8 +33,8 @@ function setLogo(): void {
     const entryId = assetState.reactive.selected.at(0);
     if (entryId === undefined) return;
     const assetInfo = assetState.raw.entryIdMap.get(entryId);
-    if (assetInfo === undefined || assetInfo.fileHash === null || assetInfo.assetId === null) return;
-    emit("submit", { id: assetInfo.assetId, fileHash: assetInfo.fileHash });
+    if (assetInfo === undefined || assetInfo.asset === null) return;
+    emit("submit", { id: assetInfo.asset.id, fileHash: assetInfo.asset.fileHash });
 }
 </script>
 

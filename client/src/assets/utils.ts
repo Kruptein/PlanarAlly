@@ -5,7 +5,7 @@ import type { AssetEntryId } from "./models";
 import { assetState } from "./state";
 
 export function getImageSrcFromAssetId(file: AssetEntryId, options?: { thumbnailFormat?: string }): string {
-    const fileHash = assetState.raw.entryIdMap.get(file)!.fileHash ?? "";
+    const fileHash = assetState.raw.entryIdMap.get(file)!.asset?.fileHash ?? "";
     return getImageSrcFromHash(fileHash, options);
 }
 

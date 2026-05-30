@@ -43,15 +43,13 @@ def transform_asset_entry(
     if __share_info is None and not __recursed:
         share_info = AssetShare.get_or_none(entry=entry, user=user)
 
-    pydantic_asset = ApiAsset(
+    pydantic_asset = ApiAssetEntry(
         id=entry.id,
         owner=entry.owner.name,
         name=entry.name if share_info is None else share_info.name,
-        assetId=entry.asset.id if entry.asset else None,
-        fileHash=entry.asset.file_hash if entry.asset else None,
         children=pydantic_children,
         shares=[],
-        has_templates=entry.asset.templates.count() > 0 if entry.asset else False,
+        asset=entry.asset.as_pydantic() if entry.asset else None,
     )
 
     if share_info is None or share_info.right == "edit":

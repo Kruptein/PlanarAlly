@@ -30,8 +30,8 @@ export interface ApiAssetCore {
   id: AssetId;
   fileHash: string;
   kind: string;
-  has_templates: boolean;
-  has_extra_data: boolean;
+  hasTemplates: boolean;
+  hasExtraData: boolean;
 }
 export interface ApiAssetEntry {
   id: AssetEntryId;

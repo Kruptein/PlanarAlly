@@ -5,16 +5,19 @@ import type {
     ApiAssetInodeMove,
     ApiAssetRemoveShare,
     ApiAssetRename,
+    ApiAssetCore,
 } from "../apiTypes";
 import { generateSocketHelpers } from "../core/socket";
 
-import type { AssetEntryId } from "./models";
+import type { AssetEntryId, AssetId } from "./models";
 import { socket } from "./socket";
 
 const { wrapSocket, wrapSocketWithDataAck } = generateSocketHelpers(socket);
 
 export const getFolder = wrapSocketWithDataAck<AssetEntryId | undefined, ApiAssetFolder>("Folder.Get");
 export const getFolderByPath = wrapSocketWithDataAck<string, ApiAssetFolder>("Folder.GetByPath");
+export const getAsset = wrapSocketWithDataAck<AssetId, ApiAssetCore | undefined>("Asset.Get");
+export const getAssetExtraData = wrapSocketWithDataAck<AssetId, unknown | undefined>("Asset.GetExtraData");
 export const sendInodeMove = wrapSocket<ApiAssetInodeMove>("Inode.Move");
 export const sendAssetRename = wrapSocket<ApiAssetRename>("Asset.Rename");
 export const sendAssetRemove = wrapSocket<AssetEntryId>("Asset.Remove");

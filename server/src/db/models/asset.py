@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Literal, cast
 
-from peewee import IntegerField, TextField
+from peewee import BlobField, IntegerField, TextField
 
 from ...api.models.asset import ApiAssetCore
 from ...logs import logger
@@ -29,6 +29,11 @@ class Asset(BaseDbModel):
     extension = cast(str | None, TextField(null=True))
     file_size = cast(int | None, IntegerField(null=True))
 
+    # Depending on the asset type, additional data might be stored on the DB level.
+    # For regular files, this is empty
+    # For ddraft files, a JSON object keyed by user id is stored, with an array of ddraft templates as the value
+    kind_specific_data = cast(bytes | None, BlobField(null=True))
+
     def __repr__(self):
         return f"<Asset {self.file_hash}>"
 
@@ -50,10 +55,10 @@ class Asset(BaseDbModel):
     def as_pydantic(self) -> ApiAssetCore:
         return ApiAssetCore(
             id=self.id,
-            file_hash=self.file_hash,
+            fileHash=self.file_hash,
             kind=self.kind,
-            has_templates=self.templates.count() > 0,
-            has_extra_data=self.kind_specific_data is not None,
+            hasTemplates=self.templates.count() > 0,
+            hasExtraData=self.kind_specific_data is not None,
         )
 
     class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]

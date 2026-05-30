@@ -1,4 +1,5 @@
 import hashlib
+import json
 from typing import Any, Literal
 
 from aiohttp import web
@@ -167,6 +168,34 @@ async def move_inode(sid: str, raw_data: Any):
     await update_live_game(user)
 
 
+@sio.on("Asset.Get", namespace=ASSET_NS)
+@auth.login_required(app, sio, "asset")
+async def get_asset(sid: str, asset_id: int):
+    user = asset_state.get_user(sid)
+    asset = Asset.get_or_none(asset_id)
+    if not asset:
+        return
+    if not asset.has_entry_with_access(user, right="view"):
+        return
+    return asset.as_pydantic()
+
+
+@sio.on("Asset.GetExtraData", namespace=ASSET_NS)
+@auth.login_required(app, sio, "asset")
+async def get_asset_extra_data(sid: str, asset_id: int):
+    user = asset_state.get_user(sid)
+    asset = Asset.get_or_none(asset_id)
+    if not asset or asset.kind != "ddraft":
+        return
+    if not asset.has_entry_with_access(user, right="view"):
+        return
+    ddraft_data = json.loads(asset.kind_specific_data)
+    user_id = str(user.id)
+    if not ddraft_data[user_id]:
+        return
+    return ddraft_data[user_id][-1]
+
+
 @sio.on("Asset.Rename", namespace=ASSET_NS)
 @auth.login_required(app, sio, "asset")
 async def assetmgmt_rename(sid: str, raw_data: Any):
@@ -332,11 +361,11 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
         )
         return
 
-    if upload_data.name.endswith(".dd2vtt"):
+    if upload_data.name.endswith(".dd2vtt") or upload_data.name.endswith(".uvtt"):
         *name, extension = upload_data.name.split(".")
         image, template = get_ddraft_data(data)
         asset, entry, target = await handle_regular_file(upload_data, image, "ddraft", ".".join(name), extension, sid)
-        # todo: add ddraft template to asset
+        add_ddraft_data_to_asset(asset, template, user)
     else:
         extension = None
         cleaned_name = upload_data.name
@@ -358,6 +387,20 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
     await update_live_game(user)
 
     return asset_dict
+
+
+def add_ddraft_data_to_asset(asset: Asset, template: dict, user: User):
+    if asset.kind_specific_data:
+        data = json.loads(asset.kind_specific_data)
+    else:
+        data = {}
+    user_id = str(user.id)
+    if user_id not in data:
+        data[user_id] = []
+    data[user_id].append(template)
+    # todo: do some check for duplicates?
+    asset.kind_specific_data = json.dumps(data)
+    asset.save()
 
 
 @sio.on("Asset.Search", namespace=ASSET_NS)

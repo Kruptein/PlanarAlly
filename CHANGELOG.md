@@ -28,6 +28,12 @@ tech changes will usually be stripped from release notes for the public
 -   [tech] DB storage of asset data is reworked
     -   Asset size is now also stored in DB for easier user total size calculation
 
+### Fixed
+
+-   Dungeondraft file handling
+    -   This was broken since a recent change to how templates/assets work
+    -   dd2vtt (or uvtt) files will have to be removed and reuploaded from your asset manager   
+
 ### Removed
 
 -   [DM] Client viewport visualization

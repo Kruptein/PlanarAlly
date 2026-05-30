@@ -18,8 +18,8 @@ class ApiAssetCore(TypeIdModel):
     id: int = Field(json_schema_extra={"typeId": "AssetId"})
     fileHash: str
     kind: str
-    has_templates: bool
-    has_extra_data: bool
+    hasTemplates: bool
+    hasExtraData: bool
 
 
 class ApiAssetEntry(TypeIdModel):

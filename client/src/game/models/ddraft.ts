@@ -6,7 +6,7 @@ interface DDraftCoord {
 interface DDraftPortal {
     position: DDraftCoord;
     bounds: DDraftCoord[];
-    rotation: number;
+    rotation: number; // in radians
     closed: boolean;
     freestanding: boolean;
 }
@@ -26,9 +26,15 @@ interface DDraftLight {
 }
 
 export interface DDraftData {
-    ddraft_format: string;
-    ddraft_resolution: DDraftResolution;
-    ddraft_lights: DDraftLight[];
-    ddraft_line_of_sight: DDraftCoord[][];
-    ddraft_portals: DDraftPortal[];
+    format: number;
+    resolution: DDraftResolution;
+    line_of_sight: DDraftCoord[][];
+    objects_line_of_sight?: DDraftCoord[][];
+    portals: DDraftPortal[];
+    environment: {
+        // these are not supported atm
+        baked_lighting: boolean;
+        ambient_light: string;
+    };
+    lights: DDraftLight[];
 }

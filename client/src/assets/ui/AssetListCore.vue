@@ -251,7 +251,7 @@ async function showRenameUI(id: AssetEntryId): Promise<void> {
                 <img v-else :src="getImageSrcFromAssetId(file.id)" alt="" loading="lazy" />
                 <div class="asset-icons">
                     <font-awesome-icon v-if="isShared(file)" icon="user-tag" />
-                    <font-awesome-icon v-if="file.asset.has_templates" icon="floppy-disk" />
+                    <font-awesome-icon v-if="file.asset.hasTemplates" icon="floppy-disk" />
                 </div>
                 <div
                     :contenteditable="file.id === currentRenameAsset"

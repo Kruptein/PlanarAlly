@@ -1,6 +1,6 @@
 import { computed } from "vue";
 
-import type { ApiAssetEntry } from "../apiTypes";
+import type { ApiAssetCore, ApiAssetEntry } from "../apiTypes";
 import { buildState } from "../core/systems/state";
 
 import type { AssetEntryId, AssetId } from "./models";
@@ -10,7 +10,7 @@ interface ReactiveAssetState {
     files: AssetEntryId[];
     folders: AssetEntryId[];
     entryIdMap: Map<AssetEntryId, ApiAssetEntry>;
-    assetIdMap: Map<AssetId, ApiAssetEntry>;
+    assetIdMap: Map<AssetId, ApiAssetCore>;
     selected: AssetEntryId[];
     // We track names here, as the full breadcrumb Asset info might not be known in idMap
     folderPath: { id: AssetEntryId; name: string }[];

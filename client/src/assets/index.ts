@@ -1,13 +1,21 @@
 import { useToast } from "vue-toastification";
 
-import type { ApiAssetEntry, ApiAssetUpload } from "../apiTypes";
+import type { ApiAssetCore, ApiAssetEntry, ApiAssetUpload } from "../apiTypes";
 import { registerSystem } from "../core/systems";
 import type { System, SystemClearReason } from "../core/systems/models";
 import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
 
-import { sendAssetRemove, sendAssetRename, getFolder, sendInodeMove, getFolderPath, getFolderByPath } from "./emits";
-import type { AssetEntryId } from "./models";
+import {
+    sendAssetRemove,
+    sendAssetRename,
+    getFolder,
+    sendInodeMove,
+    getFolderPath,
+    getFolderByPath,
+    getAsset,
+} from "./emits";
+import type { AssetEntryId, AssetId } from "./models";
 import { socket } from "./socket";
 import { assetState } from "./state";
 // oxlint-disable-next-line import/no-unassigned-import
@@ -118,6 +126,15 @@ class AssetSystem implements System {
             }
         }
         $.loadingFolder = false;
+    }
+
+    async getAssetInfo(id: AssetId): Promise<ApiAssetCore | undefined> {
+        const asset = $.assetIdMap.get(id);
+        if (asset) return asset;
+        const serverData = await getAsset(id);
+        if (!serverData) return undefined;
+        $.assetIdMap.set(id, serverData);
+        return serverData;
     }
 
     // SELECTED

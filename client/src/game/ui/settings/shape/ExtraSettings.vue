@@ -48,7 +48,7 @@ async function uploadSvg(): Promise<void> {
     const assetId = await pickAsset();
     if (assetId === null) return;
 
-    const assetInfo = assetState.raw.idMap.get(assetId);
+    const assetInfo = assetState.raw.entryIdMap.get(assetId);
     if (assetInfo === undefined || assetInfo.fileHash === null) return;
 
     const shape = getShape(activeShapeStore.state.id!);

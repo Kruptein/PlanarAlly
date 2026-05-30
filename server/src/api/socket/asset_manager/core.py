@@ -11,10 +11,10 @@ from ....db.models.asset_entry import AssetEntry
 from ....db.models.user import User
 from ....logs import logger
 from ....state.asset import asset_state
-from ....transform.to_api.asset import transform_asset
+from ....transform.to_api.asset import transform_asset_entry
 from ....storage import get_storage
 from ...models.asset import (
-    ApiAsset,
+    ApiAssetEntry,
     ApiAssetAdd,
     ApiAssetCreateFolder,
     ApiAssetFolder,
@@ -55,11 +55,11 @@ def _get_folder(entry: AssetEntry, user: User, *, path: list[int] | None):
     if entry.can_be_accessed_by(user, right="all"):
         shared_parent = None
         if sp := entry.get_shared_parent(user):
-            shared_parent = transform_asset(sp.entry, user)
+            shared_parent = transform_asset_entry(sp.entry, user)
 
         return (
             ApiAssetFolder(
-                folder=transform_asset(entry, user, children=True),
+                folder=transform_asset_entry(entry, user, children=True),
                 sharedParent=shared_parent,
                 sharedRight=None if sp is None else sp.right,
                 path=path,
@@ -122,7 +122,7 @@ async def create_folder(sid: str, raw_data: Any):
     entry = AssetEntry.create(name=data.name, owner=user, parent=data.parent)
     await sio.emit(
         "Asset.Add",
-        ApiAssetAdd(asset=transform_asset(entry, user), parent=data.parent),
+        ApiAssetAdd(asset=transform_asset_entry(entry, user), parent=data.parent),
         room=sid,
         namespace=ASSET_NS,
     )
@@ -209,14 +209,14 @@ async def assetmgmt_rm(sid: str, data: int):
                 return
 
     if remove_asset:
-        asset_model = transform_asset(entry, user, children=True, recursive=True)
+        asset_model = transform_asset_entry(entry, user, children=True, recursive=True)
         entry.delete_instance()
         await cleanup_assets([asset_model])
 
     await update_live_game(user)
 
 
-async def cleanup_assets(entries: list[ApiAsset]):
+async def cleanup_assets(entries: list[ApiAssetEntry]):
     for entry in entries:
         if entry.assetId:
             asset = Asset.get_by_id(entry.assetId)
@@ -258,7 +258,7 @@ async def handle_regular_file(
         if created:
             await sio.emit(
                 "Asset.Add",
-                ApiAssetAdd(asset=transform_asset(entry, user), parent=target),
+                ApiAssetAdd(asset=transform_asset_entry(entry, user), parent=target),
                 room=sid,
                 namespace=ASSET_NS,
             )
@@ -347,7 +347,7 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
 
         asset, entry, target = await handle_regular_file(upload_data, data, "regular", cleaned_name, extension, sid)
 
-    asset_dict = transform_asset(entry, user)
+    asset_dict = transform_asset_entry(entry, user)
     await sio.emit(
         "Asset.Upload.Finish",
         ApiAssetAdd(asset=asset_dict, parent=target),
@@ -378,7 +378,7 @@ async def assetmgmt_search(sid: str, query: str, include_shared_assets: bool):
             .order_by(AssetEntry.name)
         )
 
-    return [transform_asset(entry, user) for entry in entries]
+    return [transform_asset_entry(entry, user) for entry in entries]
 
 
 @sio.on("Asset.FolderPath", namespace=ASSET_NS)

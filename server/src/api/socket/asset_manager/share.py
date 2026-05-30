@@ -7,7 +7,7 @@ from ....db.models.asset_share import AssetShare
 from ....db.models.user import User
 from ....logs import logger
 from ....state.asset import asset_state
-from ....transform.to_api.asset import transform_asset
+from ....transform.to_api.asset import transform_asset_entry
 from ...helpers import send_log_toast
 from ...models.asset import ApiAssetAdd
 from ...models.asset.share import ApiAssetCreateShare, ApiAssetRemoveShare
@@ -64,7 +64,7 @@ async def share_asset(sid: str, raw_data: Any):
         await sio.emit(
             "Asset.Add",
             ApiAssetAdd(
-                asset=transform_asset(entry, user=target_user),
+                asset=transform_asset_entry(entry, user=target_user),
                 parent=asset_share.parent_id,
             ),
             room=psid,

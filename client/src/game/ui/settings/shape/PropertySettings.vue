@@ -119,7 +119,7 @@ async function changeAsset(): Promise<void> {
     const entryId = await pickAsset();
     if (entryId === null) return;
 
-    const assetInfo = assetState.raw.idMap.get(entryId);
+    const assetInfo = assetState.raw.entryIdMap.get(entryId);
     if (assetInfo === undefined || assetInfo.fileHash === null || assetInfo.assetId === null) return;
 
     (shape as IAsset).setImage(assetInfo.assetId, assetInfo.fileHash, true);

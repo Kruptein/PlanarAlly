@@ -83,7 +83,7 @@ function startDrag(event: DragEvent, file: AssetEntryId): void {
         event.dataTransfer.setDragImage(image, 0, 0);
     }
 
-    const assetInfo = assetState.raw.idMap.get(file);
+    const assetInfo = assetState.raw.entryIdMap.get(file);
 
     if (assetInfo?.assetId !== undefined) {
         // Add file info in case we drop it on the canvas

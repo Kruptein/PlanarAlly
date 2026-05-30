@@ -1,15 +1,18 @@
 import type { DeepReadonly } from "vue";
 
-import type { ApiAsset } from "../../apiTypes";
+import type { ApiAssetEntry } from "../../apiTypes";
 import { coreStore } from "../../store/core";
 import type { AssetEntryId } from "../models";
 import { assetState } from "../state";
 
-export function canEdit(data: AssetEntryId | DeepReadonly<ApiAsset> | undefined, includeRootShare = true): boolean {
+export function canEdit(
+    data: AssetEntryId | DeepReadonly<ApiAssetEntry> | undefined,
+    includeRootShare = true,
+): boolean {
     if (data === undefined) return false; // We accept undefined to alleviate awkward type checks in callers
-    let asset: DeepReadonly<ApiAsset> | undefined;
+    let asset: DeepReadonly<ApiAssetEntry> | undefined;
     if (data instanceof Object && "id" in data) asset = data;
-    else asset = assetState.raw.idMap.get(data);
+    else asset = assetState.raw.entryIdMap.get(data);
 
     if (asset === undefined) return false;
 

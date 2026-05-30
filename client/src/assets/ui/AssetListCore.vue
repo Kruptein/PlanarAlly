@@ -3,7 +3,7 @@ import { computed, nextTick, ref } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { assetSystem } from "..";
-import type { ApiAsset } from "../../apiTypes";
+import type { ApiAssetEntry } from "../../apiTypes";
 import type { Section } from "../../core/components/contextMenu/types";
 import { baseAdjust } from "../../core/http";
 import { ctrlOrCmdPressed } from "../../core/utils";
@@ -24,7 +24,7 @@ const props = withDefaults(
     defineProps<{
         extraContextSections?: Section[];
         fontSize: string;
-        searchResults?: ApiAsset[];
+        searchResults?: ApiAssetEntry[];
         onlyFiles?: boolean;
         disableMulti?: boolean;
     }>(),
@@ -48,16 +48,16 @@ const folders = computed(() => {
     if (props.searchResults.length > 0) {
         return props.searchResults.filter((r) => r.fileHash === null);
     }
-    return assetState.reactive.folders.map((f) => assetState.reactive.idMap.get(f)!);
+    return assetState.reactive.folders.map((f) => assetState.reactive.entryIdMap.get(f)!);
 });
 const files = computed(() => {
     if (props.searchResults.length > 0) {
         return props.searchResults.filter((r) => r.fileHash !== null);
     }
-    return assetState.reactive.files.map((f) => assetState.reactive.idMap.get(f)!);
+    return assetState.reactive.files.map((f) => assetState.reactive.entryIdMap.get(f)!);
 });
 
-function isShared(asset: DeepReadonly<ApiAsset>): boolean {
+function isShared(asset: DeepReadonly<ApiAssetEntry>): boolean {
     return (
         asset.shares.length > 0 || (asset.owner !== coreStore.state.username && assetState.raw.sharedParent === null)
     );

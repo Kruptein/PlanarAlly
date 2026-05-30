@@ -38,7 +38,7 @@ const shortcuts = computed(() => {
         id: assetState.reactive.root,
     };
     const _shortcuts = assetGameState.reactive.shortcuts.map((id) => {
-        const asset = assetState.reactive.idMap.get(id);
+        const asset = assetState.reactive.entryIdMap.get(id);
         return { name: asset?.name ?? "Unknown", id };
     });
     return [root, ..._shortcuts];
@@ -80,7 +80,7 @@ function onDragLeave(event: DragEvent): void {
 const contextAsset = computed(() => {
     if (assetState.reactive.selected.length !== 1) return undefined;
     if (assetState.raw.selected[0] === undefined) return undefined;
-    return assetState.reactive.idMap.get(assetState.raw.selected[0]);
+    return assetState.reactive.entryIdMap.get(assetState.raw.selected[0]);
 });
 
 const canShortcut = computed(() => {
@@ -129,7 +129,7 @@ const canPick = computed(() => {
     return (
         assetState.reactive.selected.length === 1 &&
         assetGameState.reactive.picker !== null &&
-        assetState.reactive.idMap.get(selection)?.fileHash !== null
+        assetState.reactive.entryIdMap.get(selection)?.fileHash !== null
     );
 });
 

@@ -1,6 +1,6 @@
 import { useToast } from "vue-toastification";
 
-import type { ApiAsset, ApiAssetUpload } from "../apiTypes";
+import type { ApiAssetEntry, ApiAssetUpload } from "../apiTypes";
 import { registerSystem } from "../core/systems";
 import type { System, SystemClearReason } from "../core/systems/models";
 import { callbackProvider, uuidv4 } from "../core/utils";
@@ -38,7 +38,7 @@ class AssetSystem implements System {
     clear(reason: SystemClearReason): void {
         if (reason === "logging-out") {
             this.clearLocal();
-            $.idMap.clear();
+            $.entryIdMap.clear();
             $.folderPath = [];
         }
     }
@@ -84,9 +84,9 @@ class AssetSystem implements System {
         } else if (raw.folderPath.some((fp) => fp.id === targetFolder)) {
             while (assetState.currentFolder.value !== targetFolder) $.folderPath.pop();
         } else {
-            const asset = raw.idMap.get(targetFolder);
+            const asset = raw.entryIdMap.get(targetFolder);
             if (asset !== undefined) {
-                if (raw.root && ($.idMap.get(raw.root)?.children?.some((c) => c.id === targetFolder) ?? false)) {
+                if (raw.root && ($.entryIdMap.get(raw.root)?.children?.some((c) => c.id === targetFolder) ?? false)) {
                     $.folderPath = [{ id: targetFolder, name: asset.name }];
                 } else {
                     const path = await getFolderPath(targetFolder);
@@ -109,8 +109,8 @@ class AssetSystem implements System {
         assetState.mutableReactive.sharedRight = data.sharedRight;
     }
 
-    setFolderData(folder: AssetEntryId, data: ApiAsset): void {
-        $.idMap.set(folder, data);
+    setFolderData(folder: AssetEntryId, data: ApiAssetEntry): void {
+        $.entryIdMap.set(folder, data);
         if (data.children) {
             for (const child of data.children) {
                 this.resolveUpload(child.name);
@@ -141,10 +141,10 @@ class AssetSystem implements System {
 
     // ASSET
 
-    addAsset(asset: ApiAsset, parent?: AssetEntryId): void {
+    addAsset(asset: ApiAssetEntry, parent?: AssetEntryId): void {
         if (parent !== undefined && parent !== assetState.currentFolder.value) return;
 
-        $.idMap.set(asset.id, asset);
+        $.entryIdMap.set(asset.id, asset);
         let _target: "folders" | "files" = "folders";
         if (asset.fileHash !== null) {
             _target = "files";
@@ -153,7 +153,7 @@ class AssetSystem implements System {
         target.push(asset.id);
 
         const sorted_target = target
-            .map((i) => raw.idMap.get(i))
+            .map((i) => raw.entryIdMap.get(i))
             .filter((a) => a !== undefined)
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((a) => a.id);
@@ -166,14 +166,14 @@ class AssetSystem implements System {
             asset: id,
             name,
         });
-        $.idMap.get(id)!.name = name;
+        $.entryIdMap.get(id)!.name = name;
     }
 
     removeAsset(asset: AssetEntryId): void {
         let target = $.folders;
         if ($.files.includes(asset)) target = $.files;
         target.splice(target.indexOf(asset), 1);
-        $.idMap.delete(asset);
+        $.entryIdMap.delete(asset);
     }
 
     // NETWORK
@@ -194,7 +194,7 @@ class AssetSystem implements System {
         fls: FileList,
         // target is a function, because if the socket is closed, none of the usual targets exist yet
         options?: { target?: () => AssetEntryId | undefined; newDirectories?: string[] },
-    ): Promise<ApiAsset[]> {
+    ): Promise<ApiAssetEntry[]> {
         const closeSocket = socket.disconnected;
         if (closeSocket) {
             socket.connect();
@@ -244,7 +244,7 @@ class AssetSystem implements System {
             $.pendingUploads.push(entryNameFromUploadFilename(file.name));
             for (let slice = 0; slice < slices; slice++) {
                 // oxlint-disable-next-line no-await-in-loop
-                const uploadedFile = await new Promise<ApiAsset | undefined>((resolve) => {
+                const uploadedFile = await new Promise<ApiAssetEntry | undefined>((resolve) => {
                     const fr = new FileReader();
                     fr.readAsArrayBuffer(
                         file.slice(
@@ -283,7 +283,7 @@ class AssetSystem implements System {
     // SHARES
 
     addShare(asset: AssetEntryId, user: string, right: "view" | "edit"): void {
-        const data = $.idMap.get(asset);
+        const data = $.entryIdMap.get(asset);
         if (data === undefined) return console.error("Unknown asset was provided");
         data.shares.push({ user, right });
     }

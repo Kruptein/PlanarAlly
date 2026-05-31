@@ -45,6 +45,7 @@ class Asset(BaseDbModel):
                 await storage.delete(self.file_hash)
                 await storage.delete(self.file_hash, suffix=".thumb.webp")
                 await storage.delete(self.file_hash, suffix=".thumb.jpeg")
+            self.delete_instance(True)
 
     async def generate_thumbnails(self) -> None:
         await generate_thumbnail_for_asset(self.file_hash)

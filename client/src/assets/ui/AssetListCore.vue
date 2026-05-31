@@ -3,7 +3,7 @@ import { computed, nextTick, ref } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { assetSystem } from "..";
-import type { ApiAsset } from "../../apiTypes";
+import type { ApiAssetEntry } from "../../apiTypes";
 import type { Section } from "../../core/components/contextMenu/types";
 import { baseAdjust } from "../../core/http";
 import { ctrlOrCmdPressed } from "../../core/utils";
@@ -24,7 +24,7 @@ const props = withDefaults(
     defineProps<{
         extraContextSections?: Section[];
         fontSize: string;
-        searchResults?: ApiAsset[];
+        searchResults?: ApiAssetEntry[];
         onlyFiles?: boolean;
         disableMulti?: boolean;
     }>(),
@@ -44,20 +44,22 @@ const thumbnailMisses = ref(new Set<AssetEntryId>());
 const contextTargetElement = ref<HTMLElement | null>(null);
 const currentRenameAsset = ref<AssetEntryId | null>(null);
 
-const folders = computed(() => {
+type FolderEntry = ApiAssetEntry & { asset: null };
+const folders = computed<DeepReadonly<FolderEntry>[]>(() => {
     if (props.searchResults.length > 0) {
-        return props.searchResults.filter((r) => r.fileHash === null);
+        return props.searchResults.filter((r): r is FolderEntry => r.asset === null);
     }
-    return assetState.reactive.folders.map((f) => assetState.reactive.idMap.get(f)!);
+    return assetState.reactive.folders.map((f) => assetState.reactive.entryIdMap.get(f)! as FolderEntry);
 });
-const files = computed(() => {
+type FileEntry = ApiAssetEntry & { asset: NonNullable<ApiAssetEntry["asset"]> };
+const files = computed<DeepReadonly<FileEntry>[]>(() => {
     if (props.searchResults.length > 0) {
-        return props.searchResults.filter((r) => r.fileHash !== null);
+        return props.searchResults.filter((r): r is FileEntry => r.asset !== null);
     }
-    return assetState.reactive.files.map((f) => assetState.reactive.idMap.get(f)!);
+    return assetState.reactive.files.map((f) => assetState.reactive.entryIdMap.get(f)! as FileEntry);
 });
 
-function isShared(asset: DeepReadonly<ApiAsset>): boolean {
+function isShared(asset: DeepReadonly<ApiAssetEntry>): boolean {
     return (
         asset.shares.length > 0 || (asset.owner !== coreStore.state.username && assetState.raw.sharedParent === null)
     );
@@ -249,7 +251,7 @@ async function showRenameUI(id: AssetEntryId): Promise<void> {
                 <img v-else :src="getImageSrcFromAssetId(file.id)" alt="" loading="lazy" />
                 <div class="asset-icons">
                     <font-awesome-icon v-if="isShared(file)" icon="user-tag" />
-                    <font-awesome-icon v-if="file.has_templates" icon="floppy-disk" />
+                    <font-awesome-icon v-if="file.asset.hasTemplates" icon="floppy-disk" />
                 </div>
                 <div
                     :contenteditable="file.id === currentRenameAsset"

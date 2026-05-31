@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import tinycolor from "tinycolor2";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useToast } from "vue-toastification";
 
+import { assetSystem } from "../../../../assets";
+import { getAssetExtraData } from "../../../../assets/emits";
 import { assetState } from "../../../../assets/state";
 import { l2gz } from "../../../../core/conversions";
 import { toGP } from "../../../../core/geometry";
@@ -26,14 +29,45 @@ import { gameState } from "../../../systems/game/state";
 import { playerSystem } from "../../../systems/players";
 import { propertiesSystem } from "../../../systems/properties";
 import { VisionBlock } from "../../../systems/properties/types";
+import { selectedState } from "../../../systems/selected/state";
 import { locationSettingsState } from "../../../systems/settings/location/state";
+import { uiState } from "../../../systems/ui/state";
 import { visionState } from "../../../vision/state";
 
+import { ShapeSettingCategory } from "./categories";
+
 const { t } = useI18n();
+const toast = useToast();
+
+const hasDDraftInfo = ref(false);
+const applyingDDraft = ref(false);
+
+const assetId = computed(() => {
+    const focus = selectedState.reactive.focus;
+    if (!focus) return null;
+    const shape = getShape(focus);
+    if (!shape || shape.type !== "assetrect") return null;
+    const rect = shape as IAsset;
+    return rect.assetId;
+});
+
+// Fetch latest DDraft info if relevant
+watch(
+    () => uiState.reactive.activeShapeTab,
+    async (newTab) => {
+        if (newTab === ShapeSettingCategory.Extra) {
+            hasDDraftInfo.value = false;
+            if (!assetId.value) return;
+            const ddraftData = await assetSystem.getAssetInfo(assetId.value);
+            if (!ddraftData) return;
+            hasDDraftInfo.value = true;
+        }
+    },
+    { immediate: true },
+);
 
 // SVG / DDRAFT
 
-const hasDDraftInfo = computed(() => "ddraft_format" in (activeShapeStore.state.options ?? {}));
 const hasPath = computed(() => {
     if ("svgPaths" in (activeShapeStore.state.options ?? {})) {
         return activeShapeStore.state.options?.svgPaths !== undefined;
@@ -45,18 +79,18 @@ const hasPath = computed(() => {
 const showSvgSection = computed(() => gameState.reactive.isDm && activeShapeStore.state.type === "assetrect");
 
 async function uploadSvg(): Promise<void> {
-    const assetId = await pickAsset();
-    if (assetId === null) return;
+    const svgAssetId = await pickAsset();
+    if (svgAssetId === null) return;
 
-    const assetInfo = assetState.raw.idMap.get(assetId);
-    if (assetInfo === undefined || assetInfo.fileHash === null) return;
+    const assetInfo = assetState.raw.entryIdMap.get(svgAssetId);
+    if (assetInfo === undefined || assetInfo.asset === null) return;
 
     const shape = getShape(activeShapeStore.state.id!);
     if (shape === undefined) return;
     if (shape.options === undefined) {
         shape.options = {};
     }
-    await activeShapeStore.setSvgAsset(assetInfo.fileHash, SERVER_SYNC);
+    await activeShapeStore.setSvgAsset(assetInfo.asset.fileHash, SERVER_SYNC);
 }
 
 async function removeSvg(): Promise<void> {
@@ -71,97 +105,111 @@ async function removeSvg(): Promise<void> {
     await activeShapeStore.setSvgAsset(undefined, SERVER_SYNC);
 }
 
-function applyDDraft(): void {
-    const dDraftData = activeShapeStore.state.options as DDraftData;
-    const size = dDraftData.ddraft_resolution.pixels_per_grid;
+async function applyDDraft(): Promise<void> {
+    if (!assetId.value || applyingDDraft.value) return;
+    applyingDDraft.value = true;
+    try {
+        const ddraftData = (await getAssetExtraData(assetId.value)) as DDraftData | undefined;
+        if (!ddraftData) return;
+        if (ddraftData.format !== 0.2 && ddraftData.format !== 1) {
+            console.error(`Unknown DDraft format: ${ddraftData.format} - errors might occur`);
+        }
+        const size = ddraftData.resolution.pixels_per_grid;
 
-    const realShape = getShape(activeShapeStore.state.id!) as IAsset;
+        const realShape = getShape(activeShapeStore.state.id!) as IAsset;
 
-    const targetRP = realShape.refPoint;
+        const targetRP = realShape.refPoint;
 
-    const dW = realShape.w / (dDraftData.ddraft_resolution.map_size.x * size);
-    const dH = realShape.h / (dDraftData.ddraft_resolution.map_size.y * size);
+        const dW = realShape.w / (ddraftData.resolution.map_size.x * size);
+        const dH = realShape.h / (ddraftData.resolution.map_size.y * size);
 
-    const tokenLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Tokens)!;
-    const fowLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Lighting)!;
+        const tokenLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Tokens)!;
+        const fowLayer = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Lighting)!;
 
-    for (const wall of dDraftData.ddraft_line_of_sight) {
-        const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        if (points.length === 0) continue;
+        for (const wall of [...ddraftData.line_of_sight, ...(ddraftData.objects_line_of_sight ?? [])]) {
+            const points = wall.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
+            if (points.length === 0) continue;
 
-        const shape = new Polygon(points[0]!, points.slice(1), { openPolygon: true }, { strokeColour: ["red"] });
-        accessSystem.addAccess(
-            shape.id,
-            playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: false },
-            UI_SYNC,
-        );
+            const shape = new Polygon(points[0]!, points.slice(1), { openPolygon: true }, { strokeColour: ["red"] });
+            accessSystem.addAccess(
+                shape.id,
+                playerSystem.getCurrentPlayer()!.name,
+                { edit: true, movement: true, vision: false },
+                UI_SYNC,
+            );
 
-        propertiesSystem.setBlocksVision(shape.id, VisionBlock.Complete, NO_SYNC, false);
-        propertiesSystem.setBlocksMovement(shape.id, true, NO_SYNC, false);
-        fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
-    }
-
-    for (const portal of dDraftData.ddraft_portals) {
-        const points = portal.bounds.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
-        if (points.length === 0) continue;
-
-        const shape = new Polygon(points[0]!, points.slice(1), { openPolygon: true }, { strokeColour: ["blue"] });
-        accessSystem.addAccess(
-            shape.id,
-            playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: false },
-            UI_SYNC,
-        );
-
-        if (portal.closed) {
             propertiesSystem.setBlocksVision(shape.id, VisionBlock.Complete, NO_SYNC, false);
             propertiesSystem.setBlocksMovement(shape.id, true, NO_SYNC, false);
+            fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
         }
-        fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
+
+        for (const portal of ddraftData.portals) {
+            const points = portal.bounds.map((w) => toGP(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
+            if (points.length === 0) continue;
+
+            const shape = new Polygon(points[0]!, points.slice(1), { openPolygon: true }, { strokeColour: ["blue"] });
+            accessSystem.addAccess(
+                shape.id,
+                playerSystem.getCurrentPlayer()!.name,
+                { edit: true, movement: true, vision: false },
+                UI_SYNC,
+            );
+
+            if (portal.closed) {
+                propertiesSystem.setBlocksVision(shape.id, VisionBlock.Complete, NO_SYNC, false);
+                propertiesSystem.setBlocksMovement(shape.id, true, NO_SYNC, false);
+            }
+            fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
+        }
+
+        for (const light of ddraftData.lights) {
+            const refPoint = toGP(targetRP.x + light.position.x * size * dW, targetRP.y + light.position.y * size * dH);
+
+            const shape = new Circle(refPoint, l2gz(10));
+            propertiesSystem.setIsInvisible(shape.id, true, NO_SYNC);
+
+            const aura: Aura = {
+                uuid: generateAuraId(),
+                active: true,
+                visionSource: true,
+                visible: true,
+                name: "ddraft light source",
+                value: (light.range * DEFAULT_GRID_SIZE) / locationSettingsState.raw.unitSize.value,
+                dim: 0,
+                colour: tinycolor(light.color)
+                    .setAlpha(0.05 * light.intensity)
+                    .toRgbString(),
+                borderColour: "rgba(0, 0, 0, 0)",
+                angle: 360,
+                direction: 0,
+                floodLight: false,
+            };
+
+            tokenLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
+
+            auraSystem.add(shape.id, aura, SERVER_SYNC);
+            accessSystem.addAccess(
+                shape.id,
+                playerSystem.getCurrentPlayer()!.name,
+                { edit: true, movement: true, vision: false },
+                SERVER_SYNC,
+            );
+        }
+
+        const layer = realShape.layer;
+        if (layer !== undefined) {
+            visionState.recalculateVision(layer.floor);
+            visionState.recalculateMovement(layer.floor);
+            fowLayer.invalidate(false);
+            layer.invalidate(false);
+        }
+    } catch (error) {
+        console.error(error);
+        toast.error("Failed to apply DDraft data");
+    } finally {
+        applyingDDraft.value = false;
     }
-
-    for (const light of dDraftData.ddraft_lights) {
-        const refPoint = toGP(targetRP.x + light.position.x * size * dW, targetRP.y + light.position.y * size * dH);
-
-        const shape = new Circle(refPoint, l2gz(10));
-        propertiesSystem.setIsInvisible(shape.id, true, NO_SYNC);
-
-        const aura: Aura = {
-            uuid: generateAuraId(),
-            active: true,
-            visionSource: true,
-            visible: true,
-            name: "ddraft light source",
-            value: (light.range * DEFAULT_GRID_SIZE) / locationSettingsState.raw.unitSize.value,
-            dim: 0,
-            colour: tinycolor(light.color)
-                .setAlpha(0.05 * light.intensity)
-                .toRgbString(),
-            borderColour: "rgba(0, 0, 0, 0)",
-            angle: 360,
-            direction: 0,
-            floodLight: false,
-        };
-
-        tokenLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
-
-        auraSystem.add(shape.id, aura, SERVER_SYNC);
-        accessSystem.addAccess(
-            shape.id,
-            playerSystem.getCurrentPlayer()!.name,
-            { edit: true, movement: true, vision: false },
-            SERVER_SYNC,
-        );
-    }
-
-    const layer = realShape.layer;
-    if (layer !== undefined) {
-        visionState.recalculateVision(layer.floor);
-        visionState.recalculateMovement(layer.floor);
-        fowLayer.invalidate(false);
-        layer.invalidate(false);
-    }
+    toast.success("DDraft data applied successfully");
 }
 </script>
 
@@ -191,7 +239,7 @@ function applyDDraft(): void {
                 <label for="edit_dialog-extra-upload_walls">
                     {{ t("game.ui.selection.edit_dialog.extra.apply_draft_info") }}
                 </label>
-                <button id="edit_dialog-extra-upload_walls" @click="applyDDraft">
+                <button id="edit_dialog-extra-upload_walls" :disabled="applyingDDraft" @click="applyDDraft">
                     {{ t("common.apply") }}
                 </button>
             </template>

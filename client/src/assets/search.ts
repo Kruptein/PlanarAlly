@@ -1,7 +1,7 @@
 import debounce from "lodash/debounce";
 import { ref, watch, type Ref } from "vue";
 
-import type { ApiAsset } from "../apiTypes";
+import type { ApiAssetEntry } from "../apiTypes";
 
 import { socket } from "./socket";
 import { assetState } from "./state";
@@ -9,14 +9,14 @@ import { assetState } from "./state";
 interface AssetSearch {
     clear: () => void;
     filter: Ref<string>;
-    results: Ref<ApiAsset[]>;
+    results: Ref<ApiAssetEntry[]>;
     loading: Ref<boolean>;
     includeSharedAssets: Ref<boolean>;
 }
 
 export function useAssetSearch(searchBar: Ref<HTMLInputElement | null>): AssetSearch {
     const filter = ref("");
-    const results = ref<ApiAsset[]>([]);
+    const results = ref<ApiAssetEntry[]>([]);
     const loading = ref(false);
     const includeSharedAssets = ref(false);
 
@@ -31,9 +31,9 @@ export function useAssetSearch(searchBar: Ref<HTMLInputElement | null>): AssetSe
 
     async function search(query: string): Promise<void> {
         loading.value = true;
-        const data = (await socket.emitWithAck("Asset.Search", query, includeSharedAssets.value)) as ApiAsset[];
+        const data = (await socket.emitWithAck("Asset.Search", query, includeSharedAssets.value)) as ApiAssetEntry[];
         for (const asset of data) {
-            assetState.mutableReactive.idMap.set(asset.id, asset);
+            assetState.mutableReactive.entryIdMap.set(asset.id, asset);
         }
         results.value = data;
         loading.value = false;

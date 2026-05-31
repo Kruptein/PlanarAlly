@@ -58,9 +58,12 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
         for (const asset of await assetSystem.upload(event.dataTransfer.files, {
             target: () => assetState.raw.root,
         })) {
-            if (asset.fileHash !== null && asset.assetId !== null)
+            if (asset.asset !== null)
                 // oxlint-disable-next-line no-await-in-loop
-                await dropHelper({ assetHash: asset.fileHash, entryId: asset.id, assetId: asset.assetId }, location);
+                await dropHelper(
+                    { assetHash: asset.asset.fileHash, entryId: asset.id, assetId: asset.asset.id },
+                    location,
+                );
         }
     } else if (transferInfo) {
         const assetInfo = JSON.parse(transferInfo) as DropAssetInfo;

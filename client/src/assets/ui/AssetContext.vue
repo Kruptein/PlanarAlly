@@ -35,7 +35,7 @@ const selectedAssetId = computed(() => assetState.reactive.selected.at(0));
 const canShare = computed(() => {
     if (multiSelect.value) return false;
     if (selectedAssetId.value === undefined) return false;
-    const data = assetState.reactive.idMap.get(selectedAssetId.value);
+    const data = assetState.reactive.entryIdMap.get(selectedAssetId.value);
     if (data === undefined) return false;
     const username = coreStore.state.username;
     return data.owner === username || data.shares.some((s) => s.user === username && s.right === "edit");
@@ -43,7 +43,7 @@ const canShare = computed(() => {
 
 function rename(): boolean {
     if (multiSelect.value) return true;
-    const asset = assetState.raw.idMap.get(assetState.raw.selected[0]!);
+    const asset = assetState.raw.entryIdMap.get(assetState.raw.selected[0]!);
     if (asset === undefined) {
         console.error("Attempt to rename unknown file");
         return true;

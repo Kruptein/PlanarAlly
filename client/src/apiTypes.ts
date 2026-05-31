@@ -26,22 +26,27 @@ export type InitiativeEffectUpdateTiming = 0 | 1;
 export type DefaultNoteFilter = "NO_FILTER" | "ACTIVE_FILTER" | "NO_LINK_FILTER";
 export type InitiativeDirection = -1 | 0 | 1;
 
-export interface ApiAsset {
+export interface ApiAssetCore {
+  id: AssetId;
+  fileHash: string;
+  kind: string;
+  hasTemplates: boolean;
+  hasExtraData: boolean;
+}
+export interface ApiAssetEntry {
   id: AssetEntryId;
   name: string;
   owner: string;
-  assetId: AssetId | null;
-  fileHash: string | null;
-  children: ApiAsset[] | null;
+  asset: ApiAssetCore | null;
+  children: ApiAssetEntry[] | null;
   shares: ApiAssetShare[];
-  has_templates: boolean;
 }
 export interface ApiAssetShare {
   user: string;
   right: "view" | "edit";
 }
 export interface ApiAssetAdd {
-  asset: ApiAsset;
+  asset: ApiAssetEntry;
   parent: AssetEntryId;
 }
 export interface ApiAssetCreateFolder {
@@ -54,9 +59,9 @@ export interface ApiAssetCreateShare {
   asset: AssetEntryId;
 }
 export interface ApiAssetFolder {
-  folder: ApiAsset;
+  folder: ApiAssetEntry;
   path: AssetEntryId[] | null;
-  sharedParent: ApiAsset | null;
+  sharedParent: ApiAssetEntry | null;
   sharedRight: "view" | "edit" | null;
 }
 export interface ApiAssetInodeMove {

@@ -32,7 +32,7 @@ const rights = ["view", "edit"] as const;
 
 const shares = computed(() => {
     if (!props.asset) return [];
-    return assetState.reactive.idMap.get(props.asset)?.shares ?? [];
+    return assetState.reactive.entryIdMap.get(props.asset)?.shares ?? [];
 });
 
 function setRight(event: Event, user: string): void {

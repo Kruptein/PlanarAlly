@@ -1,22 +1,23 @@
 import { computed } from "vue";
 
-import type { ApiAsset } from "../apiTypes";
+import type { ApiAssetCore, ApiAssetEntry } from "../apiTypes";
 import { buildState } from "../core/systems/state";
 
-import type { AssetEntryId } from "./models";
+import type { AssetEntryId, AssetId } from "./models";
 
 interface ReactiveAssetState {
     root: AssetEntryId | undefined;
     files: AssetEntryId[];
     folders: AssetEntryId[];
-    idMap: Map<AssetEntryId, ApiAsset>;
+    entryIdMap: Map<AssetEntryId, ApiAssetEntry>;
+    assetIdMap: Map<AssetId, ApiAssetCore>;
     selected: AssetEntryId[];
     // We track names here, as the full breadcrumb Asset info might not be known in idMap
     folderPath: { id: AssetEntryId; name: string }[];
 
     loadingFolder: boolean;
 
-    sharedParent: ApiAsset | null;
+    sharedParent: ApiAssetEntry | null;
     sharedRight: "edit" | "view" | null;
 
     pendingUploads: string[];
@@ -33,7 +34,8 @@ const state = buildState<ReactiveAssetState, NonReactiveAssetState>(
         root: undefined,
         files: [],
         folders: [],
-        idMap: new Map(),
+        entryIdMap: new Map(),
+        assetIdMap: new Map(),
         selected: [],
         folderPath: [],
 

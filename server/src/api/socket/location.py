@@ -26,7 +26,7 @@ from ...logs import logger
 from ...models.access import has_ownership
 from ...models.role import Role
 from ...state.game import game_state
-from ...transform.to_api.asset import transform_asset
+from ...transform.to_api.asset import transform_asset_entry
 from ...transform.to_api.floor import transform_floor
 from ..helpers import _send_game
 from ..models.client import OptionalClientViewport
@@ -221,7 +221,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
         shortcuts = AssetShortcut.select().where(AssetShortcut.player_room == pr)
         await _send_game(
             "Asset.Shortcuts.Set",
-            [transform_asset(shortcut.entry, pr.player) for shortcut in shortcuts],
+            [transform_asset_entry(shortcut.entry, pr.player) for shortcut in shortcuts],
             room=sid,
         )
 

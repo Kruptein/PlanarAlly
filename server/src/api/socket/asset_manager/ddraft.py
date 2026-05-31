@@ -36,6 +36,6 @@ def get_ddraft_data(data: bytes):
 
     image = base64.b64decode(ddraft_file["image"])
 
-    template = { k: v for k, v in ddraft_file.items() if k != "image" }
+    template = {k: v for k, v in ddraft_file.items() if k != "image"}
 
     return image, template

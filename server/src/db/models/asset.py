@@ -51,7 +51,7 @@ class Asset(BaseDbModel):
 
     def has_entry_with_access(self, user: User, right: Literal["edit", "view", "all"]) -> bool:
         return any(entry.can_be_accessed_by(user, right=right) for entry in self.entries)
-    
+
     def as_pydantic(self) -> ApiAssetCore:
         return ApiAssetCore(
             id=self.id,

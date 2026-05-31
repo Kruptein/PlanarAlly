@@ -20,7 +20,9 @@ def transform_asset_entry(
         pydantic_children = []
         # We add all the regular child assets
         for child in AssetEntry.select().where((AssetEntry.parent == entry)):
-            pydantic_children.append(transform_asset_entry(child, user, children=children and recursive, recursive=recursive))
+            pydantic_children.append(
+                transform_asset_entry(child, user, children=children and recursive, recursive=recursive)
+            )
         # We check if there are any assets that were shared with us that are located in this folder
         for child in AssetShare.select().where(
             (AssetShare.parent == entry) & (AssetShare.user == user)  # type: ignore

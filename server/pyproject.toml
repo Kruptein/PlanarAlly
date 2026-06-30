@@ -14,7 +14,7 @@ dependencies = [
     "peewee==3.19.0",
     "pillow==12.2.0",
     "pydantic[email]==2.13.4",
-    "python-engineio==4.13.1",
+    "python-engineio==4.13.2",
     "python-socketio==5.16.1",
     "redmail==0.6.0",
     "rtoml==0.13.0",

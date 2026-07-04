@@ -1,4 +1,4 @@
-import { AssetId } from "../../../assets/models";
+import type { AssetId } from "../../../assets/models";
 import type { GlobalPoint } from "../../../core/geometry";
 import type { IShape } from "../shape";
 

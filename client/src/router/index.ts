@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, NavigationGuardReturn, type RouteLocationNormalized } from "vue-router";
+import { createRouter, createWebHistory, type NavigationGuardReturn, type RouteLocationNormalized } from "vue-router";
 
 import { http } from "../core/http";
 import { handleNotifications } from "../notifications";

@@ -1,11 +1,11 @@
-import { ApiCoreShape, ApiVariant, ApiVariantWithoutId } from "../../../apiTypes";
+import type { ApiCoreShape, ApiVariant, ApiVariantWithoutId } from "../../../apiTypes";
 import type { LocalId } from "../../../core/id";
 import { SERVER_SYNC } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { getGlobalId, getShape } from "../../id";
-import { IAsset } from "../../interfaces/shapes/asset";
+import type { IAsset } from "../../interfaces/shapes/asset";
 import { propertiesSystem } from "../properties";
 import { propertiesState } from "../properties/state";
 

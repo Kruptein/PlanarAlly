@@ -4,7 +4,7 @@ import { useToast } from "vue-toastification";
 
 import { assetSystem } from "..";
 import { map } from "../../core/iter";
-import { DropAssetInfo } from "../../game/dropAsset";
+import type { DropAssetInfo } from "../../game/dropAsset";
 import type { AssetEntryId } from "../models";
 import { assetState } from "../state";
 

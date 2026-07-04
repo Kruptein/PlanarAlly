@@ -34,6 +34,16 @@ import "./api/events";
 let throttledMove: (event: MouseEvent) => void = (_event: MouseEvent) => {};
 let throttledTouchMove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
 
+// Window events
+function zoom(event: WheelEvent): void {
+    if (playerSettingsState.raw.disableScrollToZoom.value) return;
+    throttle(scrollZoom)(event);
+}
+
+function resizeWindow(): void {
+    floorSystem.resize(window.innerWidth, window.innerHeight);
+}
+
 export default defineComponent({
     // eslint-disable-next-line vue/multi-word-component-names
     name: "Game",
@@ -81,16 +91,6 @@ export default defineComponent({
             mediaQuery.removeEventListener("change", resizeWindow);
             unloadRoomMods();
         });
-
-        // Window events
-        function zoom(event: WheelEvent): void {
-            if (playerSettingsState.raw.disableScrollToZoom.value) return;
-            throttle(scrollZoom)(event);
-        }
-
-        function resizeWindow(): void {
-            floorSystem.resize(window.innerWidth, window.innerHeight);
-        }
 
         // Touch events
 

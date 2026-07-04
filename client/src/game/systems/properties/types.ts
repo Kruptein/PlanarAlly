@@ -1,4 +1,4 @@
-import { AssetId } from "../../../assets/models";
+import type { AssetId } from "../../../assets/models";
 import type { ShapeSize } from "../../interfaces/shape";
 
 // Order is important

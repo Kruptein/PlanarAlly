@@ -3,16 +3,16 @@ import {
     findIconDefinition,
     icon as faIcon,
     type IconDefinition,
-    IconPrefix,
-    IconName,
+    type IconPrefix,
+    type IconName,
 } from "@fortawesome/fontawesome-svg-core";
-import { DeepReadonly } from "vue";
+import type { DeepReadonly } from "vue";
 
 import type { GlobalPoint } from "../../../core/geometry";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { getProperties } from "../../systems/properties/state";
-import { ShapeProperties } from "../../systems/properties/types";
-import { CompactShapeCore, FontAwesomeCompactCore } from "../transformations";
+import type { ShapeProperties } from "../../systems/properties/types";
+import type { CompactShapeCore, FontAwesomeCompactCore } from "../transformations";
 import type { SHAPE_TYPE } from "../types";
 
 import { IImage } from "./_image";

@@ -6,7 +6,7 @@ import { getGlobalId } from "../../id";
 import { LayerName } from "../../models/floor";
 import { accessSystem } from "../../systems/access";
 import { floorSystem } from "../../systems/floors";
-import { ShapeProperties } from "../../systems/properties/types";
+import type { ShapeProperties } from "../../systems/properties/types";
 
 import { BaseRect } from "./baseRect";
 

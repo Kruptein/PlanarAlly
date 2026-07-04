@@ -8,7 +8,7 @@ import path from "path";
 import { transformLazyShow } from "v-lazy-show";
 import { defineConfig, loadEnv } from "vite";
 import { ViteEjsPlugin } from "vite-plugin-ejs";
-import VueDevTools from "vite-plugin-vue-devtools";
+// import VueDevTools from "vite-plugin-vue-devtools";
 
 const isProduction = (process.env.NODE_ENV ?? "production") === "production";
 const viteEnv = loadEnv(process.env.NODE_ENV ?? "production", process.cwd());
@@ -24,7 +24,7 @@ export default defineConfig({
             localVue: viteEnv.VITE_VUE_URL.startsWith("."),
             vueUrl: viteEnv.VITE_VUE_URL.replace("../server/", ""),
         }),
-        ...(!isProduction ? [VueDevTools()] : []),
+        // ...(!isProduction ? [VueDevTools()] : []),
     ],
     server: {
         host: "0.0.0.0",
@@ -38,11 +38,10 @@ export default defineConfig({
     },
     base: process.env.PA_BASEPATH,
     build: {
-        minify: "esbuild",
         assetsDir: isProduction ? "static/vite" : "dev-static",
         outDir: "../server",
         chunkSizeWarningLimit: 2500,
-        rollupOptions: {
+        rolldownOptions: {
             external: ["vue"],
             output: { globals: { vue: "Vue" } },
         },
@@ -51,7 +50,7 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
-        esbuildOptions: {
+        rolldownOptions: {
             plugins: [EsmExternalsPlugin({ externals: ["vue"] })],
         },
         exclude: ["@babylonjs/havok"],
@@ -66,7 +65,6 @@ export default defineConfig({
             },
         ],
     },
-    css: { preprocessorOptions: { scss: { api: "modern-compiler", charset: false } } },
     test: {
         environment: "happy-dom",
         setupFiles: ["./test/setup.ts"],

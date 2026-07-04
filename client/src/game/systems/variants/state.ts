@@ -1,5 +1,5 @@
-import { ApiVariant } from "../../../apiTypes";
-import { LocalId } from "../../../core/id";
+import type { ApiVariant } from "../../../apiTypes";
+import type { LocalId } from "../../../core/id";
 import { buildState } from "../../../core/systems/state";
 
 interface VariantsState {

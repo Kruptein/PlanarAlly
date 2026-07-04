@@ -1,4 +1,4 @@
-import { PlayerInfoCore } from "../../../apiTypes";
+import type { PlayerInfoCore } from "../../../apiTypes";
 import { buildState } from "../../../core/systems/state";
 import type { ServerUserLocationOptions } from "../../models/settings";
 

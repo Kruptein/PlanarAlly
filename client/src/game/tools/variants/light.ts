@@ -9,7 +9,7 @@ import { InvalidationMode, NO_SYNC, SERVER_SYNC, SyncMode, UI_SYNC } from "../..
 import { i18n } from "../../../i18n";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { getAllShapes, getShape } from "../../id";
-import { IShape } from "../../interfaces/shape";
+import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
 import { ToolName } from "../../models/tools";
 import type { ITool, ToolFeatures, ToolPermission } from "../../models/tools";

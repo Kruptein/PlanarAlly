@@ -2,6 +2,7 @@
 
 import { Vector } from "../../../core/geometry";
 import { SyncMode } from "../../../core/models/types";
+import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { calculateDelta } from "../../drag";
 import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
@@ -34,6 +35,7 @@ export function collapseSelection(): void {
             shape.center = center;
         }
     }
+    sendShapePositionUpdate(shapes, false);
 
     focusShape.invalidate(false);
 }

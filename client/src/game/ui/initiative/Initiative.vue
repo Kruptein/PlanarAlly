@@ -526,6 +526,7 @@ function n(e: any): number {
                                                 @blur="unlock"
                                                 @change="setInitiative(actor.globalId, getValue($event))"
                                                 @keyup.enter="getTarget($event).blur()"
+                                                @keydown.enter.prevent
                                             />
                                         </div>
                                         <Transition name="effects-expand">
@@ -612,6 +613,7 @@ function n(e: any): number {
                                                                 setEffectTurns(actor.globalId, n(e), getValue($event))
                                                             "
                                                             @keyup.enter="getTarget($event).blur()"
+                                                            @keydown.enter.prevent
                                                             @focus="setEntryFocus(index, true, false)"
                                                             @blur="setEntryFocus(index, false, false)"
                                                         />

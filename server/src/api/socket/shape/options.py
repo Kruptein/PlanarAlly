@@ -583,7 +583,7 @@ async def update_aura(sid: str, raw_data: Any):
     aura = Aura.get_by_id(data.uuid)
 
     changed_visible = False
-    if data.visible is not None and data.visible != aura.visible:
+    if data.visible is not MISSING and data.visible != aura.visible:
         changed_visible = True
 
     # don't use data.model_dump() as it contains a bunch of None's

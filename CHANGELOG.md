@@ -34,6 +34,7 @@ tech changes will usually be stripped from release notes for the public
     -   This was broken since a recent change to how templates/assets work
     -   dd2vtt (or uvtt) files will have to be removed and reuploaded from your asset manager
 -   Collapse selection not immediately syncing position change until a move
+-   Public aura syncing to non-owners not working as intended
 -   [tech] Asset db rows were not properly being cleaned up when a file was removed on disk
 
 ### Removed

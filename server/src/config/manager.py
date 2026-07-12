@@ -32,6 +32,7 @@ class ConfigManager:
         self.config_path = config_path
         self.config = ServerConfig()
         self._file_observer = Observer()
+        self.is_default_config = True
 
         self.load_config(startup=True)
         self._init_storage_backend()
@@ -45,6 +46,7 @@ class ConfigManager:
         """Load configuration from file"""
         try:
             if self.config_path.exists():
+                self.is_default_config = False
                 config_data = rtoml.loads(self.config_path.read_text())
                 self.config = ServerConfig(**config_data)
                 set_save_path(self.config.general.save_file)

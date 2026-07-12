@@ -23,7 +23,7 @@ from .config.types import WebserverConfig
 from .db.db import db
 from .db.models.room import Room
 from .db.models.user import User
-from .utils import FILE_DIR
+from .utils import ASSETS_DIR, FILE_DIR, SAVE_PATH
 
 save_newly_created = save.check_existence()
 
@@ -76,7 +76,6 @@ async def on_shutdown(_):
 
 
 async def start_http(app: web.Application, host, port):
-    logger.warning(" RUNNING IN NON SSL CONTEXT ")
     await setup_runner(app, web.TCPSite, host=host, port=port)
 
 
@@ -136,15 +135,33 @@ async def start_server(server_section: Literal["Webserver"], cfg: WebserverConfi
             await start_http(app, host, port)
             method = f"http://{host}:{port}{environ}"
 
-    print(f"======== Starting {server_section} on {method} ========")
+    print(f"======== Starting {server_section} ========")
+    print(f"Host: {method}")
+
+    if config.config_manager.is_default_config:
+        print("Config: Using default config.")
+        print("(See https://www.planarally.io/server/management/configuration/ for more information.)")
+    else:
+        print(f"Config: {config.config_manager.config_path}")
+
+    print(f"Database: {SAVE_PATH}")
+    print(f"Assets: {ASSETS_DIR}")
+    print()
+    user_count = User.select().count()
+    if user_count == 0:
+        print(
+            "There are no users yet. PA does not create an admin user out of the box, use the register page to create an account."
+        )
+    else:
+        print(f"Users: {user_count}")
+    print()
+    print("(Press CTRL+C to quit)")
 
 
 async def start_servers():
     cfg = config.cfg()
     print()
     await start_server("Webserver", cfg.webserver)
-    print()
-    print("(Press CTRL+C to quit)")
     print()
     stats.events.server_started()
 

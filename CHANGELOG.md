@@ -25,6 +25,10 @@ tech changes will usually be stripped from release notes for the public
 -   Variant shapes are completely reworked
     -   UI should be more intuitive
     -   No longer completely separate shapes with their own state
+-   server startup info
+    -   Now contains a bit more info (e.g. where the DB and config are loaded from)
+    -   A help message to point to the config docs
+    -   A help message if there are no users yet, in case someone expects an admin user
 -   [tech] DB storage of asset data is reworked
     -   Asset size is now also stored in DB for easier user total size calculation
 

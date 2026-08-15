@@ -40,6 +40,7 @@ tech changes will usually be stripped from release notes for the public
 -   Collapse selection not immediately syncing position change until a move
 -   Public aura syncing to non-owners not working as intended
 -   Pressing enter in the initiative UI could sometimes open a selected shape's property dialog
+-   Moving shapes to a different floor with disabled auras now behaves correctly
 -   [tech] Asset db rows were not properly being cleaned up when a file was removed on disk
 
 ### Removed

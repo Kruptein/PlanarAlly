@@ -717,11 +717,13 @@ class VisionState extends Store<State> {
 
     moveVisionSource(source: LocalId, auras: readonly Aura[], oldFloor: FloorId, newFloor: FloorId): void {
         for (const aura of auras) {
-            if (!aura.visionSource) continue;
-            this.sliceVisionSources(
-                this.getVisionSources(oldFloor).findIndex((s) => s.shape === source && s.aura === aura.uuid),
-                oldFloor,
-            );
+            if (!aura.active || !aura.visionSource) continue;
+            const index = this.getVisionSources(oldFloor).findIndex((s) => s.shape === source && s.aura === aura.uuid);
+            if (index === -1) {
+                console.error("Failed to find vision source in old floor - skipping.");
+                continue;
+            }
+            this.sliceVisionSources(index, oldFloor);
             this.addVisionSource({ shape: source, aura: aura.uuid, isFloodLight: aura.floodLight }, newFloor);
         }
     }

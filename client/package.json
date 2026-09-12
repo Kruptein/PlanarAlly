@@ -60,7 +60,7 @@
         "v-lazy-show": "^0.3.0",
         "vite": "^8.2.1",
         "vite-plugin-ejs": "^2.0.0",
-        "vitest": "^4.1.10",
+        "vitest": "^4.1.11",
         "vue-tsc": "^3.3.10"
     }
 }

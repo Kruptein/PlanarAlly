@@ -27,9 +27,11 @@ export interface ILayer {
     get width(): number;
 
     addShape: (shape: IShape, sync: SyncMode, invalidate: InvalidationMode) => void;
+    registerDrawCallback: (cb: (ctx: CanvasRenderingContext2D) => void) => void;
+    unregisterDrawCallback: (cb: (ctx: CanvasRenderingContext2D) => void) => void;
     clear: () => void;
     draw: (doClear?: boolean) => void;
-    getShapes: (options: { onlyInView: boolean; includeComposites: boolean }) => readonly IShape[];
+    getShapes: (options: { onlyInView: boolean }) => readonly IShape[];
     hide: () => void;
     invalidate: (skipLightUpdate: boolean) => void;
     updateView: () => void;
@@ -43,6 +45,6 @@ export interface ILayer {
     setServerShapes: (shapes: ApiShape[]) => Promise<void>;
     setShapes: (...shapes: IShape[]) => void;
     show: () => void;
-    size: (options: { includeComposites: boolean; onlyInView: boolean }) => number;
+    size: (options: { onlyInView: boolean }) => number;
     updateSectors: (shapeId: LocalId, aabb: BoundingRect) => void;
 }

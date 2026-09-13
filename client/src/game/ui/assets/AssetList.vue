@@ -3,7 +3,7 @@ import { computed, onMounted, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { assetSystem } from "../../../assets";
-import type { AssetId } from "../../../assets/models";
+import type { AssetEntryId } from "../../../assets/models";
 import { socket } from "../../../assets/socket";
 import { assetState } from "../../../assets/state";
 import AssetListCore from "../../../assets/ui/AssetListCore.vue";
@@ -38,7 +38,7 @@ const shortcuts = computed(() => {
         id: assetState.reactive.root,
     };
     const _shortcuts = assetGameState.reactive.shortcuts.map((id) => {
-        const asset = assetState.reactive.idMap.get(id);
+        const asset = assetState.reactive.entryIdMap.get(id);
         return { name: asset?.name ?? "Unknown", id };
     });
     return [root, ..._shortcuts];
@@ -46,7 +46,7 @@ const shortcuts = computed(() => {
 
 const activeShortcut = computed(() => assetState.currentFolder.value);
 
-async function open(id: AssetId | undefined): Promise<void> {
+async function open(id: AssetEntryId | undefined): Promise<void> {
     const target = id ?? assetState.reactive.root;
     if (target) await assetSystem.changeDirectory(target);
 }
@@ -80,14 +80,14 @@ function onDragLeave(event: DragEvent): void {
 const contextAsset = computed(() => {
     if (assetState.reactive.selected.length !== 1) return undefined;
     if (assetState.raw.selected[0] === undefined) return undefined;
-    return assetState.reactive.idMap.get(assetState.raw.selected[0]);
+    return assetState.reactive.entryIdMap.get(assetState.raw.selected[0]);
 });
 
 const canShortcut = computed(() => {
     if (assetState.reactive.selected.length !== 1) return false;
     if (contextAsset.value === undefined) return false;
     if (assetGameState.reactive.shortcuts.includes(contextAsset.value.id)) return false;
-    return contextAsset.value.fileHash === null;
+    return contextAsset.value.asset === null;
 });
 
 const canRemoveShortcut = computed(() => {
@@ -129,7 +129,7 @@ const canPick = computed(() => {
     return (
         assetState.reactive.selected.length === 1 &&
         assetGameState.reactive.picker !== null &&
-        assetState.reactive.idMap.get(selection)?.fileHash !== null
+        assetState.reactive.entryIdMap.get(selection)?.asset !== null
     );
 });
 
@@ -399,6 +399,7 @@ header {
 #asset-picker {
     display: flex;
     justify-content: flex-end;
+    z-index: 1; // otherwise the footer overlaps the bottom half of the buttons
 
     button {
         height: 2rem;

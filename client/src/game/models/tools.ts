@@ -9,6 +9,7 @@ export enum ToolName {
     Ruler = "Ruler",
     Ping = "Ping",
     Map = "Map",
+    Light = "Light",
     Vision = "Vision",
     Spell = "Spell",
     Dice = "Dice",
@@ -44,7 +45,7 @@ export interface ITool {
     onPanStart: () => void;
     onPanEnd: () => void;
 
-    onSelect: () => void;
+    onSelect: () => Promise<void>;
     onDeselect: () => void;
 
     onKeyDown: (event: KeyboardEvent, features: ToolFeatures) => Promise<void>;

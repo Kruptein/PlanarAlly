@@ -10,6 +10,7 @@ sed -i 's/"PlayerId"/PlayerId/g' ../client/src/apiTypes.ts
 sed -i 's/"CharacterId"/CharacterId/g' ../client/src/apiTypes.ts
 sed -i 's/"LayerName"/LayerName/g' ../client/src/apiTypes.ts
 sed -i 's/"AssetId"/AssetId/g' ../client/src/apiTypes.ts
+sed -i 's/"AssetEntryId"/AssetEntryId/g' ../client/src/apiTypes.ts
 sed -i 's/"Role"/Role/g' ../client/src/apiTypes.ts
 sed -i 's/"VisionBlock"/VisionBlock/g' ../client/src/apiTypes.ts
 sed -i 's/"GridModeLabelFormat"/GridModeLabelFormat/g' ../client/src/apiTypes.ts
@@ -17,7 +18,7 @@ sed -i 's/"FloorIndex"/FloorIndex/g' ../client/src/apiTypes.ts
 sed -i 's/"NoteId"/NoteId/g' ../client/src/apiTypes.ts
 # Import the concrete types & export union types
 sed -i '1s/^/'\
-'import type { AssetId } from ".\/assets\/models";\n'\
+'import type { AssetId, AssetEntryId } from ".\/assets\/models";\n'\
 'import type { GlobalId } from ".\/core\/id";\n'\
 'import type { FloorIndex, LayerName } from ".\/game\/models\/floor";\n'\
 'import type { Role } from ".\/game\/models\/role";\n'\
@@ -30,7 +31,7 @@ sed -i '1s/^/'\
 'import type { GridModeLabelFormat } from ".\/game\/systems\/settings\/players\/models";\n'\
 'import type { TrackerId } from ".\/game\/systems\/trackers\/models";\n'\
 '\n'\
-'export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape\n'\
+'export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiFontAwesomeShape\n'\
 'export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock\n'\
 'export type ApiShapeAdd = ApiShapeWithLayerAndTemporary | ApiTemplateShape\n'\
 'export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumber | ApiShapeCustomDataBoolean | ApiShapeCustomDataDiceExpression\n'\

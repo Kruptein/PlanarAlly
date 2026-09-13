@@ -1,6 +1,5 @@
 from pydantic import Field
 
-from ..helpers import TypeIdModel
 from .shape import ApiCoreShape
 
 
@@ -14,7 +13,13 @@ class ApiRectShape(ApiBaseRectShape):
 
 
 class ApiAssetRectShape(ApiBaseRectShape):
-    src: str
+    assetHash: str
+    assetId: int = Field(json_schema_extra={"typeId": "AssetId"})
+
+
+class ApiFontAwesomeShape(ApiBaseRectShape):
+    iconPrefix: str
+    iconName: str
 
 
 class ApiCircleShape(ApiCoreShape):
@@ -44,23 +49,13 @@ class ApiLineShape(ApiCoreShape):
     line_width: float
 
 
-class ToggleVariant(TypeIdModel):
-    uuid: str = Field(json_schema_extra={"typeId": "GlobalId"})
-    name: str
-
-
-class ApiToggleCompositeShape(ApiCoreShape):
-    active_variant: str = Field(json_schema_extra={"typeId": "GlobalId"})
-    variants: list[ToggleVariant]
-
-
 ApiShapeSubType = (
     ApiAssetRectShape
     | ApiRectShape
     | ApiCircleShape
     | ApiCircularTokenShape
+    | ApiFontAwesomeShape
     | ApiPolygonShape
     | ApiTextShape
     | ApiLineShape
-    | ApiToggleCompositeShape
 )

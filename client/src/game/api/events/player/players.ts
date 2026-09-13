@@ -10,7 +10,7 @@ socket.on("Players.Info.Set", (data: PlayersInfoSet[]) => {
     let found = false;
     for (const player of data) {
         const id = player.core.id;
-        playerSystem.addPlayer({ ...player.core, showRect: false });
+        playerSystem.addPlayer(player.core);
 
         if (player.position !== undefined) {
             playerSystem.setPosition(id, player.position);
@@ -26,12 +26,12 @@ socket.on("Players.Info.Set", (data: PlayersInfoSet[]) => {
         return;
     }
 
-    // then we add client rects if applicable
+    // then we add client info if applicable
     for (const player of data) {
         for (const client of player.clients ?? []) {
             const clientId = client.client;
             clientSystem.addClient(player.core.id, clientId);
-            if (client.viewport) clientSystem.setClientViewport(clientId, client.viewport, false);
+            if (client.viewport) clientSystem.setClientViewport(clientId, client.viewport);
         }
     }
 });

@@ -17,6 +17,7 @@ import { initiativeStore } from "../initiative/state";
 
 import DiceTool from "./DiceTool.vue";
 import DrawTool from "./DrawTool.vue";
+import LightTool from "./LightTool.vue";
 import MapTool from "./MapTool.vue";
 import RulerTool from "./RulerTool.vue";
 import SelectTool from "./SelectTool.vue";
@@ -145,6 +146,7 @@ function toggleLoS(): void {
             <DrawTool v-lazy-show="activeTool === ToolName.Draw" />
             <RulerTool v-lazy-show="activeTool === ToolName.Ruler" />
             <MapTool v-lazy-show="activeTool === ToolName.Map" />
+            <LightTool v-lazy-show="activeTool === ToolName.Light" />
             <VisionTool v-lazy-show="activeTool === ToolName.Vision" />
             <DiceTool v-lazy-show="roomState.reactive.enableDice && activeTool === ToolName.Dice" />
         </div>

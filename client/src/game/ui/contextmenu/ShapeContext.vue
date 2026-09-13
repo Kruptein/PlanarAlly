@@ -18,7 +18,7 @@ import { sendShapePositionUpdate, sendShapesMove } from "../../api/emits/shape/c
 import { getGlobalId, getShape } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
-import { compositeState } from "../../layers/state";
+import { IAsset } from "../../interfaces/shapes/asset";
 import type { Floor, LayerName } from "../../models/floor";
 import { fromSystemForm, instantiateCompactForm } from "../../shapes/transformations";
 import { deleteShapes } from "../../shapes/utils";
@@ -100,17 +100,18 @@ function setMarker(): boolean {
 
 async function addToInitiative(): Promise<boolean> {
     let groupInitiatives = false;
-    const selection = selectedSystem.get({ includeComposites: false });
+    const selection = selectedSystem.get();
     // First check if there are shapes with the same groupId
     const groupsFound = new Set();
     for (const shape of selection) {
         const group = groupSystem.getGroupId(shape.id);
         if (group === undefined) continue;
         if (groupsFound.has(group)) {
+            // oxlint-disable-next-line no-await-in-loop
             const answer = await modals.confirm(
-                "Adding initiative",
-                "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
-                { no: "no, create a separate entry for each", focus: "confirm" },
+                t("game.ui.selection.ShapeContext.add_to_initiative.title"),
+                t("game.ui.selection.ShapeContext.add_to_initiative.text"),
+                { no: t("game.ui.selection.ShapeContext.add_to_initiative.no"), focus: "confirm" },
             );
             if (answer === undefined) return false;
             groupInitiatives = answer;
@@ -156,7 +157,7 @@ const layers = computed(() => {
 });
 
 function setLayer(newLayer: LayerName): boolean {
-    const oldSelection = [...selectedSystem.get({ includeComposites: true })];
+    const oldSelection = [...selectedSystem.get()];
     selectedSystem.clear();
     moveLayer(oldSelection, floorSystem.getLayer(floorState.currentFloor.value!, newLayer)!, true);
     return true;
@@ -164,7 +165,7 @@ function setLayer(newLayer: LayerName): boolean {
 
 function moveToBack(): boolean {
     const layer = floorState.currentLayer.value!;
-    for (const shape of selectedSystem.get({ includeComposites: false })) {
+    for (const shape of selectedSystem.get()) {
         layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC);
     }
     return true;
@@ -172,8 +173,8 @@ function moveToBack(): boolean {
 
 function moveToFront(): boolean {
     const layer = floorState.currentLayer.value!;
-    for (const shape of selectedSystem.get({ includeComposites: false })) {
-        layer.moveShapeOrder(shape, layer.size({ includeComposites: true, onlyInView: false }) - 1, SyncMode.FULL_SYNC);
+    for (const shape of selectedSystem.get()) {
+        layer.moveShapeOrder(shape, layer.size({ onlyInView: false }) - 1, SyncMode.FULL_SYNC);
     }
 
     return true;
@@ -182,7 +183,7 @@ function moveToFront(): boolean {
 // FLOORS
 
 function setFloor(floor: Floor): boolean {
-    moveFloor([...selectedSystem.get({ includeComposites: true })], floor, true);
+    moveFloor([...selectedSystem.get()], floor, true);
     return true;
 }
 
@@ -196,7 +197,7 @@ const locations = computed(() => {
 });
 
 async function setLocation(newLocation: number): Promise<boolean> {
-    const shapes = selectedSystem.get({ includeComposites: true }).filter((s) => !getProperties(s.id)!.isLocked);
+    const shapes = selectedSystem.get().filter((s) => !getProperties(s.id)!.isLocked);
     if (shapes.length === 0) {
         return false;
     }
@@ -217,7 +218,7 @@ async function setLocation(newLocation: number): Promise<boolean> {
             break;
         default: {
             const choices = await modals.selectionBox(
-                "Choose the desired spawn location",
+                t("game.ui.selection.ShapeContext.choose_spawn_location.title"),
                 spawnInfo.map((s) => s.name),
             );
             if (choices === undefined) return false;
@@ -240,7 +241,7 @@ async function setLocation(newLocation: number): Promise<boolean> {
     });
     if (locationSettingsState.raw.movePlayerOnTokenChange.value) {
         const users = new Set<string>();
-        for (const shape of selectedSystem.get({ includeComposites: true })) {
+        for (const shape of selectedSystem.get()) {
             if (getProperties(shape.id)!.isLocked) continue;
             for (const owner of accessSystem.getOwners(shape.id)) users.add(owner);
         }
@@ -255,23 +256,19 @@ async function setLocation(newLocation: number): Promise<boolean> {
 const hasSingleSelection = computed(() => selectedState.reactive.selected.size === 1);
 
 function deleteSelection(): boolean {
-    deleteShapes(selectedSystem.get({ includeComposites: true }), SyncMode.FULL_SYNC);
+    deleteShapes(selectedSystem.get(), SyncMode.FULL_SYNC);
     return true;
 }
 
 // TEMPLATES
 
-const canBeSaved = computed(() =>
-    [...selectedState.reactive.selected].every(
-        (s) => getShape(s)!.assetId !== undefined && compositeState.getCompositeParent(s) === undefined,
-    ),
-);
+const canBeSaved = computed(() => [...selectedState.reactive.selected].every((s) => getShape(s)!.type === "assetrect"));
 
 function saveTemplate(): boolean {
-    const ogShape = selectedSystem.get({ includeComposites: false })[0];
+    const ogShape = selectedSystem.get()[0];
     if (ogShape === undefined) return false;
 
-    if (ogShape.assetId !== undefined) {
+    if (ogShape.type === "assetrect") {
         // const response = await requestAssetOptions(shape.assetId);
         // if (response.success && response.options) assetOptions = response.options;
     } else {
@@ -284,7 +281,7 @@ function saveTemplate(): boolean {
     // and TEMPLATE_SYNC it to the server, ensuring that we don't actually save the layer/floor
     // afterwards we delete it from the game
 
-    const name = window.prompt("Enter a name for the template");
+    const name = window.prompt(t("game.ui.selection.ShapeContext.enter_name_for_template"));
     if (name === null || name.trim() === "") return false;
 
     const ogCompact = fromSystemForm(ogShape.id);
@@ -298,7 +295,7 @@ function saveTemplate(): boolean {
     deleteShapes([newShape], SyncMode.NO_SYNC, false);
 
     sendShapeTemplateAdd({
-        assetId: ogShape.assetId,
+        assetId: (ogShape as IAsset).assetId,
         shapeId,
         name,
     });
@@ -341,10 +338,8 @@ const canHaveCharacter = computed(() => {
     const selection = selectedState.reactive.selected;
     if (selection.size !== 1) return false;
     const shapeId = [...selection][0]!;
-    const compParent = compositeState.getCompositeParent(shapeId);
-    if (compParent?.variants.some((v) => getShape(v.id)?.character !== undefined) ?? false) return false;
     const shape = getShape(shapeId);
-    if (shape?.assetId === undefined) return false;
+    if (shape?.type !== "assetrect") return false;
     return true;
 });
 
@@ -388,9 +383,13 @@ function createGroup(): boolean {
 }
 
 async function splitGroup(): Promise<boolean> {
-    const keepBadges = await modals.confirm("Splitting group", "Do you wish to keep the original badges?", {
-        no: "No, reset them",
-    });
+    const keepBadges = await modals.confirm(
+        t("game.ui.selection.ShapeContext.splitting_group.title"),
+        t("game.ui.selection.ShapeContext.splitting_group.text"),
+        {
+            no: t("game.ui.selection.ShapeContext.splitting_group.no"),
+        },
+    );
     if (keepBadges === undefined) return false;
     groupSystem.createNewGroupForShapes([...selectedState.raw.selected], keepBadges);
     return true;
@@ -398,16 +397,16 @@ async function splitGroup(): Promise<boolean> {
 
 async function mergeGroups(): Promise<boolean> {
     const keepBadges = await modals.confirm(
-        "Merging group",
-        "Do you wish to keep the original badges? This can lead to duplicate badges!",
+        t("game.ui.selection.ShapeContext.merging_group_title"),
+        t("game.ui.selection.ShapeContext.merging_group_text"),
         {
-            no: "No, reset them",
+            no: t("game.ui.selection.ShapeContext.merging_group_no"),
         },
     );
     if (keepBadges === undefined) return false;
     let targetGroup: string | undefined;
     const membersToMove: { id: LocalId; badge?: number }[] = [];
-    for (const shape of selectedSystem.get({ includeComposites: false })) {
+    for (const shape of selectedSystem.get()) {
         const groupId = groupSystem.getGroupId(shape.id);
         if (groupId !== undefined) {
             if (targetGroup === undefined) {
@@ -425,7 +424,7 @@ async function mergeGroups(): Promise<boolean> {
 }
 
 function removeEntireGroup(): boolean {
-    const shape = selectedSystem.get({ includeComposites: false })[0];
+    const shape = selectedSystem.get()[0];
     if (shape !== undefined) {
         const groupId = groupSystem.getGroupId(shape.id);
         if (groupId !== undefined) {
@@ -436,9 +435,7 @@ function removeEntireGroup(): boolean {
 }
 
 function enlargeGroup(): boolean {
-    const selection = selectedSystem
-        .get({ includeComposites: false })
-        .map((s) => ({ id: s.id, groupId: groupSystem.getGroupId(s.id) }));
+    const selection = selectedSystem.get().map((s) => ({ id: s.id, groupId: groupSystem.getGroupId(s.id) }));
     const shape = selection.find((s) => s.groupId !== undefined);
     if (shape?.groupId !== undefined) {
         groupSystem.addGroupMembers(
@@ -469,6 +466,7 @@ const currentFloorIndex = toRef(floorState.reactive, "floorIndex");
 const floors = toRef(floorState.reactive, "floors");
 
 const sections = computed(() => {
+    if (!showShapeContextMenu.value) return [];
     const focus = selectedState.reactive.focus;
     if (focus === undefined) return [];
     // MOVE [group A] >
@@ -525,31 +523,31 @@ const sections = computed(() => {
         const groupSize = groups.value.size;
         if (groupSize === 0) {
             groupsSection.push({
-                title: "Create group",
+                title: t("game.ui.selection.ShapeContext.create_group"),
                 action: createGroup,
             });
         } else if (groupSize === 1) {
             if (hasUngrouped.value) {
                 groupsSection.push({
-                    title: "Enlarge group",
+                    title: t("game.ui.selection.ShapeContext.enlarge_group"),
                     action: enlargeGroup,
                 });
             } else {
                 if (hasEntireGroup.value) {
                     groupsSection.push({
-                        title: "Remove group",
+                        title: t("game.ui.selection.ShapeContext.remove_group"),
                         action: removeEntireGroup,
                     });
                 } else if (!hasEntireGroup.value) {
                     groupsSection.push({
-                        title: "Split from group",
+                        title: t("game.ui.selection.ShapeContext.split_from_group"),
                         action: splitGroup,
                     });
                 }
             }
         } else {
             groupsSection.push({
-                title: "Merge groups",
+                title: t("game.ui.selection.ShapeContext.merge_groups"),
                 action: mergeGroups,
             });
         }
@@ -557,11 +555,11 @@ const sections = computed(() => {
 
     const rootGroupA: Section[] = [
         {
-            title: "Move",
+            title: t("game.ui.selection.ShapeContext.move"),
             subitems: moveSection,
         },
         {
-            title: "Group",
+            title: t("game.ui.selection.ShapeContext.group"),
             subitems: groupsSection,
         },
     ];
@@ -570,13 +568,13 @@ const sections = computed(() => {
         const selection = selectedState.reactive.focus!;
         if ((getShape(selection)?.options?.collapsedIds?.length ?? 0) > 0) {
             rootGroupA.push({
-                title: "Expand",
+                title: t("game.ui.selection.ShapeContext.expand"),
                 action: _expandSelection,
             });
         }
     } else {
         rootGroupA.push({
-            title: "Collapse",
+            title: t("game.ui.selection.ShapeContext.collapse"),
             action: _collapseSelection,
         });
     }
@@ -612,7 +610,7 @@ const sections = computed(() => {
 
         if (isOwned.value && canHaveCharacter.value) {
             rootGroupB.push({
-                title: "Create character",
+                title: t("game.ui.selection.ShapeContext.create_character"),
                 action: createCharacter,
             });
         }
@@ -635,7 +633,7 @@ const sections = computed(() => {
                 action: openEditDialog,
             },
             {
-                title: "Open notes",
+                title: t("game.ui.selection.ShapeContext.open_notes"),
                 action: openNotes,
             },
         ]);

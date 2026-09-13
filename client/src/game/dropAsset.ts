@@ -1,19 +1,19 @@
 import type { AssetTemplateInfo } from "../apiTypes";
 import { assetSystem } from "../assets";
-import type { AssetId } from "../assets/models";
+import type { AssetEntryId, AssetId } from "../assets/models";
 import { assetState } from "../assets/state";
 import { getImageSrcFromHash } from "../assets/utils";
 import { l2gx, l2gy, l2gz } from "../core/conversions";
 import { type GlobalPoint, toGP, Vector } from "../core/geometry";
 import { DEFAULT_GRID_SIZE, snapPointToGrid } from "../core/grid";
-import { baseAdjust } from "../core/http";
 import { SyncMode, InvalidationMode, UI_SYNC } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 import { i18n } from "../i18n";
+import { coreStore } from "../store/core";
 
-import { requestAssetOptions } from "./api/emits/asset";
+import { requestAssetTemplates } from "./api/emits/asset";
 import { fetchFullShape, sendShapesMove } from "./api/emits/shape/core";
-import { getLocalId, getVisualShape } from "./id";
+import { getLocalId, getShape } from "./id";
 import { moveShapes } from "./operations/movement";
 import { loadFromServer } from "./shapes/transformations";
 import { Asset } from "./shapes/variants/asset";
@@ -26,6 +26,21 @@ import { playerSystem } from "./systems/players";
 import { locationSettingsState } from "./systems/settings/location/state";
 import { addShape, selectionBoxFunction } from "./temp";
 import { handleDropFF } from "./ui/firefox";
+
+interface DropAssetInfoCore {
+    assetHash: string;
+    assetId: AssetId;
+}
+
+export type DropAssetInfo = DropAssetInfoCore &
+    (
+        | {
+              characterId: CharacterId;
+          }
+        | {
+              entryId: AssetEntryId;
+          }
+    );
 
 export async function handleDropEvent(event: DragEvent): Promise<void> {
     if (event === null || event.dataTransfer === null) return;
@@ -40,26 +55,26 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
 
     // External files are dropped
     if (!transferInfo && event.dataTransfer.files.length > 0) {
-        for (const asset of await assetSystem.upload(event.dataTransfer.files, { target: () => assetState.raw.root })) {
-            if (asset.fileHash !== null) await dropHelper({ assetHash: asset.fileHash, assetId: asset.id }, location);
+        for (const asset of await assetSystem.upload(event.dataTransfer.files, {
+            target: () => assetState.raw.root,
+        })) {
+            if (asset.asset !== null)
+                // oxlint-disable-next-line no-await-in-loop
+                await dropHelper(
+                    { assetHash: asset.asset.fileHash, entryId: asset.id, assetId: asset.asset.id },
+                    location,
+                );
         }
     } else if (transferInfo) {
-        const assetInfo = JSON.parse(transferInfo) as {
-            assetHash: string;
-            assetId: AssetId;
-            characterId?: CharacterId;
-        };
+        const assetInfo = JSON.parse(transferInfo) as DropAssetInfo;
         await dropHelper(assetInfo, location);
     }
 
     // assetState.mutable.modalActive = false;
 }
 
-async function dropHelper(
-    assetInfo: { assetHash: string; assetId: AssetId; characterId?: CharacterId },
-    location: GlobalPoint,
-): Promise<void> {
-    if (assetInfo.characterId !== undefined) {
+async function dropHelper(assetInfo: DropAssetInfo, location: GlobalPoint): Promise<void> {
+    if ("characterId" in assetInfo) {
         const character = characterState.readonly.characters.get(assetInfo.characterId);
         if (character === undefined) {
             throw new Error("Unknown character ID encountered");
@@ -67,7 +82,7 @@ async function dropHelper(
         const shapeId = getLocalId(character.shapeId, false);
 
         if (shapeId !== undefined) {
-            const shape = getVisualShape(shapeId);
+            const shape = getShape(shapeId);
             if (shape !== undefined && shape.options.skipDraw !== true) {
                 await moveShapes([shape], Vector.fromPoints(shape.center, location), { temporary: false });
                 return;
@@ -84,13 +99,16 @@ async function dropHelper(
                 y: location.y,
             },
         });
-
-        return;
+    } else {
+        await dropAsset(
+            {
+                entryId: assetInfo.entryId,
+                assetId: assetInfo.assetId,
+                imageSource: getImageSrcFromHash(assetInfo.assetHash),
+            },
+            location,
+        );
     }
-    await dropAsset(
-        { assetId: assetInfo.assetId, imageSource: getImageSrcFromHash(assetInfo.assetHash, { addBaseUrl: false }) },
-        location,
-    );
 }
 
 async function loadTemplate(template: AssetTemplateInfo, position: GlobalPoint): Promise<void> {
@@ -108,29 +126,26 @@ async function loadTemplate(template: AssetTemplateInfo, position: GlobalPoint):
 }
 
 export async function dropAsset(
-    data: { imageSource: string; assetId: AssetId },
+    data: { imageSource: string; entryId: AssetEntryId; assetId: AssetId },
     position: GlobalPoint,
 ): Promise<Asset | undefined> {
     let dimensions: { width: number; height: number } | undefined;
 
-    const assetInfo = await requestAssetOptions(data.assetId);
+    const assetInfo = await requestAssetTemplates({ assetId: data.assetId, entryId: data.entryId });
     if (assetInfo.success) {
         // First check if there are templates and if so, if we want to use one
         const choices = assetInfo.templates.map((template) => template.name);
         if (choices.length > 0) {
             try {
-                const choice = await selectionBoxFunction!(
-                    i18n.global.t("game.ui.templates.choose").toString(),
-                    choices,
-                );
+                const choice = await selectionBoxFunction!(i18n.global.t("game.ui.templates.choose"), choices);
                 if (choice === undefined || choice.length === 0) return;
                 const template = assetInfo.templates.find((template) => template.name === choice[0]);
                 if (template) {
                     await loadTemplate(template, position);
                     return;
                 }
-            } catch {
-                // no-op ; action cancelled
+            } catch (error) {
+                console.error(error);
             }
         }
 
@@ -149,28 +164,29 @@ export async function dropAsset(
         }
     }
 
-    if (!data.imageSource.startsWith("/static")) return;
+    if (
+        !data.imageSource.startsWith("/static") &&
+        (coreStore.state.assetUrlBase === null || !data.imageSource.startsWith(coreStore.state.assetUrlBase))
+    )
+        return;
     const image = document.createElement("img");
     const uuid = uuidv4();
-    image.src = baseAdjust(data.imageSource);
+    image.src = data.imageSource;
+    const assetHash = data.imageSource.split("/").pop()!;
 
     const layer = floorState.currentLayer.value!;
 
     return new Promise((resolve) => {
-        image.onload = () => {
+        image.addEventListener("load", () => {
             const asset = new Asset(
                 image,
                 position,
                 dimensions?.width ?? l2gz(image.width),
                 dimensions?.height ?? l2gz(image.height),
-                {
-                    assetId: data.assetId,
-                    uuid,
-                },
+                data.assetId,
+                assetHash,
+                { uuid },
             );
-
-            const pathname = new URL(image.src).pathname;
-            asset.src = pathname.replace(import.meta.env.BASE_URL, "/");
 
             asset.setLayer(layer.floor, layer.name); // set this early to avoid conflicts
 
@@ -191,6 +207,6 @@ export async function dropAsset(
             layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 
             resolve(asset);
-        };
+        });
     });
 }

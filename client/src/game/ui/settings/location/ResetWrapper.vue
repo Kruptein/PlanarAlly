@@ -7,7 +7,11 @@ import { locationSettingsState } from "../../../systems/settings/location/state"
 
 const { t } = useI18n();
 
-const props = defineProps<{ global: boolean; location: number | undefined; setting: keyof LocationOptions }>();
+const props = defineProps<{
+    global: boolean;
+    location: number | undefined;
+    setting: keyof LocationOptions;
+}>();
 
 function o(k: any): boolean {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument

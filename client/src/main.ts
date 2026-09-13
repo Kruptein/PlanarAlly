@@ -1,5 +1,4 @@
 import "../style.css";
-
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { createApp } from "vue";
 import Toast, { POSITION } from "vue-toastification";

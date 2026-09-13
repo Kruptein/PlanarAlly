@@ -26,6 +26,7 @@ class ApiAura(AuraRef):
     border_colour: str
     angle: int
     direction: int
+    flood_light: bool
 
 
 class ApiOptionalAura(AuraRef):
@@ -39,6 +40,7 @@ class ApiOptionalAura(AuraRef):
     border_colour: str | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     angle: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
     direction: int | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
+    flood_light: bool | MISSING = Field(default=MISSING, json_schema_extra={"missing": True})
 
 
 class ShapeSetAuraValue(TypeIdModel):

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, unref, watchEffect } from "vue";
+import { computed, ref, unref, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { activeShapeStore } from "../../../../store/activeShape";
+import { getShape } from "../../../id";
+import { IShape } from "../../../interfaces/shape";
 import { accessSystem } from "../../../systems/access";
 import { accessState } from "../../../systems/access/state";
 import { selectedState } from "../../../systems/selected/state";
@@ -19,9 +21,10 @@ import GroupSettings from "./GroupSettings.vue";
 import LogicSettings from "./LogicSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
-import VariantSwitcher from "./VariantSwitcher.vue";
+import VariantSettings from "./VariantSettings.vue";
 
 const { t } = useI18n();
+const shape = ref<IShape | null>(null);
 
 const visible = computed({
     get() {
@@ -35,14 +38,14 @@ const visible = computed({
 const owned = accessState.hasEditAccess;
 
 watchEffect(() => {
-    let id = selectedState.reactive.focus;
-    if (activeShapeStore.isComposite.value) {
-        id = activeShapeStore.state.parentUuid;
-    }
+    if (!visible.value) return;
+    const id = selectedState.reactive.focus;
     if (id !== undefined) {
         accessSystem.loadState(id);
+        shape.value = getShape(id) ?? null;
     } else {
         accessSystem.dropState();
+        shape.value = null;
     }
 });
 
@@ -73,7 +76,7 @@ const fixedTabs: PanelTab[] = [
     },
 ];
 
-const ownedTabs: PanelTab[] = [
+const ownedTabs = computed<PanelTab[]>(() => [
     {
         id: ShapeSettingCategory.Group,
         label: t("game.ui.selection.edit_dialog.groups.groups"),
@@ -84,20 +87,29 @@ const ownedTabs: PanelTab[] = [
         label: t("game.ui.selection.edit_dialog.customData.customData"),
         component: DataSettings,
     },
+    ...(shape.value?.type === "assetrect"
+        ? [
+              {
+                  id: ShapeSettingCategory.Variants,
+                  label: t("game.ui.selection.edit_dialog.variants.variants"),
+                  component: VariantSettings,
+              },
+          ]
+        : []),
     {
         id: ShapeSettingCategory.Extra,
         label: t("game.ui.selection.edit_dialog.extra.extra"),
         component: ExtraSettings,
     },
-];
+]);
 
 const tabs = computed(() => {
     const tabs: PanelTab[] = [];
-    if (!hasShape.value) return tabs;
+    if (!visible.value || !hasShape.value) return tabs;
 
     tabs.push(...fixedTabs);
     if (owned.value) {
-        tabs.push(...ownedTabs);
+        tabs.push(...ownedTabs.value);
     }
 
     for (const charTab of uiState.mutableReactive.characterTabs) {
@@ -108,6 +120,11 @@ const tabs = computed(() => {
         }
     }
 
+    // Ensure we always show a tab that exists
+    if (!tabs.some((tab) => tab.id === uiState.reactive.activeShapeTab)) {
+        uiState.mutableReactive.activeShapeTab = tabs[0]?.id as ShapeSettingCategory;
+    }
+
     return tabs;
 });
 </script>
@@ -115,9 +132,5 @@ const tabs = computed(() => {
 <template>
     <PanelModal v-model:visible="visible" v-model:selection="uiState.reactive.activeShapeTab" :tabs="tabs">
         <template #title>{{ t("game.ui.selection.edit_dialog.dialog.edit_shape") }}</template>
-        <template v-if="owned" #default>
-            <div style="flex-grow: 1"></div>
-            <VariantSwitcher />
-        </template>
     </PanelModal>
 </template>

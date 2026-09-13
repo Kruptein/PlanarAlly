@@ -1,3 +1,4 @@
+import type { AssetId } from "../../../assets/models";
 import type { ShapeSize } from "../../interfaces/shape";
 
 // Order is important
@@ -8,6 +9,8 @@ export enum VisionBlock {
 }
 
 export const visionBlocks = [VisionBlock.No, VisionBlock.Complete, VisionBlock.Behind];
+
+export const visionBlockI18nLabels = ["no", "complete", "behind"];
 
 export interface ShapeProperties {
     name: string;
@@ -27,6 +30,8 @@ export interface ShapeProperties {
     cellStrokeColour?: string;
     cellStrokeWidth?: number;
     oddHexOrientation: boolean;
+    // unique to assetrect
+    variants?: { name: string | null; assetId: AssetId; width: number; height: number }[];
 }
 
 export interface ServerShapeProperties {

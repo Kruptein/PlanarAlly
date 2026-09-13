@@ -33,6 +33,7 @@ export function useSelectionBox(): SelectionBoxModal {
         options: { multiSelect: false } as SelectionBoxOptions | undefined,
     });
 
+    // oxlint-disable-next-line unicorn/consistent-function-scoping
     let resolve: (value: string[] | undefined) => void = (_value: string[] | undefined) => {};
 
     async function open(

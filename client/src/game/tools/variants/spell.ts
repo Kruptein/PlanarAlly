@@ -29,6 +29,7 @@ import { activateTool, toolMap } from "../tools";
 
 export enum SpellShape {
     Square = "square",
+    // oxlint-disable-next-line no-shadow
     Circle = "circle",
     Cone = "cone",
     Hex = "hex",
@@ -50,7 +51,12 @@ class SpellTool extends Tool implements ITool {
     });
 
     get permittedTools(): ToolPermission[] {
-        return [{ name: ToolName.Select, features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] } }];
+        return [
+            {
+                name: ToolName.Select,
+                features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] },
+            },
+        ];
     }
 
     constructor() {
@@ -109,7 +115,9 @@ class SpellTool extends Tool implements ITool {
 
         switch (this.state.selectedSpellShape) {
             case SpellShape.Circle:
-                this.shape = new Circle(startPosition, getUnitDistance(this.state.size), { isSnappable: false });
+                this.shape = new Circle(startPosition, getUnitDistance(this.state.size), {
+                    isSnappable: false,
+                });
                 break;
             case SpellShape.Square:
                 {

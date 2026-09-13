@@ -1,4 +1,4 @@
-import { g2lz } from "../../../core/conversions";
+import { g2lz, l2gz } from "../../../core/conversions";
 import { addP, subtractP, toArrayP, toGP, Vector } from "../../../core/geometry";
 import type { GlobalPoint } from "../../../core/geometry";
 import type { GlobalId, LocalId } from "../../../core/id";
@@ -60,7 +60,8 @@ export class Circle extends Shape implements IShape {
     }
 
     getBoundingBox(): BoundingRect {
-        return new BoundingRect(toGP(this.refPoint.x - this.r, this.refPoint.y - this.r), this.r * 2, this.r * 2);
+        const r = this.ignoreZoomSize ? l2gz(this.r) : this.r;
+        return new BoundingRect(toGP(this.refPoint.x - r, this.refPoint.y - r), r * 2, r * 2);
     }
 
     updatePoints(): void {
@@ -125,7 +126,8 @@ export class Circle extends Shape implements IShape {
     }
 
     contains(point: GlobalPoint): boolean {
-        return (point.x - this.refPoint.x) ** 2 + (point.y - this.refPoint.y) ** 2 < this.r ** 2;
+        const r = this.ignoreZoomSize ? l2gz(this.r) : this.r;
+        return (point.x - this.refPoint.x) ** 2 + (point.y - this.refPoint.y) ** 2 < r ** 2;
     }
 
     __center(): GlobalPoint {

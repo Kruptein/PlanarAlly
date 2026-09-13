@@ -22,7 +22,7 @@ const props = withDefaults(
 );
 const emit = defineEmits<(e: "update:modelValue", s: MS extends true ? T[] : T) => void>();
 
-const data = computed(() => (props.multiSelect ? props.modelValue : [props.modelValue]) as T[]);
+const toggleData = computed(() => (props.multiSelect ? props.modelValue : [props.modelValue]) as T[]);
 
 function toggle(option: T): void {
     if (props.disabled) return;
@@ -48,7 +48,7 @@ function toggle(option: T): void {
         <div
             v-for="option of options"
             :key="option.label"
-            :class="{ selected: data.includes(option.value) }"
+            :class="{ selected: toggleData.includes(option.value) }"
             @click="toggle(option.value)"
         >
             {{ option.label }}

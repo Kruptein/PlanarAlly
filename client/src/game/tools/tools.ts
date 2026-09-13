@@ -6,6 +6,7 @@ import type { ITool, ToolFeatures } from "../models/tools";
 import { SelectFeatures } from "./models/select";
 import { diceTool } from "./variants/dice";
 import { drawTool } from "./variants/draw";
+import { lightTool } from "./variants/light";
 import { mapTool } from "./variants/map";
 import { noteTool } from "./variants/note";
 import { panTool } from "./variants/pan";
@@ -26,6 +27,7 @@ export const toolMap: Record<ToolName, ITool> = {
     [ToolName.Ruler]: rulerTool,
     [ToolName.Ping]: pingTool,
     [ToolName.Map]: mapTool,
+    [ToolName.Light]: lightTool,
     [ToolName.Vision]: visionTool,
     [ToolName.Spell]: spellTool,
     [ToolName.Dice]: diceTool,
@@ -40,6 +42,7 @@ const buildTools: [ToolName, ToolFeatures][] = [
     [ToolName.Draw, {}],
     [ToolName.Ruler, {}],
     [ToolName.Map, {}],
+    [ToolName.Light, {}],
     [ToolName.Vision, {}],
 ];
 const playTools: [ToolName, ToolFeatures][] = [
@@ -52,13 +55,13 @@ const playTools: [ToolName, ToolFeatures][] = [
     [ToolName.Dice, {}],
 ];
 
-export const dmTools = [ToolName.Map];
+export const dmTools = [ToolName.Map, ToolName.Light];
 
 export const activeModeTools = computed(() => (activeToolMode.value === ToolMode.Build ? buildTools : playTools));
 
-watch(activeTool, (newTool, oldTool) => {
+watch(activeTool, async (newTool, oldTool) => {
     toolMap[oldTool].onDeselect();
-    toolMap[newTool].onSelect();
+    await toolMap[newTool].onSelect();
 });
 
 export function getActiveTool(): ITool {

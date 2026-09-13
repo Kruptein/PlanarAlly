@@ -1,6 +1,6 @@
 import type { DeepReadonly } from "vue";
 
-import type { ClientPosition } from "../../../apiTypes";
+import type { ClientPosition, PlayerInfoCore, PositionTupleWithFloor } from "../../../apiTypes";
 import { registerSystem } from "../../../core/systems";
 import type { System, SystemClearReason } from "../../../core/systems/models";
 import { getLocalStorageObject } from "../../../localStorageHelpers";
@@ -14,11 +14,10 @@ import { Role } from "../../models/role";
 import type { ServerUserLocationOptions } from "../../models/settings";
 import { startDrawLoop } from "../../rendering/core";
 import { clientSystem } from "../client";
-import { clientState } from "../client/state";
 import { floorSystem } from "../floors";
 import { positionSystem } from "../position";
 
-import type { Player, PlayerId } from "./models";
+import type { PlayerId } from "./models";
 import { playerState } from "./state";
 
 const { mutableReactive: $, raw } = playerState;
@@ -28,7 +27,7 @@ class PlayerSystem implements System {
         if (reason !== "partial-loading") $.players.clear();
     }
 
-    addPlayer(player: Player): void {
+    addPlayer(player: PlayerInfoCore): void {
         $.players.set(player.id, player);
     }
 
@@ -38,14 +37,13 @@ class PlayerSystem implements System {
 
     setPosition(player: PlayerId, position: ClientPosition): void {
         $.playerLocation.set(player, position);
-        clientSystem.updatePlayerRect(player);
     }
 
     updatePlayersLocation(
         players: string[],
         location: number,
         sync: boolean,
-        targetPosition?: { x: number; y: number; floor?: string },
+        targetPosition?: PositionTupleWithFloor,
     ): void {
         for (const player of $.players.values()) {
             if (players.includes(player.name)) {
@@ -90,18 +88,7 @@ class PlayerSystem implements System {
         if (sync) sendChangePlayerRole({ player: playerId, role });
     }
 
-    setShowPlayerRect(playerId: PlayerId, showPlayerRect: boolean): void {
-        const player = this.getPlayer(playerId);
-        if (player === undefined) return;
-
-        player.showRect = showPlayerRect;
-
-        for (const [clientId, player] of clientState.raw.clientIds.entries()) {
-            if (playerId === player) clientSystem.showClientRect(clientId, showPlayerRect);
-        }
-    }
-
-    getPlayer(playerId: PlayerId): Player | undefined {
+    getPlayer(playerId: PlayerId): PlayerInfoCore | undefined {
         return $.players.get(playerId);
     }
 
@@ -114,7 +101,7 @@ class PlayerSystem implements System {
         }
     }
 
-    getCurrentPlayer(): Player | undefined {
+    getCurrentPlayer(): PlayerInfoCore | undefined {
         for (const player of raw.players.values()) {
             if (player.name === coreStore.state.username) {
                 return player;
@@ -124,14 +111,17 @@ class PlayerSystem implements System {
 
     loadPosition(): void {
         const position = $.playerLocation.get(this.getCurrentPlayer()!.id)!;
-        positionSystem.setZoomDisplay(position.zoom_display, { invalidate: true, updateSectors: false, sync: false });
+        positionSystem.setZoomDisplay(position.zoom_display, {
+            invalidate: true,
+            updateSectors: false,
+            sync: false,
+        });
         positionSystem.setPan(position.pan_x, position.pan_y, { updateSectors: true });
         if (position.active_layer !== undefined) floorSystem.selectLayer(position.active_layer, false);
         const offset = getLocalStorageObject("PA_OFFSET") as { x?: number; y?: number } | undefined;
         clientSystem.initViewport();
         if (offset !== undefined) clientSystem.setOffset(getClientId(), offset, false);
         clientSystem.sendViewportInfo();
-        clientSystem.updateAllClientRects();
         // then we can start the draw loop
         startDrawLoop();
     }

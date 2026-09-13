@@ -28,7 +28,11 @@ export class Line extends Shape implements IShape {
         },
         properties?: Partial<ShapeProperties>,
     ) {
-        super(startPoint, options, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: ["#000"], ...properties });
+        super(startPoint, options, {
+            fillColour: "rgba(0, 0, 0, 0)",
+            strokeColour: ["#000"],
+            ...properties,
+        });
         this._endPoint = endPoint;
         this._center = this.__center();
         this.lineWidth = options?.lineWidth ?? 1;

@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from "vue-router";
+import { createRouter, createWebHistory, type NavigationGuardReturn, type RouteLocationNormalized } from "vue-router";
 
 import { http } from "../core/http";
 import { handleNotifications } from "../notifications";
@@ -9,7 +9,7 @@ export const router = createRouter({
     routes: [],
 });
 
-router.beforeEach(async (to, _from, next) => {
+router.beforeEach(async (to) => {
     // disable for now as it gives a flicker on transition between login and dashboard.
     // coreStore.setLoading(true);
     if (!coreStore.state.initialized) {
@@ -33,34 +33,40 @@ router.beforeEach(async (to, _from, next) => {
         // Handle core requests
         const [authResponse, versionResponse] = await Promise.all(promiseArray);
         if (authResponse!.ok && versionResponse!.ok) {
-            const authData = (await authResponse!.json()) as { auth: boolean; username: string; email: string };
-            const versionData = (await versionResponse!.json()) as { release: string; env: string };
+            const authData = (await authResponse!.json()) as {
+                auth: boolean;
+                username: string;
+                email: string;
+            };
+            const versionData = (await versionResponse!.json()) as {
+                release: string;
+                env: string;
+                assetUrl: string | null;
+            };
 
             coreStore.setAuthenticated(authData.auth);
             coreStore.setVersion(versionData);
+            coreStore.setAssetUrlBase(versionData.assetUrl);
             coreStore.setInitialized(true);
 
             if (authData.auth) {
                 coreStore.setUsername(authData.username);
                 coreStore.setEmail(authData.email);
-                next();
             } else {
-                checkLogin(next, to);
+                return checkLogin(to);
             }
         } else {
             console.error("Authentication check could not be fulfilled.");
-            checkLogin(next, to);
+            return checkLogin(to);
         }
     } else {
-        checkLogin(next, to);
+        return checkLogin(to);
     }
 });
 
-function checkLogin(next: NavigationGuardNext, to: RouteLocationNormalized): void {
+function checkLogin(to: RouteLocationNormalized): NavigationGuardReturn {
     if (to.meta.auth === true && !coreStore.state.authenticated) {
-        next({ name: "login", query: { redirect: to.path } });
-    } else {
-        next();
+        return { name: "login", query: { redirect: to.path } };
     }
 }
 

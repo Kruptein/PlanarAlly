@@ -1,21 +1,38 @@
 import { useToast } from "vue-toastification";
 
-import type { ApiAsset, ApiAssetUpload } from "../apiTypes";
+import type { ApiAssetCore, ApiAssetEntry, ApiAssetUpload } from "../apiTypes";
 import { registerSystem } from "../core/systems";
 import type { System, SystemClearReason } from "../core/systems/models";
 import { callbackProvider, uuidv4 } from "../core/utils";
 import { router } from "../router";
 
-import { sendAssetRemove, sendAssetRename, getFolder, sendInodeMove, getFolderPath, getFolderByPath } from "./emits";
-import type { AssetId } from "./models";
+import {
+    sendAssetRemove,
+    sendAssetRename,
+    getFolder,
+    sendInodeMove,
+    getFolderPath,
+    getFolderByPath,
+    getAsset,
+} from "./emits";
+import type { AssetEntryId, AssetId } from "./models";
 import { socket } from "./socket";
 import { assetState } from "./state";
-
+// oxlint-disable-next-line import/no-unassigned-import
 import "./events";
 
 const toast = useToast();
 
 const { raw, mutableReactive: $ } = assetState;
+
+/** Same as server `assetmgmt_upload` naming: AssetEntry name is filename without final extension. */
+function entryNameFromUploadFilename(uploadName: string): string {
+    const parts = uploadName.split(".");
+    if (parts.length > 1) {
+        return parts.slice(0, -1).join(".");
+    }
+    return uploadName;
+}
 
 class AssetSystem implements System {
     rootCallback = callbackProvider();
@@ -29,7 +46,7 @@ class AssetSystem implements System {
     clear(reason: SystemClearReason): void {
         if (reason === "logging-out") {
             this.clearLocal();
-            $.idMap.clear();
+            $.entryIdMap.clear();
             $.folderPath = [];
         }
     }
@@ -38,12 +55,12 @@ class AssetSystem implements System {
         $.folderPath = [];
     }
 
-    setRoot(root: AssetId): void {
+    setRoot(root: AssetEntryId): void {
         $.root = root;
         this.rootCallback.resolveAll();
     }
 
-    setPath(path: AssetId[]): void {
+    setPath(path: AssetEntryId[]): void {
         $.folderPath = [];
         let assetPath = router.currentRoute.value.path.slice("/assets/".length);
         if (assetPath.at(-1) === "/") assetPath = assetPath.slice(0, -1);
@@ -59,14 +76,14 @@ class AssetSystem implements System {
         }
     }
 
-    moveInode(inode: AssetId, targetFolder: AssetId): void {
+    moveInode(inode: AssetEntryId, targetFolder: AssetEntryId): void {
         let targetData = $.folders;
         if (raw.files.includes(inode)) targetData = $.files;
         targetData.splice(targetData.indexOf(inode), 1);
         sendInodeMove({ inode, target: targetFolder });
     }
 
-    async changeDirectory(targetFolder: AssetId | "POP"): Promise<void> {
+    async changeDirectory(targetFolder: AssetEntryId | "POP"): Promise<void> {
         $.loadingFolder = true;
         if (targetFolder === "POP") {
             $.folderPath.pop();
@@ -75,9 +92,9 @@ class AssetSystem implements System {
         } else if (raw.folderPath.some((fp) => fp.id === targetFolder)) {
             while (assetState.currentFolder.value !== targetFolder) $.folderPath.pop();
         } else {
-            const asset = raw.idMap.get(targetFolder);
+            const asset = raw.entryIdMap.get(targetFolder);
             if (asset !== undefined) {
-                if (raw.root && ($.idMap.get(raw.root)?.children?.some((c) => c.id === targetFolder) ?? false)) {
+                if (raw.root && ($.entryIdMap.get(raw.root)?.children?.some((c) => c.id === targetFolder) ?? false)) {
                     $.folderPath = [{ id: targetFolder, name: asset.name }];
                 } else {
                     const path = await getFolderPath(targetFolder);
@@ -89,7 +106,7 @@ class AssetSystem implements System {
         await this.loadFolder(assetState.currentFolder.value);
     }
 
-    async loadFolder(folder: AssetId | string | undefined): Promise<void> {
+    async loadFolder(folder: AssetEntryId | string | undefined): Promise<void> {
         if (folder === undefined) return;
 
         const data = typeof folder === "string" ? await getFolderByPath(folder) : await getFolder(folder);
@@ -100,8 +117,8 @@ class AssetSystem implements System {
         assetState.mutableReactive.sharedRight = data.sharedRight;
     }
 
-    setFolderData(folder: AssetId, data: ApiAsset): void {
-        $.idMap.set(folder, data);
+    setFolderData(folder: AssetEntryId, data: ApiAssetEntry): void {
+        $.entryIdMap.set(folder, data);
         if (data.children) {
             for (const child of data.children) {
                 this.resolveUpload(child.name);
@@ -111,9 +128,18 @@ class AssetSystem implements System {
         $.loadingFolder = false;
     }
 
+    async getAssetInfo(id: AssetId): Promise<ApiAssetCore | undefined> {
+        const asset = $.assetIdMap.get(id);
+        if (asset) return asset;
+        const serverData = await getAsset(id);
+        if (!serverData) return undefined;
+        $.assetIdMap.set(id, serverData);
+        return serverData;
+    }
+
     // SELECTED
 
-    addSelectedInode(inode: AssetId): void {
+    addSelectedInode(inode: AssetEntryId): void {
         $.selected.push(inode);
     }
 
@@ -132,19 +158,19 @@ class AssetSystem implements System {
 
     // ASSET
 
-    addAsset(asset: ApiAsset, parent?: AssetId): void {
+    addAsset(entry: ApiAssetEntry, parent?: AssetEntryId): void {
         if (parent !== undefined && parent !== assetState.currentFolder.value) return;
 
-        $.idMap.set(asset.id, asset);
+        $.entryIdMap.set(entry.id, entry);
         let _target: "folders" | "files" = "folders";
-        if (asset.fileHash !== null) {
+        if (entry.asset !== null) {
             _target = "files";
         }
         const target = $[_target];
-        target.push(asset.id);
+        target.push(entry.id);
 
         const sorted_target = target
-            .map((i) => raw.idMap.get(i))
+            .map((i) => raw.entryIdMap.get(i))
             .filter((a) => a !== undefined)
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((a) => a.id);
@@ -152,19 +178,19 @@ class AssetSystem implements System {
         $[_target] = sorted_target;
     }
 
-    renameAsset(id: AssetId, name: string): void {
+    renameAsset(id: AssetEntryId, name: string): void {
         sendAssetRename({
             asset: id,
             name,
         });
-        $.idMap.get(id)!.name = name;
+        $.entryIdMap.get(id)!.name = name;
     }
 
-    removeAsset(asset: AssetId): void {
+    removeAsset(asset: AssetEntryId): void {
         let target = $.folders;
         if ($.files.includes(asset)) target = $.files;
         target.splice(target.indexOf(asset), 1);
-        $.idMap.delete(asset);
+        $.entryIdMap.delete(asset);
     }
 
     // NETWORK
@@ -184,8 +210,8 @@ class AssetSystem implements System {
     async upload(
         fls: FileList,
         // target is a function, because if the socket is closed, none of the usual targets exist yet
-        options?: { target?: () => AssetId | undefined; newDirectories?: string[] },
-    ): Promise<ApiAsset[]> {
+        options?: { target?: () => AssetEntryId | undefined; newDirectories?: string[] },
+    ): Promise<ApiAssetEntry[]> {
         const closeSocket = socket.disconnected;
         if (closeSocket) {
             socket.connect();
@@ -232,9 +258,10 @@ class AssetSystem implements System {
         for (const file of fls) {
             const uuid = uuidv4();
             const slices = Math.ceil(file.size / CHUNK_SIZE);
-            $.pendingUploads.push(file.name);
+            $.pendingUploads.push(entryNameFromUploadFilename(file.name));
             for (let slice = 0; slice < slices; slice++) {
-                const uploadedFile = await new Promise<ApiAsset | undefined>((resolve) => {
+                // oxlint-disable-next-line no-await-in-loop
+                const uploadedFile = await new Promise<ApiAssetEntry | undefined>((resolve) => {
                     const fr = new FileReader();
                     fr.readAsArrayBuffer(
                         file.slice(
@@ -242,7 +269,7 @@ class AssetSystem implements System {
                             slice * CHUNK_SIZE + Math.min(CHUNK_SIZE, file.size - slice * CHUNK_SIZE),
                         ),
                     );
-                    fr.onload = (_e) => {
+                    fr.addEventListener("load", (_e) => {
                         if (fr.result === null) return;
 
                         const uploadData: ApiAssetUpload = {
@@ -258,7 +285,7 @@ class AssetSystem implements System {
                             uuid,
                         };
                         socket.emit("Asset.Upload", uploadData, resolve);
-                    };
+                    });
                 });
                 // The returned data is undefined, if the file has multiple slices
                 // only the last slice will return a valid file
@@ -272,8 +299,8 @@ class AssetSystem implements System {
 
     // SHARES
 
-    addShare(asset: AssetId, user: string, right: "view" | "edit"): void {
-        const data = $.idMap.get(asset);
+    addShare(asset: AssetEntryId, user: string, right: "view" | "edit"): void {
+        const data = $.entryIdMap.get(asset);
         if (data === undefined) return console.error("Unknown asset was provided");
         data.shares.push({ user, right });
     }

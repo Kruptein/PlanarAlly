@@ -8,9 +8,9 @@ from ..helpers import TypeIdModel
 class ApiAssetCreateShare(TypeIdModel):
     right: Literal["view"] | Literal["edit"]
     user: str
-    asset: int = Field(json_schema_extra={"typeId": "AssetId"})
+    asset: int = Field(json_schema_extra={"typeId": "AssetEntryId"})
 
 
 class ApiAssetRemoveShare(TypeIdModel):
-    asset: int = Field(json_schema_extra={"typeId": "AssetId"})
+    asset: int = Field(json_schema_extra={"typeId": "AssetEntryId"})
     user: str

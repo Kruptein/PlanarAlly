@@ -28,6 +28,7 @@ function createEmptyAura(): Aura {
         borderColour: "rgba(0,0,0,0)",
         angle: 360,
         direction: 0,
+        floodLight: false,
         visible: false,
     };
 }

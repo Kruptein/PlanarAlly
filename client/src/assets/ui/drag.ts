@@ -4,7 +4,8 @@ import { useToast } from "vue-toastification";
 
 import { assetSystem } from "..";
 import { map } from "../../core/iter";
-import type { AssetId } from "../models";
+import type { DropAssetInfo } from "../../game/dropAsset";
+import type { AssetEntryId } from "../models";
 import { assetState } from "../state";
 
 import { canEdit } from "./access";
@@ -29,7 +30,7 @@ function fsToFile(fl: FileSystemFileEntry): Promise<File> {
 
 async function parseDirectoryUpload(
     fileSystemEntries: Iterable<FileSystemEntry | null>,
-    target: AssetId,
+    target: AssetEntryId,
     newDirectories: string[] = [],
 ): Promise<void> {
     const files: FileSystemFileEntry[] = [];
@@ -47,7 +48,10 @@ async function parseDirectoryUpload(
     }
     if (files.length > 0) {
         const fileList = await Promise.all(files.map((f) => fsToFile(f)));
-        await assetSystem.upload(fileList as unknown as FileList, { target: () => target, newDirectories });
+        await assetSystem.upload(fileList as unknown as FileList, {
+            target: () => target,
+            newDirectories,
+        });
     }
 }
 
@@ -68,7 +72,7 @@ async function onDrop(event: DragEvent): Promise<void> {
     }
 }
 
-function startDrag(event: DragEvent, file: AssetId, assetHash: string | null): void {
+function startDrag(event: DragEvent, file: AssetEntryId): void {
     if (event.dataTransfer === null) return;
     // Note: Start drag does NOT require an edit check, as it might be used to drag a file to the canvas
     // The drop handlers will check if edit access is required
@@ -79,8 +83,20 @@ function startDrag(event: DragEvent, file: AssetId, assetHash: string | null): v
         event.dataTransfer.setDragImage(image, 0, 0);
     }
 
-    // Add file info in case we drop it on the canvas
-    event.dataTransfer.setData("text/plain", JSON.stringify({ assetHash, assetId: file }));
+    const assetInfo = assetState.raw.entryIdMap.get(file);
+
+    if (assetInfo?.asset?.id !== undefined) {
+        const asset = assetInfo.asset;
+        // Add file info in case we drop it on the canvas
+        event.dataTransfer.setData(
+            "text/plain",
+            JSON.stringify({
+                assetHash: asset.fileHash,
+                entryId: file,
+                assetId: asset.id,
+            } as DropAssetInfo),
+        );
+    }
     event.dataTransfer.dropEffect = "move";
 
     if (!assetState.raw.selected.includes(file)) assetSystem.addSelectedInode(file);
@@ -116,7 +132,7 @@ function onDragEnd(event: DragEvent): void {
     }
 }
 
-async function stopDrag(event: DragEvent, target: AssetId): Promise<void> {
+async function stopDrag(event: DragEvent, target: AssetEntryId): Promise<void> {
     emit("onDragEnd", event);
     (event.target as HTMLElement).classList.remove("inode-hovered");
 
@@ -148,12 +164,12 @@ async function stopDrag(event: DragEvent, target: AssetId): Promise<void> {
 
 interface DragComposable {
     dropZoneVisible: Ref<number>;
-    startDrag: (event: DragEvent, file: AssetId, fileHash: string | null) => void;
+    startDrag: (event: DragEvent, file: AssetEntryId) => void;
     moveDrag: (event: DragEvent) => void;
     leaveDrag: (event: DragEvent) => void;
     onDragEnd: (event: DragEvent) => void;
     onDrop: (event: DragEvent) => Promise<void>;
-    stopDrag: (event: DragEvent, target: AssetId) => Promise<void>;
+    stopDrag: (event: DragEvent, target: AssetEntryId) => Promise<void>;
 }
 
 export function useDrag(

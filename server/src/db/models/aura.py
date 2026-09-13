@@ -21,6 +21,7 @@ class Aura(BaseDbModel):
     border_colour = cast(str, TextField())
     angle = cast(int, IntegerField())
     direction = cast(int, IntegerField())
+    flood_light = cast(bool, BooleanField(default=False))
 
     def __repr__(self):
         return f"<Aura {self.name} {self.shape.get_path()}>"
@@ -39,6 +40,7 @@ class Aura(BaseDbModel):
             border_colour=self.border_colour,
             angle=self.angle,
             direction=self.direction,
+            flood_light=self.flood_light,
         )
 
     def make_copy(self, new_shape):

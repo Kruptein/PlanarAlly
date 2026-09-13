@@ -3,7 +3,7 @@ import { useToast } from "vue-toastification";
 import type { ApiAssetAdd, ApiAssetCreateShare, ApiAssetRemoveShare } from "../apiTypes";
 import { coreStore } from "../store/core";
 
-import type { AssetId } from "./models";
+import type { AssetEntryId } from "./models";
 import { socket } from "./socket";
 import { assetState } from "./state";
 
@@ -28,7 +28,7 @@ socket.on("Toast.Warn", (msg: string) => {
     toast.warning(msg);
 });
 
-socket.on("Folder.Root.Set", (root: AssetId) => {
+socket.on("Folder.Root.Set", (root: AssetEntryId) => {
     assetSystem.setRoot(root);
 });
 
@@ -47,14 +47,14 @@ socket.on("Asset.Import.Finish", async (name: string) => {
 });
 
 socket.on("Asset.Share.Created", (data: ApiAssetCreateShare) => {
-    const assetData = assetState.mutableReactive.idMap.get(data.asset);
+    const assetData = assetState.mutableReactive.entryIdMap.get(data.asset);
     if (assetData) {
         assetData.shares.push({ right: data.right, user: data.user });
     }
 });
 
 socket.on("Asset.Share.Edit", (data: ApiAssetCreateShare) => {
-    const assetData = assetState.mutableReactive.idMap.get(data.asset);
+    const assetData = assetState.mutableReactive.entryIdMap.get(data.asset);
     if (assetData) {
         for (const share of assetData.shares) {
             if (share.user == data.user) share.right = data.right;
@@ -63,7 +63,7 @@ socket.on("Asset.Share.Edit", (data: ApiAssetCreateShare) => {
 });
 
 socket.on("Asset.Share.Removed", (data: ApiAssetRemoveShare) => {
-    const assetData = assetState.mutableReactive.idMap.get(data.asset);
+    const assetData = assetState.mutableReactive.entryIdMap.get(data.asset);
     if (assetData) {
         assetData.shares = assetData.shares.filter((s) => s.user !== data.user);
 

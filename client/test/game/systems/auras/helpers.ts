@@ -18,6 +18,7 @@ export function generateTestAura(auraOptions?: Partial<Aura>): Aura {
         uuid: generateTestAuraId(),
         visible: true,
         visionSource: true,
+        floodLight: false,
         ...auraOptions,
     };
 }

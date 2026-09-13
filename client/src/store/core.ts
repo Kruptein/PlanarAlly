@@ -9,6 +9,7 @@ interface CoreState {
     email?: string;
     version: { release: string; env: string };
     changelog: string;
+    assetUrlBase: string | null;
 }
 
 class CoreStore extends Store<CoreState> {
@@ -20,6 +21,7 @@ class CoreStore extends Store<CoreState> {
             loading: false,
             version: { release: "", env: "" },
             changelog: "",
+            assetUrlBase: null,
         };
     }
 
@@ -51,6 +53,10 @@ class CoreStore extends Store<CoreState> {
 
     setVersion(version: { release: string; env: string }): void {
         this._state.version = version;
+    }
+
+    setAssetUrlBase(assetUrlBase: string | null): void {
+        this._state.assetUrlBase = assetUrlBase;
     }
 }
 

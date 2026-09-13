@@ -29,6 +29,7 @@ export interface LocationOptions {
     movePlayerOnTokenChange: boolean;
     limitMovementDuringInitiative: boolean;
     dropRatio: number;
+    ambientLight: boolean;
 
     airMapBackground: string;
     groundMapBackground: string;

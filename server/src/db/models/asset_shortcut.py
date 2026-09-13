@@ -3,17 +3,17 @@ from typing import cast
 from peewee import ForeignKeyField
 
 from ..base import BaseDbModel
-from .asset import Asset
+from .asset_entry import AssetEntry
 from .player_room import PlayerRoom
 
 
 class AssetShortcut(BaseDbModel):
     id: int
 
-    asset = cast(
-        "Asset",
+    entry = cast(
+        "AssetEntry",
         ForeignKeyField(
-            Asset,
+            AssetEntry,
             backref="shortcuts",
             on_delete="CASCADE",
         ),

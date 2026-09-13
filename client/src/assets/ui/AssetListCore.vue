@@ -3,12 +3,12 @@ import { computed, nextTick, ref } from "vue";
 import type { DeepReadonly } from "vue";
 
 import { assetSystem } from "..";
-import type { ApiAsset } from "../../apiTypes";
+import type { ApiAssetEntry } from "../../apiTypes";
 import type { Section } from "../../core/components/contextMenu/types";
 import { baseAdjust } from "../../core/http";
 import { ctrlOrCmdPressed } from "../../core/utils";
 import { coreStore } from "../../store/core";
-import type { AssetId } from "../models";
+import type { AssetEntryId } from "../models";
 import { assetState } from "../state";
 import { getImageSrcFromAssetId } from "../utils";
 
@@ -24,7 +24,7 @@ const props = withDefaults(
     defineProps<{
         extraContextSections?: Section[];
         fontSize: string;
-        searchResults?: ApiAsset[];
+        searchResults?: ApiAssetEntry[];
         onlyFiles?: boolean;
         disableMulti?: boolean;
     }>(),
@@ -39,35 +39,33 @@ const props = withDefaults(
 const assetContextMenu = useAssetContextMenu();
 const drag = useDrag(emit);
 
-const thumbnailMisses = ref(new Set<AssetId>());
+const thumbnailMisses = ref(new Set<AssetEntryId>());
 
 const contextTargetElement = ref<HTMLElement | null>(null);
-const currentRenameAsset = ref<AssetId | null>(null);
+const currentRenameAsset = ref<AssetEntryId | null>(null);
 
-const folders = computed(() => {
+type FolderEntry = ApiAssetEntry & { asset: null };
+const folders = computed<DeepReadonly<FolderEntry>[]>(() => {
     if (props.searchResults.length > 0) {
-        return props.searchResults.filter((r) => r.fileHash === null);
+        return props.searchResults.filter((r): r is FolderEntry => r.asset === null);
     }
-    return assetState.reactive.folders.map((f) => assetState.reactive.idMap.get(f)!);
+    return assetState.reactive.folders.map((f) => assetState.reactive.entryIdMap.get(f)! as FolderEntry);
 });
-const files = computed(() => {
+type FileEntry = ApiAssetEntry & { asset: NonNullable<ApiAssetEntry["asset"]> };
+const files = computed<DeepReadonly<FileEntry>[]>(() => {
     if (props.searchResults.length > 0) {
-        return props.searchResults.filter((r) => r.fileHash !== null);
+        return props.searchResults.filter((r): r is FileEntry => r.asset !== null);
     }
-    return assetState.reactive.files.map((f) => assetState.reactive.idMap.get(f)!);
+    return assetState.reactive.files.map((f) => assetState.reactive.entryIdMap.get(f)! as FileEntry);
 });
 
-function dragStart(event: DragEvent, file: AssetId, assetHash: string | null): void {
-    drag.startDrag(event, file, assetHash);
-}
-
-function isShared(asset: DeepReadonly<ApiAsset>): boolean {
+function isShared(asset: DeepReadonly<ApiAssetEntry>): boolean {
     return (
         asset.shares.length > 0 || (asset.owner !== coreStore.state.username && assetState.raw.sharedParent === null)
     );
 }
 
-function select(event: MouseEvent, inode: AssetId): void {
+function select(event: MouseEvent, inode: AssetEntryId): void {
     if (!canEdit(inode, false)) {
         return;
     }
@@ -96,7 +94,7 @@ function select(event: MouseEvent, inode: AssetId): void {
     }
 }
 
-function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
+function renameAsset(event: FocusEvent, file: AssetEntryId, oldName: string): void {
     if (!canEdit(file, false)) {
         return;
     }
@@ -117,7 +115,7 @@ function renameAsset(event: FocusEvent, file: AssetId, oldName: string): void {
     currentRenameAsset.value = null;
 }
 
-function openContextMenu(event: MouseEvent, key: AssetId): void {
+function openContextMenu(event: MouseEvent, key: AssetEntryId): void {
     if (!canEdit(key, false)) {
         return;
     }
@@ -145,7 +143,7 @@ function selectElementContents(el: HTMLElement): void {
     }
 }
 
-async function showRenameUI(id: AssetId): Promise<void> {
+async function showRenameUI(id: AssetEntryId): Promise<void> {
     const el = contextTargetElement.value;
     contextTargetElement.value = null;
     if (el) {
@@ -210,7 +208,7 @@ async function showRenameUI(id: AssetId): Promise<void> {
                 @click.stop="select($event, folder.id)"
                 @dblclick="assetSystem.changeDirectory(folder.id)"
                 @contextmenu.prevent="openContextMenu($event, folder.id)"
-                @dragstart="drag.startDrag($event, folder.id, null)"
+                @dragstart="drag.startDrag($event, folder.id)"
                 @dragover.prevent="drag.moveDrag"
                 @dragend="drag.onDragEnd"
                 @dragleave.prevent="drag.leaveDrag"
@@ -242,7 +240,7 @@ async function showRenameUI(id: AssetId): Promise<void> {
                 }"
                 @click.stop="select($event, file.id)"
                 @contextmenu.prevent="openContextMenu($event, file.id)"
-                @dragstart="dragStart($event, file.id, file.fileHash)"
+                @dragstart="drag.startDrag($event, file.id)"
                 @dragend="drag.onDragEnd"
             >
                 <picture v-if="!thumbnailMisses.has(file.id)">
@@ -253,7 +251,7 @@ async function showRenameUI(id: AssetId): Promise<void> {
                 <img v-else :src="getImageSrcFromAssetId(file.id)" alt="" loading="lazy" />
                 <div class="asset-icons">
                     <font-awesome-icon v-if="isShared(file)" icon="user-tag" />
-                    <font-awesome-icon v-if="file.has_templates" icon="floppy-disk" />
+                    <font-awesome-icon v-if="file.asset.hasTemplates" icon="floppy-disk" />
                 </div>
                 <div
                     :contenteditable="file.id === currentRenameAsset"

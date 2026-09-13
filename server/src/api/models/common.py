@@ -4,4 +4,7 @@ from .helpers import TypeIdModel
 class PositionTuple(TypeIdModel):
     x: float
     y: float
-    floor: str | None = None
+
+
+class PositionTupleWithFloor(PositionTuple):
+    floor: str

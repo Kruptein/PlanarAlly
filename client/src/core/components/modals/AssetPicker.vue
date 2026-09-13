@@ -2,13 +2,17 @@
 import { onMounted, useTemplateRef } from "vue";
 
 import { assetSystem } from "../../../assets";
+import { AssetId } from "../../../assets/models";
 import { socket } from "../../../assets/socket";
 import { assetState } from "../../../assets/state";
 import AssetListCore from "../../../assets/ui/AssetListCore.vue";
 import AssetSearchCore from "../../../assets/ui/AssetSearchCore.vue";
 
 defineProps<{ visible: boolean }>();
-const emit = defineEmits(["close", "submit"]);
+const emit = defineEmits<{
+    (e: "close"): void;
+    (e: "submit", data: { id: AssetId; fileHash: string }): void;
+}>();
 
 const searchCore = useTemplateRef<InstanceType<typeof AssetSearchCore>>("searchCore");
 
@@ -26,11 +30,11 @@ onMounted(async () => {
 });
 
 function setLogo(): void {
-    const assetId = assetState.reactive.selected.at(0);
-    if (assetId === undefined) return;
-    const asset = assetState.raw.idMap.get(assetId);
-    if (asset === undefined) return;
-    emit("submit", { id: asset.id, fileHash: asset.fileHash ?? undefined });
+    const entryId = assetState.reactive.selected.at(0);
+    if (entryId === undefined) return;
+    const assetInfo = assetState.raw.entryIdMap.get(entryId);
+    if (assetInfo === undefined || assetInfo.asset === null) return;
+    emit("submit", { id: assetInfo.asset.id, fileHash: assetInfo.asset.fileHash });
 }
 </script>
 

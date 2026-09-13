@@ -8,8 +8,6 @@ import { sendShapeSvgAsset } from "../game/api/emits/shape/options";
 import { getGlobalId, getShape } from "../game/id";
 import type { IShape } from "../game/interfaces/shape";
 import type { IAsset } from "../game/interfaces/shapes/asset";
-import type { IToggleComposite } from "../game/interfaces/shapes/toggleComposite";
-import { compositeState } from "../game/layers/state";
 import type { FloorId } from "../game/models/floor";
 import type { ShapeOptions } from "../game/models/shapes";
 import type { SHAPE_TYPE } from "../game/shapes/types";
@@ -21,18 +19,14 @@ import { visionState } from "../game/vision/state";
 interface ActiveShapeState {
     id?: LocalId;
     lastUuid?: LocalId;
-    parentUuid?: LocalId;
     showEditDialog: boolean;
     type: SHAPE_TYPE | undefined;
 
     options: Partial<ShapeOptions> | undefined;
-
-    variants: { id: LocalId; name: string }[];
 }
 
 class ActiveShapeStore extends Store<ActiveShapeState> {
     floor: ComputedRef<FloorId | undefined>;
-    isComposite: ComputedRef<boolean>;
 
     protected data(): ActiveShapeState {
         return {
@@ -40,15 +34,12 @@ class ActiveShapeStore extends Store<ActiveShapeState> {
             type: undefined,
 
             options: undefined,
-
-            variants: [],
         };
     }
 
     constructor() {
         super();
         this.floor = computed(() => (this._state.id !== undefined ? getShape(this._state.id)?.floorId : undefined));
-        this.isComposite = computed(() => this._state.parentUuid !== undefined);
 
         watchEffect(() => {
             const selection = selectedState.reactive.selected;
@@ -59,7 +50,7 @@ class ActiveShapeStore extends Store<ActiveShapeState> {
             } else {
                 let sameMainShape = false;
                 for (const sel of selection) {
-                    if ([this._state.id, this._state.parentUuid].includes(sel)) {
+                    if (this._state.id === sel) {
                         sameMainShape = true;
                         break;
                     }
@@ -78,36 +69,6 @@ class ActiveShapeStore extends Store<ActiveShapeState> {
 
     setShowEditDialog(visible: boolean): void {
         this._state.showEditDialog = visible;
-    }
-
-    // VARIANTS
-
-    renameVariant(uuid: LocalId, name: string, syncTo: Sync): void {
-        if (this._state.id === undefined || this._state.parentUuid === undefined) return;
-
-        const variant = this._state.variants.find((v) => v.id === uuid);
-        if (variant === undefined) return;
-
-        variant.name = name;
-
-        if (!syncTo.ui) {
-            const parent = getShape(this._state.parentUuid) as IToggleComposite;
-            parent.renameVariant(uuid, name, syncTo);
-        }
-    }
-
-    removeVariant(uuid: LocalId, syncTo: Sync): void {
-        if (this._state.id === undefined || this._state.parentUuid === undefined) return;
-
-        const index = this._state.variants.findIndex((v) => v.id === uuid);
-        if (index < 0) return;
-
-        this._state.variants.splice(index, 1);
-
-        if (!syncTo.ui) {
-            const parent = getShape(this._state.parentUuid) as IToggleComposite;
-            parent.removeVariant(uuid, syncTo);
-        }
     }
 
     // EXTRA
@@ -143,16 +104,10 @@ class ActiveShapeStore extends Store<ActiveShapeState> {
         if (this._state.lastUuid === shape.id) this._state.showEditDialog = true;
 
         this._state.id = shape.id;
-        const parent = compositeState.getCompositeParent(shape.id);
-        this._state.parentUuid = parent?.id;
         this._state.type = shape.type;
 
         this._state.options = { ...shape.options };
 
-        if (this._state.parentUuid !== undefined) {
-            const composite = getShape(this._state.parentUuid) as IToggleComposite;
-            this._state.variants = composite.variants.map((v) => ({ ...v }));
-        }
         accessSystem.loadState(shape.id);
     }
 
@@ -160,13 +115,10 @@ class ActiveShapeStore extends Store<ActiveShapeState> {
         if (this._state.showEditDialog) this._state.lastUuid = this._state.id;
         else this._state.lastUuid = undefined;
         this._state.id = undefined;
-        this._state.parentUuid = undefined;
         this._state.showEditDialog = false;
         this._state.type = undefined;
 
         this._state.options = undefined;
-
-        this._state.variants = [];
     }
 }
 

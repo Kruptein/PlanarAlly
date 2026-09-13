@@ -35,9 +35,7 @@ export function moveFloor(shapes: IShape[], newFloor: Floor, sync: boolean): voi
         visionState.moveShape(shape.id, oldFloor.id, newFloor.id);
         shape.setLayer(newFloor.id, oldLayer.name);
     }
-    oldLayer.setShapes(
-        ...oldLayer.getShapes({ includeComposites: true, onlyInView: false }).filter((s) => !shapes.includes(s)),
-    );
+    oldLayer.setShapes(...oldLayer.getShapes({ onlyInView: false }).filter((s) => !shapes.includes(s)));
     newLayer.pushShapes(...shapes);
     oldLayer.invalidate(false);
     newLayer.invalidate(false);
@@ -64,9 +62,7 @@ export function moveLayer(shapes: readonly IShape[], newLayer: ILayer, sync: boo
         shape.setLayer(newLayer.floor, newLayer.name);
     }
     // Update layer shapes
-    oldLayer.setShapes(
-        ...oldLayer.getShapes({ includeComposites: true, onlyInView: false }).filter((s) => !shapes.includes(s)),
-    );
+    oldLayer.setShapes(...oldLayer.getShapes({ onlyInView: false }).filter((s) => !shapes.includes(s)));
     newLayer.pushShapes(...shapes);
     // Revalidate layers  (light should at most be redone once)
     oldLayer.invalidate(true);

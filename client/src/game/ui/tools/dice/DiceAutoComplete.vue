@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onUnmounted, ref, watch } from "vue";
 
-import { baseAdjust } from "../../../../core/http";
+import { getImageSrcFromHash } from "../../../../assets/utils";
 import type { LocalId } from "../../../../core/id";
 import type { DistributiveOmit } from "../../../../core/types";
 import { getShape } from "../../../id";
@@ -123,7 +123,7 @@ async function completeAutoComplete(option?: AutoCompleteOption): Promise<void> 
     const start = diceState.raw.lastCursorPosition - autoCompleteSearchTextBackward.length - 1;
 
     const oldMessage = diceState.raw.textInput;
-    const fullRef = "{" + `[${option.shapeId}]` + option.name + "}";
+    const fullRef = `{[${option.shapeId}]${option.name}}`;
     diceState.mutableReactive.lastCursorPosition = start + fullRef.length;
     diceState.mutableReactive.textInput =
         oldMessage.slice(0, start) +
@@ -187,7 +187,7 @@ function getAutoCompleteOptions(): AutoCompleteOption[] {
         for (const data of shapeData) {
             if (data.name.toLowerCase().startsWith(pre) && data.name.toLowerCase().endsWith(post)) {
                 if (shape.type === "assetrect") {
-                    options.push({ src: baseAdjust((shape as IAsset).src), ...data, shapeId });
+                    options.push({ src: getImageSrcFromHash((shape as IAsset).assetHash), ...data, shapeId });
                 } else {
                     const props = getProperties(shapeId);
                     if (props === undefined) continue;

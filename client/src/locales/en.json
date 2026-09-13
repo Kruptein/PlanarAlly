@@ -119,7 +119,8 @@
             "resetPassword": "Reset password",
             "resetPasswordSuccess": "Password reset",
             "resetPasswordFailed": "Failed to reset password - Token incorrect or expired",
-            "resetPasswordNote": "Enter your new password below and click submit to reset your password."
+            "resetPasswordNote": "Enter your new password below and click submit to reset your password.",
+            "title": "LOG INTO PLANARALLY"
         }
     },
     "core": {
@@ -184,8 +185,9 @@
                 "clear_entries_msg": "Are you sure you wish to clear all initiative entries?",
                 "clear_initiatives_msg": "Are you sure you wish to clear all initiative numbers?",
                 "empty_initiative": "No visible entries",
-                "infinite_toggle": "Infinite?",
                 "infinite_toggle_hint": "Should the effect have infinite duration?",
+                "end_turn_toggle_hint": "Update at end of turn",
+                "start_turn_toggle_hint": "Update at start of turn",
                 "effect_duration_hint": "Number of rounds this effect will last",
                 "effect_name_hint": "Name of the effect"
             },
@@ -259,7 +261,13 @@
                     "properties": {
                         "properties": "Properties",
                         "common": "Common",
-                        "advanced": "Advanced"
+                        "advanced": "Advanced",
+                        "change_asset": "Change asset",
+                        "block_toggle": {
+                            "no": "No",
+                            "complete": "Complete",
+                            "behind": "Behind"
+                        }
                     },
                     "groups": {
                         "groups": "Groups",
@@ -301,7 +309,6 @@
                         "odd_hex_orientation": "Odd Hex Orientation"
                     },
                     "tracker": {
-                        "shared_for_all_variants": "Shared for all variants",
                         "border": "Border",
                         "light_source": "Light source",
                         "angle": "Angle",
@@ -319,6 +326,12 @@
                         "removeBranchPrompt": "Are you sure you want to remove this branch and all its children?",
                         "removeElementTitle": "Remove Element",
                         "removeElementPrompt": "Are you sure you want to remove this element?"
+                    },
+                    "variants": {
+                        "variants": "Variants",
+                        "addVariant": "Add new variant",
+                        "storeAsVariant": "Store current data as variant",
+                        "empty": "Here you can add alternate visual representations of this shape.\n\nThis can be used for shapes that have alternate outfits or forms (e.g. boss stages).\n\nFor each variant a name and custom asset can be configured.\nWhen you activate a variant, its data will be copied to the main shape and become visible to all players.\nAny resizing you do of the asset on the board will only be done to the active variant.\nAllowing you to swap between variants of different sizes."
                     }
                 },
                 "SelectionInfo": {
@@ -344,7 +357,35 @@
                     "remove_marker": "Remove marker",
                     "set_marker": "Set marker",
                     "no_spawn_set_title": "Could not move shapes",
-                    "no_spawn_set_text": "The destination has no spawn locations configured. Make sure to create at least one by using the context-menu in the destination location."
+                    "no_spawn_set_text": "The destination has no spawn locations configured. Make sure to create at least one by using the context-menu in the destination location.",
+                    "open_notes": "Open notes",
+                    "create_character": "Create character",
+                    "move": "Move",
+                    "group": "Group",
+                    "create_group": "Create group",
+                    "enlarge_group": "Enlarge group",
+                    "remove_group": "Remove group",
+                    "split_from_group": "Split from group",
+                    "merge_groups": "Merge groups",
+                    "expand": "Expand",
+                    "collapse": "Collapse",
+                    "merging_group_title": "Merging group",
+                    "merging_group_text": "Do you wish to keep the original badges? This can lead to duplicate badges!",
+                    "merging_group_no": "No, reset them",
+                    "add_to_initiative": {
+                        "title": "Adding initiative",
+                        "text": "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
+                        "no": "no, create a separate entry for each"
+                    },
+                    "choose_spawn_location": {
+                        "title": "Choose the desired spawn location"
+                    },
+                    "enter_name_for_template": "Enter a name for the template",
+                    "splitting_group": {
+                        "title": "Splitting group",
+                        "text": "Do you wish to keep the original badges?",
+                        "no": "No, reset them"
+                    }
                 }
             },
             "settings": {
@@ -494,6 +535,7 @@
                     "core": "Core",
                     "fake_player": "Fake player:",
                     "fill_fow": "Fill entire canvas with FOW:",
+                    "ambient_light": "Ambient light (outdoor mode):",
                     "only_show_lights_los": "Only show lights in LoS:",
                     "fow_opacity": "FOW opacity:",
                     "advanced": "Advanced",
@@ -538,12 +580,34 @@
                     "reveal": "reveal",
                     "hide": "hide",
                     "erase": "erase",
+                    "ambient_barrier": "ambient barrier",
                     "cone": "cone",
                     "text": "text",
                     "shape-category": "Basic settings",
                     "vision-category": "Vision settings",
                     "logic-category": "Logic settings",
                     "door": "Add simple door logic"
+                },
+                "LightTool": {
+                    "place": "Place",
+                    "edit": "Edit",
+                    "point": "Point",
+                    "ambient": "Ambient",
+                    "barrier": "Barrier",
+                    "bright_radius": "Bright radius",
+                    "dim_radius": "Dim radius",
+                    "angle": "Angle (°)",
+                    "colour": "Colour",
+                    "click_to_place": "Click on the map to place a light source.",
+                    "click_to_place_ambient": "Click on the map to place an ambient light source.",
+                    "ambient_light_hint": "Ambient light simulates outdoor/sunlight. Add it somewhere to flood the area with light.",
+                    "click_light_on_map_to_select": "Click a light on the map to edit/move it.",
+                    "delete_light": "Delete light",
+                    "click_on_highlighted_vertex": "Click on a highlighted vertex",
+                    "add_extra_points": "Add extra points (optional)",
+                    "click_highlighted_point_to_close": "Click a highlighted point to close",
+                    "press_escape_to_cancel": "Press Escape to cancel",
+                    "define_natural_barriers": "Define natural barriers between outside and inside for ambient lights."
                 },
                 "MapTool": {
                     "drag_to_resize": "Drag an area you wish to resize",
@@ -676,8 +740,6 @@
                         "archived_location": "include archived locations",
                         "local_shapes": "Local: Shapes",
                         "note_with_shape": "show notes with shapes",
-                        "global_note": "show global note if local shape",
-                        "global_note_title": "Global notes might be associated with a specific shape due to templating. Toggle this setting if you wish to list global notes that are associated with a shape in the current campaign",
                         "active_location_title": "Show only notes that were made in the current location"
                     },
                     "empty_note": "You don't have any notes yet!",
@@ -772,6 +834,7 @@
         "Ruler": "Ruler",
         "Ping": "Ping",
         "Map": "Map",
+        "Light": "Light",
         "Filter": "Filter",
         "Vision": "Vision",
         "Spell": "Spell",

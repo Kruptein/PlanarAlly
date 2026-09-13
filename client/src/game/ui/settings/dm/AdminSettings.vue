@@ -55,13 +55,6 @@ function changePlayerRole(event: Event, player: PlayerId): void {
     playerSystem.setPlayerRole(player, role, true);
 }
 
-function togglePlayerRect(player: PlayerId): void {
-    const p = playerSystem.getPlayer(player)?.showRect;
-    if (p === undefined) return;
-
-    playerSystem.setShowPlayerRect(player, !p);
-}
-
 async function deleteSession(): Promise<void> {
     const value = await modals.prompt(
         t("game.ui.settings.dm.AdminSettings.delete_session_msg_CREATOR_ROOM", {
@@ -94,13 +87,6 @@ const toggleLock = (): void => gameSystem.setIsLocked(!gameState.raw.isLocked, t
                         {{ role }}
                     </option>
                 </select>
-                <div
-                    title="Show player viewport"
-                    :style="{ opacity: player.showRect ? 1 : 0.3 }"
-                    @click="togglePlayerRect(player.id)"
-                >
-                    <font-awesome-icon icon="eye" />
-                </div>
                 <div :style="{ opacity: player.name === creator ? 0.3 : 1.0 }" @click="kickPlayer(player.id)">
                     {{ t("game.ui.settings.dm.AdminSettings.kick") }}
                 </div>

@@ -21,7 +21,7 @@ const selection = defineModel<string | undefined>("selection", { required: true 
 const { t } = useI18n();
 
 const activeTab = computed(() => {
-    const tab = tabs.find((t) => t.id === selection.value);
+    const tab = tabs.find((tab) => tab.id === selection.value);
     if (tab === undefined) return undefined;
     return {
         ...tab,
@@ -67,7 +67,6 @@ function hideModal(): void {
                         <component :is="activeTab.component" v-bind="activeTab.props" @close="hideModal" />
                     </KeepAlive>
                 </template>
-                <slot></slot>
             </div>
         </div>
     </Modal>

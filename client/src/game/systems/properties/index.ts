@@ -1,3 +1,4 @@
+// oxlint-disable no-shadow
 import { watch } from "vue";
 
 import type { ApiCoreShape } from "../../../apiTypes";

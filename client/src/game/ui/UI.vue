@@ -161,13 +161,18 @@ function setTempZoomDisplay(value: number): void {
                             id="rm-locations"
                             class="rm-item"
                             :title="t('game.ui.ui.open_loc_menu')"
-                            @click="toggleLocations"
+                            @click.prevent="toggleLocations"
                         >
                             <a href="#">
                                 <font-awesome-icon :icon="['far', 'compass']" />
                             </a>
                         </li>
-                        <li id="rm-settings" class="rm-item" :title="t('game.ui.ui.open_settings')" @click="toggleMenu">
+                        <li
+                            id="rm-settings"
+                            class="rm-item"
+                            :title="t('game.ui.ui.open_settings')"
+                            @click.prevent="toggleMenu"
+                        >
                             <a href="#">
                                 <font-awesome-icon icon="cog" />
                             </a>
@@ -201,7 +206,10 @@ function setTempZoomDisplay(value: number): void {
             height="6px"
             width="200px"
             :dot-size="[8, 20]"
-            :rail-style="{ backgroundColor: '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)' }"
+            :rail-style="{
+                backgroundColor: '#fff',
+                'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)',
+            }"
             :dot-style="{ 'border-radius': '15%' }"
             :min="0"
             :max="1"

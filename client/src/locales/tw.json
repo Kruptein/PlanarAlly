@@ -240,8 +240,7 @@
                         "remove_location_yes": "確認，移除該地點",
                         "remove_location_no": "否",
                         "move_existing_pl": "移動此地點的玩家",
-                        "delete_this_location": "移除該地點",
-                        "remove_location": "移除地點"
+                        "delete_this_location": "移除該地點"
                     },
                     "LocationSettings": {
                         "location_settings": "地點設定："

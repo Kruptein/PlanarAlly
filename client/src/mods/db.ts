@@ -14,6 +14,7 @@ const wrap = <T, A extends unknown[], U>(fn: (r: T, ...args: A) => U, tag: strin
     return (r: DistributiveOmit<T, "source">, ...args: A): U => fn({ ...r, source: tag } as T, ...args);
 };
 
+// oxlint-disable-next-line typescript/no-unnecessary-type-parameters
 const nameWrap = <T, A extends unknown[], U>(fn: (r: T, ...args: A) => U, tag: string) => {
     return (name: string, ...args: A): U => fn({ name, source: tag } as T, ...args);
 };

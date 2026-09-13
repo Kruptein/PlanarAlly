@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="46" height="46" viewBox="0 0 46 46">
+  <defs><style>.s{fill:none;stroke:#4d3b40;stroke-width:1.5px;stroke-linecap:round;stroke-linejoin:round;}</style></defs>
+  <!-- bulb outline -->
+  <path class="s" d="M23 6a11 11 0 0 0-7.5 19.1c1.5 1.4 2.5 3.2 3 5.4h9c.5-2.2 1.5-4 3-5.4A11 11 0 0 0 23 6z"/>
+  <!-- base bands -->
+  <line class="s" x1="17.5" y1="33" x2="28.5" y2="33"/>
+  <line class="s" x1="18.5" y1="36" x2="27.5" y2="36"/>
+  <!-- base tip -->
+  <path class="s" d="M20 38.5q3 3 6 0"/>
+  <!-- rays -->
+  <line class="s" x1="23" y1="1" x2="23" y2="4"/>
+  <line class="s" x1="37.5" y1="6" x2="35.4" y2="8.1"/>
+  <line class="s" x1="8.5" y1="6" x2="10.6" y2="8.1"/>
+  <line class="s" x1="42" y1="17" x2="39" y2="17"/>
+  <line class="s" x1="4" y1="17" x2="7" y2="17"/>
+  <!-- filament hint -->
+  <path class="s" d="M20 25c1-2 2-2 3-2s2 0 3 2"/>
+</svg>

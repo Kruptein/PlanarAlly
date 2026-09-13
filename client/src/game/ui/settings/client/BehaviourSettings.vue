@@ -32,7 +32,9 @@ function setDefaultTrackerMode(event: Event): void {
             <div><input id="invertAlt" v-model="invertAlt" type="checkbox" /></div>
             <OverrideReset setting="invertAlt" />
         </div>
-        <div class="spanrow header">{{ t("game.ui.settings.client.BehaviourSettings.mouse_gestures") }}</div>
+        <div class="spanrow header">
+            {{ t("game.ui.settings.client.BehaviourSettings.mouse_gestures") }}
+        </div>
         <div class="row">
             <label for="disableScrollToZoom">
                 {{ t("game.ui.settings.client.BehaviourSettings.disable_scroll_to_zoom") }}
@@ -57,7 +59,9 @@ function setDefaultTrackerMode(event: Event): void {
             </div>
             <OverrideReset setting="mousePanMode" />
         </div>
-        <div class="spanrow header">{{ t("game.ui.settings.client.BehaviourSettings.selection_info") }}</div>
+        <div class="spanrow header">
+            {{ t("game.ui.settings.client.BehaviourSettings.selection_info") }}
+        </div>
         <div class="row">
             <label for="defaultTrackerMode">
                 {{ t("game.ui.settings.client.BehaviourSettings.selection_info_tracker_mode") }}

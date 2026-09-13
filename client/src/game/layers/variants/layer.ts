@@ -4,13 +4,12 @@ import type { ApiShape } from "../../../apiTypes";
 import { g2l, l2g, l2gz } from "../../../core/conversions";
 import { Ray, cloneP, toLP } from "../../../core/geometry";
 import type { LocalId } from "../../../core/id";
-import { filter } from "../../../core/iter";
 import { InvalidationMode, SyncMode, UI_SYNC } from "../../../core/models/types";
 import { callbackProvider } from "../../../core/utils";
 import { debugLayers } from "../../../localStorageHelpers";
 import { activeShapeStore } from "../../../store/activeShape";
 import { sendRemoveShapes, sendShapeOrder } from "../../api/emits/shape/core";
-import { dropId, getGlobalId, getVisualShape } from "../../id";
+import { dropId, getGlobalId, getShape } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
 import { LayerName } from "../../models/floor";
@@ -37,7 +36,6 @@ import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
 import { setCanvasDimensions } from "../canvas";
-import { compositeState } from "../state";
 
 const SECTOR_SIZE = 200;
 
@@ -68,6 +66,12 @@ export class Layer implements ILayer {
     shapesInSector: IShape[] = [];
     protected xSectors = new Map<number, Set<LocalId>>();
     protected ySectors = new Map<number, Set<LocalId>>();
+    private shapeSectorKeys = new Map<LocalId, { x: number[]; y: number[] }>();
+
+    private viewSectorLeft = 0;
+    private viewSectorRight = 0;
+    private viewSectorTop = 0;
+    private viewSectorBot = 0;
 
     shapeIdsInSector = new Set<LocalId>();
 
@@ -77,7 +81,13 @@ export class Layer implements ILayer {
     protected selectionColor = "#CC0000";
     protected selectionWidth = 2;
 
+    // This is used to handle extra work after the layer has been drawn
+    // Usually done for some rare extra manual shape draws
+    // These are one-shot callbacks
     postDrawCallback = callbackProvider();
+    // Somewhat similar, but these are persistent callbacks
+    // You have to specifically remove yourself again from this array
+    private drawCallbacks: Array<(ctx: CanvasRenderingContext2D) => void> = [];
 
     constructor(
         public canvas: HTMLCanvasElement,
@@ -95,43 +105,74 @@ export class Layer implements ILayer {
     updateView(): void {
         if (!gameState.raw.boardInitialized) return;
 
-        this.shapeIdsInSector.clear();
-
         const topLeft = l2g(toLP(0, 0));
         const botRight = l2g(toLP(this.width, this.height));
-        const sectorLeft = getSector(topLeft.x);
-        const sectorRight = getSector(botRight.x);
-        const sectorTop = getSector(topLeft.y);
-        const sectorBot = getSector(botRight.y);
+        const newLeft = getSector(topLeft.x);
+        const newRight = getSector(botRight.x);
+        const newTop = getSector(topLeft.y);
+        const newBot = getSector(botRight.y);
 
-        let i = 0;
-        let j = 0;
+        if (
+            newLeft === this.viewSectorLeft &&
+            newRight === this.viewSectorRight &&
+            newTop === this.viewSectorTop &&
+            newBot === this.viewSectorBot &&
+            this.shapesInSector.length > 0
+        ) {
+            return;
+        }
 
-        for (i = sectorLeft; i <= sectorRight; i += SECTOR_SIZE) {
-            for (j = sectorTop; j <= sectorBot; j += SECTOR_SIZE) {
-                const x = this.xSectors.get(i);
-                const y = this.ySectors.get(j);
-                if (x !== undefined && y !== undefined) {
-                    for (const id of filter(x, (x) => y.has(x))) {
-                        this.shapeIdsInSector.add(id);
-                    }
-                    for (const id of filter(y, (y) => x.has(y))) {
-                        this.shapeIdsInSector.add(id);
-                    }
+        this.viewSectorLeft = newLeft;
+        this.viewSectorRight = newRight;
+        this.viewSectorTop = newTop;
+        this.viewSectorBot = newBot;
+
+        this.shapeIdsInSector.clear();
+
+        const xVisible = new Set<LocalId>();
+        for (let i = this.viewSectorLeft; i <= this.viewSectorRight; i += SECTOR_SIZE) {
+            const xShapes = this.xSectors.get(i);
+            if (xShapes !== undefined) {
+                for (const id of xShapes) xVisible.add(id);
+            }
+        }
+
+        for (let j = this.viewSectorTop; j <= this.viewSectorBot; j += SECTOR_SIZE) {
+            const yShapes = this.ySectors.get(j);
+            if (yShapes !== undefined) {
+                for (const id of yShapes) {
+                    if (xVisible.has(id)) this.shapeIdsInSector.add(id);
                 }
             }
         }
+
+        this.rebuildShapesInSector();
+        visionState.updateSourcesInSector(this.floor, this.name, this.shapeIdsInSector);
+    }
+
+    private rebuildShapesInSector(): void {
         this.shapesInSector = [];
         for (const shape of this.shapes) {
             if (this.shapeIdsInSector.has(shape.id)) this.shapesInSector.push(shape);
         }
-        visionState.updateSourcesInSector(this.floor, this.name, this.shapeIdsInSector);
+    }
+
+    private isShapeInViewSectors(shapeId: LocalId): boolean {
+        if (!gameState.raw.boardInitialized) return false;
+        const keys = this.shapeSectorKeys.get(shapeId);
+        if (keys === undefined) return false;
+        if (!keys.x.some((k) => k >= this.viewSectorLeft && k <= this.viewSectorRight)) return false;
+        return keys.y.some((k) => k >= this.viewSectorTop && k <= this.viewSectorBot);
     }
 
     updateSectors(shapeId: LocalId, aabb: BoundingRect): void {
+        const wasInView = this.shapeIdsInSector.has(shapeId);
         this.removeShapeFromSectors(shapeId);
         this.addShapeToSectors(shapeId, aabb);
-        this.updateView();
+
+        if (wasInView !== this.isShapeInViewSectors(shapeId)) {
+            this.updateView();
+        }
     }
 
     invalidate(skipLightUpdate: boolean): void {
@@ -167,27 +208,40 @@ export class Layer implements ILayer {
     /**
      * Returns the number of shapes on this layer
      */
-    size(options: { includeComposites: boolean; onlyInView: boolean }): number {
+    size(options: { onlyInView: boolean }): number {
         return this.getShapes(options).length;
     }
 
     private addShapeToSectors(shapeId: LocalId, aabb: BoundingRect): void {
+        const xKeys: number[] = [];
+        const yKeys: number[] = [];
         for (let i = getSector(aabb.topLeft.x); i <= getSector(aabb.topRight.x); i += SECTOR_SIZE) {
-            if (!this.xSectors.has(i)) this.xSectors.set(i, new Set());
-            this.xSectors.get(i)!.add(shapeId);
+            let set = this.xSectors.get(i);
+            if (set === undefined) {
+                set = new Set();
+                this.xSectors.set(i, set);
+            }
+            set.add(shapeId);
+            xKeys.push(i);
         }
         for (let i = getSector(aabb.topLeft.y); i <= getSector(aabb.botLeft.y); i += SECTOR_SIZE) {
-            if (!this.ySectors.has(i)) this.ySectors.set(i, new Set());
-            this.ySectors.get(i)!.add(shapeId);
+            let set = this.ySectors.get(i);
+            if (set === undefined) {
+                set = new Set();
+                this.ySectors.set(i, set);
+            }
+            set.add(shapeId);
+            yKeys.push(i);
         }
+        this.shapeSectorKeys.set(shapeId, { x: xKeys, y: yKeys });
     }
 
     private removeShapeFromSectors(shapeId: LocalId): void {
-        for (const sector of this.xSectors.values()) {
-            sector.delete(shapeId);
-        }
-        for (const sector of this.ySectors.values()) {
-            sector.delete(shapeId);
+        const keys = this.shapeSectorKeys.get(shapeId);
+        if (keys !== undefined) {
+            for (const k of keys.x) this.xSectors.get(k)?.delete(shapeId);
+            for (const k of keys.y) this.ySectors.get(k)?.delete(shapeId);
+            this.shapeSectorKeys.delete(shapeId);
         }
     }
 
@@ -200,7 +254,11 @@ export class Layer implements ILayer {
 
         this.shapes.push(shape);
         this.addShapeToSectors(shape.id, shape.getAuraAABB());
-        this.updateView(); // todo: other method that only adds instead of rechecking all existing
+        if (this.isShapeInViewSectors(shape.id)) {
+            this.shapeIdsInSector.add(shape.id);
+            this.shapesInSector.push(shape);
+            visionState.addShapeToSourcesInView(this.floor, shape.id);
+        }
 
         const props = getProperties(shape.id);
         if (props === undefined) return console.error("Missing shape properties");
@@ -237,14 +295,8 @@ export class Layer implements ILayer {
         shape.onLayerAdd();
     }
 
-    // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
-    // They are often not desired unless in specific circumstances
-    getShapes(options: { includeComposites: boolean; onlyInView: boolean }): readonly IShape[] {
-        let shapes: readonly IShape[] = options.onlyInView ? this.shapesInSector : this.shapes;
-        if (options.includeComposites) {
-            shapes = compositeState.addAllCompositeShapes(shapes);
-        }
-        return shapes;
+    getShapes(options: { onlyInView: boolean }): readonly IShape[] {
+        return options.onlyInView ? this.shapesInSector : this.shapes;
     }
 
     pushShapes(...shapes: IShape[]): void {
@@ -253,6 +305,7 @@ export class Layer implements ILayer {
             shape.resetVisionIteration();
             this.addShapeToSectors(shape.id, shape.getAuraAABB());
         }
+        this.shapesInSector = [];
         this.updateView();
     }
 
@@ -260,25 +313,21 @@ export class Layer implements ILayer {
         this.shapes = shapes;
         this.xSectors.clear();
         this.ySectors.clear();
+        this.shapeSectorKeys.clear();
         for (const shape of shapes) {
             shape.resetVisionIteration();
             this.addShapeToSectors(shape.id, shape.getAuraAABB());
         }
+        this.shapesInSector = [];
         this.updateView();
     }
 
     async setServerShapes(shapes: ApiShape[]): Promise<void> {
         if (this.isActiveLayer) selectedSystem.clear(); // TODO: Fix keeping selection on those items that are not moved.
-        // We need to ensure composites are added after all their variants have been added
-        const composites = [];
         for (const serverShape of shapes) {
-            if (serverShape.type_ === "togglecomposite") {
-                composites.push(serverShape);
-            } else {
-                await this.setServerShape(serverShape);
-            }
+            // oxlint-disable-next-line no-await-in-loop
+            await this.setServerShape(serverShape);
         }
-        for (const composite of composites) await this.setServerShape(composite);
     }
 
     private async setServerShape(serverShape: ApiShape): Promise<void> {
@@ -314,7 +363,11 @@ export class Layer implements ILayer {
         shape.removeDependentShapes({ dropShapeId: true });
         this.shapes.splice(idx, 1);
         this.removeShapeFromSectors(shape.id);
-        this.updateView();
+        if (this.shapeIdsInSector.delete(shape.id)) {
+            const sectorIdx = this.shapesInSector.indexOf(shape);
+            if (sectorIdx >= 0) this.shapesInSector.splice(sectorIdx, 1);
+            visionState.removeShapeFromSourcesInView(this.floor, shape.id);
+        }
 
         groupSystem.removeGroupMember(shape.id, false);
 
@@ -352,11 +405,20 @@ export class Layer implements ILayer {
                     temporary: sync === SyncMode.TEMP_SYNC,
                 });
         }
-        this.updateView();
+        this.rebuildShapesInSector();
         this.invalidate(true);
     }
 
     // DRAW
+
+    registerDrawCallback(cb: (ctx: CanvasRenderingContext2D) => void): void {
+        this.drawCallbacks.push(cb);
+    }
+
+    unregisterDrawCallback(cb: (ctx: CanvasRenderingContext2D) => void): void {
+        const idx = this.drawCallbacks.indexOf(cb);
+        if (idx >= 0) this.drawCallbacks.splice(idx, 1);
+    }
 
     hide(): void {
         this.canvas.style.display = "none";
@@ -397,7 +459,10 @@ export class Layer implements ILayer {
             if (this.name !== LayerName.Lighting || isActiveLayer) {
                 // Aura draw loop
                 for (const shape of this.shapesInSector) {
-                    if (shape.options.skipDraw ?? false) continue;
+                    if (shape.options.skipDraw ?? false) {
+                        if (shape.options.lightShape === true) drawAuras(shape, ctx);
+                        continue;
+                    }
 
                     const props = getProperties(shape.id);
                     if (props?.showCells === true) {
@@ -431,7 +496,7 @@ export class Layer implements ILayer {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;
-                for (const shape of selectedSystem.get({ includeComposites: false })) {
+                for (const shape of selectedSystem.get()) {
                     shape.drawSelection(ctx);
                 }
             }
@@ -455,7 +520,7 @@ export class Layer implements ILayer {
                     const bboxCenter = bbox.center;
                     for (const token of accessState.activeTokens.value.get("vision") ?? []) {
                         let found = false;
-                        const shape = getVisualShape(token);
+                        const shape = getShape(token);
                         if (shape !== undefined && shape.floorId === this.floor && shape.type === "assetrect") {
                             if (!shape.visibleInCanvas({ w: this.width, h: this.height }, { includeAuras: false })) {
                                 const ray = Ray.fromPoints(shape.center, bboxCenter);
@@ -483,6 +548,8 @@ export class Layer implements ILayer {
                     }
                 }
             }
+
+            for (const cb of this.drawCallbacks) cb(ctx);
 
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;

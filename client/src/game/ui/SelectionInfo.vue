@@ -26,9 +26,9 @@ const shapeProps = useShapeProps();
 
 const activeTracker = ref<Tracker | Aura | null>(null);
 
-const trackers = computed(() => [...trackerSystem.state.parentTrackers, ...trackerSystem.state.trackers.slice(0, -1)]);
+const trackers = computed(() => trackerSystem.state.trackers.slice(0, -1));
 
-const auras = computed(() => [...auraSystem.state.parentAuras, ...auraSystem.state.auras.slice(0, -1)]);
+const auras = computed(() => auraSystem.state.auras.slice(0, -1));
 
 const notes = computed(
     () =>
@@ -62,7 +62,7 @@ function setValue(data: { solution: number; relativeMode: boolean }): void {
     activeTracker.value = null; // close the modal
 
     const value = data.relativeMode ? tracker.value + data.solution : data.solution;
-    if (trackers.value.some((t) => t.uuid === tracker.uuid)) {
+    if (trackers.value.some((tr) => tr.uuid === tracker.uuid)) {
         trackerSystem.update(shapeId, tracker.uuid as TrackerId, { value }, SERVER_SYNC);
     } else {
         auraSystem.update(shapeId, tracker.uuid as AuraId, { value }, SERVER_SYNC);

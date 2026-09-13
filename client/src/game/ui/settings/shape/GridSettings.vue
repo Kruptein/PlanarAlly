@@ -249,4 +249,3 @@ button {
     color: grey;
 }
 </style>
-../../../systems/properties/helpers

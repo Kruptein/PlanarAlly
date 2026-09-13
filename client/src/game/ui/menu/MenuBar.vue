@@ -124,7 +124,9 @@ const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.
                             <font-awesome-icon icon="minus-square" />
                         </div>
                     </div>
-                    <div v-if="markerState.reactive.markers.size === 0">{{ t("game.ui.menu.MenuBar.no_markers") }}</div>
+                    <div v-if="markerState.reactive.markers.size === 0">
+                        {{ t("game.ui.menu.MenuBar.no_markers") }}
+                    </div>
                 </div>
             </div>
             <!-- CLIENT SETTINGS -->

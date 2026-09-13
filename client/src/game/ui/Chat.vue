@@ -44,7 +44,9 @@ function mutationHandler(childList: MutationRecord[]): void {
             if (add instanceof HTMLElement) {
                 const img = add.querySelector("img");
                 if (img) {
+                    // oxlint-disable-next-line unicorn/prefer-add-event-listener
                     img.onload = scrollToBottom;
+                    // oxlint-disable-next-line unicorn/prefer-add-event-listener
                     img.onclick = () => showDialog(img.src);
                 }
             }
@@ -71,8 +73,7 @@ watch(
 );
 
 function scrollToBottom(): void {
-    const chatContainer = document.getElementById("chat-container");
-    chatContainer?.lastElementChild?.scrollIntoView({ behavior: "smooth" });
+    chatContainer.value?.lastElementChild?.scrollIntoView({ behavior: "smooth" });
 }
 
 // Dialog handling

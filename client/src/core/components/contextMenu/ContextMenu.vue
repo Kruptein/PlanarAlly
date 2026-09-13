@@ -47,7 +47,7 @@ watch(
 
 function isVisible(section: Section): boolean {
     if (Array.isArray(section)) return section.some((item) => isVisible(item));
-    else if ("subitems" in section) return section.subitems.some((section) => isVisible(section));
+    else if ("subitems" in section) return section.subitems.some((s) => isVisible(s));
     return !(section.disabled ?? false);
 }
 

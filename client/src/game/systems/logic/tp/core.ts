@@ -26,7 +26,7 @@ export function getTpZoneShapes(fromZone: LocalId): LocalId[] {
     const fromShape = getShape(fromZone);
     if (fromShape === undefined) return [];
 
-    for (const shape of tokenLayer.getShapes({ includeComposites: true, onlyInView: false })) {
+    for (const shape of tokenLayer.getShapes({ onlyInView: false })) {
         if (
             shape.id !== fromZone &&
             !getProperties(shape.id)!.isLocked &&

@@ -25,9 +25,12 @@ class PanTool extends Tool implements ITool {
         positionSystem.increasePan(Math.round(distance.x), Math.round(distance.y));
         this.panStart = target;
 
-        if (full) floorSystem.invalidateAllFloors();
-        else floorSystem.invalidateVisibleFloors();
-        sendClientLocationOptions(!full);
+        if (full) {
+            floorSystem.invalidateAllFloors();
+            sendClientLocationOptions(false);
+        } else {
+            floorSystem.invalidateVisibleFloors();
+        }
     }
 
     onDown(lp: LocalPoint): Promise<void> {

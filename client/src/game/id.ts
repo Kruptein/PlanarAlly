@@ -3,8 +3,6 @@ import { dropFromSystems } from "../core/systems";
 import { uuidv4 } from "../core/utils";
 
 import type { IShape } from "./interfaces/shape";
-import type { IToggleComposite } from "./interfaces/shapes/toggleComposite";
-import { compositeState } from "./layers/state";
 
 // Array of GlobalId indexed by localId
 let uuids: GlobalId[] = [];
@@ -12,8 +10,6 @@ let uuids: GlobalId[] = [];
 const idMap = new Map<LocalId, IShape>();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).idMap = idMap;
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).uuids = uuids;
 
 // we're not giving id 0 on purpose to prevent potential unsafe if checks against this
 // Usually our explicit undefined check catches this, but because of our LocalId typing
@@ -24,6 +20,8 @@ const reservedIds = new Map<GlobalId, LocalId>();
 
 export function clearIds(): void {
     uuids = [];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    (window as any).uuids = uuids;
     idMap.clear();
     lastId = 0;
     freeIds = [];
@@ -70,6 +68,8 @@ export function dropId(id: LocalId): void {
 
     const gId = getGlobalId(id);
     if (gId) reservedIds.delete(gId);
+    // we're leaving gaps very deliberately
+    // oxlint-disable-next-line typescript/no-array-delete
     delete uuids[id];
     idMap.delete(id);
     freeIds.push(id);
@@ -93,37 +93,6 @@ export function getLocalId(global: GlobalId, _warn = true): LocalId | undefined 
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).getLocalId = getLocalId;
-
-export function getBaseShapeId(local: LocalId): LocalId {
-    const parent = compositeState.getCompositeParent(local);
-    if (parent !== undefined) return parent.id;
-    return local;
-}
-
-// eslint-disable-next-line import/no-unused-modules
-export function getBaseShape(local: LocalId): IShape | undefined {
-    const parent = compositeState.getCompositeParent(local);
-    if (parent !== undefined) return parent;
-
-    return idMap.get(local);
-}
-
-export function getVisualShape(local: LocalId): IShape | undefined {
-    let shape = idMap.get(local);
-    const parent = compositeState.getCompositeParent(local);
-    if (parent !== undefined && parent.activeVariant !== local) {
-        shape = idMap.get(parent.id);
-    }
-    if (shape !== undefined && shape.type === "togglecomposite") {
-        return idMap.get((shape as IToggleComposite).activeVariant);
-    }
-    return shape;
-}
-
-export function getVisualShapeId(local: LocalId): LocalId {
-    const shape = getVisualShape(local);
-    return shape?.id ?? local;
-}
 
 export function getShape(local: LocalId): IShape | undefined {
     return idMap.get(local);

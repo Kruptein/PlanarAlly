@@ -224,6 +224,7 @@ class TeleportZoneSystem implements ShapeSystem<{ enabled: boolean; options?: Te
                 const toZone = options.location.spawnUuid;
 
                 if (options.immediate) {
+                    // oxlint-disable-next-line no-await-in-loop
                     await validateTeleport(access, tp, toZone, shapesToMove);
                 } else if (options.toastId === undefined) {
                     options.toastId = toast.info(
@@ -243,8 +244,8 @@ class TeleportZoneSystem implements ShapeSystem<{ enabled: boolean; options?: Te
                     continue;
                 }
             } else if (options.toastId !== undefined) {
-                const shapes = getTpZoneShapes(tp);
-                if (shapes.length === 0) {
+                const tpShapes = getTpZoneShapes(tp);
+                if (tpShapes.length === 0) {
                     toast.dismiss(options.toastId);
                     options.toastId = undefined;
                 }

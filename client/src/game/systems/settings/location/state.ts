@@ -26,6 +26,7 @@ function getInitState(): _S {
         visionMode: init(""),
         limitMovementDuringInitiative: init(false),
         dropRatio: init(1),
+        ambientLight: init(false),
 
         airMapBackground: init("none"),
         groundMapBackground: init("none"),

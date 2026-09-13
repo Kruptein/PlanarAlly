@@ -4,10 +4,10 @@ import { computed, type DeepReadonly, onMounted, nextTick, ref, useTemplateRef, 
 import { type DraggableEvent, VueDraggable } from "vue-draggable-plus";
 import { useI18n } from "vue-i18n";
 
+import { getImageSrcFromHash } from "../../../assets/utils";
 import Modal from "../../../core/components/modals/Modal.vue";
 import ResizingTextArea from "../../../core/components/ResizingTextArea.vue";
 import RollingCounter from "../../../core/components/RollingCounter.vue";
-import { baseAdjust } from "../../../core/http";
 import type { GlobalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { getTarget, getValue } from "../../../core/utils";
@@ -19,6 +19,7 @@ import {
     type InitiativeData,
     type InitiativeEffect,
     InitiativeEffectMode,
+    InitiativeEffectUpdateTiming,
     InitiativeSort,
     InitiativeTurnDirection,
 } from "../../models/initiative";
@@ -226,6 +227,15 @@ function removeEffect(shape: GlobalId, index: number): void {
     if (initiativeStore.owns(shape)) initiativeStore.removeEffect(shape, index, true);
 }
 
+function invertEffectTiming(timing: InitiativeEffectUpdateTiming): InitiativeEffectUpdateTiming {
+    if (timing === InitiativeEffectUpdateTiming.TurnStart) return InitiativeEffectUpdateTiming.TurnEnd;
+    return InitiativeEffectUpdateTiming.TurnStart;
+}
+
+function changeEffectTiming(shape: GlobalId, index: number, timing: InitiativeEffectUpdateTiming): void {
+    if (initiativeStore.owns(shape)) initiativeStore.setEffectUpdateTiming(shape, index, timing, true);
+}
+
 function toggleGroupHighlight(actor: InitiativeData, show: boolean): void {
     // switch between highlighting all group members or just the entry's shape
     if (actor.localId === undefined) return;
@@ -287,7 +297,7 @@ function hasImage(actor: InitiativeData): boolean {
 
 function getImage(actor: InitiativeData): string {
     if (actor.localId === undefined) return "";
-    return baseAdjust((getShape(actor.localId) as IAsset).src);
+    return getImageSrcFromHash((getShape(actor.localId) as IAsset).assetHash);
 }
 
 function canSee(actor: DeepReadonly<InitiativeData>): boolean {
@@ -297,8 +307,14 @@ function canSee(actor: DeepReadonly<InitiativeData>): boolean {
 }
 
 function reset(): void {
-    initiativeStore.setTurnCounter(0, InitiativeTurnDirection.Null, { sync: true, updateEffects: false });
-    initiativeStore.setRoundCounter(1, InitiativeTurnDirection.Null, { sync: true, updateEffects: false });
+    initiativeStore.setTurnCounter(0, InitiativeTurnDirection.Null, {
+        sync: true,
+        updateEffects: false,
+    });
+    initiativeStore.setRoundCounter(1, InitiativeTurnDirection.Null, {
+        sync: true,
+        updateEffects: false,
+    });
     sendRequestInitiatives();
     scrollToInitiative();
 }
@@ -510,6 +526,7 @@ function n(e: any): number {
                                                 @blur="unlock"
                                                 @change="setInitiative(actor.globalId, getValue($event))"
                                                 @keyup.enter="getTarget($event).blur()"
+                                                @keydown.enter.prevent
                                             />
                                         </div>
                                         <Transition name="effects-expand">
@@ -541,6 +558,42 @@ function n(e: any): number {
                                                         :key="`${actor.globalId}-${e}`"
                                                         class="initiative-effect-info"
                                                     >
+                                                        <div
+                                                            class="effect-icon-button"
+                                                            :class="{ disabled: !owns(actor.globalId) }"
+                                                            :title="
+                                                                t(
+                                                                    'game.ui.initiative.' +
+                                                                        (effect.updateTiming ===
+                                                                        InitiativeEffectUpdateTiming.TurnStart
+                                                                            ? 'start'
+                                                                            : 'end') +
+                                                                        '_turn_toggle_hint',
+                                                                )
+                                                            "
+                                                            @click="
+                                                                changeEffectTiming(
+                                                                    actor.globalId,
+                                                                    n(e),
+                                                                    invertEffectTiming(effect.updateTiming),
+                                                                )
+                                                            "
+                                                        >
+                                                            <font-awesome-icon
+                                                                icon="step-forward"
+                                                                :style="{
+                                                                    transform:
+                                                                        effect.updateTiming ===
+                                                                        InitiativeEffectUpdateTiming.TurnStart
+                                                                            ? 'scale(-1, 1)'
+                                                                            : 'scale(1, 1)',
+                                                                    cursor: !owns(actor.globalId)
+                                                                        ? 'default'
+                                                                        : 'pointer',
+                                                                }"
+                                                                style="opacity: 0.6"
+                                                            />
+                                                        </div>
                                                         <ResizingTextArea
                                                             v-model="effect.name"
                                                             :disabled="!owns(actor.globalId)"
@@ -560,6 +613,7 @@ function n(e: any): number {
                                                                 setEffectTurns(actor.globalId, n(e), getValue($event))
                                                             "
                                                             @keyup.enter="getTarget($event).blur()"
+                                                            @keydown.enter.prevent
                                                             @focus="setEntryFocus(index, true, false)"
                                                             @blur="setEntryFocus(index, false, false)"
                                                         />
@@ -568,8 +622,7 @@ function n(e: any): number {
                                                         </div>
                                                         <div
                                                             v-if="owns(actor.globalId)"
-                                                            class="actor-icon-button"
-                                                            style="margin-right: 4px"
+                                                            class="effect-icon-button"
                                                             :title="t('game.ui.initiative.delete_effect')"
                                                             @click="removeEffect(actor.globalId, n(e))"
                                                         >
@@ -963,6 +1016,7 @@ function n(e: any): number {
     }
 }
 
+.effect-icon-button,
 .actor-icon-button {
     display: flex;
     align-items: center;
@@ -989,6 +1043,11 @@ function n(e: any): number {
     }
 }
 
+.effect-icon-button {
+    padding: 2px 0;
+    font-size: 11pt;
+}
+
 .blurred {
     filter: blur(5px);
 }
@@ -997,7 +1056,6 @@ function n(e: any): number {
     position: relative;
     display: flex;
     flex-direction: column;
-    width: -moz-fit-content;
     width: 15em;
     margin-right: 5px;
     border-bottom-left-radius: 5px;
@@ -1034,9 +1092,8 @@ function n(e: any): number {
 .initiative-effect-info {
     display: flex;
     flex-direction: row;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
-    padding-left: 5px;
     position: relative;
     z-index: 1;
     &::before {
@@ -1054,30 +1111,32 @@ function n(e: any): number {
     }
 
     > * {
+        margin: 0 3px;
+        &:first-child {
+            margin-left: 2px;
+        }
+        &:last-child {
+            margin-right: 2px;
+        }
+    }
+    > input {
         border: none;
         background-color: inherit;
         text-align: right;
         margin: 0 3px;
 
-        &:last-child {
-            margin-right: 0;
-        }
-    }
-    > input {
         font-size: 11pt;
     }
     .effect-turn-counter {
-        width: 25px;
+        min-width: 25px;
+        max-width: 25px;
         padding: 0 2px;
     }
     .infinite-placeholder {
+        text-align: right;
         user-select: none;
         font-size: 12pt;
     }
-}
-
-.initiative-actor:hover + .initiative-effect,
-.initiative-effect:hover {
 }
 
 #initiative-bar-dm {
@@ -1237,9 +1296,6 @@ function n(e: any): number {
     transition: all 0.15s ease;
 }
 
-.effects-expand-enter-active,
-.effects-expand-leave-active {
-}
 .effects-expand-enter-from,
 .effects-expand-leave-to {
     opacity: 0;

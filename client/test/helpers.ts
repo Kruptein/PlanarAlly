@@ -1,4 +1,4 @@
-import type { ApiFloor } from "../src/apiTypes";
+import type { ApiFloor, PlayerInfoCore } from "../src/apiTypes";
 import { toGP } from "../src/core/geometry";
 import type { LocalId } from "../src/core/id";
 import { addServerFloor } from "../src/game/floor/server";
@@ -8,7 +8,7 @@ import { LayerName } from "../src/game/models/floor";
 import { Role } from "../src/game/models/role";
 import { Rect } from "../src/game/shapes/variants/rect";
 import { floorSystem } from "../src/game/systems/floors";
-import type { Player, PlayerId } from "../src/game/systems/players/models";
+import type { PlayerId } from "../src/game/systems/players/models";
 
 export async function generateTestShape(options?: { floor?: string }): Promise<IShape> {
     const rect = new Rect(toGP(0, 0), 0, 0);
@@ -33,13 +33,12 @@ export async function generateTestLocalId(shape?: IShape): Promise<LocalId> {
     return id;
 }
 
-export function generatePlayer(name: string): Player {
+export function generatePlayer(name: string): PlayerInfoCore {
     return {
         id: (100 * Math.random()) as PlayerId,
         name,
         location: 1,
         role: Role.Player,
-        showRect: false,
     };
 }
 

@@ -1,5 +1,5 @@
 import { l2g } from "../../core/conversions";
-import { getVisualShape } from "../id";
+import { getShape } from "../id";
 import { getLocalPointFromEvent } from "../input/mouse";
 import { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
@@ -72,6 +72,7 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseMove(event, permitted.features);
     }
 
@@ -79,31 +80,34 @@ export async function mouseMove(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseMove(event, permitted.features);
     }
 
-    // HOVER code
-    const eventPoint = l2g(getLocalPointFromEvent(event));
-    // Annotation hover
-    let foundAnnotation = false;
-    if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
-        for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
-            const shape = getVisualShape(shapeId);
-            if (shape && shape.floorId === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
-                for (const noteId of notes) {
-                    const note = noteState.raw.notes.get(noteId);
-                    if (note?.showOnHover === true) {
-                        foundAnnotation = true;
-                        uiSystem.setAnnotationText(note.text);
-                        break;
+    // HOVER code — skip during pan since positions are shifting anyway
+    if (targetTool !== ToolName.Pan) {
+        const eventPoint = l2g(getLocalPointFromEvent(event));
+        // Annotation hover
+        let foundAnnotation = false;
+        if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
+            for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
+                const shape = getShape(shapeId);
+                if (shape && shape.floorId === floorState.currentFloor.value!.id && shape.contains(eventPoint)) {
+                    for (const noteId of notes) {
+                        const note = noteState.raw.notes.get(noteId);
+                        if (note?.showOnHover === true) {
+                            foundAnnotation = true;
+                            uiSystem.setAnnotationText(note.text);
+                            break;
+                        }
                     }
+                    if (foundAnnotation) break;
                 }
-                if (foundAnnotation) break;
             }
         }
-    }
-    if (!foundAnnotation && uiState.raw.annotationText.length > 0) {
-        uiSystem.setAnnotationText("");
+        if (!foundAnnotation && uiState.raw.annotationText.length > 0) {
+            uiSystem.setAnnotationText("");
+        }
     }
 }
 
@@ -130,6 +134,7 @@ export async function mouseUp(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 
@@ -137,6 +142,7 @@ export async function mouseUp(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 }
@@ -146,6 +152,7 @@ export async function mouseLeave(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 
@@ -153,6 +160,7 @@ export async function mouseLeave(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onMouseUp(event, permitted.features);
     }
 }
@@ -165,6 +173,7 @@ async function contextMenu(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onContextMenu(event, permitted.features);
     }
 
@@ -173,6 +182,7 @@ async function contextMenu(event: MouseEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onContextMenu(event, permitted.features);
     }
 }
@@ -182,6 +192,7 @@ export async function keyDown(event: KeyboardEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onKeyDown(event, permitted.features);
     }
 
@@ -189,6 +200,7 @@ export async function keyDown(event: KeyboardEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onKeyDown(event, permitted.features);
     }
 }
@@ -198,6 +210,7 @@ export async function keyUp(event: KeyboardEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onKeyUp(event, permitted.features);
     }
 
@@ -205,6 +218,7 @@ export async function keyUp(event: KeyboardEvent): Promise<void> {
 
     for (const permitted of tool.permittedTools) {
         if (permitted.early ?? false) continue;
+        // oxlint-disable-next-line no-await-in-loop
         await toolMap[permitted.name].onKeyUp(event, permitted.features);
     }
 }
@@ -247,6 +261,7 @@ export async function touchMove(event: TouchEvent): Promise<void> {
         const otherTool = toolMap[permitted.name];
         if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
         else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
+        // oxlint-disable-next-line no-await-in-loop
         else await otherTool.onTouchMove(event, permitted.features);
     }
 
@@ -264,33 +279,36 @@ export async function touchMove(event: TouchEvent): Promise<void> {
         const otherTool = toolMap[permitted.name];
         if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
         else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
+        // oxlint-disable-next-line no-await-in-loop
         else await otherTool.onTouchMove(event, permitted.features);
     }
 
-    // Annotation hover
-    let found = false;
-    if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
-        for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
-            const shape = getVisualShape(shapeId);
-            if (
-                shape &&
-                shape.floorId === floorState.currentFloor.value!.id &&
-                shape.contains(l2g(getLocalPointFromEvent(event)))
-            ) {
-                for (const noteId of notes) {
-                    const note = noteState.raw.notes.get(noteId);
-                    if (note?.showOnHover === true) {
-                        found = true;
-                        uiSystem.setAnnotationText(note.text);
-                        break;
+    // Annotation hover — skip during pinch/pan gestures
+    if (!tool.scaling && event.touches.length < 3) {
+        let found = false;
+        if (floorSystem.hasLayer(floorState.currentFloor.value!, LayerName.Draw)) {
+            for (const [shapeId, notes] of noteState.raw.shapeNotes.entries1()) {
+                const shape = getShape(shapeId);
+                if (
+                    shape &&
+                    shape.floorId === floorState.currentFloor.value!.id &&
+                    shape.contains(l2g(getLocalPointFromEvent(event)))
+                ) {
+                    for (const noteId of notes) {
+                        const note = noteState.raw.notes.get(noteId);
+                        if (note?.showOnHover === true) {
+                            found = true;
+                            uiSystem.setAnnotationText(note.text);
+                            break;
+                        }
                     }
+                    if (found) break;
                 }
-                if (found) break;
             }
         }
-    }
-    if (!found && uiState.raw.annotationText.length > 0) {
-        uiSystem.setAnnotationText("");
+        if (!found && uiState.raw.annotationText.length > 0) {
+            uiSystem.setAnnotationText("");
+        }
     }
 }
 

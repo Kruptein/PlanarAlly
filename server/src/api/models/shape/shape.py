@@ -6,6 +6,7 @@ from ..note import ApiNote
 from ..shape.custom_data import ApiShapeCustomData
 from ..tracker import ApiTracker
 from .owner import ApiShapeOwner
+from .variants import ApiVariant
 
 
 class ApiCoreShape(TypeIdModel):
@@ -32,7 +33,6 @@ class ApiCoreShape(TypeIdModel):
     is_locked: bool
     angle: float
     stroke_width: int
-    asset: int | None = Field(json_schema_extra={"typeId": "AssetId"})
     group: str | None
     ignore_zoom_size: bool
     is_door: bool
@@ -50,3 +50,5 @@ class ApiCoreShape(TypeIdModel):
     cell_stroke_colour: str | None
     cell_stroke_width: int | None
     notes: list[ApiNote]
+    # unique to assetrect
+    variants: list[ApiVariant] | None

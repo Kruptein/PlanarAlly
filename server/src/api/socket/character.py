@@ -1,8 +1,9 @@
-from typing import Any
+from typing import Any, cast
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
+from ...db.models.asset_rect import AssetRect
 from ...db.models.character import Character
 from ...db.models.shape import Shape
 from ...logs import logger
@@ -22,10 +23,15 @@ async def create_character(sid: str, raw_data: Any):
 
     shape = Shape.get_by_id(data.shape)
 
-    if shape is None or shape.asset is None:
+    if shape is None or shape.type_ != "assetrect":
         logger.error("Attempt to create character for incorrect shape")
         return
-    elif not has_ownership(shape, pr, edit=True):
+    ar = cast(AssetRect, shape.subtype)
+
+    if ar is None or ar.asset is None:
+        logger.error("Attempt to create character for incorrect asset")
+        return
+    if not has_ownership(shape, pr, edit=True):
         logger.warning("Attempt to create character without access")
         return
     elif shape.character_id is not None:
@@ -33,7 +39,7 @@ async def create_character(sid: str, raw_data: Any):
         return
 
     try:
-        char = Character.create(name=data.name, owner=pr.player, campaign=pr.room, asset=shape.asset)
+        char = Character.create(name=data.name, owner=pr.player, campaign=pr.room, asset=ar.asset)
     except:
         logger.exception("Failed to create character")
         return

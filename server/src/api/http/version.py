@@ -32,7 +32,15 @@ async def get_version(_request: web.Request):
     if env_version is None:
         return web.HTTPInternalServerError(reason="Version file could not be loaded")
 
-    return web.json_response({"release": release_version, "env": env_version})
+    from ...storage import get_storage
+
+    return web.json_response(
+        {
+            "release": release_version,
+            "env": env_version,
+            "assetUrl": get_storage().get_public_url_base(),
+        }
+    )
 
 
 async def get_changelog(_request: web.Request):

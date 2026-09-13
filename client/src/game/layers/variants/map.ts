@@ -57,9 +57,9 @@ export class MapLayer extends Layer {
             const img = new Image();
             patternImages[hash] = img;
             img.src = getImageSrcFromHash(hash);
-            img.onload = () => {
+            img.addEventListener("load", () => {
                 this.invalidate(true);
-            };
+            });
         } else if (patternImage.loading) {
             const pattern = this.ctx.createPattern(patternImage, "repeat");
             const state = positionState.readonly;

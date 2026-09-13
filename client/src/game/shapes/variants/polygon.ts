@@ -28,6 +28,10 @@ const MIN_AREA = 0.04 * 5;
 const MAX_AREA = 13 * 5;
 const ANGLE_C = 56;
 
+function area(t: [number, number][]): number {
+    return Math.abs((t[0]![0] - t[2]![0]) * (t[1]![1] - t[0]![1]) - (t[0]![0] - t[1]![0]) * (t[2]![1] - t[0]![1]));
+}
+
 export class Polygon extends Shape implements IShape {
     type: SHAPE_TYPE = "polygon";
     private _vertices: GlobalPoint[] = [];
@@ -183,15 +187,23 @@ export class Polygon extends Shape implements IShape {
             ctx.lineTo(localVertex.x, localVertex.y);
         }
 
-        if (!this.openPolygon) ctx.fill();
+        if (this.options.ambientBarrier ?? false) {
+            ctx.strokeStyle = "rgba(0, 200, 200, 0.8)";
+            ctx.lineWidth = g2lz(2);
+            ctx.setLineDash([g2lz(10), g2lz(5)]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        } else {
+            if (!this.openPolygon) ctx.fill();
 
-        if (!lightRevealRender) {
-            for (const [i, c] of props.strokeColour.entries()) {
-                const lw = this.lineWidth[i] ?? this.lineWidth[0]!;
-                ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
+            if (!lightRevealRender) {
+                for (const [i, c] of props.strokeColour.entries()) {
+                    const lw = this.lineWidth[i] ?? this.lineWidth[0]!;
+                    ctx.lineWidth = this.ignoreZoomSize ? lw : g2lz(lw);
 
-                ctx.strokeStyle = getColour(c, this.id);
-                ctx.stroke();
+                    ctx.strokeStyle = getColour(c, this.id);
+                    ctx.stroke();
+                }
             }
         }
 
@@ -350,12 +362,6 @@ export class Polygon extends Shape implements IShape {
     // Run a Visvalingam-Whyatt style simplification on the end of the polygon
     // This assumes that a new point was added to the end and that the previous points have been simplified before
     private simplifyEnd(): void {
-        function area(t: [number, number][]): number {
-            return Math.abs(
-                (t[0]![0] - t[2]![0]) * (t[1]![1] - t[0]![1]) - (t[0]![0] - t[1]![0]) * (t[2]![1] - t[0]![1]),
-            );
-        }
-
         const max_area = MAX_AREA / positionState.readonly.zoom;
         const min_area = MIN_AREA / positionState.readonly.zoom;
 

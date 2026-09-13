@@ -52,9 +52,26 @@ class WebserverConfig(ConfigModel):
     max_upload_size_in_bytes: int = 10_485_760
 
 
-class AssetsConfig(ConfigModel):
-    # Can be used to signal that assets are stored in a different directory
+class LocalStorageConfig(ConfigModel):
+    type: Literal["local"] = "local"
+    # Custom directory for asset storage
     directory: str | None = None
+
+
+class S3StorageConfig(ConfigModel):
+    type: Literal["s3"] = "s3"
+    bucket: str
+    region: str
+    # For S3-compatible services (DigitalOcean Spaces, Backblaze B2, MinIO, …)
+    endpoint_url: str | None = None
+    # Public URL override (e.g. a CloudFront distribution)
+    public_url: str | None = None
+    # Optional key prefix inside the bucket
+    prefix: str = ""
+
+
+class AssetsConfig(ConfigModel):
+    storage: LocalStorageConfig | S3StorageConfig = LocalStorageConfig()
 
     # Configuration limits for User asset uploads
     # Single asset is simply the max allowed upload size for a single asset

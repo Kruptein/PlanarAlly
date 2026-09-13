@@ -5,7 +5,7 @@ import type { GlobalId, LocalId } from "../../../core/id";
 import { find } from "../../../core/iter";
 import { registerSystem } from "../../../core/systems";
 import type { System, SystemClearReason } from "../../../core/systems/models";
-import { getGlobalId, getLocalId, getVisualShape } from "../../id";
+import { getGlobalId, getLocalId, getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import { selectedState } from "../selected/state";
 
@@ -63,7 +63,7 @@ class CharacterSystem implements System {
         if (shapeId) {
             const localId = getLocalId(shapeId, false);
             if (localId) {
-                return getVisualShape(localId);
+                return getShape(localId);
             }
         }
     }

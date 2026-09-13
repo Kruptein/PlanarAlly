@@ -1,4 +1,4 @@
-import type { AssetId } from "./assets/models";
+import type { AssetId, AssetEntryId } from "./assets/models";
 import type { GlobalId } from "./core/id";
 import type { FloorIndex, LayerName } from "./game/models/floor";
 import type { Role } from "./game/models/role";
@@ -11,7 +11,7 @@ import type { VisionBlock } from "./game/systems/properties/types";
 import type { GridModeLabelFormat } from "./game/systems/settings/players/models";
 import type { TrackerId } from "./game/systems/trackers/models";
 
-export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiToggleCompositeShape
+export type ApiShape = ApiAssetRectShape | ApiRectShape | ApiCircleShape | ApiCircularTokenShape | ApiPolygonShape | ApiTextShape | ApiLineShape | ApiFontAwesomeShape
 export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock
 export type ApiShapeAdd = ApiShapeWithLayerAndTemporary | ApiTemplateShape
 export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumber | ApiShapeCustomDataBoolean | ApiShapeCustomDataDiceExpression
@@ -22,54 +22,55 @@ export type ApiShapeCustomData = ApiShapeCustomDataText | ApiShapeCustomDataNumb
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
+export type InitiativeEffectUpdateTiming = 0 | 1;
 export type DefaultNoteFilter = "NO_FILTER" | "ACTIVE_FILTER" | "NO_LINK_FILTER";
 export type InitiativeDirection = -1 | 0 | 1;
 
-export interface ApiShapeSize {
-    x: number;
-    y: number;
-}
-
-export interface ApiAsset {
+export interface ApiAssetCore {
   id: AssetId;
+  fileHash: string;
+  kind: string;
+  hasTemplates: boolean;
+  hasExtraData: boolean;
+}
+export interface ApiAssetEntry {
+  id: AssetEntryId;
   name: string;
   owner: string;
-  fileHash: string | null;
-  children: ApiAsset[] | null;
+  asset: ApiAssetCore | null;
+  children: ApiAssetEntry[] | null;
   shares: ApiAssetShare[];
-  has_templates: boolean;
 }
 export interface ApiAssetShare {
   user: string;
   right: "view" | "edit";
 }
 export interface ApiAssetAdd {
-  asset: ApiAsset;
-  parent: AssetId;
+  asset: ApiAssetEntry;
+  parent: AssetEntryId;
 }
 export interface ApiAssetCreateFolder {
   name: string;
-  parent: AssetId;
+  parent: AssetEntryId;
 }
 export interface ApiAssetCreateShare {
   right: "view" | "edit";
   user: string;
-  asset: AssetId;
+  asset: AssetEntryId;
 }
 export interface ApiAssetFolder {
-  folder: ApiAsset;
-  path: AssetId[] | null;
-  sharedParent: ApiAsset | null;
+  folder: ApiAssetEntry;
+  path: AssetEntryId[] | null;
+  sharedParent: ApiAssetEntry | null;
   sharedRight: "view" | "edit" | null;
 }
 export interface ApiAssetInodeMove {
-  inode: AssetId;
-  target: AssetId;
+  inode: AssetEntryId;
+  target: AssetEntryId;
 }
-export interface ApiAssetRectShape extends ApiCoreShape {
-  width: number;
-  height: number;
-  src: string;
+export interface ApiAssetRectShape extends ApiBaseRectShape {
+  assetHash: string;
+  assetId: AssetId;
 }
 export interface ApiShapeCustomDataText extends ApiShapeCustomDataCore {
   kind: "text";
@@ -118,6 +119,7 @@ export interface ApiAura {
   border_colour: string;
   angle: number;
   direction: number;
+  flood_light: boolean;
 }
 export interface ApiNote {
   uuid: NoteId;
@@ -142,18 +144,26 @@ export interface ApiNoteAccess {
   can_edit: boolean;
   can_view: boolean;
 }
+export interface ApiVariant {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
+  id: number;
+  assetHash: string;
+}
 export interface ApiAssetRemoveShare {
-  asset: AssetId;
+  asset: AssetEntryId;
   user: string;
 }
 export interface ApiAssetRename {
-  asset: AssetId;
+  asset: AssetEntryId;
   name: string;
 }
 export interface ApiAssetUpload {
   uuid: string;
   name: string;
-  directory: AssetId;
+  directory: AssetEntryId;
   newDirectories: string[];
   slice: number;
   totalSlices: number;
@@ -167,7 +177,7 @@ export interface ApiCharacter {
   id: CharacterId;
   name: string;
   shapeId: GlobalId;
-  assetId: number;
+  assetId: AssetId;
   assetHash: string;
 }
 export interface ApiChatMessage {
@@ -217,7 +227,6 @@ export interface ApiCoreShape {
   is_locked: boolean;
   angle: number;
   stroke_width: number;
-  asset: AssetId | null;
   group: string | null;
   ignore_zoom_size: boolean;
   is_door: boolean;
@@ -235,6 +244,7 @@ export interface ApiCoreShape {
   cell_stroke_colour: string | null;
   cell_stroke_width: number | null;
   notes: ApiNote[];
+  variants: ApiVariant[] | null;
 }
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
@@ -265,16 +275,20 @@ export interface ApiLayer {
     | ApiRectShape
     | ApiCircleShape
     | ApiCircularTokenShape
+    | ApiFontAwesomeShape
     | ApiPolygonShape
     | ApiTextShape
     | ApiLineShape
-    | ApiToggleCompositeShape
   )[];
   groups: ApiGroup[];
 }
 export interface ApiRectShape extends ApiCoreShape {
   width: number;
   height: number;
+}
+export interface ApiFontAwesomeShape extends ApiBaseRectShape {
+  iconPrefix: string;
+  iconName: string;
 }
 export interface ApiPolygonShape extends ApiCoreShape {
   vertices: string;
@@ -289,14 +303,6 @@ export interface ApiLineShape extends ApiCoreShape {
   x2: number;
   y2: number;
   line_width: number;
-}
-export interface ApiToggleCompositeShape extends ApiCoreShape {
-  active_variant: GlobalId;
-  variants: ToggleVariant[];
-}
-export interface ToggleVariant {
-  uuid: GlobalId;
-  name: string;
 }
 export interface ApiGroup {
   uuid: string;
@@ -322,6 +328,7 @@ export interface ApiInitiativeEffect {
   name: string;
   turns: string | null;
   highlightsActor: boolean;
+  updateTiming: InitiativeEffectUpdateTiming;
 }
 export interface ApiLocationUserOption {
   pan_x: number;
@@ -389,6 +396,7 @@ export interface ApiOptionalAura {
   border_colour?: string;
   angle?: number;
   direction?: number;
+  flood_light?: boolean;
 }
 export interface ApiOptionalUserOptions {
   fow_colour?: string | null;
@@ -438,6 +446,10 @@ export interface ApiShapeDataBlock extends ApiCoreDataBlock {
   category: "shape";
   shape: GlobalId;
 }
+export interface ApiShapeSize {
+  x: number;
+  y: number;
+}
 export interface ApiShapeWithLayer extends ApiShapeCore {
   floor: string;
   layer: LayerName;
@@ -478,22 +490,22 @@ export interface ApiUserOptions {
   initiative_open_on_activate: boolean;
   render_all_floors: boolean;
 }
-export interface AssetOptionsInfoFail {
-  error: string;
-  success: false;
-}
-export interface AssetOptionsInfoSuccess {
-  name: string;
-  templates: AssetTemplateInfo[];
-  success: true;
-}
 export interface AssetTemplateInfo {
   name: string;
   id: GlobalId;
 }
-export interface AssetOptionsSet {
-  asset: number;
-  options: string;
+export interface AssetTemplatesInfoFail {
+  error: string;
+  success: false;
+}
+export interface AssetTemplatesInfoRequest {
+  assetId: AssetId;
+  entryId: AssetEntryId;
+}
+export interface AssetTemplatesInfoSuccess {
+  name: string;
+  templates: AssetTemplateInfo[];
+  success: true;
 }
 export interface AuraMove {
   shape: GlobalId;
@@ -610,6 +622,11 @@ export interface InitiativeEffectRename {
   index: number;
   name: string;
 }
+export interface InitiativeEffectTiming {
+  shape: GlobalId;
+  index: number;
+  timing: InitiativeEffectUpdateTiming;
+}
 export interface InitiativeEffectTurns {
   shape: GlobalId;
   index: number;
@@ -677,11 +694,6 @@ export interface PlayerOptionsSet {
   default_user_options: ApiUserOptions;
   room_user_options: ApiOptionalUserOptions | null;
 }
-export interface PlayerPosition {
-  x: number;
-  y: number;
-  floor: string;
-}
 export interface PlayerRoleSet {
   player: PlayerId;
   role: number;
@@ -700,6 +712,11 @@ export interface PlayersPositionSet {
 export interface PositionTuple {
   x: number;
   y: number;
+}
+export interface PositionTupleWithFloor {
+  x: number;
+  y: number;
+  floor: string;
 }
 export interface RoomFeatures {
   chat: boolean;
@@ -721,7 +738,8 @@ export interface RoomInfoSet {
 }
 export interface ShapeAssetImageSet {
   uuid: GlobalId;
-  src: string;
+  assetHash: string;
+  assetId: AssetId;
 }
 export interface ShapeCircleSizeUpdate {
   uuid: GlobalId;
@@ -800,6 +818,10 @@ export interface ShapeSetPermissionValue {
   shape: GlobalId;
   value: Permissions;
 }
+export interface ShapeSetSizeValue {
+  shape: GlobalId;
+  value: ApiShapeSize;
+}
 export interface ShapeSetStringValue {
   shape: GlobalId;
   value: string;
@@ -816,10 +838,6 @@ export interface ShapeTemplateAdd {
   assetId: AssetId;
   shapeId: GlobalId;
   name: string;
-}
-export interface ShapeSetSizeValue  {
-    shape: GlobalId;
-    value: ApiShapeSize;
 }
 export interface ShapeTextSizeUpdate {
   uuid: GlobalId;
@@ -847,15 +865,6 @@ export interface TemporaryShapes {
   uuids: GlobalId[];
   temporary: boolean;
 }
-export interface ToggleCompositeNewVariant {
-  shape: GlobalId;
-  variant: GlobalId;
-  name: string;
-}
-export interface ToggleCompositeVariant {
-  shape: GlobalId;
-  variant: GlobalId;
-}
 export interface TypeIdModel {}
 export interface ApiLocation {
   id: number;
@@ -881,6 +890,7 @@ export interface ApiOptionalLocationOptions {
   underground_map_background?: string | null;
   limit_movement_during_initiative?: boolean | null;
   drop_ratio?: number | null;
+  ambient_light?: boolean | null;
 }
 export interface ApiLocationCore {
   id: number;
@@ -905,6 +915,7 @@ export interface ApiLocationOptions {
   underground_map_background: string;
   limit_movement_during_initiative: boolean;
   drop_ratio: number;
+  ambient_light: boolean;
 }
 export interface ApiSpawnInfo {
   position: PositionTuple;
@@ -915,7 +926,7 @@ export interface ApiSpawnInfo {
 export interface LocationChange {
   location: number;
   users: string[];
-  position?: PositionTuple;
+  position?: PositionTupleWithFloor;
 }
 export interface LocationClone {
   location: number;
@@ -959,4 +970,30 @@ export interface TrackerMove {
 export interface TrackerRef {
   uuid: TrackerId;
   shape: GlobalId;
+}
+export interface ApiAddVariant {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
+  id: number;
+  assetHash: string;
+  shapeId: GlobalId;
+}
+export interface ApiCreateVariant {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
+  shapeId: GlobalId;
+}
+export interface ApiVariantIdentifier {
+  shapeId: GlobalId;
+  variantId: number;
+}
+export interface ApiVariantWithoutId {
+  name: string | null;
+  assetId: AssetId;
+  width: number;
+  height: number;
 }

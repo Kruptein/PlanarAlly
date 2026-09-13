@@ -1,3 +1,5 @@
+// Add the base URL of the server to the given URL
+// Note that this should NOT be used for user uploaded assets as those can be served from a different domain
 export function baseAdjust(url: string): string {
     if (url.startsWith("/")) url = url.slice(1);
     return import.meta.env.BASE_URL + url;

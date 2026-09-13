@@ -125,11 +125,11 @@ const customCharacterSet = computed({
         }
         return group.characterSet.join(",");
     },
-    set(characterSet: string) {
+    set(newCharacterSet: string) {
         if (!owned.value) return;
         const groupId = groupState.raw.groupInfo?.uuid;
 
-        const value = characterSet.split(",");
+        const value = newCharacterSet.split(",");
         if (groupId === undefined) {
             customText = value;
         } else {

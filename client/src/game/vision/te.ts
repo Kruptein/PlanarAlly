@@ -36,6 +36,7 @@ export function computeVisibility(
     target: TriangulationTarget,
     floor: FloorId,
     drawt?: boolean,
+    maxRange?: number,
 ): {
     visibility: Point[];
     behindPatches: Map<LocalId, BehindPatch[]>;
@@ -92,6 +93,20 @@ export function computeVisibility(
             expandEdge(Q, vPrev.point!, vNext.point!, triangle, i, rawOutput, behindPatches, behindPath);
             if (crossingBehindShape) {
                 behindPath?.push(vPrev.point!);
+            }
+        }
+    }
+
+    if (maxRange !== undefined) {
+        const rSq = maxRange * maxRange;
+        for (let i = 0; i < rawOutput.length; i++) {
+            const p = rawOutput[i]!;
+            const dx = p[0] - Q[0];
+            const dy = p[1] - Q[1];
+            const dSq = dx * dx + dy * dy;
+            if (dSq > rSq) {
+                const scale = maxRange / Math.sqrt(dSq);
+                rawOutput[i] = [Q[0] + dx * scale, Q[1] + dy * scale];
             }
         }
     }

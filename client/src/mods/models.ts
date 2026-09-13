@@ -1,11 +1,13 @@
 import type { ApiModMeta } from "../apiTypes";
 import type { Section } from "../core/components/contextMenu/types";
+import type { EventBus } from "../core/eventBus";
+import type { HookSystem } from "../core/hooks";
 import { type GlobalId, type LocalId } from "../core/id";
-import type { Sync } from "../core/models/types";
+import type { Modals } from "../core/plugins/modals/plugin";
 import type { SYSTEMS_STATE } from "../core/systems";
 import type { System } from "../core/systems/models";
 import type { IShape } from "../game/interfaces/shape";
-import type { Tracker } from "../game/systems/trackers/models";
+import type { ToolName } from "../game/models/tools";
 import type { PanelTab } from "../game/systems/ui/types";
 
 import type { ModDataBlockFunctions } from "./db";
@@ -15,8 +17,6 @@ export interface Mod {
         init?: (meta: ApiModMeta) => Promise<void>;
         initGame?: (data: ModLoad & ModDataBlockFunctions) => Promise<void>;
         loadLocation?: () => Promise<void>;
-
-        preTrackerUpdate?: (id: LocalId, tracker: Tracker, delta: Partial<Tracker>, syncTo: Sync) => Partial<Tracker>;
     };
 }
 
@@ -29,8 +29,15 @@ interface ModLoad {
             registerContextMenuEntry: (entry: (shape: LocalId) => Section[]) => void;
             registerTab: (tab: PanelTab, filter: (shape: LocalId) => boolean) => void;
         };
+        modals: Modals;
+    };
+    gameplay: {
+        activateTool: (toolName: ToolName) => void;
     };
 
     getShape: (shape: LocalId) => IShape | undefined;
     getGlobalId: (id: LocalId) => GlobalId | undefined;
+
+    eventBus: EventBus;
+    hooks: HookSystem;
 }

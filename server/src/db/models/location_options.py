@@ -27,6 +27,7 @@ class LocationOptions(BaseDbModel):
     underground_map_background = cast(str | None, TextField(default="none", null=True))
     limit_movement_during_initiative = cast(bool | None, BooleanField(default=False, null=True))
     drop_ratio = cast(float | None, FloatField(default=1.0, null=True))
+    ambient_light = cast(bool | None, BooleanField(default=False, null=True))
 
     @classmethod
     def create_empty(cls):
@@ -47,6 +48,7 @@ class LocationOptions(BaseDbModel):
             underground_map_background=None,
             limit_movement_during_initiative=None,
             drop_ratio=None,
+            ambient_light=None,
         )
 
     @overload
@@ -80,4 +82,5 @@ class LocationOptions(BaseDbModel):
             limit_movement_during_initiative=self.limit_movement_during_initiative,  # type: ignore
             spawn_locations=self.spawn_locations,
             drop_ratio=self.drop_ratio,  # type: ignore
+            ambient_light=self.ambient_light,  # type: ignore
         )

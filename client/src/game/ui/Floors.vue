@@ -34,13 +34,13 @@ const floorIndex = toRef(floorState.reactive, "floorIndex");
 
 const floors = computed({
     get() {
-        return [...floorState.reactive.floors]
-            .reverse()
+        return floorState.reactive.floors
+            .toReversed()
             .filter((f) => f.playerVisible || gameState.reactive.isDm)
             .map((f) => ({ reverseIndex: floorSystem.getFloorIndex({ id: f.id })!, floor: f }));
     },
     set(floors: { reverseIndex: number; floor: Floor }[]) {
-        floorSystem.reorderFloors(floors.map((f) => f.floor.name).reverse(), true);
+        floorSystem.reorderFloors(floors.map((f) => f.floor.name).toReversed(), true);
     },
 });
 
@@ -82,7 +82,7 @@ const selectedLayer = computed(() => {
             v-if="visible"
             id="floor-selector"
             :title="t('game.ui.FloorSelect.title')"
-            @click="detailsOpen = !detailsOpen"
+            @click.prevent="detailsOpen = !detailsOpen"
         >
             <a href="#">
                 <template v-if="playerSettingsState.reactive.useToolIcons.value">
@@ -114,7 +114,9 @@ const selectedLayer = computed(() => {
                         >
                             <font-awesome-icon icon="eye" />
                         </div>
-                        <div @click="uiSystem.showFloorSettings(f.floor.id)"><font-awesome-icon icon="cog" /></div>
+                        <div @click="uiSystem.showFloorSettings(f.floor.id)">
+                            <font-awesome-icon icon="cog" />
+                        </div>
                     </div>
                 </div>
             </VueDraggable>
@@ -128,7 +130,7 @@ const selectedLayer = computed(() => {
                 :key="layer"
                 class="layer"
                 :class="{ 'layer-selected': layer === selectedLayer }"
-                @click="selectLayer(layer)"
+                @click.prevent="selectLayer(layer)"
             >
                 <a href="#" :title="layerTranslationMapping[layer]">
                     <template v-if="playerSettingsState.reactive.useToolIcons.value">

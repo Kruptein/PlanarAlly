@@ -372,6 +372,7 @@ export class LineFaceCirculator {
         const fc = new FaceCirculator(v, null);
         let ic = fc.t!.indexV(v);
         let vt = fc.t!.vertices[cw(ic)]!;
+        // oxlint-disable-next-line no-unmodified-loop-condition
         while (v === _INFINITE_VERTEX || orientation(this.p, this.q, vt.point!) !== Sign.LEFT_TURN) {
             fc.next();
             ic = fc.t!.indexV(v);

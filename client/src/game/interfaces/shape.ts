@@ -1,4 +1,3 @@
-import type { AssetId } from "../../assets/models";
 import type { GlobalPoint, Vector } from "../../core/geometry";
 import type { GridType } from "../../core/grid";
 import type { LocalId } from "../../core/id";
@@ -41,9 +40,9 @@ export interface IShape extends SimpleShape {
     resizeToGrid: (resizePoint: number, retainAspectRatio: boolean) => void;
     resize: (resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean) => number;
 
-    strokeWidth: number;
+    onSystemsLoaded?: () => void;
 
-    assetId?: AssetId;
+    strokeWidth: number;
 
     globalCompositeOperation: GlobalCompositeOperation;
 

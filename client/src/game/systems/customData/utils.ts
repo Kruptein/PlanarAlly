@@ -42,10 +42,10 @@ export function getVariableSegments(data: string, shapeFocus?: LocalId): Variabl
             ref: customDataState.readonly.data
                 .get(shapeId ?? shapeFocus ?? selectedState.reactive.focus!)
                 ?.find(
-                    (data) =>
+                    (shapeData) =>
                         (prefix === undefined ||
-                            getCustomDataReference(data.prefix.toLowerCase()) === prefix.toLowerCase()) &&
-                        (data.reference?.toLowerCase() ?? getCustomDataReference(data.name.toLowerCase())) ===
+                            getCustomDataReference(shapeData.prefix.toLowerCase()) === prefix.toLowerCase()) &&
+                        (shapeData.reference?.toLowerCase() ?? getCustomDataReference(shapeData.name.toLowerCase())) ===
                             last.toLowerCase(),
                 ),
         });

@@ -10,6 +10,7 @@ import { propertiesSystem } from "../properties";
 
 import {
     sendCreateGroup,
+    sendGetGroupInfo,
     sendGroupJoin,
     sendGroupLeave,
     sendGroupUpdate,
@@ -47,15 +48,17 @@ class GroupSystem implements ShapeSystem<{ groupId: string | undefined; badge: n
     import(id: LocalId, data: { groupId: string | undefined; badge: number }, mode: SystemInformMode): void {
         if (data.groupId === undefined) return;
 
-        if (mode !== "load") {
-            if (!readonly.groups.has(data.groupId)) {
-                const oldGroup = mutable.removedGroupCache.get(data.groupId);
-                if (oldGroup) {
-                    this.addNewGroup(oldGroup, true);
-                } else {
-                    console.error(`Group ${data.groupId} not found, skipping shape import for ${id}`);
-                    return;
-                }
+        if (!readonly.groups.has(data.groupId)) {
+            const oldGroup = mutable.removedGroupCache.get(data.groupId);
+            if (oldGroup) {
+                this.addNewGroup(oldGroup, true);
+            } else {
+                // This can happen if e.g. a group is moved from DM to token layer
+                // in this case, the group info can be missing as that is only loaded on location open
+                // so we need to load it from the server
+                // this will potentially be called multiple times if an entire group is moved
+                // but for now we're ok with this
+                void this.loadGroupInfo(data.groupId);
             }
         }
         // sync happens in the layerAdd already, so not necessary here
@@ -74,6 +77,13 @@ class GroupSystem implements ShapeSystem<{ groupId: string | undefined; badge: n
 
     fromServerShape(data: ApiCoreShape): { groupId: string | undefined; badge: number } {
         return { groupId: data.group ?? undefined, badge: data.badge };
+    }
+
+    async loadGroupInfo(groupId: string): Promise<void> {
+        const group = await sendGetGroupInfo(groupId);
+        if (group) {
+            this.addNewGroup(groupToClient(group), false);
+        }
     }
 
     // REACTIVE

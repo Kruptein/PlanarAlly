@@ -36,6 +36,43 @@ export class CDT {
         return { va, vb };
     }
 
+    insertBarrierEdges(segments: [Point, Point][]): [Vertex, Vertex][] {
+        const inserted: [Vertex, Vertex][] = [];
+
+        // Insert all barrier edges as constrained edges
+        for (const [a, b] of segments) {
+            const va = this.insert(a);
+            const vb = this.insert(b, va.triangle);
+            if (va === vb) continue;
+
+            // ensure we don't remove existing wall cosntraints
+            const existing = edgeInfo(va, vb);
+            if (existing.includes && existing.vi === vb && existing.fr.isConstrained(existing.i)) {
+                continue;
+            }
+
+            this.insertConstraintV(va, vb);
+            inserted.push([va, vb]);
+        }
+
+        // Unset the constrained condition on the edges
+        // (By inserting them as constrained initially we guarantee that they stay in the CDT)
+        for (const [va, vb] of inserted) {
+            const start = va.triangle!;
+            let t = start;
+            do {
+                const i = t.indexV(va);
+                if (t.vertices[ccw(i)] === vb) {
+                    this.removeConstrainedEdge(t, cw(i));
+                    break;
+                }
+                t = t.neighbours[cw(i)]!;
+            } while (t !== start);
+        }
+
+        return inserted;
+    }
+
     insertConstraintV(va: Vertex, vb: Vertex): void {
         const stack = [[va, vb]];
         while (stack.length > 0) {

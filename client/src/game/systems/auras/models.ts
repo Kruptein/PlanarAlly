@@ -16,5 +16,6 @@ export interface Aura {
     borderColour: string;
     angle: number;
     direction: number;
+    floodLight: boolean;
     lastPath?: Path2D;
 }

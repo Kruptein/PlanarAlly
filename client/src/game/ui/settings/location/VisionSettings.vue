@@ -32,6 +32,8 @@ const fakePlayer = computed({
 
 const fullFow = useLocationSettings("fullFow", location);
 
+const ambientLight = useLocationSettings("ambientLight", location);
+
 const fowLos = useLocationSettings("fowLos", location);
 
 const fowOpacity = useLocationSettings("fowOpacity", location);
@@ -78,6 +80,17 @@ function changeVisionMode(event: Event): void {
                 <input :id="'useFOWInput-' + location" v-model="fullFow" type="checkbox" />
             </div>
         </ResetWrapper>
+        <ResetWrapper :global="global" :location="location" setting="ambientLight">
+            <label :for="'ambientLight-' + location">{{ t("game.ui.settings.VisionSettings.ambient_light") }}</label>
+            <div>
+                <input
+                    :id="'ambientLight-' + location"
+                    v-model="ambientLight"
+                    type="checkbox"
+                    :disabled="!$.fullFow.value"
+                />
+            </div>
+        </ResetWrapper>
         <ResetWrapper :global="global" :location="location" setting="fowLos">
             <label :for="'fowLos-' + location">{{ t("game.ui.settings.VisionSettings.only_show_lights_los") }}</label>
             <div>
@@ -102,7 +115,9 @@ function changeVisionMode(event: Event): void {
             <label :for="'visionMode-' + location">{{ t("game.ui.settings.VisionSettings.vision_mode") }}</label>
             <div>
                 <select :id="'visionMode-' + location" @change="changeVisionMode">
-                    <option :selected="visionMode === 0">{{ t("game.ui.settings.VisionSettings.default") }}</option>
+                    <option :selected="visionMode === 0">
+                        {{ t("game.ui.settings.VisionSettings.default") }}
+                    </option>
                     <option :selected="visionMode === 1">
                         {{ t("game.ui.settings.VisionSettings.experimental") }}
                     </option>

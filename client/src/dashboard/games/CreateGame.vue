@@ -15,7 +15,7 @@ const router = useRouter();
 const toast = useToast();
 
 const name = ref("");
-const logo = reactive({ path: "", id: -1 });
+const logo = reactive<{ path: string; id: AssetId | -1 }>({ path: "", id: -1 });
 
 const showAssetPicker = ref(false);
 
@@ -29,7 +29,12 @@ async function create(): Promise<void> {
         logo: logo.id,
     });
     if (response.ok) {
-        await open({ creator: coreStore.state.username, name: name.value, is_locked: false, last_played: null });
+        await open({
+            creator: coreStore.state.username,
+            name: name.value,
+            is_locked: false,
+            last_played: null,
+        });
         await router.push(`/game/${encodeURIComponent(coreStore.state.username)}/${encodeURIComponent(name.value)}`);
     } else if (response.statusText === "Conflict") {
         toast.error("A campaign with that name already exists!");
@@ -38,8 +43,7 @@ async function create(): Promise<void> {
     }
 }
 
-function setLogo(data: { id: AssetId; fileHash: string | undefined }): void {
-    if (data.fileHash === undefined) return;
+function setLogo(data: { id: AssetId; fileHash: string }): void {
     logo.path = data.fileHash;
     logo.id = data.id;
     showAssetPicker.value = false;
@@ -58,15 +62,11 @@ function setLogo(data: { id: AssetId; fileHash: string | undefined }): void {
             <div class="logo">
                 <img
                     alt="Campaign Logo Preview"
-                    :src="
-                        baseAdjust(
-                            logo.id >= 0
-                                ? getImageSrcFromHash(logo.path, { addBaseUrl: false })
-                                : '/static/img/d20.svg',
-                        )
-                    "
+                    :src="logo.id >= 0 ? getImageSrcFromHash(logo.path) : baseAdjust('/static/img/d20.svg')"
                 />
-                <div class="edit" @click="showAssetPicker = true"><font-awesome-icon icon="pencil-alt" /></div>
+                <div class="edit" @click="showAssetPicker = true">
+                    <font-awesome-icon icon="pencil-alt" />
+                </div>
             </div>
         </div>
         <div class="entry">

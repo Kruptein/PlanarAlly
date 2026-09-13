@@ -1,5 +1,5 @@
 import type { ApiGroup, GroupJoin, GroupLeave, GroupMemberBadge } from "../../../apiTypes";
-import { wrapSocket } from "../../api/socket";
+import { wrapSocket, wrapSocketWithDataAck } from "../../api/socket";
 
 export const sendGroupUpdate = wrapSocket<ApiGroup>("Group.Update");
 export const sendMemberBadgeUpdate = wrapSocket<GroupMemberBadge[]>("Group.Members.Update");
@@ -7,3 +7,4 @@ export const sendCreateGroup = wrapSocket<ApiGroup>("Group.Create");
 export const sendGroupJoin = wrapSocket<GroupJoin>("Group.Join");
 export const sendGroupLeave = wrapSocket<GroupLeave[]>("Group.Leave");
 export const sendRemoveGroup = wrapSocket<string>("Group.Remove");
+export const sendGetGroupInfo = wrapSocketWithDataAck<string, ApiGroup | undefined>("Group.GetInfo");

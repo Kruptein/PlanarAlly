@@ -137,7 +137,9 @@ async function deleteAccount(): Promise<void> {
         </div>
         <div class="entry">
             <div>
-                <button class="go" @click="deleteAccount">{{ t("settings.AccountSettings.delete_account") }}</button>
+                <button class="go" @click="deleteAccount">
+                    {{ t("settings.AccountSettings.delete_account") }}
+                </button>
             </div>
         </div>
     </div>

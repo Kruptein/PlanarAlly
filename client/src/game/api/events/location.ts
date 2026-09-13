@@ -67,6 +67,8 @@ function setLocationOptions(id: number | undefined, options: ApiOptionalLocation
 
     if (overwrite_all || options.full_fow !== undefined)
         locationSettingsSystem.setFullFow(options.full_fow ?? undefined, id, false);
+    if (overwrite_all || options.ambient_light !== undefined)
+        locationSettingsSystem.setAmbientLight(options.ambient_light ?? undefined, id, false);
     if (overwrite_all || options.fow_los !== undefined)
         locationSettingsSystem.setFowLos(options.fow_los ?? undefined, id, false);
     if (overwrite_all || options.fow_opacity !== undefined)

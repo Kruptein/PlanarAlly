@@ -15,6 +15,16 @@ from ..models.groups import GroupJoin, GroupLeave
 from ..models.groups.members import GroupMemberBadge
 
 
+@sio.on("Group.GetInfo", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def get_group_info(_sid: str, group_id: str) -> ApiGroup | None:
+    try:
+        group = Group.get_by_id(group_id)
+    except Group.DoesNotExist:
+        return None
+    return group.as_pydantic()
+
+
 @sio.on("Group.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def update_group(sid: str, raw_data: Any):

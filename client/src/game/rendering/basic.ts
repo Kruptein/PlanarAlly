@@ -45,7 +45,13 @@ function drawPointL(point: [number, number], r: number, colour?: string): void {
 // eslint-disable-next-line import/no-unused-modules
 export function drawPolygon(
     polygon: [number, number][],
-    options?: { fillColour?: string; strokeColour?: string; strokeWidth?: number; close?: boolean; debug?: boolean },
+    options?: {
+        fillColour?: string;
+        strokeColour?: string;
+        strokeWidth?: number;
+        close?: boolean;
+        debug?: boolean;
+    },
 ): void {
     if (polygon.length === 0) return;
 
@@ -65,13 +71,13 @@ export function drawPolygon(
     if (options?.strokeColour !== undefined) ctx.strokeStyle = options.strokeColour;
     if (options?.fillColour !== undefined) ctx.fillStyle = options.fillColour;
 
-    const x = g2lx(polygon[0]![0]);
-    const y = g2ly(polygon[0]![1]);
+    let x = g2lx(polygon[0]![0]);
+    let y = g2ly(polygon[0]![1]);
     ctx.moveTo(x, y);
     if (options?.debug ?? false) console.log(x, y);
     for (const point of polygon) {
-        const x = g2lx(point[0]);
-        const y = g2ly(point[1]);
+        x = g2lx(point[0]);
+        y = g2ly(point[1]);
         ctx.lineTo(x, y);
         if (options?.debug ?? false) console.log(x, y);
     }
@@ -104,12 +110,12 @@ export function drawPolygonL(polygon: [number, number][], colour?: string): void
     ctx.fill();
 }
 
-function x(xx: number, local: boolean): number {
+function X(xx: number, local: boolean): number {
     if (local) return xx;
     else return g2lx(xx);
 }
 
-function y(yy: number, local: boolean): number {
+function Y(yy: number, local: boolean): number {
     if (local) return yy;
     else return g2ly(yy);
 }
@@ -138,9 +144,9 @@ export function drawLine(
     if (options?.lineWidth !== undefined) ctx.lineWidth = options.lineWidth;
     ctx.beginPath();
     if (options?.strokeStyle !== undefined) ctx.strokeStyle = options.strokeStyle;
-    else ctx.strokeStyle = constrained ? "rgba(255, 255, 0, 0.30)" : "rgba(0, 0, 0, 0.30)";
-    ctx.moveTo(x(from[0], local), y(from[1], local));
-    ctx.lineTo(x(to[0], local), y(to[1], local));
+    else ctx.strokeStyle = constrained ? "rgba(255, 255, 0, 0.90)" : "rgba(0, 0, 0, 0.90)";
+    ctx.moveTo(X(from[0], local), Y(from[1], local));
+    ctx.lineTo(X(to[0], local), Y(to[1], local));
     ctx.closePath();
     ctx.stroke();
 }
@@ -191,8 +197,8 @@ function drawEdge(edge: Edge, colour: string, local = false): void {
     const ctx = dl.ctx;
     ctx.beginPath();
     ctx.strokeStyle = colour || "rgba(0, 0, 255, 1)";
-    ctx.moveTo(x(from[0], local), y(from[1], local));
-    ctx.lineTo(x(to[0], local), y(to[1], local));
+    ctx.moveTo(X(from[0], local), Y(from[1], local));
+    ctx.lineTo(X(to[0], local), Y(to[1], local));
     ctx.closePath();
     ctx.stroke();
 }
@@ -237,25 +243,25 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
         if (t.vertices[0] !== undefined) {
             po.push(t.vertices[0]!.point);
             ctx.beginPath();
-            ctx.arc(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local), 5, 0, 2 * Math.PI);
+            ctx.arc(X(t.vertices[0]!.point![0], local), Y(t.vertices[0]!.point![1], local), 5, 0, 2 * Math.PI);
             ctx.closePath();
             ctx.fill();
         }
         if (t.vertices[1] !== undefined) {
             po.push(t.vertices[1]!.point);
-            ctx.arc(x(t.vertices[1]!.point![0], local), y(t.vertices[1]!.point![1], local), 5, 0, 2 * Math.PI);
+            ctx.arc(X(t.vertices[1]!.point![0], local), Y(t.vertices[1]!.point![1], local), 5, 0, 2 * Math.PI);
             ctx.closePath();
             ctx.fill();
         }
         if (t.vertices[2] !== undefined) {
             po.push(t.vertices[2]!.point);
-            ctx.arc(x(t.vertices[2]!.point![0], local), y(t.vertices[2]!.point![1], local), 5, 0, 2 * Math.PI);
+            ctx.arc(X(t.vertices[2]!.point![0], local), Y(t.vertices[2]!.point![1], local), 5, 0, 2 * Math.PI);
             ctx.closePath();
             ctx.fill();
         }
         if (logs === 2) console.log(`[T ${t.uid}] `, ...po, t.constraints);
 
-        ctx.moveTo(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local));
+        ctx.moveTo(X(t.vertices[0]!.point![0], local), Y(t.vertices[0]!.point![1], local));
         if (t.vertices[0] !== undefined && t.vertices[1] !== undefined)
             drawLine(t.vertices[0]!.point as [number, number], t.vertices[1]!.point as [number, number], local, {
                 constrained: t.constraints[2],
@@ -307,6 +313,7 @@ function showLayerPoints(): void {
 (window as any).DP = drawPolygon;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).DPL = drawPolygonL;
+// example use: DPT(CDT.get(0).vision.tds, false, true, 2);
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 (window as any).DPT = drawPolygonT;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

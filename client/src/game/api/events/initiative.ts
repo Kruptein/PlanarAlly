@@ -5,6 +5,7 @@ import type {
     InitiativeRoundUpdate,
     InitiativeTurnUpdate,
     InitiativeEffectRename,
+    InitiativeEffectTiming,
     InitiativeEffectTurns,
     InitiativeOptionSet,
 } from "../../../apiTypes";
@@ -19,19 +20,31 @@ socket.on("Initiative.Active.Set", (isActive: boolean) => initiativeStore.setAct
 socket.on("Initiative.Remove", (data: GlobalId) => initiativeStore.removeInitiative(data, false));
 
 socket.on("Initiative.Turn.Update", (data: InitiativeTurnUpdate) =>
-    initiativeStore.setTurnCounter(data.turn, data.direction, { sync: false, updateEffects: data.processEffects }),
+    initiativeStore.setTurnCounter(data.turn, data.direction, {
+        sync: false,
+        updateEffects: data.processEffects,
+    }),
 );
 socket.on("Initiative.Turn.Set", (turn: number) =>
-    initiativeStore.setTurnCounter(turn, InitiativeTurnDirection.Null, { sync: false, updateEffects: false }),
+    initiativeStore.setTurnCounter(turn, InitiativeTurnDirection.Null, {
+        sync: false,
+        updateEffects: false,
+    }),
 );
 socket.on("Initiative.Round.Update", (data: InitiativeRoundUpdate) =>
-    initiativeStore.setRoundCounter(data.round, data.direction, { sync: false, updateEffects: data.processEffects }),
+    initiativeStore.setRoundCounter(data.round, data.direction, {
+        sync: false,
+        updateEffects: data.processEffects,
+    }),
 );
 socket.on("Initiative.Effect.New", (data: InitiativeEffectNew) => {
     initiativeStore.createEffect(data.actor, data.effect, false);
 });
 socket.on("Initiative.Effect.Rename", (data: InitiativeEffectRename) => {
     initiativeStore.setEffectName(data.shape, data.index, data.name, false);
+});
+socket.on("Initiative.Effect.Timing", (data: InitiativeEffectTiming) => {
+    initiativeStore.setEffectUpdateTiming(data.shape, data.index, data.timing, false);
 });
 socket.on("Initiative.Effect.Turns", (data: InitiativeEffectTurns) => {
     initiativeStore.setEffectTurns(data.shape, data.index, data.turns, false);

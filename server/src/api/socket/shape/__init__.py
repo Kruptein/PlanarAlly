@@ -11,6 +11,7 @@ from ....db.db import db
 from ....db.models.asset import Asset
 from ....db.models.asset_rect import AssetRect
 from ....db.models.circle import Circle
+from ....db.models.font_awesome import FontAwesome
 from ....db.models.circular_token import CircularToken
 from ....db.models.floor import Floor
 from ....db.models.layer import Layer
@@ -45,10 +46,9 @@ from ...models.shape import (
 )
 from ...models.shape.position import ShapePositionUpdate, ShapesPositionUpdateList
 from .. import initiative
-from ..asset_manager.core import clean_filehash
 from ..constants import GAME_NS
 from ..groups import remove_group_if_empty
-from . import access, custom_data, options, toggle_composite  # noqa: F401
+from . import access, custom_data, options, variants  # noqa: F401
 
 
 @sio.on("Shape.Get", namespace=GAME_NS)
@@ -213,34 +213,19 @@ async def remove_shapes(sid: str, raw_data: Any):
             if shape.group:
                 group_ids.add(shape.group.uuid)
 
-            is_char_related = shape.character_id is not None
-            # ToggleComposite patches
-            if not is_char_related:
-                parent = None
-                if shape.composite_parent:
-                    parent = shape.composite_parent[0].parent
-                elif shape.type_ == "togglecomposite":
-                    parent = shape
-                if parent:
-                    for csa in parent.shape_variants:
-                        if csa.variant.character_id is not None:
-                            is_char_related = True
-                            break
-
-            if not is_char_related:
-                file_hash_to_clean = None
+            if shape.character_id is None:
+                asset_to_clean = None
                 if shape.type_ == "assetrect":
                     rect = cast(AssetRect, shape.subtype)
-                    if rect.src.startswith("/static/assets"):
-                        file_hash_to_clean = rect.src.split("/")[-1]
+                    asset_to_clean = rect.asset
 
                 old_index = shape.index
                 shape.delete_instance(True)
                 Shape.update(index=Shape.index - 1).where((Shape.layer == layer) & (Shape.index >= old_index)).execute()
 
                 # The Shape has to be removed before cleaning
-                if file_hash_to_clean:
-                    clean_filehash(file_hash_to_clean)
+                if asset_to_clean:
+                    await asset_to_clean.cleanup_check()
             else:
                 shape.layer = None
                 shape.save()
@@ -429,13 +414,6 @@ async def move_shapes(sid: str, raw_data: Any):
         if shape.uuid in shape_uuids:
             continue
 
-        # toggle composite patch
-        parent = None
-        if shape.composite_parent:
-            parent = shape.composite_parent[0].parent
-            shape = Shape.get_by_id(parent.subtype.active_variant)
-            print(f"Parent found for {shape.uuid}")
-
         layer = target_layer
         if shape.layer:
             if old_floor is None:
@@ -449,16 +427,6 @@ async def move_shapes(sid: str, raw_data: Any):
         if shape.uuid not in shape_uuids:
             shape_uuids.add(shape.uuid)
             shapes.append((shape, layer))
-
-        if parent:
-            if parent.uuid not in shape_uuids:
-                shape_uuids.add(parent.uuid)
-                shapes.append((parent, layer))
-            for csa in parent.shape_variants:
-                variant = csa.variant
-                if variant != shape and variant.uuid not in shape_uuids:
-                    shape_uuids.add(variant.uuid)
-                    shapes.append((variant, layer))
 
     if old_floor:
         await send_remove_shapes([sh.uuid for sh, _ in shapes], room=old_floor.location.get_path())
@@ -526,11 +494,14 @@ async def update_rect_size(sid: str, raw_data: Any):
     pr: PlayerRoom = game_state.get(sid)
 
     if not data.temporary:
-        shape: AssetRect | Rect
+        shape: AssetRect | Rect | FontAwesome
         try:
             shape = AssetRect.get_by_id(data.uuid)
         except AssetRect.DoesNotExist:
-            shape = Rect.get_by_id(data.uuid)
+            try:
+                shape = Rect.get_by_id(data.uuid)
+            except Rect.DoesNotExist:
+                shape = FontAwesome.get_by_id(data.uuid)
         shape.width = data.w
         shape.height = data.h
         shape.save()
@@ -585,10 +556,10 @@ async def change_asset_image(sid: str, raw_data: Any):
 
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = AssetRect.get_by_id(data.uuid)
+    asset_rect = AssetRect.get_by_id(data.uuid)
 
-    shape.src = data.src
-    shape.save()
+    asset_rect.asset_id = data.assetId
+    asset_rect.save()
 
     await _send_game("Shape.Asset.Image.Set", data, room=pr.active_location.get_path(), skip_sid=sid)
 
@@ -603,11 +574,11 @@ async def add_shape_template(sid: str, raw_data: Any):
     shape = Shape.get_by_id(data.shapeId)
     asset = Asset.get_by_id(data.assetId)
 
-    if not asset.can_be_accessed_by(pr.player, right="edit"):
+    if not asset.has_entry_with_access(pr.player, right="edit"):
         logger.error(f"{pr.player.name} attempted to add a shape template to an asset they do not have edit access to")
         return
 
-    ShapeTemplate.create(shape=shape, asset=asset, name=data.name)
+    ShapeTemplate.create(shape=shape, asset=asset, name=data.name, owner=pr.player)
 
 
 @sio.on("Shape.Info.Get", namespace=GAME_NS)

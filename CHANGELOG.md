@@ -10,6 +10,53 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   Ambient light support
+    -   This allows you to run daylight scenes while still having fog and line of sight for indoor areas
+-   [DM] light tool
+    -   Allows you to quickly place invisible lights
+    -   Manual flood lights can also be placed
+    -   Additionally barriers to signal a natural transition from outside to inside are also placeable
+-   [server] Option to store user uploaded assets in remote storage solutions (e.g. S3)
+
+### Changed
+
+-   Variant shapes are completely reworked
+    -   UI should be more intuitive
+    -   No longer completely separate shapes with their own state
+-   server startup info
+    -   Now contains a bit more info (e.g. where the DB and config are loaded from)
+    -   A help message to point to the config docs
+    -   A help message if there are no users yet, in case someone expects an admin user
+-   [tech] DB storage of asset data is reworked
+    -   Asset size is now also stored in DB for easier user total size calculation
+
+### Removed
+
+-   [DM] Client viewport visualization
+
+### Fixed
+
+-   Note icons on shapes no longer rendering
+-   Asset thumbnails not cleaning up on asset removal
+-   More cases were badges ended up as 0 until reload
+-   Note listing was ignoring the shape specific override when present
+-   Asset pick modal butons don't work when clicking on their bottom half
+-   Asset changing not updating the assetId stored on the shape
+-   Dungeondraft file handling
+    -   This was broken since a recent change to how templates/assets work
+    -   dd2vtt (or uvtt) files will have to be removed and reuploaded from your asset manager
+-   Collapse selection not immediately syncing position change until a move
+-   Public aura syncing to non-owners not working as intended
+-   Pressing enter in the initiative UI could sometimes open a selected shape's property dialog
+-   Moving shapes to a different floor with disabled auras now behaves correctly
+-   [tech] Updated sector system to be more performant (impacts rendering)
+-   [tech] Fixed some unnecessary Vue rerenders on a variety of mouse interactions in the select tool (impacts general performance)
+-   [tech] Removed some unnecessary work during panning (e.g. note hover logic, some ws events)
+-   [tech] Vue-router deprecation issues
+-   [tech] Asset db rows were not properly being cleaned up when a file was removed on disk
+
 ## [2026.1.2]
 
 ### Fixed
@@ -44,6 +91,8 @@ tech changes will usually be stripped from release notes for the public
 -   Logging:
     -   Enabling configuration of the logger via a new logging section
     -   Allows for multiple logging file streams at different levels
+-   Initiative:
+    -   Add ability to update effects at start of turn as well as end of turn
 
 ### Changed
 

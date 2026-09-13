@@ -1,5 +1,8 @@
 import json
-from typing import Any
+from typing import (
+    Any,
+    Optional,
+)
 
 from .... import auth
 from ....app import app, sio
@@ -20,6 +23,7 @@ from ...models.initiative import (
     InitiativeRoundUpdate,
     InitiativeTurnUpdate,
 )
+from ...models.initiative.effect import InitiativeEffectUpdateTiming
 from ...models.initiative.option import InitiativeOptionSet
 from ...models.initiative.order import InitiativeOrderChange
 from ...models.initiative.value import InitiativeValueSet
@@ -386,10 +390,14 @@ async def change_initiative_order(sid: str, raw_data: Any):
     await send_initiative(location_data.as_pydantic(), pr)
 
 
-def update_initiative_effects(entry: dict[str, Any], direction: InitiativeDirection):
+def update_initiative_effects(
+    entry: dict[str, Any], direction: InitiativeDirection, timing: Optional[InitiativeEffectUpdateTiming] = None
+):
     effect_list = entry["effects"]
     starting_len = len(effect_list)
     for i, _effect in enumerate(effect_list[::-1]):
+        if timing is not None and _effect["updateTiming"] != timing:
+            continue
         effect_turns = _effect["turns"]
         if effect_turns is None:
             continue
@@ -437,10 +445,14 @@ async def update_initiative_turn(sid: str, raw_data: Any):
 
         with db.atomic():
             if process_effects:
-                update_initiative_effects(
-                    json_data[location_data.turn if data.direction == InitiativeDirection.FORWARD else turn],
-                    data.direction,
-                )
+                if data.direction == InitiativeDirection.FORWARD:
+                    entry = location_data.turn
+                    next_entry = turn
+                else:
+                    entry = turn
+                    next_entry = location_data.turn
+                update_initiative_effects(json_data[entry], data.direction, InitiativeEffectUpdateTiming.TurnEnd)
+                update_initiative_effects(json_data[next_entry], data.direction, InitiativeEffectUpdateTiming.TurnStart)
             location_data.turn = turn
             location_data.data = json.dumps(json_data)
     else:

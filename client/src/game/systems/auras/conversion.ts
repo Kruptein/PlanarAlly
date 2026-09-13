@@ -28,6 +28,7 @@ export const aurasFromServer = (...auras: ApiAura[]): Aura[] => {
             borderColour: aura.border_colour,
             angle: aura.angle,
             direction: aura.direction,
+            floodLight: aura.flood_light,
             temporary: false,
         });
     }
@@ -49,6 +50,7 @@ export const aurasToServer = (shape: GlobalId, auras: DeepReadonly<Aura[]>): Api
             border_colour: aura.borderColour,
             angle: aura.angle,
             direction: aura.direction,
+            flood_light: aura.floodLight,
             shape,
         });
     }
@@ -68,6 +70,7 @@ export const partialAuraToServer = (aura: Partial<Aura>): Partial<ApiAura> => {
         border_colour: aura.borderColour,
         angle: aura.angle,
         direction: aura.direction,
+        flood_light: aura.floodLight,
     };
 };
 
@@ -84,5 +87,6 @@ export const partialAuraFromServer = (aura: Partial<ApiAura>): Partial<Aura> => 
     if ("border_colour" in aura) partial.borderColour = aura.border_colour;
     if ("angle" in aura) partial.angle = aura.angle;
     if ("direction" in aura) partial.direction = aura.direction;
+    if ("flood_light" in aura) partial.floodLight = aura.flood_light;
     return partial;
 };

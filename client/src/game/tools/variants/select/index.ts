@@ -81,7 +81,11 @@ const toast = useToast();
 // Calculate 45 degrees in radians just once
 const ANGLE_SNAP = (45 * Math.PI) / 180;
 
-const rulerPermission = { name: ToolName.Ruler, features: { enabled: [RulerFeatures.All] }, early: true };
+const rulerPermission = {
+    name: ToolName.Ruler,
+    features: { enabled: [RulerFeatures.All] },
+    early: true,
+};
 
 const { _, _$ } = selectToolState;
 
@@ -286,10 +290,10 @@ class SelectTool extends Tool implements ISelectTool {
         let hit = false;
 
         // The selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
-        this.currentSelection = [...selectedSystem.get({ includeComposites: false })];
+        this.currentSelection = [...selectedSystem.get()];
         let selectionStack: readonly IShape[];
         if (this.hasFeature(SelectFeatures.ChangeSelection, features)) {
-            const shapes = layer.getShapes({ includeComposites: false, onlyInView: true });
+            const shapes = layer.getShapes({ onlyInView: true });
             if (!this.currentSelection.length) selectionStack = shapes;
             else selectionStack = shapes.concat(this.currentSelection);
         } else {
@@ -313,8 +317,8 @@ class SelectTool extends Tool implements ISelectTool {
                     hit = true;
 
                     this.operationList = { type: "rotation", center: toGP(0, 0), shapes: [] };
-                    for (const shape of this.currentSelection)
-                        this.operationList.shapes.push({ uuid: shape.id, from: shape.angle, to: 0 });
+                    for (const selectionShape of this.currentSelection)
+                        this.operationList.shapes.push({ uuid: selectionShape.id, from: selectionShape.angle, to: 0 });
 
                     break;
                 }
@@ -377,15 +381,20 @@ class SelectTool extends Tool implements ISelectTool {
 
                     // don't use layerSelection here as it can be outdated by the pushSelection setSelection above
                     this.operationList = { type: "movement", shapes: [] };
-                    for (const shape of this.currentSelection) {
+                    for (const selectionShape of this.currentSelection) {
                         this.operationList.shapes.push({
-                            uuid: shape.id,
-                            from: toArrayP(shape.refPoint),
-                            to: toArrayP(shape.refPoint),
+                            uuid: selectionShape.id,
+                            from: toArrayP(selectionShape.refPoint),
+                            to: toArrayP(selectionShape.refPoint),
                         });
-                        if (props.blocksMovement && shape.layerName === LayerName.Tokens) {
-                            if (shape.floorId !== undefined)
-                                visionState.removeBlocker(TriangulationTarget.MOVEMENT, shape.floorId, shape, true);
+                        if (props.blocksMovement && selectionShape.layerName === LayerName.Tokens) {
+                            if (selectionShape.floorId !== undefined)
+                                visionState.removeBlocker(
+                                    TriangulationTarget.MOVEMENT,
+                                    selectionShape.floorId,
+                                    selectionShape,
+                                    true,
+                                );
                         }
                     }
                 } else {
@@ -619,7 +628,7 @@ class SelectTool extends Tool implements ISelectTool {
             }
             const cbbox = this.selectionHelper!.getBoundingBox();
             const fowCtx = floorSystem.getLayer(floorState.currentFloor.value!, LayerName.Lighting)?.ctx;
-            for (const shape of layer.getShapes({ includeComposites: false, onlyInView: true })) {
+            for (const shape of layer.getShapes({ onlyInView: true })) {
                 if (shape.id === this.selectionHelper?.id) continue;
                 if (this.currentSelection.some((s) => s.id === shape.id)) continue;
                 if (!(shape.options.preFogShape ?? false) && (shape.options.skipDraw ?? false)) continue;
@@ -758,7 +767,7 @@ class SelectTool extends Tool implements ISelectTool {
 
                 sendShapePositionUpdate(updateList, false);
 
-                await teleportZoneSystem.checkTeleport(selectedSystem.get({ includeComposites: true }));
+                await teleportZoneSystem.checkTeleport(selectedSystem.get());
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of this.currentSelection) {
@@ -866,7 +875,7 @@ class SelectTool extends Tool implements ISelectTool {
             return Promise.resolve(true);
         }
         const layer = floorState.currentLayer.value;
-        const layerSelection = selectedSystem.get({ includeComposites: false });
+        const layerSelection = selectedSystem.get();
         const mouse = getLocalPointFromEvent(event);
         const globalMouse = l2g(mouse);
 
@@ -881,9 +890,7 @@ class SelectTool extends Tool implements ISelectTool {
         }
 
         // Check if any other shapes are under the mouse
-        const shapes = layer
-            .getShapes({ includeComposites: false, onlyInView: true })
-            .filter((sh) => !(sh.options.skipDraw ?? false));
+        const shapes = layer.getShapes({ onlyInView: true }).filter((sh) => !(sh.options.skipDraw ?? false));
         for (let i = shapes.length - 1; i >= 0; i--) {
             const shape = shapes[i];
             if (shape?.contains(globalMouse) === true) {
@@ -932,8 +939,7 @@ class SelectTool extends Tool implements ISelectTool {
     createRotationUi(features: ToolFeatures<SelectFeatures>): void {
         // Check both current selection and selected system
         // This can be entered through different means (e.g. mode change or selection change)
-        const layerSelection =
-            this.currentSelection.length > 0 ? this.currentSelection : selectedSystem.get({ includeComposites: false });
+        const layerSelection = this.currentSelection.length > 0 ? this.currentSelection : selectedSystem.get();
 
         if (layerSelection.length === 0 || this.rotationUiActive || !this.hasFeature(SelectFeatures.Rotate, features))
             return;
@@ -1003,9 +1009,21 @@ class SelectTool extends Tool implements ISelectTool {
             const layer = this.rotationAnchor!.layer;
             if (layer === undefined) return;
 
-            layer.removeShape(this.rotationAnchor!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
-            layer.removeShape(this.rotationBox!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
-            layer.removeShape(this.rotationEnd!, { sync: SyncMode.NO_SYNC, recalculate: true, dropShapeId: true });
+            layer.removeShape(this.rotationAnchor!, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: true,
+                dropShapeId: true,
+            });
+            layer.removeShape(this.rotationBox!, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: true,
+                dropShapeId: true,
+            });
+            layer.removeShape(this.rotationEnd!, {
+                sync: SyncMode.NO_SYNC,
+                recalculate: true,
+                dropShapeId: true,
+            });
             this.rotationAnchor = this.rotationBox = this.rotationEnd = undefined;
             this.rotationUiActive = false;
 
@@ -1024,7 +1042,7 @@ class SelectTool extends Tool implements ISelectTool {
         const layer = floorState.currentLayer.value!;
         const dA = newAngle - this.angle;
         this.angle = newAngle;
-        const layerSelection = selectedSystem.get({ includeComposites: false });
+        const layerSelection = selectedSystem.get();
 
         rotateShapes(layerSelection, dA, center, temporary);
 
@@ -1037,7 +1055,7 @@ class SelectTool extends Tool implements ISelectTool {
     // POLYGON EDIT
 
     createPolygonEditUi(): void {
-        const selection = selectedSystem.get({ includeComposites: false });
+        const selection = selectedSystem.get();
         if (selection.length !== 1 || selection[0]!.type !== "polygon") return;
 
         this.removePolygonEditUi();
@@ -1073,7 +1091,7 @@ class SelectTool extends Tool implements ISelectTool {
 
     updatePolygonEditUi(gp: GlobalPoint): void {
         if (this.polygonTracer === null) return;
-        const selection = selectedSystem.get({ includeComposites: false });
+        const selection = selectedSystem.get();
         const polygon = selection[0] as Polygon;
 
         const pw = g2lz(polygon.lineWidth[0]!);
@@ -1128,7 +1146,7 @@ class SelectTool extends Tool implements ISelectTool {
 
     updateCursor(globalMouse: GlobalPoint, features: ToolFeatures<SelectFeatures>): void {
         let cursorStyle = "default";
-        const layerSelection = selectedSystem.get({ includeComposites: false });
+        const layerSelection = selectedSystem.get();
         for (const sel of layerSelection) {
             const resizePoint = sel.getPointIndex(globalMouse, l2gz(4));
             if (resizePoint < 0) {

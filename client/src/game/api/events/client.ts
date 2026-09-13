@@ -29,12 +29,16 @@ socket.on("Client.Move", (data: ClientMove) => {
         playerSystem.setPosition(player, position);
     } else if (isCurrentPlayer) {
         positionSystem.setPan(position.pan_x, position.pan_y, { updateSectors: false });
-        positionSystem.setZoomDisplay(position.zoom_display, { invalidate: true, updateSectors: true, sync: false });
+        positionSystem.setZoomDisplay(position.zoom_display, {
+            invalidate: true,
+            updateSectors: true,
+            sync: false,
+        });
     }
 });
 
 socket.on("Client.Viewport.Set", (data: ClientViewport) => {
-    clientSystem.setClientViewport(data.client, data.viewport, true);
+    clientSystem.setClientViewport(data.client, data.viewport);
 });
 
 socket.on("Client.Offset.Set", (data: ClientOffsetSet) => {

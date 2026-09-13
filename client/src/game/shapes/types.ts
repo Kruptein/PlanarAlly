@@ -10,8 +10,7 @@ export type SHAPE_TYPE =
     | "line"
     | "polygon"
     | "rect"
-    | "text"
-    | "togglecomposite";
+    | "text";
 
 export type DepShape = {
     shape: IShape;

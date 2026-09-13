@@ -1,35 +1,23 @@
 <script setup lang="ts">
-import { computed, type DeepReadonly } from "vue";
+import { type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ColourPicker from "../../../../core/components/ColourPicker.vue";
 import RotationSlider from "../../../../core/components/RotationSlider.vue";
-import type { LocalId } from "../../../../core/id";
 import { NO_SYNC, SERVER_SYNC } from "../../../../core/models/types";
 import { getValue } from "../../../../core/utils";
 import { activeShapeStore } from "../../../../store/activeShape";
-import { getGlobalId } from "../../../id";
 import { accessState } from "../../../systems/access/state";
 import { auraSystem } from "../../../systems/auras";
-import { sendShapeMoveAura } from "../../../systems/auras/emits";
 import type { Aura, AuraId, UiAura } from "../../../systems/auras/models";
 import { trackerSystem } from "../../../systems/trackers";
-import { sendShapeMoveTracker } from "../../../systems/trackers/emits";
 import type { Tracker, TrackerId, UiTracker } from "../../../systems/trackers/models";
 
 const { t } = useI18n();
 
 const owned = accessState.hasEditAccess;
-const isComposite = activeShapeStore.isComposite;
 
 // Tracker
-
-const trackers = computed(() => {
-    const allTrackers = [...trackerSystem.state.parentTrackers, ...trackerSystem.state.trackers];
-    const shapeId = activeShapeStore.state.id;
-    if (shapeId === undefined) return [];
-    return allTrackers;
-});
 
 function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>, syncTo = true): void {
     if (!owned.value || activeShapeStore.state.id === undefined) return;
@@ -43,39 +31,9 @@ function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>
 }
 
 function removeTracker(tracker: TrackerId): void {
-    const id = trackerSystem.state.parentTrackers.some((t) => t.uuid === tracker)
-        ? activeShapeStore.state.parentUuid
-        : activeShapeStore.state.id;
-    if (!owned.value || id === undefined) return;
-    trackerSystem.remove(id, tracker, SERVER_SYNC);
-}
-
-function toggleCompositeTracker(shape: LocalId, trackerId: TrackerId): void {
     const id = activeShapeStore.state.id;
     if (!owned.value || id === undefined) return;
-    if (!activeShapeStore.isComposite.value) return;
-
-    const gId = getGlobalId(shape);
-    const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
-    const gIdNew = getGlobalId(newShape);
-
-    if (gId === undefined || gIdNew === undefined) {
-        console.error("Composite encountered unknown globalId");
-        return;
-    }
-
-    const tracker = trackerSystem.get(shape, trackerId, true);
-    if (tracker === undefined) return;
-
-    trackerSystem.remove(shape, trackerId, NO_SYNC);
-
-    trackerSystem.add(newShape, tracker, NO_SYNC);
-
-    sendShapeMoveTracker({
-        shape: gId,
-        new_shape: gIdNew,
-        tracker: tracker.uuid,
-    });
+    trackerSystem.remove(id, tracker, SERVER_SYNC);
 }
 
 // Aura
@@ -93,38 +51,9 @@ function updateAura(aura: DeepReadonly<UiAura>, delta: Partial<Aura>, syncTo = t
 }
 
 function removeAura(aura: AuraId): void {
-    const id = auraSystem.state.parentAuras.some((a) => a.uuid === aura)
-        ? activeShapeStore.state.parentUuid
-        : activeShapeStore.state.id;
-    if (!owned.value || id === undefined) return;
-    auraSystem.remove(id, aura, SERVER_SYNC);
-}
-
-function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
     const id = activeShapeStore.state.id;
     if (!owned.value || id === undefined) return;
-    if (!activeShapeStore.isComposite.value) return;
-
-    const gId = getGlobalId(shape);
-    const newShape = shape === id ? activeShapeStore.state.parentUuid! : id;
-    const gIdNew = getGlobalId(newShape);
-
-    if (gId === undefined || gIdNew === undefined) {
-        console.error("Composite encountered unknown globalId");
-        return;
-    }
-
-    const aura = auraSystem.get(shape, auraId, true);
-    if (aura === undefined) return;
-
-    auraSystem.remove(shape, auraId, NO_SYNC);
-    auraSystem.add(newShape, aura, NO_SYNC);
-
-    sendShapeMoveAura({
-        shape: gId,
-        new_shape: gIdNew,
-        aura: aura.uuid,
-    });
+    auraSystem.remove(id, aura, SERVER_SYNC);
 }
 </script>
 
@@ -132,7 +61,7 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
     <div style="display: contents">
         <div id="trackers-panel">
             <div class="spanrow header">{{ t("common.trackers") }}</div>
-            <div v-for="tracker of trackers" :key="tracker.uuid" class="aura">
+            <div v-for="tracker of trackerSystem.state.trackers" :key="tracker.uuid" class="aura">
                 <div class="summary">
                     <label class="name" :for="'check-' + tracker.uuid">{{ tracker.name }}</label>
                     <div
@@ -185,17 +114,6 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                             @click="updateTracker(tracker, { visible: !tracker.visible })"
                         />
                     </div>
-                    <div v-show="isComposite">
-                        {{ t("game.ui.selection.edit_dialog.tracker.shared_for_all_variants") }}
-                    </div>
-                    <input
-                        v-show="isComposite"
-                        type="checkbox"
-                        :checked="tracker.shape === activeShapeStore.state.parentUuid"
-                        :disabled="!owned"
-                        :title="t('common.toggle_public_private')"
-                        @click="toggleCompositeTracker(tracker.shape, tracker.uuid)"
-                    />
                     <div>{{ t("game.ui.selection.edit_dialog.tracker.display_on_token") }}</div>
                     <div>
                         <input
@@ -227,11 +145,7 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                 </div>
             </div>
             <div class="spanrow header">{{ t("common.auras") }}</div>
-            <div
-                v-for="aura of [...auraSystem.state.parentAuras, ...auraSystem.state.auras]"
-                :key="aura.uuid"
-                class="aura"
-            >
+            <div v-for="aura of auraSystem.state.auras" :key="aura.uuid" class="aura">
                 <div class="summary">
                     <label class="name" :for="'check-' + aura.uuid">{{ aura.name }}</label>
                     <div
@@ -344,16 +258,6 @@ function toggleCompositeAura(shape: LocalId, auraId: AuraId): void {
                             @click="updateAura(aura, { visionSource: !aura.visionSource })"
                         />
                     </div>
-                    <div v-show="isComposite">
-                        {{ t("game.ui.selection.edit_dialog.tracker.shared_for_all_variants") }}
-                    </div>
-                    <input
-                        v-show="isComposite"
-                        type="checkbox"
-                        :disabled="!owned"
-                        :title="t('common.toggle_public_private')"
-                        @click="toggleCompositeAura(aura.shape, aura.uuid)"
-                    />
                 </div>
             </div>
         </div>

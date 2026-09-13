@@ -2,7 +2,6 @@ import json
 from typing import Any
 
 from pydantic_core import MISSING
-from typing_extensions import TypedDict
 
 from ... import auth
 from ...api.socket.constants import GAME_NS
@@ -27,7 +26,7 @@ from ...logs import logger
 from ...models.access import has_ownership
 from ...models.role import Role
 from ...state.game import game_state
-from ...transform.to_api.asset import transform_asset
+from ...transform.to_api.asset import transform_asset_entry
 from ...transform.to_api.floor import transform_floor
 from ..helpers import _send_game
 from ..models.client import OptionalClientViewport
@@ -38,22 +37,6 @@ from ..models.mods import ApiModMeta
 from ..models.players.info import PlayerInfoCore, PlayersInfoSet
 from ..models.players.options import PlayerOptionsSet
 from ..models.room.info import RoomFeatures, RoomInfoSet
-
-
-# DATA CLASSES FOR TYPE CHECKING
-class LocationOptionKeys(TypedDict, total=False):
-    unit_size: float
-    unit_size_unit: str
-    use_grid: bool
-    grid_type: str
-    full_fow: bool
-    fow_opacity: float
-    fow_los: bool
-    vision_mode: str
-    vision_min_range: float
-    vision_max_range: float
-    spawn_locations: str
-    drop_ratio: float
 
 
 @sio.on("Location.Load", namespace=GAME_NS)
@@ -238,7 +221,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
         shortcuts = AssetShortcut.select().where(AssetShortcut.player_room == pr)
         await _send_game(
             "Asset.Shortcuts.Set",
-            [transform_asset(shortcut.asset, pr.player) for shortcut in shortcuts],
+            [transform_asset_entry(shortcut.entry, pr.player) for shortcut in shortcuts],
             room=sid,
         )
 

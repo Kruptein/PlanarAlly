@@ -10,6 +10,8 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+## [2026.2]
+
 ### Added
 
 -   Ambient light support
@@ -32,17 +34,6 @@ tech changes will usually be stripped from release notes for the public
 -   [tech] DB storage of asset data is reworked
     -   Asset size is now also stored in DB for easier user total size calculation
 
-### Fixed
-
--   Dungeondraft file handling
-    -   This was broken since a recent change to how templates/assets work
-    -   dd2vtt (or uvtt) files will have to be removed and reuploaded from your asset manager
--   Collapse selection not immediately syncing position change until a move
--   Public aura syncing to non-owners not working as intended
--   Pressing enter in the initiative UI could sometimes open a selected shape's property dialog
--   Moving shapes to a different floor with disabled auras now behaves correctly
--   [tech] Asset db rows were not properly being cleaned up when a file was removed on disk
-
 ### Removed
 
 -   [DM] Client viewport visualization
@@ -53,15 +44,20 @@ tech changes will usually be stripped from release notes for the public
 -   Asset thumbnails not cleaning up on asset removal
 -   More cases were badges ended up as 0 until reload
 -   Note listing was ignoring the shape specific override when present
+-   Asset pick modal butons don't work when clicking on their bottom half
+-   Asset changing not updating the assetId stored on the shape
+-   Dungeondraft file handling
+    -   This was broken since a recent change to how templates/assets work
+    -   dd2vtt (or uvtt) files will have to be removed and reuploaded from your asset manager
+-   Collapse selection not immediately syncing position change until a move
+-   Public aura syncing to non-owners not working as intended
+-   Pressing enter in the initiative UI could sometimes open a selected shape's property dialog
+-   Moving shapes to a different floor with disabled auras now behaves correctly
 -   [tech] Updated sector system to be more performant (impacts rendering)
 -   [tech] Fixed some unnecessary Vue rerenders on a variety of mouse interactions in the select tool (impacts general performance)
 -   [tech] Removed some unnecessary work during panning (e.g. note hover logic, some ws events)
 -   [tech] Vue-router deprecation issues
-
-### Fixed
-
--   Asset pick modal butons don't work when clicking on their bottom half
--   Asset changing not updating the assetId stored on the shape
+-   [tech] Asset db rows were not properly being cleaned up when a file was removed on disk
 
 ## [2026.1.2]
 

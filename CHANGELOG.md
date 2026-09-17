@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+-   Move Trackers
+   -   Trackers for a shape can now be moved up or down by pressing arrows next to trash can.
+
 ## [2026.2]
 
 ### Added

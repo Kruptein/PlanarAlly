@@ -30,6 +30,14 @@ function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>
     trackerSystem.update(tracker.shape, tracker.uuid, delta, syncTo ? SERVER_SYNC : NO_SYNC);
 }
 
+function moveTrackerUp(tracker: DeepReadonly<UiTracker>): void {
+    trackerSystem.moveUp(tracker.shape, tracker.uuid, SERVER_SYNC);
+}
+
+function moveTrackerDown(tracker: DeepReadonly<UiTracker>): void {
+    trackerSystem.moveDown(tracker.shape, tracker.uuid, SERVER_SYNC);
+}
+
 function removeTracker(tracker: TrackerId): void {
     const id = activeShapeStore.state.id;
     if (!owned.value || id === undefined) return;
@@ -144,12 +152,8 @@ function removeAura(aura: AuraId): void {
                     </div>
                     <div>{{ t("common.move_up_/_down") }}</div>
                     <div>
-                        <input 
-                        type="button"
-                        :value="t('common.move_up')"/>
-                        <input 
-                        type="button"
-                        :value="t('common.move_down')"/>
+                        <input type="button" :value="t('common.move_up')" @click="moveTrackerUp(tracker)" />
+                        <input type="button" :value="t('common.move_down')" @click="moveTrackerDown(tracker)" />
                     </div>
                 </div>
             </div>

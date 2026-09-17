@@ -142,6 +142,15 @@ function removeAura(aura: AuraId): void {
                             @update:colour="updateTracker(tracker, { secondaryColor: $event })"
                         />
                     </div>
+                    <div>{{ t("common.move_up_/_down") }}</div>
+                    <div>
+                        <input 
+                        type="button"
+                        :value="t('common.move_up')"/>
+                        <input 
+                        type="button"
+                        :value="t('common.move_down')"/>
+                    </div>
                 </div>
             </div>
             <div class="spanrow header">{{ t("common.auras") }}</div>

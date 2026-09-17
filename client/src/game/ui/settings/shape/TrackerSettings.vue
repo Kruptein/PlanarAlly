@@ -152,8 +152,8 @@ function removeAura(aura: AuraId): void {
                     </div>
                     <div>{{ t("common.move_up_/_down") }}</div>
                     <div>
-                        <input type="button" :value="t('common.move_up')" @click="moveTrackerUp(tracker)" />
-                        <input type="button" :value="t('common.move_down')" @click="moveTrackerDown(tracker)" />
+                        <input type="button" :value="t('common.move_up')" :disabled="!owned" @click="moveTrackerUp(tracker)" />
+                        <input type="button" :value="t('common.move_down')" :disabled="!owned" @click="moveTrackerDown(tracker)" />
                     </div>
                 </div>
             </div>

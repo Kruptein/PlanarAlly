@@ -191,17 +191,31 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
                     const swappingTracker = trackers[i - 1];
                     if (typeof movingTracker != "undefined" && typeof swappingTracker != "undefined") {
                         this.#swapTrackers(id, movingTracker, swappingTracker, syncTo);
+                        return;
                     } else {
                         return;
                     }
-                } else {
-                    return;
-                }
+                } 
             }
         }
     }
     moveDown(id: LocalId, trackerId: TrackerId, syncTo: Sync): void {
-        alert(trackerId);
+        const trackers = this.data.get(id) ?? [];
+        for (let i = 0; i < trackers.length; i++) {
+            const trackerInList = trackers[i];
+            if (typeof trackerInList != "undefined") {
+                if (trackerId === trackerInList.uuid) {
+                    const movingTracker = trackers[i];
+                    const swappingTracker = trackers[i + 1];
+                    if (typeof movingTracker != "undefined" && typeof swappingTracker != "undefined") {
+                        this.#swapTrackers(id, swappingTracker, movingTracker, syncTo);
+                        return;
+                    } else {
+                        return;
+                    }
+                } 
+            }
+        }
     }
 }
 

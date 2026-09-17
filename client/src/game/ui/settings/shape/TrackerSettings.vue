@@ -76,6 +76,24 @@ function removeAura(aura: AuraId): void {
                         v-if="!tracker.temporary"
                         :disabled="!owned"
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
+                        :title="t('game.ui.selection.edit_dialog.dialog.move_tracker_up')"
+                        @click="moveTrackerUp(tracker)"
+                    >
+                        <font-awesome-icon icon="chevron-up" />
+                    </div>
+                    <div
+                        v-if="!tracker.temporary"
+                        :disabled="!owned"
+                        :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
+                        :title="t('game.ui.selection.edit_dialog.dialog.move_tracker_down')"
+                        @click="moveTrackerDown(tracker)"
+                    >
+                        <font-awesome-icon icon="chevron-down" />
+                    </div>
+                    <div
+                        v-if="!tracker.temporary"
+                        :disabled="!owned"
+                        :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
                         :title="t('game.ui.selection.edit_dialog.dialog.remove_tracker')"
                         @click="removeTracker(tracker.uuid)"
                     >
@@ -149,11 +167,6 @@ function removeAura(aura: AuraId): void {
                             @input:colour="updateTracker(tracker, { secondaryColor: $event }, false)"
                             @update:colour="updateTracker(tracker, { secondaryColor: $event })"
                         />
-                    </div>
-                    <div>{{ t("common.move_up_/_down") }}</div>
-                    <div>
-                        <input type="button" :value="t('common.move_up')" :disabled="!owned" @click="moveTrackerUp(tracker)" />
-                        <input type="button" :value="t('common.move_down')" :disabled="!owned" @click="moveTrackerDown(tracker)" />
                     </div>
                 </div>
             </div>

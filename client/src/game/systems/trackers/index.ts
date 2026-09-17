@@ -174,9 +174,9 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
         eventBus.emit("tracker:removed", { id, trackerId, syncTo });
     }
 
-    #swapTrackers(id: LocalId, tracker1: Tracker, tracker2: Tracker, syncTo: Sync) : void {
-        let newTracker1 = { ...tracker2 };
-        let newTracker2 = { ...tracker1 };
+    #swapTrackers(id: LocalId, tracker1: Tracker, tracker2: Tracker, syncTo: Sync): void {
+        const newTracker1 = { ...tracker2 };
+        const newTracker2 = { ...tracker1 };
         newTracker1.uuid = tracker1.uuid;
         newTracker2.uuid = tracker2.uuid;
         this.update(id, tracker1.uuid, newTracker1, syncTo);
@@ -197,7 +197,7 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
                     } else {
                         return;
                     }
-                } 
+                }
             }
         }
     }
@@ -210,12 +210,12 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
                     const movingTracker = trackers[i];
                     const swappingTracker = trackers[i + 1];
                     if (typeof movingTracker != "undefined" && typeof swappingTracker != "undefined") {
-                        this.#swapTrackers(id, swappingTracker, movingTracker, syncTo);
+                        this.#swapTrackers(id, movingTracker, swappingTracker, syncTo);
                         return;
                     } else {
                         return;
                     }
-                } 
+                }
             }
         }
     }

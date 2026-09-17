@@ -175,8 +175,10 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
     }
 
     #swapTrackers(id: LocalId, tracker1: Tracker, tracker2: Tracker, syncTo: Sync) : void {
-        const newTracker1 = { ...tracker2 };
-        const newTracker2 = { ...tracker1 };
+        let newTracker1 = { ...tracker2 };
+        let newTracker2 = { ...tracker1 };
+        newTracker1.uuid = tracker1.uuid;
+        newTracker2.uuid = tracker2.uuid;
         this.update(id, tracker1.uuid, newTracker1, syncTo);
         this.update(id, tracker2.uuid, newTracker2, syncTo);
     }

@@ -176,30 +176,34 @@ export class FowLightingLayer extends FowLayer {
                     const lcenter = g2l(center);
                     const innerRange = g2lr(auraValue + auraDim);
 
-                    this.vCtx.globalCompositeOperation = "source-over";
-                    this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                    this.vCtx.fill(shape.visionPolygon);
+                    const visionMask = new Path2D();
+                    visionMask.addPath(shape.visionPolygon);
 
                     // Behind vision mode rendering
                     // Render the additional vision polygon for the light source.
                     // This is calculated in the vision layer,
                     if (visionState.behindVisionLightPaths.has(shape.id)) {
                         for (const points of visionState.behindVisionLightPaths.get(shape.id)!) {
-                            this.vCtx.fill(polygon2path(points));
+                            visionMask.addPath(polygon2path(points));
                         }
                     } else if (!isLosActive) {
                         // If we're not using LOS, the light cache is never filled by the vision layer.
                         // We just need to render all of them, as there is no vision shape that constrains this.
                         for (const [, bpPoints] of shape._behindPatches) {
                             for (const { points } of bpPoints) {
-                                this.vCtx.fill(polygon2path(points));
+                                visionMask.addPath(polygon2path(points));
                             }
                         }
                     }
 
+                    this.ctx.save();
+                    this.ctx.globalCompositeOperation = "source-over";
+                    this.ctx.clip(visionMask);
+                    this.ctx.fillStyle = "rgba(0, 0, 0, 1)";
+
                     if (auraDim > 0) {
                         // Fill the light aura with a radial dropoff towards the outside.
-                        const gradient = this.vCtx.createRadialGradient(
+                        const gradient = this.ctx.createRadialGradient(
                             lcenter.x,
                             lcenter.y,
                             g2lr(auraValue),
@@ -209,28 +213,27 @@ export class FowLightingLayer extends FowLayer {
                         );
                         gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
                         gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-                        this.vCtx.fillStyle = gradient;
+                        this.ctx.fillStyle = gradient;
                     }
-                    this.vCtx.globalCompositeOperation = "source-in";
-                    this.vCtx.beginPath();
+                    this.ctx.beginPath();
 
                     const angleA = shape.angle + toRadians(aura.direction - aura.angle / 2);
                     const angleB = shape.angle + toRadians(aura.direction + aura.angle / 2);
 
                     if (aura.angle < 360) {
-                        this.vCtx.moveTo(lcenter.x, lcenter.y);
-                        this.vCtx.lineTo(
+                        this.ctx.moveTo(lcenter.x, lcenter.y);
+                        this.ctx.lineTo(
                             lcenter.x + innerRange * Math.cos(angleA),
                             lcenter.y + innerRange * Math.sin(angleA),
                         );
                     }
-                    this.vCtx.arc(lcenter.x, lcenter.y, innerRange, angleA, angleB);
+                    this.ctx.arc(lcenter.x, lcenter.y, innerRange, angleA, angleB);
                     if (aura.angle < 360) {
-                        this.vCtx.lineTo(lcenter.x, lcenter.y);
+                        this.ctx.lineTo(lcenter.x, lcenter.y);
                     }
 
-                    this.vCtx.fill();
-                    this.ctx.drawImage(this.virtualCanvas, 0, 0, window.innerWidth, window.innerHeight);
+                    this.ctx.fill();
+                    this.ctx.restore();
                 }
             }
 

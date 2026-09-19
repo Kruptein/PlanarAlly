@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Changed
+
+-   Light rendering performance improvements on big screens/slow hardware
+
 ### Fixed
 
 -   Locked shapes were movable by keyboard navigation

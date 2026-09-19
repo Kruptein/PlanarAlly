@@ -30,11 +30,13 @@ const name = computed({
 });
 
 function archiveLocation(): void {
+    if (hasPlayers.value) return;
     locationStore.archiveLocation(location.value, true);
     emit("close");
 }
 
 async function deleteLocation(): Promise<void> {
+    if (hasPlayers.value) return;
     const remove = await modals.confirm(
         t("common.warning"),
         t("game.ui.settings.LocationBar.LocationAdminSettings.remove_location_msg_NAME", {
@@ -93,7 +95,8 @@ async function onCloneClick(): Promise<void> {
             <div>
                 <button
                     class="danger"
-                    :disabled="hasPlayers"
+                    :class="{ 'is-disabled': hasPlayers }"
+                    :aria-disabled="hasPlayers"
                     :title="
                         hasPlayers
                             ? t('game.ui.settings.LocationBar.LocationAdminSettings.move_existing_pl')
@@ -107,7 +110,8 @@ async function onCloneClick(): Promise<void> {
             <div>
                 <button
                     class="danger"
-                    :disabled="hasPlayers"
+                    :class="{ 'is-disabled': hasPlayers }"
+                    :aria-disabled="hasPlayers"
                     :title="
                         hasPlayers
                             ? t('game.ui.settings.LocationBar.LocationAdminSettings.move_existing_pl')
@@ -123,7 +127,7 @@ async function onCloneClick(): Promise<void> {
 </template>
 
 <style scoped>
-.danger:hover:disabled {
-    cursor: not-allowed;
+.danger.is-disabled {
+    opacity: 0.6;
 }
 </style>

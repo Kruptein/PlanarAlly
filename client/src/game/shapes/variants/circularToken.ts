@@ -7,9 +7,9 @@ import { sendCircularTokenUpdate } from "../../api/emits/shape/circularToken";
 import { getColour } from "../../colour";
 import { getGlobalId } from "../../id";
 import type { IShape } from "../../interfaces/shape";
+import { renderingState } from "../../rendering/state";
 import { getProperties } from "../../systems/properties/state";
 import type { ShapeProperties } from "../../systems/properties/types";
-import { playerSettingsState } from "../../systems/settings/players/state";
 import type { CircularTokenCompactCore, CompactShapeCore } from "../transformations";
 import type { SHAPE_TYPE } from "../types";
 
@@ -57,7 +57,7 @@ export class CircularToken extends Circle implements IShape {
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             const fontScale = calcFontScale(ctx, this.text, g2lz(this.r - 5));
-            const pixelRatio = playerSettingsState.devicePixelRatio.value;
+            const pixelRatio = renderingState.pixelRatio.value;
             ctx.setTransform(fontScale, 0, 0, fontScale, center.x * pixelRatio, center.y * pixelRatio);
             ctx.rotate(this.angle);
             ctx.fillStyle = mostReadable(getColour(props.fillColour, this.id));

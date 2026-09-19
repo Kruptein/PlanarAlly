@@ -21,6 +21,7 @@ import { LayerName } from "../models/floor";
 import type { Floor, FloorId } from "../models/floor";
 import type { ShapeOptions } from "../models/shapes";
 import { polygon2path } from "../rendering/basic";
+import { renderingState } from "../rendering/state";
 import { accessSystem } from "../systems/access";
 import { auraSystem } from "../systems/auras";
 import type { CharacterId } from "../systems/characters/models";
@@ -32,7 +33,6 @@ import { getProperties } from "../systems/properties/state";
 import type { ShapeProperties } from "../systems/properties/types";
 import { VisionBlock } from "../systems/properties/types";
 import { locationSettingsState } from "../systems/settings/location/state";
-import { playerSettingsState } from "../systems/settings/players/state";
 import { trackerSystem } from "../systems/trackers";
 import type { BehindPatch } from "../vision/state";
 import { TriangulationTarget, visionState } from "../vision/state";
@@ -406,7 +406,7 @@ export abstract class Shape implements IShape {
         }
 
         const center = g2l(customScale?.center ?? this.center);
-        const pixelRatio = playerSettingsState.devicePixelRatio.value;
+        const pixelRatio = renderingState.pixelRatio.value;
 
         ctx.setTransform(pixelRatio, 0, 0, pixelRatio, center.x * pixelRatio, center.y * pixelRatio);
         ctx.rotate(this.angle);
@@ -421,7 +421,7 @@ export abstract class Shape implements IShape {
      * @param lightRevealRender - see `draw`, only the transform should be reset if this is true
      */
     drawPost(ctx: CanvasRenderingContext2D, lightRevealRender: boolean): void {
-        const pixelRatio = playerSettingsState.devicePixelRatio.value;
+        const pixelRatio = renderingState.pixelRatio.value;
         ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
         if (lightRevealRender) return;

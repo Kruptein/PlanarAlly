@@ -44,7 +44,7 @@ class Aura(BaseDbModel):
         )
 
     def make_copy(self, new_shape):
-        _dict = self.as_pydantic()
-        _dict.uuid = str(uuid4())
-        _dict.shape = new_shape
-        type(self).create(**_dict.model_dump())
+        _dict = self.as_pydantic().model_dump()
+        _dict["uuid"] = str(uuid4())
+        _dict["shape"] = new_shape.uuid
+        type(self).create(**_dict)

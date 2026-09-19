@@ -2,12 +2,14 @@ from typing import Any, cast
 from typing import TYPE_CHECKING
 
 from peewee import ForeignKeyField
+from playhouse.shortcuts import model_to_dict
 
 from ...api.models.shape.shape import ApiCoreShape
 from ...api.models.shape.subtypes import ApiAssetRectShape
-from .asset import Asset
 from ..typed import SelectSequence
+from .asset import Asset
 from .base_rect import BaseRect
+from .shape import Shape
 
 if TYPE_CHECKING:
     from .asset_rect_variant import AssetRectVariant
@@ -32,3 +34,8 @@ class AssetRect(BaseRect):
             width=self.width,
             height=self.height,
         )
+
+    def make_copy(self, new_shape: Shape):
+        _dict = model_to_dict(self, exclude=[AssetRect.shape, AssetRect.asset])
+        _dict["asset_id"] = self.asset_id
+        AssetRect.create(shape=new_shape, **_dict)

@@ -37,4 +37,6 @@ class ShapeType(BaseDbModel):
     def make_copy(self, new_shape: Shape):
         table = type(self)
         _dict = model_to_dict(self, exclude=[table.shape])
+        # Note that this only works if the dict contains NO other foreign tables (e.g. AssetRect)
+        # A subtype has to override this method if it has a more complicated setup
         table.create(shape=new_shape, **_dict)

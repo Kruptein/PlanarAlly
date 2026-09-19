@@ -13,6 +13,8 @@ tech changes will usually be stripped from release notes for the public
 ### Fixed
 
 -   Locked shapes were movable by keyboard navigation
+-   [DM] Location cloning was no longer opening the cloned location immediately
+-   [DM] Location cloning was no longer working properly when there were assets
 
 ## [2026.2]
 

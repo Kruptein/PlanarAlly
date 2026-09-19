@@ -107,6 +107,7 @@ export async function moveShapes(
 }
 
 function canMove(shapeId: LocalId): boolean {
+    if (getProperties(shapeId)?.isLocked === true) return false;
     if (!accessSystem.hasAccessTo(shapeId, "movement")) return false;
     if (!locationSettingsState.raw.limitMovementDuringInitiative.value) return true;
     if (!initiativeStore.state.isActive) return true;

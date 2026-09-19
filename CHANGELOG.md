@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Fixed
+
+-   Locked shapes were movable by keyboard navigation
+
 ## [2026.2]
 
 ### Added

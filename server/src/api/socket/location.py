@@ -374,7 +374,7 @@ async def clone_location(sid: str, raw_data: Any):
         lduo = luo.as_pydantic().model_dump()
         lduo["location"] = new_location
         lduo["user"] = luo.user
-        if lduo["active_layer"]:
+        if "active_layer" in lduo:
             lduo["active_layer"] = floor_map[lduo["active_floor"]][lduo["active_layer"]]
             del lduo["active_floor"]
 

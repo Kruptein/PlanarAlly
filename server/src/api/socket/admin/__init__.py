@@ -1,13 +1,19 @@
 import secrets
+from datetime import datetime, timedelta
 from uuid import uuid4
 
+from .... import stats
 from ....api.models.notification import NotificationShow
 from ....api.socket.constants import ADMIN_NS
 from ....app import sio
 from ....auth import get_authorized_user
 from ....config import cfg
+from ....db.db import db
+from ....db.models.constants import Constants
 from ....db.models.notification import Notification
+from ....db.models.player_room import PlayerRoom
 from ....db.models.room import Room
+from ....db.models.stats import Stats, StatsKind
 from ....db.models.user import User
 from ....logs import logger
 from ....state.admin import admin_state
@@ -46,6 +52,101 @@ async def send_notifications(sid):
     data = [NotificationShow(uuid=str(n.uuid), message=n.message) for n in notifications]
 
     await sio.emit("Notifications.List", data, to=sid, namespace=ADMIN_NS)
+
+
+@sio.on("Stats.Overview", namespace=ADMIN_NS)
+async def stats_overview(sid: str):
+    user = admin_state.get_user(sid)
+    if not is_admin(user):
+        return
+
+    now = datetime.now()
+    activity_cutoff = now - timedelta(days=30)
+    first_chart_day = (now - timedelta(days=13)).date()
+    chart_cutoff = datetime.combine(first_chart_day, datetime.min.time())
+
+    def count_events(kind: StatsKind) -> int:
+        return Stats.select().where(Stats.kind == kind, Stats.timestamp >= activity_cutoff).count()
+
+    daily_activity = {
+        (first_chart_day + timedelta(days=offset)).isoformat(): {
+            "date": (first_chart_day + timedelta(days=offset)).isoformat(),
+            "newUsers": 0,
+            "newCampaigns": 0,
+            "activeCampaigns": 0,
+            "connectedPlayers": 0,
+            "sessions": 0,
+        }
+        for offset in range(14)
+    }
+    campaigns_by_day: dict[str, set[str]] = {day: set() for day in daily_activity}
+    players_by_day: dict[str, set[str]] = {day: set() for day in daily_activity}
+    events = Stats.select(Stats.kind, Stats.timestamp, Stats.campaign_id, Stats.user_id).where(
+        Stats.timestamp >= chart_cutoff,
+        Stats.kind.in_(
+            [
+                StatsKind.USER_CREATED,
+                StatsKind.CAMPAIGN_CREATED,
+                StatsKind.USER_GAME_CONNECTED,
+            ]
+        ),
+    )
+    for event in events:
+        day = event.timestamp.date().isoformat()
+        if day not in daily_activity:
+            continue
+
+        if str(event.kind) == str(StatsKind.USER_CREATED):
+            daily_activity[day]["newUsers"] += 1
+            continue
+        if str(event.kind) == str(StatsKind.CAMPAIGN_CREATED):
+            daily_activity[day]["newCampaigns"] += 1
+            continue
+
+        daily_activity[day]["sessions"] += 1
+        if event.campaign_id is not None:
+            campaigns_by_day[day].add(str(event.campaign_id))
+        if event.user_id is not None:
+            players_by_day[day].add(str(event.user_id))
+
+    for day, activity in daily_activity.items():
+        activity["activeCampaigns"] = len(campaigns_by_day[day])
+        activity["connectedPlayers"] = len(players_by_day[day])
+
+    latest_start = (
+        Stats.select()
+        .where(Stats.kind == StatsKind.SERVER_STARTED)
+        .order_by(Stats.timestamp.desc())  # type: ignore
+        .first()
+    )
+    constants = Constants.get()
+    pending_events = Stats.select()
+    if constants.last_export_date is not None:
+        pending_events = pending_events.where(Stats.timestamp > constants.last_export_date)
+
+    return {
+        "totals": {
+            "users": User.select().count(),
+            "campaigns": Room.select().count(),
+            "memberships": PlayerRoom.select().count(),
+            "activeUsers": User.select()
+            .where(User.last_login >= activity_cutoff.date())  # type: ignore
+            .count(),
+        },
+        "activity": {
+            "newUsers": count_events(StatsKind.USER_CREATED),
+            "newCampaigns": count_events(StatsKind.CAMPAIGN_CREATED),
+            "sessions": count_events(StatsKind.USER_GAME_CONNECTED),
+        },
+        "telemetry": {
+            "enabled": cfg().stats.enabled,
+            "exportEnabled": cfg().stats.enable_export,
+            "pendingEvents": pending_events.count(),
+            "lastExport": constants.last_export_date.isoformat() if constants.last_export_date else None,
+            "serverStarted": latest_start.timestamp.isoformat() if latest_start else None,
+        },
+        "dailyActivity": list(daily_activity.values()),
+    }
 
 
 @sio.on("Notifications.Add", namespace=ADMIN_NS)
@@ -116,7 +217,9 @@ async def add_user(sid: str, name: str):
 
     try:
         pw = secrets.token_urlsafe(20)
-        User.create_new(name, pw)
+        with db.atomic():
+            new_user = User.create_new(name, pw)
+            stats.events.user_created(new_user.id)
         return pw
     except:
         logger.exception("Error creating user")

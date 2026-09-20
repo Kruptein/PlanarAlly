@@ -19,6 +19,12 @@ interface Section {
 }
 
 const navItems: Section[] = [
+    {
+        icon: "circle-info",
+        label: "Overview",
+        section: AdminSection.Overview,
+        path: "/admin/overview",
+    },
     // {
     //     icon: "bell",
     //     label: "Notifications",
@@ -28,13 +34,13 @@ const navItems: Section[] = [
         icon: "users",
         label: "Users",
         section: AdminSection.Users,
-        path: "users",
+        path: "/admin/users",
     },
     {
         icon: "dungeon",
         label: "Campaigns",
         section: AdminSection.Campaigns,
-        path: "campaigns",
+        path: "/admin/campaigns",
     },
 ];
 

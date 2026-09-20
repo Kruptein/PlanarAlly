@@ -9,6 +9,7 @@ import { router } from ".";
 
 // Admin
 const Admin = () => import("../admin/Admin.vue");
+const AdminOverview = () => import("../admin/Overview.vue");
 const AdminUsers = () => import("../admin/Users.vue");
 const AdminCampaigns = () => import("../admin/Campaigns.vue");
 // Auth
@@ -115,7 +116,15 @@ const routes: RouteRecordRaw[] = [
         children: [
             {
                 path: "",
-                redirect: { name: "admin-users" },
+                redirect: { name: "admin-overview" },
+            },
+            {
+                name: "admin-overview",
+                path: "/admin/overview",
+                component: AdminOverview,
+                meta: {
+                    adminSection: AdminSection.Overview,
+                },
             },
             {
                 name: "admin-users",

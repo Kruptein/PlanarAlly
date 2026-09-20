@@ -1,4 +1,4 @@
-import { markRaw, type DeepReadonly } from "vue";
+import { markRaw, watch, type DeepReadonly } from "vue";
 
 import { registerSystem } from "../../../core/systems";
 import type { System } from "../../../core/systems/models";
@@ -16,6 +16,7 @@ import type { IGridLayer } from "../../interfaces/layers/grid";
 import { recalculateZIndices } from "../../layers/floor";
 import { LayerName } from "../../models/floor";
 import type { Floor, FloorId, FloorIndex, FloorType } from "../../models/floor";
+import { renderingState } from "../../rendering/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { clientSystem } from "../client";
 import { gameState } from "../game/state";
@@ -301,14 +302,25 @@ class FloorSystem implements System {
 
     // WINDOW
 
-    resize(width: number, height: number): void {
+    resize(): void {
         for (const layer of [...this.layerMap.values()].flat()) {
-            layer.resize(width, height);
+            layer.resize();
         }
         clientSystem.sendViewportInfo();
+        this.invalidateAllFloors();
+    }
+
+    updatePixelRatio(): void {
+        for (const layer of [...this.layerMap.values()].flat()) {
+            layer.updatePixelRatio();
+        }
         this.invalidateAllFloors();
     }
 }
 
 export const floorSystem = new FloorSystem();
 registerSystem("floors", floorSystem, false, floorState);
+
+watch(renderingState.pixelRatio, () => {
+    floorSystem.updatePixelRatio();
+});

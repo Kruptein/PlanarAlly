@@ -41,7 +41,8 @@ export interface ILayer {
     removeShape: (shape: IShape, options: { sync: SyncMode; recalculate: boolean; dropShapeId: boolean }) => boolean;
     enterLayer: (shape: IShape) => void;
     exitLayer: (shape: IShape) => void;
-    resize: (width: number, height: number) => void;
+    resize: () => void;
+    updatePixelRatio: () => void;
     setServerShapes: (shapes: ApiShape[]) => Promise<void>;
     setShapes: (...shapes: IShape[]) => void;
     show: () => void;

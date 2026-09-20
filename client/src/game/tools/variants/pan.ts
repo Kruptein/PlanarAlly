@@ -4,6 +4,8 @@ import { i18n } from "../../../i18n";
 import { sendClientLocationOptions } from "../../api/emits/client";
 import { ToolName } from "../../models/tools";
 import type { ITool, ToolPermission } from "../../models/tools";
+import { getGestureScale } from "../../rendering/core";
+import { renderingState } from "../../rendering/state";
 import { floorSystem } from "../../systems/floors";
 import { positionSystem } from "../../systems/position";
 import { positionState } from "../../systems/position/state";
@@ -36,6 +38,7 @@ class PanTool extends Tool implements ITool {
     onDown(lp: LocalPoint): Promise<void> {
         this.panStart = lp;
         this.active.value = true;
+        renderingState.mutableReactive.gestureScale = getGestureScale();
         return Promise.resolve();
     }
 
@@ -48,6 +51,7 @@ class PanTool extends Tool implements ITool {
         if (!this.active.value) return Promise.resolve();
         this.active.value = false;
         this.panScreen(lp, true);
+        renderingState.mutableReactive.gestureScale = null;
         return Promise.resolve();
     }
 }

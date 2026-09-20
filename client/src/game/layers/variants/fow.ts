@@ -4,7 +4,7 @@ import type { FloorId } from "../../models/floor";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
-import { createCanvas, setCanvasDimensions } from "../canvas";
+import { createCanvas, updateCanvasDimensions, updateCanvasPixelRatio } from "../canvas";
 
 import { Layer } from "./layer";
 
@@ -26,9 +26,14 @@ export class FowLayer extends Layer {
         this.vCtx = this.virtualCanvas.getContext("2d")!;
     }
 
-    resize(width: number, height: number): void {
-        super.resize(width, height);
-        setCanvasDimensions(this.virtualCanvas, width, height);
+    resize(): void {
+        super.resize();
+        updateCanvasDimensions(this.virtualCanvas);
+    }
+
+    updatePixelRatio(): void {
+        super.updatePixelRatio();
+        updateCanvasPixelRatio(this.virtualCanvas);
     }
 
     _draw(): void {

@@ -148,7 +148,13 @@ export async function mouseUp(event: MouseEvent): Promise<void> {
 }
 
 export async function mouseLeave(event: MouseEvent): Promise<void> {
-    const tool = getActiveTool();
+    let targetTool = activeTool.value;
+    if (targetTool !== ToolName.Pan && toolMap[ToolName.Pan].active.value) {
+        toolMap[targetTool].onPanEnd();
+        targetTool = ToolName.Pan;
+    }
+
+    const tool = toolMap[targetTool];
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;

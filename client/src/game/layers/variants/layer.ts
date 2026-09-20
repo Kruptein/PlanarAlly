@@ -18,6 +18,7 @@ import { addOperation } from "../../operations/undo";
 import { drawAuras } from "../../rendering/auras";
 import { drawTear } from "../../rendering/basic";
 import { drawCells } from "../../rendering/grid";
+import { renderingState } from "../../rendering/state";
 import { createOnServer, fromSystemForm, instantiateCompactForm, loadFromServer } from "../../shapes/transformations";
 import { BoundingRect } from "../../shapes/variants/simple/boundingRect";
 import { accessSystem } from "../../systems/access";
@@ -35,7 +36,7 @@ import { locationSettingsSystem } from "../../systems/settings/location";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { TriangulationTarget, VisibilityMode, visionState } from "../../vision/state";
-import { setCanvasDimensions } from "../canvas";
+import { updateCanvasDimensions, updateCanvasPixelRatio } from "../canvas";
 
 const SECTOR_SIZE = 200;
 
@@ -192,15 +193,19 @@ export class Layer implements ILayer {
     }
 
     get width(): number {
-        return this.canvas.width / playerSettingsState.devicePixelRatio.value;
+        return this.canvas.width / renderingState.pixelRatio.value;
     }
 
     get height(): number {
-        return this.canvas.height / playerSettingsState.devicePixelRatio.value;
+        return this.canvas.height / renderingState.pixelRatio.value;
     }
 
-    resize(width: number, height: number): void {
-        setCanvasDimensions(this.canvas, width, height);
+    resize(): void {
+        updateCanvasDimensions(this.canvas);
+    }
+
+    updatePixelRatio(): void {
+        updateCanvasPixelRatio(this.canvas);
     }
 
     // SHAPES

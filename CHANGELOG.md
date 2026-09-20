@@ -10,6 +10,10 @@ tech changes will usually be stripped from release notes for the public
 
 ## Unreleased
 
+### Added
+
+-   During panning and zooming a lower resolution render is now used if slower render times are detected
+
 ### Changed
 
 -   Light rendering performance improvements on big screens/slow hardware

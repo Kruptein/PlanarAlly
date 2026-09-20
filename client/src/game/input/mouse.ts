@@ -5,7 +5,6 @@ import { positionSystem } from "../systems/position";
 import { positionState } from "../systems/position/state";
 
 export function scrollZoom(e: WheelEvent): void {
-    if (!e.target || !(e.target as HTMLElement).tagName || (e.target as HTMLElement).tagName !== "CANVAS") return;
     const rawDelta = e.deltaY / 1000;
 
     // Our zoom display is a value between 0 and 1, where 0 is the smallest zoom and 1 is the largest zoom.

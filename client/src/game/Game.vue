@@ -1,4 +1,5 @@
 <script lang="ts">
+import debounce from "lodash/debounce";
 import throttle from "lodash/throttle";
 import { defineComponent, onMounted, onUnmounted, watchEffect } from "vue";
 
@@ -11,6 +12,8 @@ import { createConnection, socket } from "./api/socket";
 import { handleDropEvent } from "./dropAsset";
 import { scrollZoom } from "./input/mouse";
 import { clearUndoStacks } from "./operations/undo";
+import { getGestureScale } from "./rendering/core";
+import { renderingState } from "./rendering/state";
 import { floorSystem } from "./systems/floors";
 import { gameState } from "./systems/game/state";
 import { playerSettingsState } from "./systems/settings/players/state";
@@ -33,15 +36,30 @@ import "./api/events";
 
 let throttledMove: (event: MouseEvent) => void = (_event: MouseEvent) => {};
 let throttledTouchMove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
+const throttledZoom = throttle(scrollZoom, 15);
+let zooming = false;
+
+function _zoomStopped(): void {
+    zooming = false;
+    renderingState.mutableReactive.gestureScale = null;
+}
+const zoomStopped = debounce(_zoomStopped, 100);
 
 // Window events
 function zoom(event: WheelEvent): void {
     if (playerSettingsState.raw.disableScrollToZoom.value) return;
-    throttle(scrollZoom)(event);
+    if (!event.target || !(event.target as HTMLElement).tagName || (event.target as HTMLElement).tagName !== "CANVAS")
+        return;
+    if (!zooming) {
+        zooming = true;
+        renderingState.mutableReactive.gestureScale = getGestureScale();
+    }
+    throttledZoom(event);
+    zoomStopped();
 }
 
 function resizeWindow(): void {
-    floorSystem.resize(window.innerWidth, window.innerHeight);
+    floorSystem.resize();
 }
 
 export default defineComponent({

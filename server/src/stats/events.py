@@ -4,6 +4,8 @@ from ..config import cfg
 from ..db.models.stats import Stats, StatsKind
 from .anonymize import anonymize
 
+RECONNECT_GRACE_PERIOD = timedelta(minutes=5)
+
 
 def campaign_created(campaign_id: int, user_id: int):
     if not cfg().stats.enabled:
@@ -16,7 +18,31 @@ def campaign_opened(campaign_id: int, player_id: int):
     if not cfg().stats.enabled:
         return
 
-    Stats.create(kind=StatsKind.USER_GAME_CONNECTED, campaign_id=anonymize(campaign_id), user_id=anonymize(player_id))
+    c_id = anonymize(campaign_id)
+    p_id = anonymize(player_id)
+
+    # Check if a recent disconnect happened, if it's within the grace period we delete the disconnect and skip this connect event
+    # in order to reduce noise in the data
+    last_event = (
+        Stats.select()
+        .where(
+            Stats.kind.in_([StatsKind.USER_GAME_CONNECTED, StatsKind.USER_GAME_DISCONNECTED]),
+            Stats.campaign_id == c_id,
+            Stats.user_id == p_id,
+        )
+        .order_by(Stats.timestamp.desc())  # type: ignore
+        .get_or_none()
+    )
+
+    if (
+        last_event is not None
+        and str(last_event.kind) == str(StatsKind.USER_GAME_DISCONNECTED)
+        and datetime.now() - last_event.timestamp <= RECONNECT_GRACE_PERIOD
+    ):
+        last_event.delete_instance()
+        return
+
+    Stats.create(kind=StatsKind.USER_GAME_CONNECTED, campaign_id=c_id, user_id=p_id)
 
 
 def campaign_closed(campaign_id: int, player_id: int):

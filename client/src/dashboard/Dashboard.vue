@@ -32,7 +32,7 @@ const sections: Section[] = [
     {
         nav: "ADMIN",
         routerPath: "admin",
-        routerName: "admin-users",
+        routerName: "admin-overview",
         visible: computed(() => dashboardState.adminEnabled),
     },
 ];

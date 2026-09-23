@@ -11,6 +11,7 @@ tech changes will usually be stripped from release notes for the public
 ## Unreleased
 
 ### Added
+<<<<<<< HEAD
 
 -   During panning and zooming a lower resolution render is now used if slower render times are detected
 -   [server] Added base server stats overview to admin panel
@@ -26,6 +27,10 @@ tech changes will usually be stripped from release notes for the public
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons
 -   [server] session stats data had a dumb bug causing all the session stats to not be saved
+=======
+-   Move Trackers
+   -   Trackers for a shape can now be moved up or down by pressing arrows next to trash can.
+>>>>>>> refs/remotes/origin/feature/move-trackers
 
 ## [2026.2]
 

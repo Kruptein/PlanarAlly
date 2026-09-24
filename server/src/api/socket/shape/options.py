@@ -26,7 +26,7 @@ from ...models.shape.options import (
 )
 from ...models.tracker import ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove
 from ..constants import GAME_NS
-from .utils import get_owner_sids, get_shape_or_none
+from .utils import get_owner_sids, get_shape_or_none, create_tracker_from_data
 
 
 async def send_name(
@@ -463,9 +463,7 @@ async def create_tracker(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    model = reduce_data_to_model(Tracker, data.model_dump())
-    tracker = Tracker.create(**model)
-    tracker.save()
+    tracker = create_tracker_from_data(data)
 
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
     for psid in owners:

@@ -1,5 +1,7 @@
 from typing import Generator
 
+from peewee import fn
+
 from ....db.db import db
 from ....db.models.player_room import PlayerRoom
 from ....db.models.shape import Shape
@@ -34,7 +36,8 @@ def get_owner_sids(pr: PlayerRoom, shape: Shape, skip_sid=None) -> Generator[str
 
 def create_tracker_from_data(data: ApiTracker) -> Tracker:
     model = reduce_data_to_model(Tracker, data.model_dump())
-    model['ordering'] = Tracker.select().count()
-    tracker = Tracker.create(**model)
-    tracker.save()
+    with db.atomic('IMMEDIATE') as transation:
+        model['ordering'] = Tracker.select(fn.MAX(Tracker.ordering)).scalar() or 0
+        tracker = Tracker.create(**model)
+        tracker.save()
     return tracker

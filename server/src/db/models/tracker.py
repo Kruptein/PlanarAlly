@@ -20,6 +20,7 @@ class Tracker(BaseDbModel):
     draw = cast(bool, BooleanField())
     primary_color = cast(str, TextField())
     secondary_color = cast(str, TextField())
+    ordering = cast(int, IntegerField())
 
     def __repr__(self):
         return f"<Tracker {self.name} {self.shape.get_path()}>"
@@ -41,4 +42,5 @@ class Tracker(BaseDbModel):
         _dict = self.as_pydantic().model_dump()
         _dict["uuid"] = str(uuid4())
         _dict["shape"] = new_shape.uuid
+        _dict["ordering"] = self.ordering
         type(self).create(**_dict)

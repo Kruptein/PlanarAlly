@@ -15,11 +15,13 @@ import { locationStore } from "../../../store/location";
 import { requestSpawnInfo } from "../../api/emits/location";
 import { sendShapeTemplateAdd } from "../../api/emits/shape/asset";
 import { sendShapePositionUpdate, sendShapesMove } from "../../api/emits/shape/core";
+import { sendShapeMirrored } from "../../api/emits/shape/options";
 import { getGlobalId, getShape } from "../../id";
 import type { ILayer } from "../../interfaces/layer";
 import type { IShape } from "../../interfaces/shape";
 import { IAsset } from "../../interfaces/shapes/asset";
 import type { Floor, LayerName } from "../../models/floor";
+import { ToolMode } from "../../models/tools";
 import { fromSystemForm, instantiateCompactForm } from "../../shapes/transformations";
 import { deleteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
@@ -40,6 +42,7 @@ import { selectedState } from "../../systems/selected/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { uiState } from "../../systems/ui/state";
 import { moveFloor, moveLayer } from "../../temp";
+import { activeToolMode } from "../../tools/tools";
 import { initiativeStore } from "../initiative/state";
 import { layerTranslationMapping } from "../translations";
 
@@ -460,6 +463,17 @@ async function _expandSelection(): Promise<boolean> {
     return true;
 }
 
+function mirrorShape(): boolean {
+    const shape = getShape(selectedState.reactive.focus!);
+    if (shape === undefined) return false;
+    const mirrored = !(shape.options.mirrored ?? false);
+    shape.options.mirrored = mirrored;
+    const uuid = getGlobalId(shape.id);
+    if (uuid) sendShapeMirrored({ shape: uuid, value: mirrored });
+    shape.invalidate(true);
+    return true;
+}
+
 const activeLayer = floorState.currentLayer as ComputedRef<ILayer>;
 const activeLocation = toRef(locationSettingsState.reactive, "activeLocation");
 const currentFloorIndex = toRef(floorState.reactive, "floorIndex");
@@ -563,6 +577,18 @@ const sections = computed(() => {
             subitems: groupsSection,
         },
     ];
+
+    if (
+        hasSingleSelection.value &&
+        isOwned.value &&
+        getShape(selectedState.reactive.focus!)?.type === "assetrect" &&
+        activeToolMode.value === ToolMode.Build
+    ) {
+        rootGroupA.push({
+            title: t("game.ui.selection.ShapeContext.mirror"),
+            action: mirrorShape,
+        });
+    }
 
     if (hasSingleSelection.value) {
         const selection = selectedState.reactive.focus!;

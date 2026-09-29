@@ -72,6 +72,7 @@ export abstract class IImage extends BaseRect {
         customScale?: { center: GlobalPoint; width: number; height: number },
     ): void {
         super.draw(ctx, lightRevealRender, customScale);
+        if (this.options?.mirrored ?? false) ctx.scale(-1, 1);
 
         const center = g2l(this.center);
         const ogH = this.ignoreZoomSize ? this.h : g2lz(this.h);

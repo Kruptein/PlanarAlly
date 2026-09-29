@@ -29,6 +29,8 @@ export interface ShapeOptions {
     // and generally interact with the ambient light system
     lightShape: boolean;
     ambientBarrier: boolean;
+
+    mirrored: boolean;
 }
 
 export interface ServerShapeOptions extends ShapeOptions {

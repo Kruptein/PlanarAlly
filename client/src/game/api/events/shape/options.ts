@@ -109,6 +109,18 @@ socket.on("Shape.Options.SkipDraw.Set", (data: ShapeSetBooleanValue) => {
     shape.options.skipDraw = data.value;
 });
 
+socket.on("Shape.Options.Mirrored.Set", (data: ShapeSetBooleanValue) => {
+    const shapeId = getLocalId(data.shape);
+    if (shapeId === undefined) return;
+    const shape = getShape(shapeId);
+    if (shape === undefined) return;
+    if (shape.options === undefined) {
+        shape.options = {};
+    }
+    shape.options.mirrored = data.value;
+    shape.invalidate(true);
+});
+
 socket.on("Shape.Options.SvgAsset.Set", async (data: ShapeSetOptionalStringValue) => {
     const shapeId = getLocalId(data.shape);
     if (shapeId === undefined) return;

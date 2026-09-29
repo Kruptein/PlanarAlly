@@ -385,7 +385,8 @@
                         "title": "Splitting group",
                         "text": "Do you wish to keep the original badges?",
                         "no": "No, reset them"
-                    }
+                    },
+                    "mirror": "Mirror"
                 }
             },
             "settings": {

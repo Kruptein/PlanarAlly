@@ -827,6 +827,27 @@ async def set_skip_draw(sid: str, raw_data: Any):
     )
 
 
+@sio.on("Shape.Options.Mirrored.Set", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_mirrored(sid: str, raw_data: Any):
+    data = ShapeSetBooleanValue(**raw_data)
+
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data.shape, "Mirrored.Set")
+    if shape is None:
+        return
+
+    set_options(shape, "mirrored", data.value)
+
+    await _send_game(
+        "Shape.Options.Mirrored.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+    )
+
+
 @sio.on("Shape.Options.SvgAsset.Set", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def set_svg_asset(sid: str, raw_data: Any):

@@ -968,6 +968,7 @@ export interface TrackerMove {
   new_shape: GlobalId;
 }
 export interface TrackerSwapOrdering {
+    shape: GlobalId;
     tracker: TrackerId;
     other_tracker: TrackerId;
 }

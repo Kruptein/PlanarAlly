@@ -36,8 +36,16 @@ def get_owner_sids(pr: PlayerRoom, shape: Shape, skip_sid=None) -> Generator[str
 
 def create_tracker_from_data(data: ApiTracker) -> Tracker:
     model = reduce_data_to_model(Tracker, data.model_dump())
-    with db.atomic('IMMEDIATE') as transation:
+    with db.atomic('IMMEDIATE'):
         model['ordering'] = (Tracker.select(fn.MAX(Tracker.ordering)).scalar() or 0) + 1
         tracker = Tracker.create(**model)
         tracker.save()
     return tracker
+
+def swap_tracker_ordering(tracker1: Tracker, tracker2: Tracker): 
+    with db.atomic('IMMEDIATE'):
+        tmp = tracker1.ordering
+        tracker2.ordering = tracker1.ordering
+        tracker1.ordering = tmp
+        tracker1.save()
+        tracker2.save()

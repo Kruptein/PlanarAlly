@@ -24,9 +24,9 @@ from ...models.shape.options import (
     ShapeSetTeleportLocationValue,
     ShapeSetSizeValue,
 )
-from ...models.tracker import ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove
+from ...models.tracker import ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove, TrackerSwapOrdering
 from ..constants import GAME_NS
-from .utils import get_owner_sids, get_shape_or_none, create_tracker_from_data
+from .utils import get_owner_sids, get_shape_or_none, create_tracker_from_data, swap_tracker_ordering
 
 
 async def send_name(
@@ -540,6 +540,22 @@ async def move_tracker(sid: str, raw_data: Any):
         skip_sid=sid,
         room=pr.active_location.get_path(),
     )
+    
+@sio.on("Shape.Options.Tracker.SwapOrdering", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def move_tracker(sid: str, raw_data: Any):
+    data = TrackerSwapOrdering(**raw_data)
+    pr: PlayerRoom = game_state.get(sid)
+    tracker = Tracker.get_by_id(data.tracker)
+    other_tracker = Tracker.get_by_id(data.other_tracker)
+    swap_tracker_ordering(tracker, other_tracker)
+    await _send_game(
+        "Shape.Options.Tracker.SwapOrdering",
+        raw_data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+    )
+
 
 
 @sio.on("Shape.Options.Aura.Create", namespace=GAME_NS)

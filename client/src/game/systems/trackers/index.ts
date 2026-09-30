@@ -113,6 +113,38 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
         return this.data.get(id) ?? [];
     }
 
+    getPreviousTrackerId(id: LocalId, trackerId: TrackerId): TrackerId | undefined {
+        const trackers = this.data.get(id) ?? [];
+        for (let i = 1; i < trackers.length; i++) {
+            const trackerInList = trackers[i];
+            if (typeof trackerInList != "undefined") {
+                if (trackerId === trackerInList.uuid) {
+                    const swappingTracker = trackers[i - 1];
+                    if (typeof swappingTracker != "undefined") {
+                        return swappingTracker.uuid; 
+                    } 
+                }
+            }
+        }
+        return;
+    }
+    
+    getNextTrackerId(id: LocalId, trackerId: TrackerId): TrackerId | undefined {
+        const trackers = this.data.get(id) ?? [];
+        for (let i = 0; i < trackers.length; i++) {
+            const trackerInList = trackers[i];
+            if (typeof trackerInList != "undefined") {
+                if (trackerId === trackerInList.uuid) {
+                    const swappingTracker = trackers[i + 1];
+                    if (typeof swappingTracker != "undefined") {
+                        return swappingTracker.uuid; 
+                    } 
+                }
+            }
+        }
+        return;
+    }
+
     add(id: LocalId, tracker: Tracker, syncTo: Sync): void {
         if (syncTo.server) {
             const gId = getGlobalId(id);
@@ -174,51 +206,20 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
         eventBus.emit("tracker:removed", { id, trackerId, syncTo });
     }
 
-    #swapTrackers(id: LocalId, tracker1: Tracker, tracker2: Tracker, syncTo: Sync): void {
-        const newTracker1 = { ...tracker2 };
-        const newTracker2 = { ...tracker1 };
-        newTracker1.uuid = tracker1.uuid;
-        newTracker2.uuid = tracker2.uuid;
-        this.update(id, tracker1.uuid, newTracker1, syncTo);
-        this.update(id, tracker2.uuid, newTracker2, syncTo);
+    swapTrackerPositions(id: LocalId, tracker1Id: TrackerId, tracker2Id: TrackerId, syncTo: Sync): void {
+        const tracker1 = this.get(id, tracker1Id);
+        const tracker2 = this.get(id, tracker2Id);
+        if (typeof tracker1 != "undefined" && typeof tracker2 != "undefined") {
+            const newTracker1 = { ...tracker2 };
+            const newTracker2 = { ...tracker1 };
+            newTracker1.uuid = tracker1.uuid;
+            newTracker2.uuid = tracker2.uuid;
+            this.update(id, tracker1.uuid, newTracker1, syncTo);
+            this.update(id, tracker2.uuid, newTracker2, syncTo);
+        }
     }
 
-    moveUp(id: LocalId, trackerId: TrackerId, syncTo: Sync): void {
-        const trackers = this.data.get(id) ?? [];
-        for (let i = 1; i < trackers.length; i++) {
-            const trackerInList = trackers[i];
-            if (typeof trackerInList != "undefined") {
-                if (trackerId === trackerInList.uuid) {
-                    const movingTracker = trackers[i];
-                    const swappingTracker = trackers[i - 1];
-                    if (typeof movingTracker != "undefined" && typeof swappingTracker != "undefined") {
-                        this.#swapTrackers(id, movingTracker, swappingTracker, syncTo);
-                        return;
-                    } else {
-                        return;
-                    }
-                }
-            }
-        }
-    }
-    moveDown(id: LocalId, trackerId: TrackerId, syncTo: Sync): void {
-        const trackers = this.data.get(id) ?? [];
-        for (let i = 0; i < trackers.length; i++) {
-            const trackerInList = trackers[i];
-            if (typeof trackerInList != "undefined") {
-                if (trackerId === trackerInList.uuid) {
-                    const movingTracker = trackers[i];
-                    const swappingTracker = trackers[i + 1];
-                    if (typeof movingTracker != "undefined" && typeof swappingTracker != "undefined") {
-                        this.#swapTrackers(id, movingTracker, swappingTracker, syncTo);
-                        return;
-                    } else {
-                        return;
-                    }
-                }
-            }
-        }
-    }
+
 }
 
 export const trackerSystem = new TrackerSystem();

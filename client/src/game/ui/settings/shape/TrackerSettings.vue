@@ -31,11 +31,17 @@ function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>
 }
 
 function moveTrackerUp(tracker: DeepReadonly<UiTracker>): void {
-    trackerSystem.moveUp(tracker.shape, tracker.uuid, SERVER_SYNC);
+    const previousTrackerUUID = trackerSystem.getPreviousTrackerId(tracker.shape, tracker.uuid);
+    if (typeof previousTrackerUUID != "undefined") {
+        trackerSystem.swapTrackerPositions(tracker.shape, tracker.uuid, previousTrackerUUID, SERVER_SYNC);
+    }
 }
 
 function moveTrackerDown(tracker: DeepReadonly<UiTracker>): void {
-    trackerSystem.moveDown(tracker.shape, tracker.uuid, SERVER_SYNC);
+    const nextTrackerUUID = trackerSystem.getNextTrackerId(tracker.shape, tracker.uuid);
+    if (typeof nextTrackerUUID != "undefined") {
+        trackerSystem.swapTrackerPositions(tracker.shape, tracker.uuid, nextTrackerUUID, SERVER_SYNC);
+    }
 }
 
 function removeTracker(tracker: TrackerId): void {

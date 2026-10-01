@@ -44,8 +44,15 @@ def create_tracker_from_data(data: ApiTracker) -> Tracker:
 
 def swap_tracker_ordering(tracker1: Tracker, tracker2: Tracker): 
     with db.atomic('IMMEDIATE'):
-        tmp = tracker1.ordering
-        tracker2.ordering = tracker1.ordering
-        tracker1.ordering = tmp
+        #This extra stuff is to avoid violating a unique constraint while swapping values.
+        tmp1 = tracker1.ordering
+        tmp2 = tracker2.ordering
+        tracker1.ordering = -1
+        tracker2.ordering = -2
+        tracker1.save()
+        tracker2.save()
+
+        tracker1.ordering = tmp2
+        tracker2.ordering = tmp1
         tracker1.save()
         tracker2.save()

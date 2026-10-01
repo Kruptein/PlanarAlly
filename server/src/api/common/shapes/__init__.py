@@ -3,11 +3,11 @@ from ....db.models.aura import Aura
 from ....db.models.layer import Layer
 from ....db.models.shape import Shape
 from ....db.models.shape_owner import ShapeOwner
-from ....db.models.tracker import Tracker
 from ....db.models.user import User
 from ....db.utils import get_table, reduce_data_to_model
 from ....logs import logger
 from ...models.shape import ApiShape
+from ...socket.shape.utils import create_tracker_from_data
 
 
 def create_shape(data: ApiShape, *, layer: Layer | None):
@@ -42,7 +42,7 @@ def create_shape(data: ApiShape, *, layer: Layer | None):
             )
         # Trackers
         for tracker in data.trackers:
-            Tracker.create(**reduce_data_to_model(Tracker, tracker.model_dump()))
+            create_tracker_from_data(tracker)
         # Auras
         for aura in data.auras:
             Aura.create(**reduce_data_to_model(Aura, aura.model_dump()))

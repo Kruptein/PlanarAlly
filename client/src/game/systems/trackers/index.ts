@@ -5,7 +5,7 @@ import type { ApiCoreShape } from "../../../apiTypes";
 import { eventBus } from "../../../core/eventBus";
 import { hooks } from "../../../core/hooks";
 import type { LocalId } from "../../../core/id";
-import type { Sync } from "../../../core/models/types";
+import { SERVER_SYNC, type Sync } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { uuidv4 } from "../../../core/utils";
@@ -13,7 +13,12 @@ import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
 
 import { partialTrackerToServer, toUiTrackers, trackersFromServer, trackersToServer } from "./conversion";
-import { sendShapeCreateTracker, sendShapeRemoveTracker, sendShapeUpdateTracker } from "./emits";
+import {
+    sendShapeCreateTracker,
+    sendShapeRemoveTracker,
+    sendShapeUpdateTracker,
+    sendShapeSwapTrackerOrdering,
+} from "./emits";
 import type { Tracker, TrackerId, UiTracker } from "./models";
 import { createEmptyUiTracker } from "./utils";
 
@@ -113,6 +118,38 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
         return this.data.get(id) ?? [];
     }
 
+    getPreviousTrackerId(id: LocalId, trackerId: TrackerId): TrackerId | undefined {
+        const trackers = this.data.get(id) ?? [];
+        for (let i = 1; i < trackers.length; i++) {
+            const trackerInList = trackers[i];
+            if (typeof trackerInList != "undefined") {
+                if (trackerId === trackerInList.uuid) {
+                    const swappingTracker = trackers[i - 1];
+                    if (typeof swappingTracker != "undefined") {
+                        return swappingTracker.uuid;
+                    }
+                }
+            }
+        }
+        return;
+    }
+
+    getNextTrackerId(id: LocalId, trackerId: TrackerId): TrackerId | undefined {
+        const trackers = this.data.get(id) ?? [];
+        for (let i = 0; i < trackers.length; i++) {
+            const trackerInList = trackers[i];
+            if (typeof trackerInList != "undefined") {
+                if (trackerId === trackerInList.uuid) {
+                    const swappingTracker = trackers[i + 1];
+                    if (typeof swappingTracker != "undefined") {
+                        return swappingTracker.uuid;
+                    }
+                }
+            }
+        }
+        return;
+    }
+
     add(id: LocalId, tracker: Tracker, syncTo: Sync): void {
         if (syncTo.server) {
             const gId = getGlobalId(id);
@@ -172,6 +209,35 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
         if (oldTracker?.draw === true) getShape(id)?.invalidate(false);
 
         eventBus.emit("tracker:removed", { id, trackerId, syncTo });
+    }
+
+    swapTrackerPositions(id: LocalId, tracker1Id: TrackerId, tracker2Id: TrackerId, syncTo: Sync): void {
+        const trackers = this.data.get(id) ?? [];
+        let t1Index = -1;
+        let t2Index = -1;
+        for (let i = 0; i < trackers.length; i++) {
+            const currTracker = trackers[i];
+            if (typeof currTracker != "undefined") {
+                if (currTracker.uuid == tracker1Id) {
+                    t1Index = i;
+                }
+                if (currTracker.uuid == tracker2Id) {
+                    t2Index = i;
+                }
+            }
+        }
+        const tracker1 = trackers[t1Index];
+        const tracker2 = trackers[t2Index];
+        if (typeof tracker1 != "undefined" && typeof tracker2 != "undefined") {
+            const shape = getGlobalId(id);
+            if (shape) {
+                if (syncTo == SERVER_SYNC)
+                    sendShapeSwapTrackerOrdering({ shape: shape, tracker: tracker1Id, other_tracker: tracker2Id });
+                trackers[t1Index] = tracker2;
+                trackers[t2Index] = tracker1;
+                if (id === this._state.id) this.updateTrackerState();
+            }
+        }
     }
 }
 

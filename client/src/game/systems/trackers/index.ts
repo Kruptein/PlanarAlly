@@ -207,19 +207,34 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
     }
 
     swapTrackerPositions(id: LocalId, tracker1Id: TrackerId, tracker2Id: TrackerId, syncTo: Sync): void {
-        const tracker1 = this.get(id, tracker1Id);
-        const tracker2 = this.get(id, tracker2Id);
+        //const tracker1 = this.get(id, tracker1Id);
+        //const tracker2 = this.get(id, tracker2Id);
+            //const newTracker1 = { ...tracker2 };
+            //const newTracker2 = { ...tracker1 };
+            //newTracker1.uuid = tracker1.uuid;
+            //newTracker2.uuid = tracker2.uuid;
+            //this.update(id, tracker1.uuid, newTracker1, syncTo);
+            //this.update(id, tracker2.uuid, newTracker2, syncTo);
+        console.log("Hi")
+        const trackers = this.data.get(id) ?? [];
+        let t1Index = -1;
+        let t2Index = -1;
+        for (let i = 0; i < trackers.length; i++) {
+            const currTracker = trackers[i];
+            if (typeof currTracker != "undefined") {
+                if (currTracker.uuid == tracker1Id) {t1Index = i;}
+                if (currTracker.uuid == tracker2Id) {t2Index = i;}
+            }
+            console.log("Hi2")
+        }
+        const tracker1 = trackers[t1Index];
+        const tracker2 = trackers[t2Index];
         if (typeof tracker1 != "undefined" && typeof tracker2 != "undefined") {
-            const newTracker1 = { ...tracker2 };
-            const newTracker2 = { ...tracker1 };
-            newTracker1.uuid = tracker1.uuid;
-            newTracker2.uuid = tracker2.uuid;
-            this.update(id, tracker1.uuid, newTracker1, syncTo);
-            this.update(id, tracker2.uuid, newTracker2, syncTo);
+            trackers[t1Index] = tracker2;
+            trackers[t2Index] = tracker1;
+            if (id === this._state.id) this.updateTrackerState();
         }
     }
-
-
 }
 
 export const trackerSystem = new TrackerSystem();

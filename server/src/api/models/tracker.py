@@ -34,10 +34,12 @@ class TrackerMove(TypeIdModel):
     tracker: str = Field(json_schema_extra={"typeId": "TrackerId"})
     new_shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
 
+
 class TrackerSwapOrdering(TypeIdModel):
     shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     tracker: str = Field(json_schema_extra={"typeId": "TrackerId"})
     other_tracker: str = Field(json_schema_extra={"typeId": "TrackerId"})
+
 
 class ShapeSetTrackerValue(TypeIdModel):
     shape: str = Field(json_schema_extra={"typeId": "GlobalId"})

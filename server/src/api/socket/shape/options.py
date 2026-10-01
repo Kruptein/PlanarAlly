@@ -540,15 +540,16 @@ async def move_tracker(sid: str, raw_data: Any):
         skip_sid=sid,
         room=pr.active_location.get_path(),
     )
-    
+
+
 @sio.on("Shape.Options.Tracker.SwapOrdering", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
-async def move_tracker(sid: str, raw_data: Any):
+async def swap_ordering(sid: str, raw_data: Any):
     data = TrackerSwapOrdering(**raw_data)
     pr: PlayerRoom = game_state.get(sid)
     tracker = Tracker.get_by_id(data.tracker)
     other_tracker = Tracker.get_by_id(data.other_tracker)
-    if (tracker.shape == other_tracker.shape): 
+    if tracker.shape == other_tracker.shape:
         swap_tracker_ordering(tracker, other_tracker)
         await _send_game(
             "Shape.Options.Tracker.SwapOrdering",
@@ -556,8 +557,6 @@ async def move_tracker(sid: str, raw_data: Any):
             skip_sid=sid,
             room=pr.active_location.get_path(),
         )
-    
-
 
 
 @sio.on("Shape.Options.Aura.Create", namespace=GAME_NS)

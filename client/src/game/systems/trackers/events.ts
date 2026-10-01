@@ -1,4 +1,10 @@
-import type { ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove, TrackerSwapOrdering } from "../../../apiTypes";
+import type {
+    ApiOptionalTracker,
+    ApiTracker,
+    ShapeSetTrackerValue,
+    TrackerMove,
+    TrackerSwapOrdering,
+} from "../../../apiTypes";
 import { UI_SYNC } from "../../../core/models/types";
 import { socket } from "../../api/socket";
 import { getLocalId } from "../../id";

@@ -13,7 +13,12 @@ import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
 
 import { partialTrackerToServer, toUiTrackers, trackersFromServer, trackersToServer } from "./conversion";
-import { sendShapeCreateTracker, sendShapeRemoveTracker, sendShapeUpdateTracker, sendShapeSwapTrackerOrdering } from "./emits";
+import {
+    sendShapeCreateTracker,
+    sendShapeRemoveTracker,
+    sendShapeUpdateTracker,
+    sendShapeSwapTrackerOrdering,
+} from "./emits";
 import type { Tracker, TrackerId, UiTracker } from "./models";
 import { createEmptyUiTracker } from "./utils";
 
@@ -121,14 +126,14 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
                 if (trackerId === trackerInList.uuid) {
                     const swappingTracker = trackers[i - 1];
                     if (typeof swappingTracker != "undefined") {
-                        return swappingTracker.uuid; 
-                    } 
+                        return swappingTracker.uuid;
+                    }
                 }
             }
         }
         return;
     }
-    
+
     getNextTrackerId(id: LocalId, trackerId: TrackerId): TrackerId | undefined {
         const trackers = this.data.get(id) ?? [];
         for (let i = 0; i < trackers.length; i++) {
@@ -137,8 +142,8 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
                 if (trackerId === trackerInList.uuid) {
                     const swappingTracker = trackers[i + 1];
                     if (typeof swappingTracker != "undefined") {
-                        return swappingTracker.uuid; 
-                    } 
+                        return swappingTracker.uuid;
+                    }
                 }
             }
         }
@@ -213,8 +218,12 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
         for (let i = 0; i < trackers.length; i++) {
             const currTracker = trackers[i];
             if (typeof currTracker != "undefined") {
-                if (currTracker.uuid == tracker1Id) {t1Index = i;}
-                if (currTracker.uuid == tracker2Id) {t2Index = i;}
+                if (currTracker.uuid == tracker1Id) {
+                    t1Index = i;
+                }
+                if (currTracker.uuid == tracker2Id) {
+                    t2Index = i;
+                }
             }
         }
         const tracker1 = trackers[t1Index];
@@ -222,10 +231,11 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
         if (typeof tracker1 != "undefined" && typeof tracker2 != "undefined") {
             const shape = getGlobalId(id);
             if (shape) {
-            if (syncTo == SERVER_SYNC) sendShapeSwapTrackerOrdering({shape: shape, tracker: tracker1Id, other_tracker: tracker2Id});
-            trackers[t1Index] = tracker2;
-            trackers[t2Index] = tracker1;
-            if (id === this._state.id) this.updateTrackerState();
+                if (syncTo == SERVER_SYNC)
+                    sendShapeSwapTrackerOrdering({ shape: shape, tracker: tracker1Id, other_tracker: tracker2Id });
+                trackers[t1Index] = tracker2;
+                trackers[t2Index] = tracker1;
+                if (id === this._state.id) this.updateTrackerState();
             }
         }
     }

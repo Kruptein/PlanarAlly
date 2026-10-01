@@ -1,4 +1,10 @@
-import type { ApiOptionalTracker, ApiTracker, ShapeSetStringValue, TrackerMove, TrackerSwapOrdering } from "../../../apiTypes";
+import type {
+    ApiOptionalTracker,
+    ApiTracker,
+    ShapeSetStringValue,
+    TrackerMove,
+    TrackerSwapOrdering,
+} from "../../../apiTypes";
 import { socket, wrapSocket } from "../../api/socket";
 
 export const sendShapeRemoveTracker = wrapSocket<ShapeSetStringValue>("Shape.Options.Tracker.Remove");
@@ -14,4 +20,4 @@ export const sendShapeUpdateTracker = (data: ApiOptionalTracker): void => {
 
 export const sendShapeSwapTrackerOrdering = (data: TrackerSwapOrdering): void => {
     socket.emit("Shape.Options.Tracker.SwapOrdering", data);
-}
+};

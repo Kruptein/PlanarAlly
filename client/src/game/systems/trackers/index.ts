@@ -5,7 +5,7 @@ import type { ApiCoreShape } from "../../../apiTypes";
 import { eventBus } from "../../../core/eventBus";
 import { hooks } from "../../../core/hooks";
 import type { LocalId } from "../../../core/id";
-import { type Sync } from "../../../core/models/types";
+import { SERVER_SYNC, type Sync } from "../../../core/models/types";
 import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { uuidv4 } from "../../../core/utils";
@@ -13,7 +13,7 @@ import { activeShapeStore } from "../../../store/activeShape";
 import { getGlobalId, getShape } from "../../id";
 
 import { partialTrackerToServer, toUiTrackers, trackersFromServer, trackersToServer } from "./conversion";
-import { sendShapeCreateTracker, sendShapeRemoveTracker, sendShapeUpdateTracker } from "./emits";
+import { sendShapeCreateTracker, sendShapeRemoveTracker, sendShapeUpdateTracker, sendShapeSwapTrackerOrdering } from "./emits";
 import type { Tracker, TrackerId, UiTracker } from "./models";
 import { createEmptyUiTracker } from "./utils";
 
@@ -207,15 +207,6 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
     }
 
     swapTrackerPositions(id: LocalId, tracker1Id: TrackerId, tracker2Id: TrackerId, syncTo: Sync): void {
-        //const tracker1 = this.get(id, tracker1Id);
-        //const tracker2 = this.get(id, tracker2Id);
-            //const newTracker1 = { ...tracker2 };
-            //const newTracker2 = { ...tracker1 };
-            //newTracker1.uuid = tracker1.uuid;
-            //newTracker2.uuid = tracker2.uuid;
-            //this.update(id, tracker1.uuid, newTracker1, syncTo);
-            //this.update(id, tracker2.uuid, newTracker2, syncTo);
-        console.log("Hi")
         const trackers = this.data.get(id) ?? [];
         let t1Index = -1;
         let t2Index = -1;
@@ -225,14 +216,17 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
                 if (currTracker.uuid == tracker1Id) {t1Index = i;}
                 if (currTracker.uuid == tracker2Id) {t2Index = i;}
             }
-            console.log("Hi2")
         }
         const tracker1 = trackers[t1Index];
         const tracker2 = trackers[t2Index];
         if (typeof tracker1 != "undefined" && typeof tracker2 != "undefined") {
+            const shape = getGlobalId(id);
+            if (shape) {
+            if (syncTo == SERVER_SYNC) sendShapeSwapTrackerOrdering({shape: shape, tracker: tracker1Id, other_tracker: tracker2Id});
             trackers[t1Index] = tracker2;
             trackers[t2Index] = tracker1;
             if (id === this._state.id) this.updateTrackerState();
+            }
         }
     }
 }

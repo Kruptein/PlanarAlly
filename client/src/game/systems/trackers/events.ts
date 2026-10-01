@@ -1,4 +1,4 @@
-import type { ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove } from "../../../apiTypes";
+import type { ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove, TrackerSwapOrdering } from "../../../apiTypes";
 import { UI_SYNC } from "../../../core/models/types";
 import { socket } from "../../api/socket";
 import { getLocalId } from "../../id";
@@ -34,4 +34,10 @@ socket.on("Shape.Options.Tracker.Move", (data: TrackerMove): void => {
 
     trackerSystem.remove(shape, data.tracker, UI_SYNC);
     trackerSystem.add(newShape, tracker, UI_SYNC);
+});
+
+socket.on("Shape.Options.Tracker.SwapOrdering", (data: TrackerSwapOrdering): void => {
+    const shape = getLocalId(data.shape);
+    if (shape === undefined) return;
+    trackerSystem.swapTrackerPositions(shape, data.tracker, data.other_tracker, UI_SYNC);
 });

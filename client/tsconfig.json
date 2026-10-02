@@ -15,7 +15,12 @@
         "types": ["vite/client", "@intlify/unplugin-vue-i18n/messages"],
         "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
         "skipLibCheck": true,
-        "noUncheckedIndexedAccess": true
+        "noUncheckedIndexedAccess": true,
+        "rootDir": "..",
+        "paths": {
+            "@planarally/mod-api": ["../mod-api/src/index.ts"],
+            "vue": ["./node_modules/vue"]
+        }
     },
     "include": ["src/**/*.ts", "src/**/*.vue", "test/**/*.ts"],
     "exclude": ["node_modules"]

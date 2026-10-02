@@ -25,6 +25,7 @@ from ...db.typed import safe_update_model_from_dict
 from ...logs import logger
 from ...models.access import has_ownership
 from ...models.role import Role
+from ...mods.dev import load_dev_mods
 from ...state.game import game_state
 from ...transform.to_api.asset import transform_asset_entry
 from ...transform.to_api.floor import transform_floor
@@ -98,9 +99,14 @@ async def load_location(sid: str, location: Location, *, complete=False):
     # 1. Load room info
 
     if complete:
+        dev_mods = load_dev_mods()
+        dev_tags = {mod.tag for mod in dev_mods}
         mods = [
-            ApiModMeta(**mod.mod.as_pydantic().model_dump()) for mod in ModRoom.select().where(ModRoom.room == pr.room)
+            ApiModMeta(**mod.mod.as_pydantic().model_dump())
+            for mod in ModRoom.select().where(ModRoom.room == pr.room)
+            if mod.mod.tag not in dev_tags
         ]
+        mods.extend(dev_mods)
         await _send_game(
             "Room.Info.Set",
             RoomInfoSet(

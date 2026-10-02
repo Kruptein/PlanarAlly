@@ -49,6 +49,7 @@ async def root_dev(request):
 storage = get_storage()
 if isinstance(storage, LocalStorageBackend):
     main_app.router.add_static(f"{subpath}/static/assets", storage.assets_dir)
+main_app.router.add_get(f"{subpath}/static/mods-dev/{{tag}}/{{filepath:.+}}", mods.serve_dev)
 main_app.router.add_static(f"{subpath}/static", STATIC_DIR)
 main_app.router.add_get(f"{subpath}/api/auth", auth.is_authed)
 main_app.router.add_post(f"{subpath}/api/users/email", users.set_email)

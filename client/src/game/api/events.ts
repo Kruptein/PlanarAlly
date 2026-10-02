@@ -22,6 +22,7 @@ import "./events/client";
 import "./events/floor";
 import "./events/initiative";
 import "./events/location";
+import "./events/mods";
 import "./events/logic";
 import "./events/notification";
 import "./events/player/options";

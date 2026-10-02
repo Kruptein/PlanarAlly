@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { useTemplateRef, type ComputedRef } from "vue";
+import { ref, useTemplateRef, type ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useToast } from "vue-toastification";
 
 import type { ApiModMeta } from "../../../apiTypes";
 import { http } from "../../../core/http";
-import { loadedMods, loadMod } from "../../../mods";
-import { modEvents } from "../../../mods/events";
-import { sendLinkModToRoom, sendRemoveModFromRoom } from "../../api/emits/mods";
+import { devModsActive, loadedMods } from "../../../mods";
+import { sendLinkModToRoom, sendReloadDevMods, sendRemoveModFromRoom } from "../../api/emits/mods";
 
 defineProps<{ global: boolean; tabSelected: ComputedRef<string> }>();
 
@@ -15,6 +14,11 @@ const { t } = useI18n();
 const toast = useToast();
 
 const uploadInput = useTemplateRef<HTMLInputElement>("uploadInput");
+const selectedName = ref<string>();
+
+function onFileChange(): void {
+    selectedName.value = uploadInput.value?.files?.[0]?.name;
+}
 
 function addMod(): void {
     const file = uploadInput.value?.files?.[0];
@@ -27,19 +31,6 @@ function addMod(): void {
             const response = await http.post("/api/mod/upload", data);
             if (response.status === 200) {
                 const mod = (await response.json()) as ApiModMeta;
-                try {
-                    // Load mod and initial calls it missed due to late loading
-                    const modData = await loadMod(mod);
-                    if (modData) {
-                        await modEvents.gameOpened([modData]);
-                        await modEvents.locationLoaded([modData]);
-                    }
-                } catch (error) {
-                    console.error(`Failed to load mod ${mod.tag} ${mod.version} ${mod.hash}`, error);
-                    toast.error(`Failed to load mod ${mod.tag} ${mod.version} ${mod.hash}`, {
-                        timeout: false,
-                    });
-                }
                 sendLinkModToRoom({
                     tag: mod.tag,
                     version: mod.version,
@@ -51,17 +42,17 @@ function addMod(): void {
             }
         }
         uploadInput.value!.value = "";
+        selectedName.value = undefined;
     });
     reader.readAsArrayBuffer(file);
 }
 
-function removeMod(id: string, meta: ApiModMeta): void {
+function removeMod(meta: ApiModMeta): void {
     sendRemoveModFromRoom({
         tag: meta.tag,
         version: meta.version,
         hash: meta.hash,
     });
-    loadedMods.value = loadedMods.value.filter((mod) => mod.id !== id);
 }
 </script>
 
@@ -71,18 +62,29 @@ function removeMod(id: string, meta: ApiModMeta): void {
         <div class="spanrow header">Add new mod</div>
         <div class="row">
             <label>Mod file (.pam):</label>
-            <div style="display: flex; flex-direction: column">
-                <input ref="uploadInput" type="file" accept=".pam" />
-                <button @click="addMod">{{ t("common.submit") }}</button>
+            <div class="actions">
+                <span class="filename" :class="{ empty: selectedName === undefined }">
+                    {{ selectedName ?? "No file chosen" }}
+                </span>
+                <button type="button" @click="uploadInput?.click()">Choose file</button>
+                <button type="button" :disabled="selectedName === undefined" @click="addMod">
+                    {{ t("common.submit") }}
+                </button>
+                <input ref="uploadInput" type="file" accept=".pam" hidden @change="onFileChange" />
+            </div>
+        </div>
+        <div v-if="devModsActive" class="row">
+            <label>Development mods</label>
+            <div class="actions">
+                <button type="button" @click="sendReloadDevMods">Reload dev mods</button>
             </div>
         </div>
         <div class="spanrow header">List of added mods</div>
         <template v-for="mod in loadedMods" :key="mod.id">
             <div class="row">
-                <label>{{ mod.meta.tag }} {{ mod.meta.version }}</label>
+                <label>{{ mod.meta.tag }} {{ mod.meta.version }}<template v-if="mod.meta.dev"> (dev)</template></label>
                 <div>
-                    <!-- <button class="toggle" :aria-pressed="true" @click="toggle"></button> -->
-                    <font-awesome-icon icon="trash-alt" @click="removeMod(mod.id, mod.meta)" />
+                    <font-awesome-icon v-if="!mod.meta.dev" icon="trash-alt" @click="removeMod(mod.meta)" />
                 </div>
             </div>
             <div class="description">{{ mod.meta.shortDescription }}</div>
@@ -92,6 +94,23 @@ function removeMod(id: string, meta: ApiModMeta): void {
 </template>
 
 <style lang="scss" scoped>
+.actions {
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.filename {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 12rem;
+
+    &.empty {
+        color: #767676;
+        font-style: italic;
+    }
+}
+
 .description {
     grid-column: span 2;
     padding-left: 1rem;

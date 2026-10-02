@@ -1,55 +1,27 @@
-import { eventBus } from "../core/eventBus";
-import { hooks } from "../core/hooks";
-import { SYSTEMS, SYSTEMS_STATE } from "../core/systems";
-import { getGlobalId, getShape } from "../game/id";
-import { registerContextMenuEntry, registerTab } from "../game/systems/ui/mods";
+import { buildModApi } from "./hostApi";
 
-import { getDataBlockFunctions } from "./db";
-
+import type { LoadedMod } from ".";
 import { loadedMods, modsLoading } from ".";
 
-async function gameOpened(mods?: (typeof loadedMods.value)[number][]): Promise<void> {
-    // It's timing dependent whether the main Game.vue loads before or after the mod info is transferred over the socket
-    // So we wait here for the mods to have loaded, to ensure that they all receive the initGame call
+async function gameOpened(mods?: LoadedMod[]): Promise<void> {
+    // Game.vue and the room mod list race each other, so wait until the list has been applied.
     await modsLoading;
 
-    const { activateTool } = await import("../game/tools/tools");
-    const { modals } = await import("../core/plugins/modals/plugin");
-
-    const promises: Promise<void>[] = [];
-    for (const { id, mod, meta } of mods ?? loadedMods.value) {
-        try {
-            promises.push(
-                Promise.resolve(
-                    mod.events?.initGame?.({
-                        systems: SYSTEMS,
-                        systemsState: SYSTEMS_STATE,
-                        ui: {
-                            shape: {
-                                registerContextMenuEntry,
-                                registerTab,
-                            },
-                            modals,
-                        },
-                        gameplay: {
-                            activateTool,
-                        },
-                        getGlobalId,
-                        getShape,
-                        eventBus,
-                        hooks,
-                        ...getDataBlockFunctions(meta.tag),
-                    }),
-                ),
-            );
-        } catch (e) {
-            console.error("Failed to call initGame on mod", id, "\n", e);
-        }
-    }
-    await Promise.allSettled(promises);
+    const pending = (mods ?? loadedMods.value).filter((entry) => !entry.gameStarted);
+    for (const entry of pending) entry.gameStarted = true;
+    await Promise.allSettled(
+        pending.map(async (entry) => {
+            try {
+                const api = await buildModApi(entry.id, entry.meta.tag);
+                await entry.mod.events?.initGame?.(api);
+            } catch (error) {
+                console.error("Failed to call initGame on mod", entry.id, "\n", error);
+            }
+        }),
+    );
 }
 
-async function locationLoaded(mods?: (typeof loadedMods.value)[number][]): Promise<void> {
+async function locationLoaded(mods?: LoadedMod[]): Promise<void> {
     await Promise.allSettled(
         (mods ?? loadedMods.value).map(({ mod }) => Promise.resolve(mod.events?.loadLocation?.())),
     );

@@ -1,0 +1,26 @@
+{
+    "name": "@planarally/mod-api",
+    "version": "0.1.0",
+    "description": "Types and helpers for PlanarAlly mods.",
+    "license": "MIT",
+    "type": "module",
+    "scripts": {
+        "build": "tsc -p tsconfig.json"
+    },
+    "files": [
+        "dist"
+    ],
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "peerDependencies": {
+        "vue": "^3.5.0"
+    },
+    "devDependencies": {
+        "typescript": "^6.0.3"
+    }
+}

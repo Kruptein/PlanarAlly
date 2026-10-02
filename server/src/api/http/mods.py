@@ -5,16 +5,12 @@ from zipfile import BadZipFile, ZipFile
 
 import rtoml
 from aiohttp import web
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from ...auth import get_authorized_user
 from ...db.models.mod import Mod
 from ...utils import MODS_DIR
-from ..models.mods import CoreModMeta
-
-
-class Config(BaseModel):
-    mod: CoreModMeta
+from ..models.mods import ModToml
 
 
 async def upload(request: web.Request) -> web.Response:
@@ -36,7 +32,7 @@ async def upload(request: web.Request) -> web.Response:
             has_css = "index.css" in files
 
             try:
-                mod_meta = Config(
+                mod_meta = ModToml(
                     **rtoml.load(zip_file.read("mod.toml").decode("utf-8")),
                 )
             except (rtoml.TomlParsingError, UnicodeDecodeError):
@@ -72,3 +68,12 @@ async def upload(request: web.Request) -> web.Response:
         return web.HTTPBadRequest(text="Invalid mod: not a valid pam file")
 
     return web.json_response(mod.as_pydantic().model_dump())
+
+
+async def serve_dev(request: web.Request) -> web.StreamResponse:
+    from ...mods.dev import resolve_dev_file
+
+    path = resolve_dev_file(request.match_info["tag"], request.match_info["filepath"])
+    if path is None:
+        raise web.HTTPNotFound()
+    return web.FileResponse(path, headers={"Cache-Control": "no-store"})

@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 [DM] denotes changes only useful for the dungeon master\
 [server] denotes changes only useful for the server owner\
+[mods] denotes changes related to modding\
 [tech] denotes internal technical changes that are only useful for code contributors\
 tech changes will usually be stripped from release notes for the public
 [lang] this is a change to some translation string
@@ -15,6 +16,10 @@ tech changes will usually be stripped from release notes for the public
 -   During panning and zooming a lower resolution render is now used if slower render times are detected
 -   Mirror action to shapes derived from assets
 -   [server] Added base server stats overview to admin panel
+-   [mods/server] Config now accepts a list of folders to auto-(re)load mods during mod development.
+-   [mods/DM] Uploading a new `.pam` whose tag is already in the campaign replaces that mod for everyone in the room
+-   [mods] Mods can export `events.dispose`. The host calls it before dropping tabs, context entries, event listeners, and hooks that the mod registered
+-   [mods] Mod-facing types now live in a published package (`@planarally/mod-api`)
 
 ### Changed
 

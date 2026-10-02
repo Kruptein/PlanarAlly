@@ -337,6 +337,10 @@ export interface ApiLocationUserOption {
   active_layer?: string;
   active_floor?: string;
 }
+export interface ApiDevModsUpdate {
+  mods: ApiModMeta[];
+  force: boolean;
+}
 export interface ApiModLink {
   tag: string;
   version: string;
@@ -352,6 +356,12 @@ export interface ApiModMeta {
   description: string;
   hash: string;
   hasCss: boolean;
+  dev: boolean;
+  reloadToken: string;
+}
+export interface ApiModReplace {
+  mod: ApiModMeta;
+  previous: ApiModLink[];
 }
 export interface ApiNoteAccessEdit extends ApiNoteAccess {
   note: NoteId;

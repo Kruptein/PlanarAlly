@@ -103,6 +103,18 @@ class FileLoggingConfig(LoggingConfig):
     file_path: str = "data/planarally.log"
 
 
+class ModsConfig(ConfigModel):
+    # Directories of unpacked mods used while developing.
+    # Each entry is either a mod directory (mod.toml plus index.js, or dist/index.js)
+    # or a directory whose immediate children are mod directories.
+    # Paths are relative to the server directory unless absolute.
+    # Leave this empty on a production server.
+    #
+    # Example, from server/data/config.toml, pointing at the sibling mods repo:
+    # dev_directories = ["../../planarally-mods/packages"]
+    dev_directories: list[str] = []
+
+
 class GeneralConfig(ConfigModel):
     # Location of the save file
     # This is relative to the server root
@@ -160,6 +172,7 @@ class StatsConfig(ConfigModel):
 
 class ServerConfig(ConfigModel):
     general: GeneralConfig = GeneralConfig()
+    mods: ModsConfig = ModsConfig()
     assets: AssetsConfig = AssetsConfig()
     webserver: WebserverConfig = WebserverConfig()
     stats: StatsConfig = StatsConfig()

@@ -58,6 +58,9 @@ if sys.platform.startswith("win"):
 async def on_cleanup(_):
     # Stop config observer
     config.config_manager.cleanup()
+    from .mods.watch import stop_dev_mod_watcher
+
+    stop_dev_mod_watcher()
 
     # Close database connection
     db.close()
@@ -159,6 +162,9 @@ async def start_server(server_section: Literal["Webserver"], cfg: WebserverConfi
 
 
 async def start_servers():
+    from .mods.watch import start_dev_mod_watcher
+
+    start_dev_mod_watcher()
     cfg = config.cfg()
     print()
     await start_server("Webserver", cfg.webserver)

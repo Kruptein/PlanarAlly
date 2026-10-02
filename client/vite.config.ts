@@ -58,6 +58,10 @@ export default defineConfig({
     resolve: {
         alias: [
             {
+                find: "@planarally/mod-api",
+                replacement: fileURLToPath(new URL("../mod-api/src/index.ts", import.meta.url)),
+            },
+            {
                 find: new RegExp("^vue$"),
                 replacement: viteEnv.VITE_VUE_URL.startsWith(".")
                     ? fileURLToPath(new URL(viteEnv.VITE_VUE_URL, import.meta.url))

@@ -26,6 +26,9 @@ server/build/**
 # JS
 client/coverage/**
 client/node_modules/**
+mod-api/dist/**
+mod-api/node_modules/**
+mod-api/*.tgz
 
 # PlanarAlly
 server/planarallyserver.log*
@@ -44,6 +47,7 @@ server/static/vite-admin/**
 server/templates/**
 server/static/temp/**
 server/static/mods/**
+server/mods-dev/**
 
 # docs
 docs/_build

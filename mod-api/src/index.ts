@@ -1,4 +1,4 @@
-import type { Component, MaybeRef, Ref } from "vue";
+import type { Component, DeepReadonly, MaybeRef, Reactive, Ref } from "vue";
 
 export type NumberId<T extends string> = number & { __brand: T };
 export type StringId<T extends string> = string & { __brand: T };
@@ -38,7 +38,7 @@ interface TrackerState {
 }
 
 interface TrackerSystem {
-  state: { readonly reactive: TrackerState };
+  state: DeepReadonly<Reactive<TrackerState>>;
   get(id: LocalId, trackerId: TrackerId, includeParent: boolean): Readonly<Tracker> | undefined;
   getOrCreate(
     id: LocalId,
@@ -245,14 +245,6 @@ export interface ModEvents {
   initGame?: (data: GameApi) => Promise<void> | void;
   loadLocation?: () => Promise<void> | void;
   dispose?: () => Promise<void> | void;
-
-  // Kept so existing mods still typecheck. The host does not call this yet.
-  preTrackerUpdate?: (
-    id: LocalId,
-    tracker: Tracker,
-    delta: Partial<Tracker>,
-    syncTo: Sync,
-  ) => Partial<Tracker>;
 }
 
 export interface Mod {

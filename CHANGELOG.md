@@ -28,6 +28,7 @@ tech changes will usually be stripped from release notes for the public
 ### Fixed
 
 -   Locked shapes were movable by keyboard navigation
+-   Dice macro UI was empty for shapes with a local ID of 1
 -   [DM] Location cloning was no longer opening the cloned location immediately
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons

@@ -1,31 +1,26 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import type { LocalId } from "../../../../core/id";
 import { activeShapeStore } from "../../../../store/activeShape";
 import DiceFormat from "../../../systems/customData/components/DiceFormat.vue";
 import { customDataState } from "../../../systems/customData/state";
-import { DiceUiState } from "../../../systems/dice/types";
+import { diceState } from "../../../systems/dice/state";
 import { selectedSystem } from "../../../systems/selected";
 import { uiState } from "../../../systems/ui/state";
 import { ShapeSettingCategory } from "../../settings/shape/categories";
 
-const { active } = defineProps<{
-    active: LocalId | DiceUiState;
-}>();
-
-function isShape(_active: LocalId | DiceUiState): _active is LocalId {
-    return ![DiceUiState.Roll, DiceUiState.Macro].includes(_active);
-}
-
 const macros = computed(() => {
-    if (!isShape(active)) return [];
-    return customDataState.reactive.data.get(active)?.filter((data) => data.kind === "dice-expression") ?? [];
+    if (diceState.reactive.uiActiveShapeId === undefined) return [];
+    return (
+        customDataState.reactive.data
+            .get(diceState.reactive.uiActiveShapeId)
+            ?.filter((data) => data.kind === "dice-expression") ?? []
+    );
 });
 
 function openSettings(): void {
-    if (!isShape(active)) return;
-    selectedSystem.focus(active);
+    if (diceState.reactive.uiActiveShapeId === undefined) return;
+    selectedSystem.focus(diceState.reactive.uiActiveShapeId);
     uiState.mutableReactive.activeShapeTab = ShapeSettingCategory.CustomData;
     activeShapeStore.setShowEditDialog(true);
 }
@@ -41,7 +36,7 @@ function openSettings(): void {
             <div class="macro-prefix">{{ macro.prefix.slice(1) }}</div>
             <div>
                 <strong>{{ macro.name }}</strong>
-                <DiceFormat :element="macro" :shape-focus="isShape(active) ? active : undefined" />
+                <DiceFormat :element="macro" :shape-focus="diceState.reactive.uiActiveShapeId" />
             </div>
         </div>
     </div>

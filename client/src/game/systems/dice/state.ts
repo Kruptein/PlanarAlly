@@ -8,7 +8,8 @@ import type { AsyncReturnType } from "../../../core/types";
 import { DiceUiState } from "./types";
 
 interface DiceState {
-    uiState: LocalId | DiceUiState;
+    uiState: DiceUiState;
+    uiActiveShapeId: LocalId | undefined;
     textInput: string;
     lastCursorPosition: number;
     updateInputCursor: boolean;
@@ -23,6 +24,7 @@ interface DiceState {
 
 const state = buildState<DiceState>({
     uiState: DiceUiState.Roll,
+    uiActiveShapeId: undefined,
     lastCursorPosition: 0,
     updateInputCursor: false,
     dimensions3d: { width: 0, height: 0 },

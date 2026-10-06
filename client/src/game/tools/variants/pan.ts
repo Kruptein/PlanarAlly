@@ -49,10 +49,14 @@ class PanTool extends Tool implements ITool {
 
     onUp(lp: LocalPoint): Promise<void> {
         if (!this.active.value) return Promise.resolve();
-        this.active.value = false;
+        this.onPanEnd();
         this.panScreen(lp, true);
-        renderingState.mutableReactive.gestureScale = null;
         return Promise.resolve();
+    }
+
+    onPanEnd(): void {
+        this.active.value = false;
+        renderingState.mutableReactive.gestureScale = null;
     }
 }
 

@@ -176,6 +176,8 @@ async function contextMenu(event: MouseEvent): Promise<void> {
     if (uiState.raw.preventContextMenu) return;
     if (event.button !== 2) return;
     const tool = getActiveTool();
+    toolMap[tool.toolName].onPanEnd();
+    toolMap[ToolName.Pan].onPanEnd();
 
     for (const permitted of tool.permittedTools) {
         if (!(permitted.early ?? false)) continue;

@@ -34,7 +34,7 @@
         "path-data-polyfill": "^1.0.10",
         "socket.io-client": "^4.8.3",
         "tinycolor2": "^1.6.0",
-        "vue": "^3.5.41",
+        "vue": "^3.5.43",
         "vue-draggable-plus": "^0.6.1",
         "vue-i18n": "11.4.8",
         "vue-markdown-render": "^2.3.1",

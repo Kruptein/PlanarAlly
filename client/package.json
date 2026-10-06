@@ -52,7 +52,7 @@
         "bufferutil": "^4.1.0",
         "happy-dom": "^20.11.2",
         "json-schema-to-typescript": "^15.0.4",
-        "oxfmt": "^0.63.0",
+        "oxfmt": "^0.72.0",
         "oxlint": "^1.78.0",
         "oxlint-tsgolint": "^7.0.2001",
         "sass-embedded": "^1.102.0",

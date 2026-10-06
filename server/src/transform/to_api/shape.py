@@ -14,6 +14,7 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
 
     # Access checks
     tracker_query = shape.trackers
+    tracker_query = tracker_query.order_by(Tracker.ordering)
     aura_query = shape.auras
     name = shape.name
     if not edit_access:

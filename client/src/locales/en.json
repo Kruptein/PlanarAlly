@@ -245,6 +245,8 @@
                     "dialog": {
                         "current_value": "Current value",
                         "remove_tracker": "Remove tracker",
+                        "move_tracker_up": "Move tracker up",
+                        "move_tracker_down": "Move tracker down",
                         "dim_value": "Dim value",
                         "toggle_light_source": "Toggle light source",
                         "delete_aura": "Delete aura",

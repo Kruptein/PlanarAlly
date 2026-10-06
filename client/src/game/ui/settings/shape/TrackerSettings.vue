@@ -30,6 +30,20 @@ function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>
     trackerSystem.update(tracker.shape, tracker.uuid, delta, syncTo ? SERVER_SYNC : NO_SYNC);
 }
 
+function moveTrackerUp(tracker: DeepReadonly<UiTracker>): void {
+    const previousTrackerUUID = trackerSystem.getPreviousTrackerId(tracker.shape, tracker.uuid);
+    if (typeof previousTrackerUUID != "undefined") {
+        trackerSystem.swapTrackerPositions(tracker.shape, tracker.uuid, previousTrackerUUID, SERVER_SYNC);
+    }
+}
+
+function moveTrackerDown(tracker: DeepReadonly<UiTracker>): void {
+    const nextTrackerUUID = trackerSystem.getNextTrackerId(tracker.shape, tracker.uuid);
+    if (typeof nextTrackerUUID != "undefined") {
+        trackerSystem.swapTrackerPositions(tracker.shape, tracker.uuid, nextTrackerUUID, SERVER_SYNC);
+    }
+}
+
 function removeTracker(tracker: TrackerId): void {
     const id = activeShapeStore.state.id;
     if (!owned.value || id === undefined) return;
@@ -64,6 +78,24 @@ function removeAura(aura: AuraId): void {
             <div v-for="tracker of trackerSystem.state.trackers" :key="tracker.uuid" class="aura">
                 <div class="summary">
                     <label class="name" :for="'check-' + tracker.uuid">{{ tracker.name }}</label>
+                    <div
+                        v-if="!tracker.temporary"
+                        :disabled="!owned"
+                        :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
+                        :title="t('game.ui.selection.edit_dialog.dialog.move_tracker_up')"
+                        @click="moveTrackerUp(tracker)"
+                    >
+                        <font-awesome-icon icon="chevron-up" />
+                    </div>
+                    <div
+                        v-if="!tracker.temporary"
+                        :disabled="!owned"
+                        :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
+                        :title="t('game.ui.selection.edit_dialog.dialog.move_tracker_down')"
+                        @click="moveTrackerDown(tracker)"
+                    >
+                        <font-awesome-icon icon="chevron-down" />
+                    </div>
                     <div
                         v-if="!tracker.temporary"
                         :disabled="!owned"

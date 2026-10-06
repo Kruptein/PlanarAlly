@@ -9,9 +9,9 @@ import DiceMacros from "./dice/DiceMacros.vue";
 
 <template>
     <div id="dice" class="tool-detail">
-        <DiceMacroMenu v-model="diceState.mutableReactive.uiState" />
+        <DiceMacroMenu />
         <DiceCore v-show="diceState.reactive.uiState === DiceUiState.Roll" />
-        <DiceMacros v-show="diceState.reactive.uiState !== DiceUiState.Roll" :active="diceState.reactive.uiState" />
+        <DiceMacros v-show="diceState.reactive.uiState === DiceUiState.Macro" />
     </div>
 </template>
 

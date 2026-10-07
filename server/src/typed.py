@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Callable, overload
+from collections.abc import Callable
+from typing import TYPE_CHECKING, overload
 
 import socketio
 

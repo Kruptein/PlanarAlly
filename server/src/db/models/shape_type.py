@@ -23,10 +23,9 @@ class ShapeType(BaseDbModel):
         """
         Used for special shapes that need extra behaviour after being created.
         """
-        pass
 
     def as_pydantic(self, shape: ApiCoreShape) -> ApiShape:
-        raise Exception(f"{self.__class__.__name__} has no pydantic model")
+        raise Exception(f"{self.__class__.__name__} has no pydantic model")  # noqa: TRY002
 
     def get_center_offset(self) -> tuple[float, float]:
         return 0, 0

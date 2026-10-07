@@ -1,5 +1,6 @@
-from peewee import FloatField, ForeignKeyField, TextField
 from typing import cast
+
+from peewee import FloatField, ForeignKeyField, TextField
 
 from ...api.models.shape.variants import ApiVariant
 from ..base import BaseDbModel

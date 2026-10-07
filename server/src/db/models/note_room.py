@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, cast
 from peewee import DeferredForeignKey
 
 from ...api.models.note import ApiNoteRoom
-
 from ..base import BaseDbModel
 
 if TYPE_CHECKING:

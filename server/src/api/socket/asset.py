@@ -8,10 +8,10 @@ from ...db.models.asset_shortcut import AssetShortcut
 from ...db.models.player_room import PlayerRoom
 from ...state.game import game_state
 from ..models.asset.options import (
+    AssetTemplateInfo,
     AssetTemplatesInfoFail,
     AssetTemplatesInfoRequest,
     AssetTemplatesInfoSuccess,
-    AssetTemplateInfo,
 )
 
 

@@ -1,3 +1,5 @@
+from typing import assert_never
+
 from ...api.models.data_block import ApiDataBlock
 from ...db.models.data_block import DataBlock
 from ...db.models.player_room import PlayerRoom
@@ -17,4 +19,4 @@ def get_data_block(model: ApiDataBlock, pr: PlayerRoom) -> DataBlock | None:
         )
     elif model.category == "user":
         return UserDataBlock.get_or_none(source=model.source, name=model.name, user=pr.player)
-    raise Exception("Unknown db category discovered", model)
+    assert_never(model.category)

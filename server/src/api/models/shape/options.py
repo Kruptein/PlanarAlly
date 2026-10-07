@@ -48,7 +48,7 @@ class ShapeSetPermissionValue(TypeIdModel):
 
 class ShapeSetDoorToggleModeValue(TypeIdModel):
     shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
-    value: Literal["movement"] | Literal["vision"] | Literal["both"]
+    value: Literal["movement", "vision", "both"]
 
 
 class TeleportLocation(TypeIdModel):
@@ -58,7 +58,6 @@ class TeleportLocation(TypeIdModel):
 
 class ShapeSetTeleportLocationValue(TypeIdModel):
     shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
-    value: TeleportLocation
     value: TeleportLocation
 
 

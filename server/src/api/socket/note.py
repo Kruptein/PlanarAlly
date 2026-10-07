@@ -9,6 +9,8 @@ from ... import auth
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...db.db import db
+from ...db.models.asset import Asset
+from ...db.models.asset_rect import AssetRect
 from ...db.models.location import Location
 from ...db.models.note import Note
 from ...db.models.note_access import NoteAccess
@@ -19,8 +21,6 @@ from ...db.models.note_user_tag import NoteUserTag
 from ...db.models.player_room import PlayerRoom
 from ...db.models.room import Room
 from ...db.models.shape import Shape
-from ...db.models.asset import Asset
-from ...db.models.asset_rect import AssetRect
 from ...db.models.shape_room_view import ShapeRoomView
 from ...db.models.user import User
 from ...logs import logger
@@ -265,9 +265,8 @@ async def add_note_access(sid, raw_data: Any):
     for psid, user in game_state.get_users(skip_sid=sid, room=pr.room):
         if user == pr.player:
             await _send_game("Note.Access.Add", data.model_dump(), room=psid)
-        elif data.name == "default" or data.name == user.name:
-            if data.can_view:
-                await send_create_note(note, psid)
+        elif (data.name == "default" or data.name == user.name) and data.can_view:
+            await send_create_note(note, psid)
 
 
 @sio.on("Note.Access.Edit", namespace=GAME_NS)
@@ -541,10 +540,10 @@ async def search_notes(sid: str, raw_data: Any):
         .join(User, on=(Note.creator_id == User.id))
     )
 
-    access_direct = (Note.creator == pr.player) | ((NoteAccess.user == pr.player) & (NoteAccess.can_view == True))  # noqa: E712
+    access_direct = (Note.creator == pr.player) | ((NoteAccess.user == pr.player) & (NoteAccess.can_view == True))
     access_default = (
         (NoteAccess.user >> None)  # type: ignore
-        & (NoteAccess.can_view == True)  # noqa: E712
+        & (NoteAccess.can_view == True)
         & ((NoteRoom.room == pr.room) | (ShapeRoomView.room_id == pr.room.id))
     )
 

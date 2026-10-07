@@ -32,17 +32,17 @@ loop = asyncio.new_event_loop()
 if not save_newly_created:
     save.upgrade_save(loop=loop)
 
-from . import routes, stats  # noqa: F401, E402
-from .api import http  # noqa: F401, E402
+from . import routes, stats  # noqa: F401
+from .api import http  # noqa: F401
 
 # Force loading of socketio routes
-from .api.socket import load_socket_commands  # noqa: E402
-from .app import app as main_app  # noqa: E402
-from .app import runners, setup_runner, sio  # noqa: E402
-from .logs import logger  # noqa: E402
-from .state.asset import asset_state  # noqa: E402
-from .state.dashboard import dashboard_state  # noqa: E402
-from .state.game import game_state  # noqa: E402
+from .api.socket import load_socket_commands
+from .app import app as main_app
+from .app import runners, setup_runner, sio
+from .logs import logger
+from .state.asset import asset_state
+from .state.dashboard import dashboard_state
+from .state.game import game_state
 
 load_socket_commands()
 
@@ -195,8 +195,8 @@ def server_main(args):
         main_app.on_shutdown.append(on_shutdown)
 
         loop.run_forever()
-    except:
-        pass
+    except Exception as e:
+        logger.exception(e)
     finally:
         for runner in runners:
             loop.run_until_complete(runner.cleanup())

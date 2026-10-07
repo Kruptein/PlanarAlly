@@ -1,14 +1,12 @@
 import logging
 import sys
-
-from typing import cast
-from pathlib import Path
 from logging.handlers import RotatingFileHandler
-
+from pathlib import Path
+from typing import cast
 
 from .config import cfg
-from .utils import FILE_DIR
 from .config.types import FileLoggingConfig
+from .utils import FILE_DIR
 
 # SETUP LOGGING
 
@@ -56,7 +54,7 @@ for log_config in config.logging:
             file_handler.setFormatter(formatter)
             logger.addHandler(file_handler)
 
-logger.debug("Logger initialized with {} handler(s)".format(len(logger.handlers)))
+logger.debug(f"Logger initialized with {len(logger.handlers)} handler(s)")
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):

@@ -76,10 +76,10 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 offsetY += gridSize;
             }
             // in hex mode, if movement is diagonal, offsets have to be modified
-            if (locationSettingsState.raw.gridType.value === GridType.FlatHex && offsetX != 0) {
+            if (locationSettingsState.raw.gridType.value === GridType.FlatHex && offsetX !== 0) {
                 offsetX = (1.5 * offsetX) / Math.sqrt(3);
                 offsetY *= 0.5;
-            } else if (locationSettingsState.raw.gridType.value === GridType.PointyHex && offsetY != 0) {
+            } else if (locationSettingsState.raw.gridType.value === GridType.PointyHex && offsetY !== 0) {
                 offsetX *= 0.5;
                 offsetY = (1.5 * offsetY) / Math.sqrt(3);
             }

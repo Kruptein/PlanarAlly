@@ -3,7 +3,7 @@ from typing import cast
 from peewee import FloatField, ForeignKeyField, IntegerField
 from pydantic_core import MISSING
 
-from ...api.models.location.userOption import ApiLocationUserOption
+from ...api.models.location.user_option import ApiLocationUserOption
 from ..base import BaseDbModel
 from .layer import Layer
 from .location import Location

@@ -184,7 +184,7 @@ async function removeInitiative(actor: InitiativeData): Promise<void> {
         const result = await loadConfirmationDialog(t("game.ui.initiative.remove_group_msg"));
         if (!result) return;
     }
-    if (addEffect.value == actor.globalId) addEffect.value = null;
+    if (addEffect.value === actor.globalId) addEffect.value = null;
     initiativeStore.removeInitiative(actor.globalId, true);
 }
 

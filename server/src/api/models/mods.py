@@ -15,7 +15,7 @@ class ApiModMeta(CoreModMeta):
     hash: str
     hasCss: bool
     # True when this mod is served from a server-owner dev directory rather than an upload.
-    dev: bool = False
+    dev: bool
     # Changes whenever a dev mod's files change, so clients can bypass the module cache.
     reloadToken: str = ""
 

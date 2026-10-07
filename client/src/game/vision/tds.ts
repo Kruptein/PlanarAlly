@@ -209,7 +209,7 @@ export class EdgeCirculator {
         } else if (t === null) {
             this.t = v.triangle!;
         }
-        if (this.t == null || this.t.dimension < 1) {
+        if (this.t === null || this.t.dimension < 1) {
             this.ri = 0;
             this.v = null;
             this.t = null;
@@ -323,7 +323,7 @@ export class FaceCirculator {
         } else if (t === null) {
             this.t = v.triangle!;
         }
-        if (this.t == null || this.t.dimension < 2) {
+        if (this.t === null || this.t.dimension < 2) {
             this.v = null;
             this.t = null;
         }

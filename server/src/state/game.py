@@ -1,18 +1,16 @@
-from typing import Set
-
-from ..logs import logger
 from ..api.models.client import Viewport
 from ..api.socket.constants import GAME_NS
 from ..app import app, sio
 from ..db.models.player_room import PlayerRoom
 from ..db.models.user import User
+from ..logs import logger
 from . import State
 
 
 class GameState(State[PlayerRoom]):
     def __init__(self) -> None:
         super().__init__(GAME_NS)
-        self.client_temporaries: dict[str, Set[str]] = {}
+        self.client_temporaries: dict[str, set[str]] = {}
         self.client_viewports: dict[str, Viewport] = {}
 
     def get_user(self, sid: str) -> User:
@@ -22,7 +20,7 @@ class GameState(State[PlayerRoom]):
         await self.clear_temporaries(sid)
         if sid in self.client_viewports:
             del self.client_viewports[sid]
-        await super().remove_sid(sid)
+        super().remove_sid(sid)
 
     async def clear_temporaries(self, sid: str) -> None:
         if sid in self.client_temporaries:

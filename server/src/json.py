@@ -3,7 +3,7 @@ import json
 from pydantic import BaseModel
 
 
-class PydanticJson(object):
+class PydanticJson:
     @staticmethod
     def dumps(*args, **kwargs):
         if "cls" not in kwargs:

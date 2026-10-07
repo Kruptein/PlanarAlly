@@ -18,7 +18,7 @@ export default defineConfig({
     plugins: [
         vue({ template: { compilerOptions: { nodeTransforms: [transformLazyShow] } } }),
         vueI18n({
-            include: path.resolve(__dirname, "./src/locales/**"),
+            include: path.resolve(import.meta.dirname, "./src/locales/**"),
         }),
         ViteEjsPlugin({
             localVue: viteEnv.VITE_VUE_URL.startsWith("."),

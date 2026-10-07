@@ -57,7 +57,7 @@ socket.on("Asset.Share.Edit", (data: ApiAssetCreateShare) => {
     const assetData = assetState.mutableReactive.entryIdMap.get(data.asset);
     if (assetData) {
         for (const share of assetData.shares) {
-            if (share.user == data.user) share.right = data.right;
+            if (share.user === data.user) share.right = data.right;
         }
     }
 });

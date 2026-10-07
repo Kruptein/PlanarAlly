@@ -1,10 +1,10 @@
 import logging
 from functools import wraps
+from typing import Literal
 
 from aiohttp import web
 from aiohttp_security import authorized_userid
 from aiohttp_security.abc import AbstractAuthorizationPolicy
-from typing_extensions import Literal
 
 from .db.models.constants import Constants
 from .db.models.user import User
@@ -13,9 +13,8 @@ logger = logging.getLogger("PlanarAllyServer")
 
 
 async def get_authorized_user(request: web.Request):
-    if username := await authorized_userid(request):
-        if user := User.by_name(username):
-            return user
+    if (username := await authorized_userid(request)) and (user := User.by_name(username)):
+        return user
     raise web.HTTPUnauthorized()
 
 
@@ -35,7 +34,7 @@ class AuthPolicy(AbstractAuthorizationPolicy):
         return False
 
 
-def login_required(app, sio, state: Literal["game"] | Literal["asset"] | Literal["dashboard"]):
+def login_required(app, sio, state: Literal["game", "asset", "dashboard"]):
     """
     Decorator that restrict access only for authorized users in a websocket context.
     """

@@ -404,7 +404,7 @@ class VisionState extends Store<State> {
                 let bordersExterior = false;
                 for (let i = 0; i < 3; i++) {
                     const n = tri.neighbours[i];
-                    if (n != null && exterior.has(n)) {
+                    if (n !== null && n !== undefined && exterior.has(n)) {
                         bordersExterior = true;
                         break;
                     }

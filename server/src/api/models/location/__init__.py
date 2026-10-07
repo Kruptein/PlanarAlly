@@ -6,7 +6,7 @@ from ..helpers import TypeIdModel
 from .settings import *
 from .settings import ApiOptionalLocationOptions
 from .spawn_info import *
-from .userOption import *
+from .user_option import *
 
 
 class ApiLocationCore(BaseModel):

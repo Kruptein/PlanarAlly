@@ -29,7 +29,7 @@ def __replace_config_data(data: bytes) -> bytes:
 
 async def root(request):
     template = "index.html"
-    with open(FILE_DIR / "templates" / template, "rb") as f:
+    with open(FILE_DIR / "templates" / template, "rb") as f:  # noqa: ASYNC230
         data = __replace_config_data(f.read())
         return web.Response(body=data, content_type="text/html")
 
@@ -38,9 +38,11 @@ async def root_dev(request):
     port = 8080
     target_url = f"http://localhost:{port}{request.rel_url}"
     data = await request.read()
-    async with aiohttp.ClientSession() as client:
-        async with client.get(target_url, headers=request.headers, data=data) as response:
-            raw = __replace_config_data(await response.read())
+    async with (
+        aiohttp.ClientSession() as client,
+        client.get(target_url, headers=request.headers, data=data) as response,
+    ):
+        raw = __replace_config_data(await response.read())
     return web.Response(body=raw, status=response.status, headers=response.headers)
 
 

@@ -1,5 +1,4 @@
-from typing import cast
-from typing_extensions import Any
+from typing import Any, cast
 
 from peewee import TextField
 

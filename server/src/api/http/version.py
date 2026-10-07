@@ -17,7 +17,7 @@ try:
 
     try:
         env_version = subprocess.check_output(["git", "describe", "--tags"]).strip().decode("utf-8")
-    except:
+    except:  # noqa: S110
         pass
 
     if "PA_GIT_INFO" in os.environ:

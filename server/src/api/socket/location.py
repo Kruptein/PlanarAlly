@@ -307,8 +307,8 @@ async def set_location_options(sid: str, raw_data: Any):
     options.save()
 
     if data.location is MISSING:
-        for sid in game_state.get_sids(skip_sid=sid, room=pr.room):
-            await _send_game("Location.Options.Set", raw_data, room=sid)
+        for psid in game_state.get_sids(skip_sid=sid, room=pr.room):
+            await _send_game("Location.Options.Set", raw_data, room=psid)
     else:
         await _send_game(
             "Location.Options.Set",

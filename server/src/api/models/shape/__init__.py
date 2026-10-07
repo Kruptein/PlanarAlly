@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from pydantic import BaseModel, Field
 from pydantic_core import MISSING
 
@@ -11,10 +9,6 @@ from .owner import *
 from .position import *
 from .shape import *
 from .subtypes import *
-
-if TYPE_CHECKING:
-    from .subtypes import ApiShapeSubType
-
 
 ApiShape = ApiShapeSubType
 

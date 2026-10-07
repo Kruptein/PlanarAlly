@@ -1,6 +1,6 @@
 import hashlib
 import io
-from datetime import datetime
+from datetime import UTC, datetime
 from zipfile import BadZipFile, ZipFile
 
 import rtoml
@@ -55,7 +55,7 @@ async def upload(request: web.Request) -> web.Response:
                 hash=hash_data,
                 defaults={
                     "api_schema": mod_meta.mod.apiSchema,
-                    "first_uploaded_at": datetime.now(),
+                    "first_uploaded_at": datetime.now(tz=UTC),
                     "first_uploaded_by": user,
                     "author": mod_meta.mod.author,
                     "description": mod_meta.mod.description,

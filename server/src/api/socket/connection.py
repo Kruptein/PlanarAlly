@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import UTC, datetime
 from urllib.parse import unquote
 
 from aiohttp import web
@@ -43,9 +43,9 @@ async def connect(sid, environ):
             return False
 
     pr: PlayerRoom = PlayerRoom.get(room=room, player=user)
-    pr.last_played = date.today()
+    pr.last_played = datetime.now(tz=UTC).date()
     pr.save()
-    await game_state.add_sid(sid, pr)
+    game_state.add_sid(sid, pr)
 
     logger.info(f"User {user.name} connected with identifier {sid}")
 

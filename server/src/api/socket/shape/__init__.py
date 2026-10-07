@@ -11,9 +11,9 @@ from ....db.db import db
 from ....db.models.asset import Asset
 from ....db.models.asset_rect import AssetRect
 from ....db.models.circle import Circle
-from ....db.models.font_awesome import FontAwesome
 from ....db.models.circular_token import CircularToken
 from ....db.models.floor import Floor
+from ....db.models.font_awesome import FontAwesome
 from ....db.models.layer import Layer
 from ....db.models.location import Location
 from ....db.models.player_room import PlayerRoom
@@ -174,7 +174,7 @@ async def send_remove_shapes(data: list[str], *, room: str, skip_sid: str | None
 
 
 def _get_shapes_from_uuids(uuids: list[str], filter_layer: bool) -> SelectSequence[Shape]:
-    query = Shape.select().where((Shape.uuid << uuids))  # type: ignore
+    query = Shape.select().where(Shape.uuid << uuids)  # type: ignore
     if filter_layer:
         query = query.where(~(Shape.layer >> None))  # type: ignore
     return query

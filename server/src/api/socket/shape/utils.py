@@ -1,4 +1,4 @@
-from typing import Generator
+from collections.abc import Generator
 
 from ....db.models.player_room import PlayerRoom
 from ....db.models.shape import Shape
@@ -10,9 +10,9 @@ from ....state.game import game_state
 def get_shape_or_none(pr: PlayerRoom, shape_id: str, action: str) -> Shape | None:
     try:
         shape: Shape = Shape.get(uuid=shape_id)
-    except Shape.DoesNotExist as exc:
+    except Shape.DoesNotExist:
         logger.warning(f"Attempt by {pr.player.name} on unknown shape. {{method: {action}, shape id: {shape_id}}}")
-        raise exc
+        raise
 
     if not has_ownership(shape, pr, edit=True):
         logger.warning(
@@ -23,7 +23,7 @@ def get_shape_or_none(pr: PlayerRoom, shape_id: str, action: str) -> Shape | Non
     return shape
 
 
-def get_owner_sids(pr: PlayerRoom, shape: Shape, skip_sid=None) -> Generator[str, None, None]:
+def get_owner_sids(pr: PlayerRoom, shape: Shape, skip_sid=None) -> Generator[str]:
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=skip_sid):
         if has_ownership(shape, game_state.get(psid), edit=True):
             yield psid

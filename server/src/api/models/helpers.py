@@ -1,12 +1,8 @@
-from typing import TypeVar
-
 from pydantic import BaseModel, ConfigDict
 from pydantic_core import MISSING
 
-T = TypeVar("T")
 
-
-def missing_to_none(value: T | MISSING) -> T | None:
+def missing_to_none[T](value: T | MISSING) -> T | None:
     if value is MISSING:
         return None
     return value

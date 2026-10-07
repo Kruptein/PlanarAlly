@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from .... import stats
@@ -26,14 +26,11 @@ def is_admin(user: User) -> bool:
 @sio.on("connect", namespace=ADMIN_NS)
 async def admin_connect(sid: str, environ):
     user = await get_authorized_user(environ["aiohttp.request"])
-    if user is None:
-        await sio.disconnect(sid, ADMIN_NS)
-        return
-    elif not is_admin(user):
+    if user is None or not is_admin(user):
         await sio.disconnect(sid, ADMIN_NS)
         return
 
-    await admin_state.add_sid(sid, user)
+    admin_state.add_sid(sid, user)
 
     await send_notifications(sid)
 
@@ -43,7 +40,7 @@ async def disconnect(sid):
     if not admin_state.has_sid(sid):
         return
 
-    await admin_state.remove_sid(sid)
+    admin_state.remove_sid(sid)
 
 
 async def send_notifications(sid):
@@ -60,10 +57,10 @@ async def stats_overview(sid: str):
     if not is_admin(user):
         return
 
-    now = datetime.now()
+    now = datetime.now(tz=UTC)
     activity_cutoff = now - timedelta(days=30)
     first_chart_day = (now - timedelta(days=13)).date()
-    chart_cutoff = datetime.combine(first_chart_day, datetime.min.time())
+    chart_cutoff = datetime.combine(first_chart_day, datetime.min.time(), tzinfo=UTC)
 
     def count_events(kind: StatsKind) -> int:
         return Stats.select().where(Stats.kind == kind, Stats.timestamp >= activity_cutoff).count()

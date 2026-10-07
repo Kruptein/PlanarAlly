@@ -12,12 +12,12 @@ from ....db.models.asset_entry import AssetEntry
 from ....db.models.user import User
 from ....logs import logger
 from ....state.asset import asset_state
-from ....transform.to_api.asset import transform_asset_entry
 from ....storage import get_storage
+from ....transform.to_api.asset import transform_asset_entry
 from ...models.asset import (
-    ApiAssetEntry,
     ApiAssetAdd,
     ApiAssetCreateFolder,
+    ApiAssetEntry,
     ApiAssetFolder,
     ApiAssetInodeMove,
     ApiAssetRename,
@@ -39,7 +39,7 @@ async def assetmgmt_connect(sid: str, environ):
     if user is None:
         await sio.emit("redirect", "/", room=sid, namespace=ASSET_NS)
     else:
-        await asset_state.add_sid(sid, user)
+        asset_state.add_sid(sid, user)
         root = AssetEntry.get_root_folder(user)
         await sio.emit("Folder.Root.Set", root.id, room=sid, namespace=ASSET_NS)
 
@@ -49,7 +49,7 @@ async def disconnect(sid):
     if not asset_state.has_sid(sid):
         return
 
-    await asset_state.remove_sid(sid)
+    asset_state.remove_sid(sid)
 
 
 def _get_folder(entry: AssetEntry, user: User, *, path: list[int] | None):
@@ -322,10 +322,9 @@ async def assetmgmt_upload(sid: str, raw_data: Any):
 
     user = asset_state.get_user(sid)
 
-    if entry := AssetEntry.get_or_none(id=upload_data.directory):
-        if not entry.can_be_accessed_by(user, right="edit"):
-            logger.warning(f"{user.name} attempted to upload into a folder they don't own")
-            return
+    if (entry := AssetEntry.get_or_none(id=upload_data.directory)) and not entry.can_be_accessed_by(user, right="edit"):
+        logger.warning(f"{user.name} attempted to upload into a folder they don't own")
+        return
 
     uuid = upload_data.uuid
 

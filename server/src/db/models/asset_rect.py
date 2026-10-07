@@ -1,5 +1,4 @@
-from typing import Any, cast
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from peewee import ForeignKeyField
 from playhouse.shortcuts import model_to_dict

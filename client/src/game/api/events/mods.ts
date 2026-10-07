@@ -20,7 +20,7 @@ socket.on("Mods.Room.Removed", (data: ApiModLink) => {
 });
 
 socket.on("Mods.Dev.Updated", (data: ApiDevModsUpdate) => {
-    syncDevMods(data.mods, data.force).catch((error: unknown) => {
+    syncDevMods(data.mods, data.force ?? false).catch((error: unknown) => {
         console.error("Failed to reload dev mods", error);
         toast.error("Failed to reload dev mods", { timeout: false });
     });

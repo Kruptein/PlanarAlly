@@ -74,8 +74,8 @@ async def set_player_role(sid: str, raw_data: Any):
     player_pr.role = new_role
     player_pr.save()
 
-    for sid in game_state.get_sids(player=player_pr.player, room=pr.room):
-        await sio.disconnect(sid, namespace=GAME_NS)
+    for psid in game_state.get_sids(player=player_pr.player, room=pr.room):
+        await sio.disconnect(psid, namespace=GAME_NS)
 
     for psid in game_state.get_sids(room=pr.room):
         if game_state.get(psid).role == Role.DM:

@@ -1,30 +1,27 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic, Iterator, Sequence, Type, TypeVar
+from collections.abc import Iterator, Sequence
+from typing import TYPE_CHECKING, Any, Self
 
 from peewee import Database, ModelDelete, ModelSelect, ModelUpdate
 from playhouse.shortcuts import update_model_from_dict
-from typing_extensions import Self
 
 if TYPE_CHECKING:
     from .base import BaseDbModel
-
-
-T = TypeVar("T", bound="TypedModel")
 
 
 def safe_update_model_from_dict(instance: TypedModel, data: dict, ignore_unknown=False):
     update_model_from_dict(instance, data, ignore_unknown=ignore_unknown)
 
 
-class SelectSequence(Generic[T], Sequence[T], ModelSelect):
+class SelectSequence[T: "TypedModel"](Sequence[T], ModelSelect):
     def count(self) -> int: ...  # pyright: ignore [reportIncompatibleMethodOverride]
 
     def exists(self) -> bool: ...  # pyright: ignore [reportIncompatibleMethodOverride]
 
     def filter(self, *_args, **_kwargs) -> Self: ...
 
-    def join(self, _model: Type[BaseDbModel], *args, **_kwargs) -> Self: ...
+    def join(self, _model: type[BaseDbModel], *args, **_kwargs) -> Self: ...
 
     def order_by(self, *args, **kwargs) -> Self: ...
 
@@ -41,13 +38,13 @@ class SelectSequence(Generic[T], Sequence[T], ModelSelect):
     def get(self, database: Database | None = None) -> T | None: ...
 
 
-class UpdateSequence(Generic[T], Sequence[T], ModelUpdate):
+class UpdateSequence[T: "TypedModel"](Sequence[T], ModelUpdate):
     def execute(self) -> int: ...  # pyright: ignore [reportIncompatibleMethodOverride]
 
     def where(self, *_expressions) -> UpdateSequence[T]: ...
 
 
-class DeleteSequence(Generic[T], Sequence[T], ModelDelete):
+class DeleteSequence[T: "TypedModel"](Sequence[T], ModelDelete):
     def execute(self): ...  # pyright: ignore [reportIncompatibleMethodOverride]
 
     def where(self, *_expressions) -> Self: ...
@@ -64,10 +61,10 @@ class TypedModel:
         index: int
 
         @classmethod
-        def DoesNotExist(cls: Type[T]): ...
+        def DoesNotExist(cls): ...
 
         @classmethod
-        def create(cls: Type[T], *args, **kwargs) -> T: ...
+        def create(cls, *args, **kwargs) -> Self: ...
 
         @staticmethod
         def pre_create(data_dict: dict[Any, Any], reduced_dict: dict[Any, Any]) -> dict[Any, Any]: ...
@@ -76,10 +73,10 @@ class TypedModel:
         def post_create(subshape: TypedModel, **kwargs): ...
 
         @classmethod
-        def get(cls: Type[T], *args, **kwargs) -> T: ...
+        def get(cls, *args, **kwargs) -> Self: ...
 
         @classmethod
-        def get_by_id(cls: Type[T], *args, **kwargs) -> T: ...
+        def get_by_id(cls, *args, **kwargs) -> Self: ...
 
         @classmethod
         def get_or_none(cls, *args, **kwargs) -> Self | None: ...
@@ -88,10 +85,10 @@ class TypedModel:
         def get_or_create(cls, *args, **kwargs) -> tuple[Self, bool]: ...
 
         @classmethod
-        def select(cls: Type[T], *args, **kwargs) -> SelectSequence[T]: ...
+        def select(cls, *args, **kwargs) -> SelectSequence[Self]: ...
 
         @classmethod
-        def update(cls: Type[T], *args, **kwargs) -> UpdateSequence[T]: ...
+        def update(cls, *args, **kwargs) -> UpdateSequence[Self]: ...
 
         @classmethod
         def delete(cls) -> DeleteSequence[Self]: ...

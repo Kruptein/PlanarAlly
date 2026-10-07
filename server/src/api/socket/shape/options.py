@@ -20,9 +20,9 @@ from ...models.shape.options import (
     ShapeSetIntegerValue,
     ShapeSetOptionalStringValue,
     ShapeSetPermissionValue,
+    ShapeSetSizeValue,
     ShapeSetStringValue,
     ShapeSetTeleportLocationValue,
-    ShapeSetSizeValue,
 )
 from ...models.tracker import ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove
 from ..constants import GAME_NS
@@ -350,8 +350,8 @@ async def set_name(sid: str, raw_data: Any):
     if shape.name_visible:
         await send_name(data, room=pr.active_location.get_path(), skip_sid=sid)
     else:
-        for sid in get_owner_sids(pr, shape, skip_sid=sid):
-            await send_name(data, room=sid)
+        for _sid in get_owner_sids(pr, shape, skip_sid=sid):
+            await send_name(data, room=_sid)
 
 
 @sio.on("Shape.Options.NameVisible.Set", namespace=GAME_NS)

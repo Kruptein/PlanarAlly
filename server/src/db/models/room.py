@@ -19,7 +19,6 @@ class Room(BaseDbModel):
     logo_id: int | None
     players: SelectSequence["PlayerRoom"]
     locations: SelectSequence["Location"]
-    default_options: LocationOptions
 
     name = cast(str, TextField())
     creator = cast(User, ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE"))

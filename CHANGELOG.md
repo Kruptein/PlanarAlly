@@ -20,6 +20,7 @@ tech changes will usually be stripped from release notes for the public
 -   [mods/DM] Uploading a new `.pam` whose tag is already in the campaign replaces that mod for everyone in the room
 -   [mods] Mods can export `events.dispose`. The host calls it before dropping tabs, context entries, event listeners, and hooks that the mod registered
 -   [mods] Mod-facing types now live in a published package (`@planarally/mod-api`)
+-   [mods] Compendium functionality to add system rules or other concepts to a campaign
 
 ### Changed
 

@@ -50,6 +50,7 @@
         "exit": "Exit",
         "assets": "Assets",
         "notes": "Notes",
+        "compendium": "Compendium",
         "markers": "Markers",
         "border_color": "Border colour",
         "fill_color": "Fill colour",
@@ -701,6 +702,15 @@
                 "open_settings": "Open settings",
                 "changelog_RELEASE_LOG": "# Release {release}\n*For more details visit https://www.planarally.io/blog/*\n{log}",
                 "return_to_content": "Click to return to content"
+            },
+            "compendium": {
+                "title": "Compendium",
+                "search": "Search the compendium",
+                "alphabetical": "A-Z",
+                "empty": "No compendium entries yet. System mods can add them.",
+                "copy_link": "Copy link",
+                "missing": "This entry is not available. The system mod may be disabled.",
+                "insert_hint": "In notes and chat, type [[ to insert a compendium link."
             },
             "notes": {
                 "NoteCreate": {

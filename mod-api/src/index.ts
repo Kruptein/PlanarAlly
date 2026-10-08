@@ -185,6 +185,32 @@ export interface ModHooks {
   pipe(hook: string, initialValue: unknown, context: unknown): unknown;
 }
 
+export interface CompendiumEntry {
+  id: string;
+  name: string;
+  kind: string;
+  path?: string[];
+  group?: Record<string, string>;
+  aliases?: string[];
+  body: string;
+}
+
+export interface CompendiumView {
+  at: string[];
+  name: string;
+  by: string;
+  order?: string[];
+}
+
+export interface CompendiumRegisterOptions {
+  name?: string;
+  views?: CompendiumView[];
+}
+
+export interface CompendiumApi {
+  register(entries: CompendiumEntry[], options?: CompendiumRegisterOptions): () => void;
+}
+
 export interface GameApi {
   systems: { characters: CharacterSystem; trackers: TrackerSystem };
   systemsState: SystemsState;
@@ -209,6 +235,7 @@ export interface GameApi {
 
   eventBus: ModEventBus;
   hooks: ModHooks;
+  compendium: CompendiumApi;
 
   getOrLoadDataBlock: <S extends DBR, D = S>(
     repr: ModRepr,

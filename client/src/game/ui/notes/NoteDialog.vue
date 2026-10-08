@@ -5,12 +5,15 @@ import VueMarkdown from "vue-markdown-render";
 
 import Modal from "../../../core/components/modals/Modal.vue";
 import { coreStore } from "../../../store/core";
+import { rulePlugins } from "../../systems/compendium/markdown";
+import { ruleClick } from "../../systems/compendium/popover";
 import { modalSystem } from "../../systems/modals";
 import type { ModalIndex } from "../../systems/modals/types";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
 import type { NoteId } from "../../systems/notes/types";
 import { editNote } from "../../systems/notes/ui";
+import RuleSuggest from "../compendium/RuleSuggest.vue";
 
 const props = defineProps<{ modalIndex: ModalIndex; uuid: NoteId }>();
 defineExpose({ close });
@@ -18,6 +21,7 @@ defineExpose({ close });
 const { t } = useI18n();
 
 const editing = ref(false);
+const noteText = ref<HTMLTextAreaElement | null>(null);
 const collapsed = reactive({ active: false, width: 0, height: 0 });
 const modal = ref<{ container: Ref<HTMLDivElement> } | null>(null);
 
@@ -188,15 +192,18 @@ function windowToggle(windowed: boolean): void {
             </header>
         </template>
 
-        <div v-if="!collapsed.active" class="note-body">
-            <VueMarkdown v-if="!editing" :source="note.text" :options="{ html: true }" />
-            <textarea
-                v-else
-                v-model="note.text"
-                :readonly="!canEdit"
-                @input="setText($event, false)"
-                @change="setText($event, true)"
-            />
+        <div v-if="!collapsed.active" class="note-body" @click="ruleClick">
+            <VueMarkdown v-if="!editing" :source="note.text" :options="{ html: true }" :plugins="rulePlugins" />
+            <template v-else>
+                <RuleSuggest :input="noteText" />
+                <textarea
+                    ref="noteText"
+                    v-model="note.text"
+                    :readonly="!canEdit"
+                    @input="setText($event, false)"
+                    @change="setText($event, true)"
+                />
+            </template>
         </div>
     </Modal>
 </template>

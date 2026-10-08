@@ -12,6 +12,7 @@ import { setCenterPosition } from "../../position";
 import { copyShapes, pasteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
 import { toggleAssetManager } from "../../systems/assets/ui";
+import { toggleCompendium } from "../../systems/compendium/ui";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
@@ -198,6 +199,8 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             toggleActiveMode();
         } else if (event.key === "n") {
             toggleNoteManager();
+        } else if (event.key === "c") {
+            toggleCompendium();
         } else if (event.key === "a") {
             toggleAssetManager();
         } else {

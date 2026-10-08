@@ -11,6 +11,8 @@ import { coreStore } from "../../../store/core";
 import { socket } from "../../api/socket";
 import { getShape, knownId } from "../../id";
 import { setCenterPosition } from "../../position";
+import { rulePlugins } from "../../systems/compendium/markdown";
+import { ruleClick } from "../../systems/compendium/popover";
 import { gameState } from "../../systems/game/state";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
@@ -18,11 +20,13 @@ import { type ClientNote, NoteManagerMode } from "../../systems/notes/types";
 import { popoutNote } from "../../systems/notes/ui";
 import { playerState } from "../../systems/players/state";
 import { getProperties } from "../../systems/properties/state";
+import RuleSuggest from "../compendium/RuleSuggest.vue";
 
 import { filters } from "./noteFilters";
 import NoteTagAdd from "./NoteTagAdd.vue";
 
 const emit = defineEmits<(e: "mode", mode: NoteManagerMode) => void>();
+const noteText = ref<HTMLTextAreaElement | null>(null);
 
 const { t } = useI18n();
 const modals = useModal();
@@ -371,12 +375,18 @@ function searchTag(tag: string): void {
                 <div>{{ tab.label_text }}</div>
             </div>
         </div>
-        <div v-if="activeTab === TabLabel.View" id="editor" class="tab-container">
-            <VueMarkdown :source="note.text" :options="{ html: true }" />
+        <div v-if="activeTab === TabLabel.View" id="editor" class="tab-container" @click="ruleClick">
+            <VueMarkdown :source="note.text" :options="{ html: true }" :plugins="rulePlugins" />
         </div>
         <div v-else-if="activeTab === TabLabel.Edit" id="editor" class="tab-container">
             <em>{{ t("game.ui.notes.NoteEdit.md_aware") }}</em>
-            <textarea :value="note.text" @input="setText($event, false)" @change="setText($event, true)"></textarea>
+            <RuleSuggest :input="noteText" />
+            <textarea
+                ref="noteText"
+                :value="note.text"
+                @input="setText($event, false)"
+                @change="setText($event, true)"
+            ></textarea>
         </div>
         <div v-else-if="activeTab === TabLabel.Access" id="note-access-container" class="tab-container">
             <div>{{ t("common.name") }}</div>

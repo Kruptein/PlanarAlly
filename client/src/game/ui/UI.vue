@@ -15,6 +15,7 @@ import { uiState } from "../systems/ui/state";
 
 import Annotation from "./Annotation.vue";
 import Chat from "./Chat.vue";
+import RulePopover from "./compendium/RulePopover.vue";
 import DefaultContext from "./contextmenu/DefaultContext.vue";
 import ShapeContext from "./contextmenu/ShapeContext.vue";
 import { showDefaultContextMenu, showShapeContextMenu } from "./contextmenu/state";
@@ -197,6 +198,7 @@ function setTempZoomDisplay(value: number): void {
         <DefaultContext />
         <ShapeContext />
         <Annotation />
+        <RulePopover />
         <SelectionInfo />
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->

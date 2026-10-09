@@ -1,4 +1,12 @@
-import type { Component, DeepReadonly, MaybeRef, Reactive, Ref } from "vue";
+import type {
+  Component,
+  DeepReadonly,
+  DefineSetupFnComponent,
+  MaybeRef,
+  Reactive,
+  Ref,
+  SlotsType,
+} from "vue";
 
 export type NumberId<T extends string> = number & { __brand: T };
 export type StringId<T extends string> = string & { __brand: T };
@@ -230,6 +238,10 @@ export interface GameApi {
     activateTool: (toolName: string) => void;
   };
 
+  components: {
+    Modal: ModalComponent;
+  };
+
   getShape: (shape: LocalId) => ModShape | undefined;
   getGlobalId: (id: LocalId) => GlobalId | undefined;
 
@@ -274,6 +286,40 @@ export interface ModEvents {
   dispose?: () => Promise<void> | void;
 }
 
+export interface ModalProps {
+  visible: boolean;
+  colour?: string;
+  mask?: boolean;
+  rightHanded?: boolean;
+  extraClass?: string;
+}
+
+export interface ModalHeaderSlotProps {
+  dragStart: (event: DragEvent) => void;
+  dragEnd: (event: DragEvent) => void;
+  toggleWindow: () => void;
+}
+
+export type ModalComponent = DefineSetupFnComponent<
+  ModalProps,
+  {
+    close: () => void;
+    focus: () => void;
+    "window-toggle": (open: boolean) => void;
+  },
+  SlotsType<{
+    header: ModalHeaderSlotProps;
+  }>
+>;
+
+export interface ModUi {
+  dmModSettings?: {
+    component: Component;
+    customModal?: boolean;
+  };
+}
+
 export interface Mod {
   events?: ModEvents;
+  ui?: ModUi;
 }

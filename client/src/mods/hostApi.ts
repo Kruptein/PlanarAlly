@@ -1,4 +1,5 @@
-import type { GameApi } from "@planarally/mod-api";
+import type { GameApi, ModalComponent } from "@planarally/mod-api";
+import { markRaw } from "vue";
 
 import { eventBus } from "../core/eventBus";
 import { hooks } from "../core/hooks";
@@ -13,6 +14,7 @@ import { trackRegistration } from "./registry";
 export async function buildModApi(modId: string, tag: string): Promise<GameApi> {
     const { activateTool } = await import("../game/tools/tools");
     const { modals } = await import("../core/plugins/modals/plugin");
+    const { default: Modal } = await import("../core/components/modals/Modal.vue");
     return {
         systems: SYSTEMS as unknown as GameApi["systems"],
         systemsState: SYSTEMS_STATE as unknown as GameApi["systemsState"],
@@ -22,6 +24,9 @@ export async function buildModApi(modId: string, tag: string): Promise<GameApi> 
                 registerTab: (tab, filter) => trackRegistration(modId, registerTab(tab, filter)),
             },
             modals,
+        },
+        components: {
+            Modal: markRaw(Modal) as ModalComponent,
         },
         gameplay: {
             activateTool: (toolName: string) => {

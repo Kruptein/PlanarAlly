@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { ref, useTemplateRef, type ComputedRef } from "vue";
+import { computed, ref, useTemplateRef, watch, type Component, type ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useToast } from "vue-toastification";
 
 import type { ApiModMeta, ApiRoomMod } from "../../../apiTypes";
+import Modal from "../../../core/components/modals/Modal.vue";
 import { http } from "../../../core/http";
 import {
     devModsActive,
     disabledDevModTags,
     loadedModId,
+    loadedMods,
     roomMods,
     setDevModEnabled,
     setRoomModEnabled,
@@ -28,6 +30,14 @@ const toast = useToast();
 
 const uploadInput = useTemplateRef<HTMLInputElement>("uploadInput");
 const selectedName = ref<string>();
+const settingsId = ref<string>();
+
+const modEntry = computed(() => loadedMods.value.find((mod) => mod.id === settingsId.value));
+const settingsComponent = computed((): Component | undefined => modEntry.value?.mod.ui?.dmModSettings?.component);
+
+watch(settingsComponent, (component) => {
+    if (settingsId.value !== undefined && component === undefined) settingsId.value = undefined;
+});
 
 function onFileChange(): void {
     selectedName.value = uploadInput.value?.files?.[0]?.name;
@@ -72,6 +82,19 @@ function syncDevModState(): void {
     sendSyncDevModActiveState({ disabled: disabledDevModTags() });
 }
 
+function modSettings(mod: ApiRoomMod): Component | undefined {
+    return loadedMods.value.find((loaded) => loaded.id === loadedModId(mod))?.mod.ui?.dmModSettings?.component;
+}
+
+function openSettings(mod: ApiRoomMod): void {
+    if (modSettings(mod) === undefined) return;
+    settingsId.value = loadedModId(mod);
+}
+
+function closeSettings(): void {
+    settingsId.value = undefined;
+}
+
 function setEnabled(mod: ApiRoomMod, enabled: boolean): void {
     if (mod.dev) {
         setDevModEnabled(mod.tag, enabled).catch((error: unknown) => {
@@ -93,6 +116,27 @@ function setEnabled(mod: ApiRoomMod, enabled: boolean): void {
 
 <template>
     <div class="panel">
+        <teleport to="#teleport-modals">
+            <Modal
+                v-if="!(modEntry?.mod.ui?.dmModSettings?.customModal ?? false)"
+                :visible="settingsComponent !== undefined"
+                :mask="false"
+                @close="closeSettings"
+            >
+                <template #header="modal">
+                    <div class="modal-header" draggable="true" @dragstart="modal.dragStart" @dragend="modal.dragEnd">
+                        <div>{{ modEntry?.meta.name }}</div>
+                        <div class="header-close" :title="t('common.close')" @click="closeSettings">
+                            <font-awesome-icon :icon="['far', 'window-close']" />
+                        </div>
+                    </div>
+                </template>
+                <div class="mod-settings-body">
+                    <component :is="settingsComponent" v-if="settingsComponent" @close="closeSettings" />
+                </div>
+            </Modal>
+            <component v-else :is="settingsComponent" @close="closeSettings" />
+        </teleport>
         <em style="max-width: 40vw; grid-column: span 2">Mods are in an experimental phase. Use at your own risk.</em>
         <div class="spanrow header">Add new mod</div>
         <div class="row">
@@ -130,6 +174,13 @@ function setEnabled(mod: ApiRoomMod, enabled: boolean): void {
                     {{ mod.tag }} {{ mod.version }}<template v-if="mod.dev"> (dev)</template>
                 </label>
                 <div class="actions">
+                    <font-awesome-icon
+                        v-if="modSettings(mod)"
+                        class="mod-settings"
+                        icon="cog"
+                        :title="t('game.ui.ui.open_settings')"
+                        @click="openSettings(mod)"
+                    />
                     <input
                         :id="`mod-enabled-${loadedModId(mod)}`"
                         type="checkbox"
@@ -155,6 +206,36 @@ function setEnabled(mod: ApiRoomMod, enabled: boolean): void {
 
 .dev-actions button {
     cursor: pointer;
+}
+
+.mod-settings {
+    cursor: pointer;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem 2rem 0.75rem 1rem;
+    background-color: #ff7052;
+    font-weight: bold;
+    cursor: move;
+}
+
+.header-close {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.5rem;
+    cursor: pointer;
+}
+
+.mod-settings-body {
+    padding: 1rem;
+    min-width: 20rem;
+    max-width: 40rem;
+    max-height: 70vh;
+    overflow: auto;
 }
 
 .filename {

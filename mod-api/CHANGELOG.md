@@ -1,3 +1,11 @@
+## Unreleased
+
+### [0.3.0]
+
+### Added
+- Optional DM settings UI component
+- Expose Modal UI component on api
+
 ## [0.2.0]
 
 ### Added

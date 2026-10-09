@@ -34,7 +34,7 @@ from ..models.client import OptionalClientViewport
 from ..models.location import ApiLocationCore, LocationChange, LocationClone, LocationRename
 from ..models.location.settings import ApiOptionalLocationOptions, LocationOptionsSet, LocationSettingsSet
 from ..models.location.spawn_info import ApiSpawnInfo
-from ..models.mods import ApiModMeta
+from ..models.mods import ApiRoomMod
 from ..models.players.info import PlayerInfoCore, PlayersInfoSet
 from ..models.players.options import PlayerOptionsSet
 from ..models.room.info import RoomFeatures, RoomInfoSet
@@ -102,11 +102,12 @@ async def load_location(sid: str, location: Location, *, complete=False):
         dev_mods = load_dev_mods()
         dev_tags = {mod.tag for mod in dev_mods}
         mods = [
-            ApiModMeta(**mod.mod.as_pydantic().model_dump())
-            for mod in ModRoom.select().where(ModRoom.room == pr.room)
-            if mod.mod.tag not in dev_tags
+            ApiRoomMod(**mod_room.mod.as_pydantic().model_dump(), enabled=mod_room.enabled)
+            for mod_room in ModRoom.select().where(ModRoom.room == pr.room)
+            if mod_room.mod.tag not in dev_tags
         ]
-        mods.extend(dev_mods)
+        # Dev mods are always reported as enabled, their real status is managed in client localStorage
+        mods.extend(ApiRoomMod(**mod.model_dump(), enabled=True) for mod in dev_mods)
         await _send_game(
             "Room.Info.Set",
             RoomInfoSet(

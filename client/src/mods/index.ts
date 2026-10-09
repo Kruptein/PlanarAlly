@@ -1,7 +1,8 @@
 import { ref } from "vue";
 
-import type { ApiModMeta } from "../apiTypes";
+import type { ApiModEnabled, ApiModLink, ApiModMeta, ApiRoomMod } from "../apiTypes";
 import { baseAdjust } from "../core/http";
+import { getLocalStorageObject, setLocalStorageObject } from "../localStorageHelpers";
 
 import { modEvents } from "./events";
 import { shutdownMod } from "./lifecycle";
@@ -15,6 +16,7 @@ export interface LoadedMod {
 }
 
 export const loadedMods = ref<LoadedMod[]>([]);
+export const roomMods = ref<ApiRoomMod[]>([]);
 export const devModsActive = ref(false);
 
 let roomModsReady = false;
@@ -23,6 +25,38 @@ let pendingDevMods: { mods: ApiModMeta[]; force: boolean } | undefined;
 // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 const { promise: modsLoading, resolve: resolveModsLoading } = Promise.withResolvers<void>();
 export { modsLoading };
+
+const DISABLED_DEV_MODS_KEY = "devMods.disabled";
+
+function disabledDevTags(): Set<string> {
+    try {
+        const raw = getLocalStorageObject(DISABLED_DEV_MODS_KEY);
+        if (!Array.isArray(raw)) return new Set();
+        return new Set(raw.filter((tag): tag is string => typeof tag === "string"));
+    } catch {
+        return new Set();
+    }
+}
+
+export function disabledDevModTags(): string[] {
+    return [...disabledDevTags()];
+}
+
+function devModEnabled(tag: string): boolean {
+    return !disabledDevTags().has(tag);
+}
+
+function storeDevModEnabled(tag: string, enabled: boolean): void {
+    const tags = disabledDevTags();
+    if (enabled) tags.delete(tag);
+    else tags.add(tag);
+    setLocalStorageObject(DISABLED_DEV_MODS_KEY, [...tags]);
+}
+
+function applyDevPreference(mod: ApiRoomMod): ApiRoomMod {
+    if (!mod.dev) return mod;
+    return { ...mod, enabled: devModEnabled(mod.tag) };
+}
 
 export function loadedModId(meta: { tag: string; version: string; hash: string; dev?: boolean }): string {
     if (meta.dev === true) return `dev:${meta.tag}`;
@@ -47,9 +81,11 @@ export async function loadMod(meta: ApiModMeta, cacheBust?: string): Promise<Loa
     }
 }
 
-export async function loadRoomMods(mods: ApiModMeta[]): Promise<void> {
+export async function loadRoomMods(mods: ApiRoomMod[]): Promise<void> {
+    roomMods.value = mods.map(applyDevPreference);
     devModsActive.value = mods.some((mod) => mod.dev);
-    for (const modMeta of mods) {
+    for (const modMeta of roomMods.value) {
+        if (!modMeta.enabled) continue;
         // oxlint-disable-next-line no-await-in-loop
         await loadMod(modMeta);
     }
@@ -73,6 +109,10 @@ export async function syncDevMods(mods: ApiModMeta[], force: boolean): Promise<v
         return;
     }
     devModsActive.value = mods.length > 0;
+    roomMods.value = [
+        ...roomMods.value.filter((mod) => !mod.dev),
+        ...mods.map((meta) => ({ ...meta, enabled: devModEnabled(meta.tag) })),
+    ];
     const tags = new Set(mods.map((mod) => mod.tag));
     const removed = loadedMods.value.filter((existing) => existing.meta.dev && !tags.has(existing.meta.tag));
     for (const existing of removed) {
@@ -82,6 +122,13 @@ export async function syncDevMods(mods: ApiModMeta[], force: boolean): Promise<v
     const cacheBust = force ? String(Date.now()) : undefined;
     for (const meta of mods) {
         const existing = loadedMods.value.find((mod) => mod.meta.dev && mod.meta.tag === meta.tag);
+        if (!devModEnabled(meta.tag)) {
+            if (existing) {
+                // oxlint-disable-next-line no-await-in-loop
+                await unloadMod(existing.id);
+            }
+            continue;
+        }
         if (existing && !force && existing.meta.reloadToken === meta.reloadToken) continue;
         if (existing) {
             // oxlint-disable-next-line no-await-in-loop
@@ -101,6 +148,7 @@ export async function replaceRoomMod(meta: ApiModMeta): Promise<void> {
         console.debug(`Dev mod ${meta.tag} is active; leaving the published upload linked for later.`);
         return;
     }
+    roomMods.value = [...roomMods.value.filter((mod) => mod.dev || mod.tag !== meta.tag), { ...meta, enabled: true }];
     const nextId = loadedModId(meta);
     const replaced = loadedMods.value.filter(
         (existing) => !existing.meta.dev && existing.meta.tag === meta.tag && existing.id !== nextId,
@@ -111,6 +159,51 @@ export async function replaceRoomMod(meta: ApiModMeta): Promise<void> {
     }
     const loaded = await loadMod(meta);
     if (loaded) await activateMod(loaded);
+}
+
+export async function setRoomModEnabled(update: ApiModEnabled): Promise<void> {
+    const mod = roomMods.value.find(
+        (item) => item.tag === update.tag && item.version === update.version && item.hash === update.hash,
+    );
+    if (mod) mod.enabled = update.enabled;
+    if (update.enabled) {
+        if (mod === undefined) {
+            console.error(
+                `Mod ${update.tag} ${update.version} ${update.hash} was not found during activation attempt.`,
+            );
+            return;
+        }
+        const loaded = await loadMod(mod);
+        if (loaded) await activateMod(loaded);
+    } else if (mod) {
+        await unloadMod(loadedModId(mod));
+    } else {
+        await unloadMod(loadedModId(update));
+    }
+}
+
+export async function setDevModEnabled(tag: string, enabled: boolean): Promise<void> {
+    storeDevModEnabled(tag, enabled);
+    const mod = roomMods.value.find((item) => item.dev && item.tag === tag);
+    if (mod === undefined) return;
+    await setRoomModEnabled({ tag: mod.tag, version: mod.version, hash: mod.hash, enabled });
+}
+
+export async function applyDevModActiveState(disabled: string[]): Promise<void> {
+    const tags = new Set(disabled);
+    setLocalStorageObject(DISABLED_DEV_MODS_KEY, [...tags]);
+    for (const mod of roomMods.value) {
+        if (!mod.dev || mod.enabled === !tags.has(mod.tag)) continue;
+        // oxlint-disable-next-line no-await-in-loop
+        await setRoomModEnabled({ tag: mod.tag, version: mod.version, hash: mod.hash, enabled: !tags.has(mod.tag) });
+    }
+}
+
+export async function forgetRoomMod(link: ApiModLink): Promise<void> {
+    roomMods.value = roomMods.value.filter(
+        (mod) => mod.tag !== link.tag || mod.version !== link.version || mod.hash !== link.hash,
+    );
+    await unloadMod(loadedModId(link));
 }
 
 export async function unloadMod(id: string): Promise<void> {
@@ -124,6 +217,7 @@ export function unloadRoomMods(): void {
     roomModsReady = false;
     pendingDevMods = undefined;
     devModsActive.value = false;
+    roomMods.value = [];
     const current = [...loadedMods.value];
     loadedMods.value = [];
     for (const entry of current) {

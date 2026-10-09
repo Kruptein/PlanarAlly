@@ -1,7 +1,13 @@
 import { useToast } from "vue-toastification";
 
-import type { ApiDevModsUpdate, ApiModLink, ApiModReplace } from "../../../apiTypes";
-import { loadedModId, replaceRoomMod, syncDevMods, unloadMod } from "../../../mods";
+import type {
+    ApiDevModsActiveState,
+    ApiDevModsUpdate,
+    ApiModEnabled,
+    ApiModLink,
+    ApiModReplace,
+} from "../../../apiTypes";
+import { applyDevModActiveState, forgetRoomMod, replaceRoomMod, setRoomModEnabled, syncDevMods } from "../../../mods";
 import { socket } from "../socket";
 
 const toast = useToast();
@@ -14,8 +20,20 @@ socket.on("Mods.Room.Replaced", (data: ApiModReplace) => {
 });
 
 socket.on("Mods.Room.Removed", (data: ApiModLink) => {
-    unloadMod(loadedModId(data)).catch((error: unknown) => {
+    forgetRoomMod(data).catch((error: unknown) => {
         console.error("Failed to unload mod", data.tag, error);
+    });
+});
+
+socket.on("Mods.Room.SetEnabled", (data: ApiModEnabled) => {
+    setRoomModEnabled(data).catch((error: unknown) => {
+        console.error("Failed to set mod enabled state", data.tag, error);
+    });
+});
+
+socket.on("Mods.Dev.ActiveState.Set", (data: ApiDevModsActiveState) => {
+    applyDevModActiveState(data.disabled).catch((error: unknown) => {
+        console.error("Failed to apply dev mod state", error);
     });
 });
 

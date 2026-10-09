@@ -24,10 +24,18 @@ class ModToml(BaseModel):
     mod: CoreModMeta
 
 
+class ApiRoomMod(ApiModMeta):
+    enabled: bool
+
+
 class ApiModLink(BaseModel):
     tag: str
     version: str
     hash: str
+
+
+class ApiModEnabled(ApiModLink):
+    enabled: bool
 
 
 class ApiModReplace(BaseModel):
@@ -38,3 +46,7 @@ class ApiModReplace(BaseModel):
 class ApiDevModsUpdate(BaseModel):
     mods: list[ApiModMeta]
     force: bool = False
+
+
+class ApiDevModsActiveState(BaseModel):
+    disabled: list[str]

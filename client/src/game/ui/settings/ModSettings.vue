@@ -3,10 +3,23 @@ import { ref, useTemplateRef, type ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useToast } from "vue-toastification";
 
-import type { ApiModMeta } from "../../../apiTypes";
+import type { ApiModMeta, ApiRoomMod } from "../../../apiTypes";
 import { http } from "../../../core/http";
-import { devModsActive, loadedMods } from "../../../mods";
-import { sendLinkModToRoom, sendReloadDevMods, sendRemoveModFromRoom } from "../../api/emits/mods";
+import {
+    devModsActive,
+    disabledDevModTags,
+    loadedModId,
+    roomMods,
+    setDevModEnabled,
+    setRoomModEnabled,
+} from "../../../mods";
+import {
+    sendLinkModToRoom,
+    sendReloadDevMods,
+    sendRemoveModFromRoom,
+    sendSetRoomModEnabled,
+    sendSyncDevModActiveState,
+} from "../../api/emits/mods";
 
 defineProps<{ global: boolean; tabSelected: ComputedRef<string> }>();
 
@@ -54,6 +67,28 @@ function removeMod(meta: ApiModMeta): void {
         hash: meta.hash,
     });
 }
+
+function syncDevModState(): void {
+    sendSyncDevModActiveState({ disabled: disabledDevModTags() });
+}
+
+function setEnabled(mod: ApiRoomMod, enabled: boolean): void {
+    if (mod.dev) {
+        setDevModEnabled(mod.tag, enabled).catch((error: unknown) => {
+            console.error("Failed to set dev mod enabled state", mod.tag, error);
+        });
+        return;
+    }
+    sendSetRoomModEnabled({
+        tag: mod.tag,
+        version: mod.version,
+        hash: mod.hash,
+        enabled,
+    });
+    setRoomModEnabled({ tag: mod.tag, version: mod.version, hash: mod.hash, enabled }).catch((error: unknown) => {
+        console.error("Failed to set mod enabled state", mod.tag, error);
+    });
+}
 </script>
 
 <template>
@@ -75,21 +110,40 @@ function removeMod(meta: ApiModMeta): void {
         </div>
         <div v-if="devModsActive" class="row">
             <label>Development mods</label>
-            <div class="actions">
-                <button type="button" @click="sendReloadDevMods">Reload dev mods</button>
+            <div class="actions dev-actions">
+                <button type="button" title="Reload dev mods from disk" @click="sendReloadDevMods">
+                    Reload dev mods
+                </button>
+                <button
+                    type="button"
+                    title="Sync enabled dev mods with other connected clients"
+                    @click="syncDevModState"
+                >
+                    Sync active state
+                </button>
             </div>
         </div>
         <div class="spanrow header">List of added mods</div>
-        <template v-for="mod in loadedMods" :key="mod.id">
+        <template v-for="mod in roomMods" :key="loadedModId(mod)">
             <div class="row">
-                <label>{{ mod.meta.tag }} {{ mod.meta.version }}<template v-if="mod.meta.dev"> (dev)</template></label>
-                <div>
-                    <font-awesome-icon v-if="!mod.meta.dev" icon="trash-alt" @click="removeMod(mod.meta)" />
+                <label :for="`mod-enabled-${loadedModId(mod)}`" :class="{ inactive: !mod.enabled }">
+                    {{ mod.tag }} {{ mod.version }}<template v-if="mod.dev"> (dev)</template>
+                </label>
+                <div class="actions">
+                    <input
+                        :id="`mod-enabled-${loadedModId(mod)}`"
+                        type="checkbox"
+                        :checked="mod.enabled"
+                        :title="t('common.enabled')"
+                        :aria-label="t('common.enabled')"
+                        @change="setEnabled(mod, ($event.currentTarget as HTMLInputElement).checked)"
+                    />
+                    <font-awesome-icon v-if="!mod.dev" icon="trash-alt" @click="removeMod(mod)" />
                 </div>
             </div>
-            <div class="description">{{ mod.meta.shortDescription }}</div>
+            <div class="description" :class="{ inactive: !mod.enabled }">{{ mod.shortDescription }}</div>
         </template>
-        <div v-if="loadedMods.length === 0" class="spanrow">No mods added yet.</div>
+        <div v-if="roomMods.length === 0" class="spanrow">No mods added yet.</div>
     </div>
 </template>
 
@@ -97,6 +151,10 @@ function removeMod(meta: ApiModMeta): void {
 .actions {
     justify-content: flex-end;
     gap: 0.5rem;
+}
+
+.dev-actions button {
+    cursor: pointer;
 }
 
 .filename {
@@ -118,71 +176,7 @@ function removeMod(meta: ApiModMeta): void {
     font-style: italic;
 }
 
-// .toggle {
-//     display: block;
-//     box-sizing: border-box;
-//     border: none;
-//     color: inherit;
-//     background: none;
-//     font: inherit;
-//     line-height: inherit;
-//     text-align: left;
-//     padding: 0.4em 0 0.4em 4em;
-//     position: relative;
-//     outline: none;
-//     height: 2rem;
-
-//     &:hover {
-//         &::before {
-//             box-shadow: 0 0 0.5em #333;
-//         }
-
-//         &::after {
-//             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='50' fill='rgba(0,0,0,.25)'/%3E%3C/svg%3E");
-//             background-size: 30%;
-//             background-repeat: no-repeat;
-//             background-position: center center;
-//         }
-//     }
-
-//     &::before,
-//     &::after {
-//         content: "";
-//         position: absolute;
-//         height: 1.1em;
-//         transition: all 0.25s ease;
-//     }
-
-//     &::before {
-//         left: 0;
-//         top: 0.2em;
-//         width: 2.6em;
-//         border: 0.2em solid #767676;
-//         background: #767676;
-//         border-radius: 1.1em;
-//     }
-
-//     &::after {
-//         left: 0;
-//         top: 0.25em;
-//         background-color: #fff;
-//         background-position: center center;
-//         border-radius: 50%;
-//         width: 1.1em;
-//         border: 0.15em solid #767676;
-//     }
-
-//     &[aria-pressed="true"] {
-//         &::after {
-//             left: 1.6em;
-//             border-color: #36a829;
-//             color: #36a829;
-//         }
-
-//         &::before {
-//             background-color: #36a829;
-//             border-color: #36a829;
-//         }
-//     }
-// }
+.inactive {
+    opacity: 0.55;
+}
 </style>

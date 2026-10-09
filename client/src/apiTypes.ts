@@ -260,6 +260,9 @@ export interface ApiDevModsUpdate {
   mods: ApiModMeta[];
   force?: boolean;
 }
+export interface ApiDevModsActiveState {
+  disabled: string[];
+}
 export interface ApiModMeta {
   apiSchema: string;
   tag: string;
@@ -272,6 +275,9 @@ export interface ApiModMeta {
   hasCss: boolean;
   dev: boolean;
   reloadToken?: string;
+}
+export interface ApiRoomMod extends ApiModMeta {
+  enabled: boolean;
 }
 export interface ApiFloor {
   index: number;
@@ -358,6 +364,9 @@ export interface ApiModLink {
   tag: string;
   version: string;
   hash: string;
+}
+export interface ApiModEnabled extends ApiModLink {
+  enabled: boolean;
 }
 export interface ApiModReplace {
   mod: ApiModMeta;
@@ -747,7 +756,7 @@ export interface RoomInfoSet {
   isLocked: boolean;
   clientUrl: string;
   features: RoomFeatures;
-  mods: ApiModMeta[];
+  mods: ApiRoomMod[];
 }
 export interface ShapeAssetImageSet {
   uuid: GlobalId;

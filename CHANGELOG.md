@@ -21,6 +21,7 @@ tech changes will usually be stripped from release notes for the public
 -   [mods] Mods can export `events.dispose`. The host calls it before dropping tabs, context entries, event listeners, and hooks that the mod registered
 -   [mods] Mod-facing types now live in a published package (`@planarally/mod-api`)
 -   [mods] Compendium functionality to add system rules or other concepts to a campaign
+-   [mods] Enable/disable checkbox to temporarily turn off a mod without having to re-upload it later
 
 ### Changed
 

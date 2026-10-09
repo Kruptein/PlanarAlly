@@ -1,6 +1,6 @@
 {
     "name": "@planarally/mod-api",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Types and helpers for PlanarAlly mods.",
     "license": "MIT",
     "type": "module",

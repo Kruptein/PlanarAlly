@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { markRaw, ref } from "vue";
 
 import type { ApiModEnabled, ApiModLink, ApiModMeta, ApiRoomMod } from "../apiTypes";
 import { baseAdjust } from "../core/http";
@@ -66,7 +66,7 @@ export function loadedModId(meta: { tag: string; version: string; hash: string; 
 export async function loadMod(meta: ApiModMeta, cacheBust?: string): Promise<LoadedMod | undefined> {
     const id = loadedModId(meta);
     try {
-        const mod = (await import(/* @vite-ignore */ scriptUrl(meta, cacheBust))) as Mod;
+        const mod = markRaw((await import(/* @vite-ignore */ scriptUrl(meta, cacheBust))) as Mod);
         if (loadedMods.value.some((loaded) => loaded.id === id)) {
             console.debug(`Mod ${id} has already been loaded. Skipping.`);
             return;

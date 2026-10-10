@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import VueMarkdown from "vue-markdown-render";
 
+import { compendiumSystem } from "../systems/compendium";
 import { rulePlugins } from "../systems/compendium/markdown";
-import { ruleClick } from "../systems/compendium/popover";
 import { uiState } from "../systems/ui/state";
 </script>
 
 <template>
-    <div v-show="uiState.reactive.annotationText.length > 0" id="annotation" @click="ruleClick">
+    <div v-show="uiState.reactive.annotationText.length > 0" id="annotation" @click="compendiumSystem.ruleClick">
         <VueMarkdown :source="uiState.reactive.annotationText" :options="{ html: true }" :plugins="rulePlugins" />
     </div>
 </template>

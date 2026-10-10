@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onUnmounted, ref, watch } from "vue";
 
-import { type IndexedEntry, ruleMarkdown, searchEntries } from "../../systems/compendium";
+import { type IndexedEntry, compendiumSystem } from "../../systems/compendium";
+import { ruleMarkdown } from "../../systems/compendium/markdown";
 
 const props = defineProps<{ input: HTMLTextAreaElement | null }>();
 
@@ -26,7 +27,7 @@ function onInput(): void {
         return;
     }
     queryStart = start;
-    matches.value = searchEntries(before.slice(start + 2)).slice(0, 8);
+    matches.value = compendiumSystem.searchEntries(before.slice(start + 2)).slice(0, 8);
     active.value = 0;
     open.value = matches.value.length > 0;
 }

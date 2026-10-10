@@ -3,20 +3,9 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import VueMarkdown from "vue-markdown-render";
 
-import {
-    type CompendiumFolder,
-    type IndexedEntry,
-    type RuleRef,
-    getEntry,
-    listBooks,
-    listLevel,
-    ruleMarkdown,
-    searchEntries,
-    viewsAt,
-} from "../../systems/compendium";
-import { rulePlugins } from "../../systems/compendium/markdown";
-import { ruleClick } from "../../systems/compendium/popover";
-import { closeCompendium, compendiumOpen } from "../../systems/compendium/ui";
+import { type CompendiumFolder, type IndexedEntry, type RuleRef, compendiumSystem } from "../../systems/compendium";
+import { ruleMarkdown, rulePlugins } from "../../systems/compendium/markdown";
+import { compendiumState } from "../../systems/compendium/state";
 
 const emit = defineEmits<(e: "close" | "focus") => void>();
 defineExpose({ close });
@@ -32,21 +21,23 @@ const viewName = ref<string | undefined>();
 const groupLabel = ref<string | undefined>();
 
 const searching = computed(() => query.value.trim().length > 0);
-const books = computed(() => listBooks());
+const books = computed(() => compendiumSystem.listBooks());
 const book = computed(() => (books.value.some((item) => item.mod === bookId.value) ? bookId.value : undefined));
-const views = computed(() => (book.value === undefined ? [] : viewsAt(book.value, folder.value)));
+const views = computed(() => (book.value === undefined ? [] : compendiumSystem.viewsAt(book.value, folder.value)));
 const view = computed(() => (views.value.some((item) => item.name === viewName.value) ? viewName.value : undefined));
 const level = computed(() => {
     if (book.value === undefined) return undefined;
     const active = views.value.find((item) => item.name === view.value);
-    return listLevel(
+    return compendiumSystem.listLevel(
         book.value,
         folder.value,
         active === undefined ? undefined : { by: active.by, order: active.order, group: groupLabel.value },
     );
 });
-const results = computed(() => (searching.value ? searchEntries(query.value) : []));
-const selected = computed(() => (selectedRef.value === undefined ? undefined : getEntry(selectedRef.value)));
+const results = computed(() => (searching.value ? compendiumSystem.searchEntries(query.value) : []));
+const selected = computed(() =>
+    selectedRef.value === undefined ? undefined : compendiumSystem.getEntry(selectedRef.value),
+);
 const bookName = computed(() => books.value.find((item) => item.mod === book.value)?.name);
 
 const crumbs = computed(() => {
@@ -65,7 +56,7 @@ const crumbs = computed(() => {
 });
 
 function close(): void {
-    closeCompendium();
+    compendiumSystem.close();
     emit("close");
 }
 
@@ -125,7 +116,7 @@ function place(entry: IndexedEntry): string {
 </script>
 
 <template>
-    <div v-show="compendiumOpen" id="compendium-container">
+    <div v-show="compendiumState.reactive.open" id="compendium-container">
         <div id="compendium" @click="$emit('focus')">
             <font-awesome-icon id="close-compendium" :icon="['far', 'window-close']" @click="close" />
             <header>{{ t("game.ui.compendium.title") }}</header>
@@ -204,7 +195,7 @@ function place(entry: IndexedEntry): string {
                         </p>
                     </template>
                 </div>
-                <div v-if="selected" id="compendium-detail" @click="ruleClick">
+                <div v-if="selected" id="compendium-detail" @click="compendiumSystem.ruleClick">
                     <div id="compendium-detail-title">
                         <h2>{{ selected.name }}</h2>
                         <button type="button" @click="copyLink(selected)">

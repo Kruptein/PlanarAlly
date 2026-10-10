@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import { uuidv4 } from "../../core/utils";
 import { chatSystem } from "../systems/chat";
 import { chatState } from "../systems/chat/state";
-import { ruleClick } from "../systems/compendium/popover";
+import { compendiumSystem } from "../systems/compendium";
 import { playerSystem } from "../systems/players";
 
 import RuleSuggest from "./compendium/RuleSuggest.vue";
@@ -129,7 +129,7 @@ function handleMessage(event: KeyboardEvent): void {
             </div>
             <font-awesome-icon v-show="expanded" icon="chevron-down" title="Collapse chat" @click.stop="toggleChat" />
         </div>
-        <div v-show="expanded" id="chat-container" ref="chatContainer" @click="ruleClick">
+        <div v-show="expanded" id="chat-container" ref="chatContainer" @click="compendiumSystem.ruleClick">
             <template
                 v-for="[i, message] of chatState.reactive.messages.entries()"
                 :key="`${i}-${message.content.length}`"

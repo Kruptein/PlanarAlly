@@ -3,25 +3,27 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import VueMarkdown from "vue-markdown-render";
 
-import { getEntry } from "../../systems/compendium";
+import { compendiumSystem } from "../../systems/compendium";
 import { rulePlugins } from "../../systems/compendium/markdown";
-import { closeRule, ruleClick, rulePopover } from "../../systems/compendium/popover";
+import { compendiumState } from "../../systems/compendium/state";
 
 const { t } = useI18n();
 const card = ref<HTMLElement | null>(null);
 
-const entry = computed(() => (rulePopover.ref === null ? undefined : getEntry(rulePopover.ref)));
+const popover = compendiumState.reactive.popover;
+
+const entry = computed(() => (popover.ref === null ? undefined : compendiumSystem.getEntry(popover.ref)));
 
 const position = computed(() => ({
-    left: `${Math.min(rulePopover.x, window.innerWidth - 360)}px`,
-    top: `${Math.min(rulePopover.y + 8, window.innerHeight - 240)}px`,
+    left: `${Math.min(popover.x, window.innerWidth - 360)}px`,
+    top: `${Math.min(popover.y + 8, window.innerHeight - 240)}px`,
 }));
 
 function onPointerDown(event: PointerEvent): void {
-    if (rulePopover.ref === null) return;
+    if (popover.ref === null) return;
     const target = event.target;
     if (target instanceof Node && card.value?.contains(target)) return;
-    closeRule();
+    compendiumSystem.closeRule();
 }
 
 onMounted(() => document.addEventListener("pointerdown", onPointerDown));
@@ -29,8 +31,8 @@ onUnmounted(() => document.removeEventListener("pointerdown", onPointerDown));
 </script>
 
 <template>
-    <div v-if="rulePopover.ref" id="rule-popover" ref="card" :style="position" @click="ruleClick">
-        <button type="button" @click="closeRule">×</button>
+    <div v-if="popover.ref" id="rule-popover" ref="card" :style="position" @click="compendiumSystem.ruleClick">
+        <button type="button" @click="compendiumSystem.closeRule">×</button>
         <template v-if="entry">
             <h2>{{ entry.name }}</h2>
             <VueMarkdown :source="entry.body" :plugins="rulePlugins" />

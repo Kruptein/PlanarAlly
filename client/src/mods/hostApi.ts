@@ -5,7 +5,7 @@ import { eventBus } from "../core/eventBus";
 import { hooks } from "../core/hooks";
 import { SYSTEMS, SYSTEMS_STATE } from "../core/systems";
 import { getGlobalId, getShape } from "../game/id";
-import { registerEntries } from "../game/systems/compendium";
+import { compendiumSystem } from "../game/systems/compendium";
 import { registerContextMenuEntry, registerTab } from "../game/systems/ui/mods";
 
 import { getDataBlockFunctions } from "./db";
@@ -47,7 +47,8 @@ export async function buildModApi(modId: string, tag: string): Promise<GameApi> 
             pipe: (hook, initialValue, context) => hooks.pipe(hook as never, initialValue as never, context as never),
         },
         compendium: {
-            register: (entries, options) => trackRegistration(modId, registerEntries(tag, entries, options)),
+            register: (entries, options) =>
+                trackRegistration(modId, compendiumSystem.registerEntries(tag, entries, options)),
         },
         ...getDataBlockFunctions(tag),
     };

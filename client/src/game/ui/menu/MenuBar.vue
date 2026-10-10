@@ -10,8 +10,7 @@ import { setCenterPosition } from "../../position";
 import { toggleAssetManager } from "../../systems/assets/ui";
 import { clientSystem } from "../../systems/client";
 import type { ClientId } from "../../systems/client/models";
-import { listBooks } from "../../systems/compendium";
-import { toggleCompendium } from "../../systems/compendium/ui";
+import { compendiumSystem } from "../../systems/compendium";
 import { gameState } from "../../systems/game/state";
 import { markerSystem } from "../../systems/markers";
 import { markerState } from "../../systems/markers/state";
@@ -76,7 +75,7 @@ function jumpToClient(client: ClientId): void {
     setCenterPosition(location);
 }
 
-const hasCompendium = computed(() => listBooks().length > 0);
+const hasCompendium = computed(() => compendiumSystem.listBooks().length > 0);
 
 const openDmSettings = (): void => uiSystem.showDmSettings(!uiState.raw.showDmSettings);
 const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.showClientSettings);
@@ -96,7 +95,7 @@ const openClientSettings = (): void => uiSystem.showClientSettings(!uiState.raw.
             <button class="menu-accordion" @click="toggleNoteManager">
                 {{ t("common.notes") }}
             </button>
-            <button v-if="hasCompendium" class="menu-accordion" @click="toggleCompendium">
+            <button v-if="hasCompendium" class="menu-accordion" @click="compendiumSystem.toggle">
                 {{ t("common.compendium") }}
             </button>
             <template v-if="gameState.isDmOrFake.value">

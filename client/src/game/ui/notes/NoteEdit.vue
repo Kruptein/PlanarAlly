@@ -11,8 +11,8 @@ import { coreStore } from "../../../store/core";
 import { socket } from "../../api/socket";
 import { getShape, knownId } from "../../id";
 import { setCenterPosition } from "../../position";
+import { compendiumSystem } from "../../systems/compendium";
 import { rulePlugins } from "../../systems/compendium/markdown";
-import { ruleClick } from "../../systems/compendium/popover";
 import { gameState } from "../../systems/game/state";
 import { noteSystem } from "../../systems/notes";
 import { noteState } from "../../systems/notes/state";
@@ -375,7 +375,7 @@ function searchTag(tag: string): void {
                 <div>{{ tab.label_text }}</div>
             </div>
         </div>
-        <div v-if="activeTab === TabLabel.View" id="editor" class="tab-container" @click="ruleClick">
+        <div v-if="activeTab === TabLabel.View" id="editor" class="tab-container" @click="compendiumSystem.ruleClick">
             <VueMarkdown :source="note.text" :options="{ html: true }" :plugins="rulePlugins" />
         </div>
         <div v-else-if="activeTab === TabLabel.Edit" id="editor" class="tab-container">

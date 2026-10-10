@@ -1,6 +1,11 @@
 import type MarkdownIt from "markdown-it";
 
-import { getEntry, type RuleRef } from "./index";
+import { compendiumSystem, type IndexedEntry, type RuleRef } from "./index";
+
+export function ruleMarkdown(entry: IndexedEntry): string {
+    const label = entry.name.replaceAll("[", "").replaceAll("]", "");
+    return `[${label}](pa:rule/${entry.ref})`;
+}
 
 const RULE_HREF = /^pa:rule\/([^/\s]+)\/([^/\s]+)$/;
 
@@ -15,7 +20,7 @@ export function rulePlugin(md: MarkdownIt): void {
         }
 
         const ref = `${match[1]}/${match[2]}` as RuleRef;
-        token.attrSet("class", getEntry(ref) === undefined ? "pa-rule is-missing" : "pa-rule");
+        token.attrSet("class", compendiumSystem.getEntry(ref) === undefined ? "pa-rule is-missing" : "pa-rule");
         token.attrSet("data-rule", ref);
         token.attrSet("href", "#");
         return previous?.(tokens, idx, options, env, self) ?? self.renderToken(tokens, idx, options);

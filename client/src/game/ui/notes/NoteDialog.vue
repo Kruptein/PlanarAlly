@@ -5,8 +5,8 @@ import VueMarkdown from "vue-markdown-render";
 
 import Modal from "../../../core/components/modals/Modal.vue";
 import { coreStore } from "../../../store/core";
+import { compendiumSystem } from "../../systems/compendium";
 import { rulePlugins } from "../../systems/compendium/markdown";
-import { ruleClick } from "../../systems/compendium/popover";
 import { modalSystem } from "../../systems/modals";
 import type { ModalIndex } from "../../systems/modals/types";
 import { noteSystem } from "../../systems/notes";
@@ -192,7 +192,7 @@ function windowToggle(windowed: boolean): void {
             </header>
         </template>
 
-        <div v-if="!collapsed.active" class="note-body" @click="ruleClick">
+        <div v-if="!collapsed.active" class="note-body" @click="compendiumSystem.ruleClick">
             <VueMarkdown v-if="!editing" :source="note.text" :options="{ html: true }" :plugins="rulePlugins" />
             <template v-else>
                 <RuleSuggest :input="noteText" />

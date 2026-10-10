@@ -5,10 +5,14 @@ import { buildState } from "../../../core/systems/state";
 
 import type { IndexedEntry, RuleRef } from "./types";
 
+interface OwnedView {
+    mod: string;
+    view: CompendiumView;
+}
+
 interface CompendiumState {
     byRef: Map<RuleRef, IndexedEntry>;
-    bookNames: Map<string, string>;
-    bookViews: Map<string, CompendiumView[]>;
+    views: Map<string, OwnedView[]>;
     open: boolean;
     popover: {
         ref: RuleRef | null;
@@ -19,8 +23,7 @@ interface CompendiumState {
 
 const state = buildState<CompendiumState>({
     byRef: shallowReactive(new Map()),
-    bookNames: shallowReactive(new Map()),
-    bookViews: shallowReactive(new Map()),
+    views: shallowReactive(new Map()),
     open: false,
     popover: {
         ref: null,

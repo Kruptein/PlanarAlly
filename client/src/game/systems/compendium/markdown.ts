@@ -1,13 +1,15 @@
 import type MarkdownIt from "markdown-it";
 
-import { compendiumSystem, type IndexedEntry, type RuleRef } from "./index";
+import type { RuleRef } from "./types";
 
-export function ruleMarkdown(entry: IndexedEntry): string {
+import { compendiumSystem } from "./index";
+
+export function ruleMarkdown(entry: { name: string; ref: string }): string {
     const label = entry.name.replaceAll("[", "").replaceAll("]", "");
-    return `[${label}](pa:rule/${entry.ref})`;
+    return `[${label}](compendium:${entry.ref})`;
 }
 
-const RULE_HREF = /^pa:rule\/([^/\s]+)\/([^/\s]+)$/;
+const RULE_HREF = /^compendium:([^/\s]+)\/([^/\s]+)$/;
 
 export function rulePlugin(md: MarkdownIt): void {
     const previous = md.renderer.rules.link_open;

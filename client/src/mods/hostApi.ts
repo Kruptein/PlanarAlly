@@ -49,6 +49,7 @@ export async function buildModApi(modId: string, tag: string): Promise<GameApi> 
         compendium: {
             register: (entries, options) =>
                 trackRegistration(modId, compendiumSystem.registerEntries(tag, entries, options)),
+            getEntries: (system, kind) => compendiumSystem.getEntries(system, kind),
         },
         ...getDataBlockFunctions(tag),
     };

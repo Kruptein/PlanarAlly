@@ -3,9 +3,40 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import VueMarkdown from "vue-markdown-render";
 
-import { type CompendiumFolder, type IndexedEntry, type RuleRef, compendiumSystem } from "../../systems/compendium";
+import { compendiumSystem } from "../../systems/compendium";
 import { ruleMarkdown, rulePlugins } from "../../systems/compendium/markdown";
 import { compendiumState } from "../../systems/compendium/state";
+import type { RuleRef } from "../../systems/compendium/types";
+
+interface ListedEntry {
+    ref: RuleRef;
+    name: string;
+    collection: string;
+    path: readonly string[];
+}
+
+interface CompendiumFolder {
+    name: string;
+    count: number;
+    kind: "path" | "group";
+}
+
+function samePath(left: readonly string[], right: readonly string[]): boolean {
+    return left.length === right.length && left.every((segment, index) => segment === right[index]);
+}
+
+function sortGroups(names: string[], order: readonly string[] | undefined): string[] {
+    if (order === undefined || order.length === 0) return names.sort((a, b) => a.localeCompare(b));
+    const rank = new Map(order.map((label, index) => [label, index]));
+    return names.sort((a, b) => {
+        const left = rank.get(a);
+        const right = rank.get(b);
+        if (left !== undefined && right !== undefined) return left - right;
+        if (left !== undefined) return -1;
+        if (right !== undefined) return 1;
+        return a.localeCompare(b);
+    });
+}
 
 const emit = defineEmits<(e: "close" | "focus") => void>();
 defineExpose({ close });
@@ -15,41 +46,109 @@ const { t } = useI18n();
 
 const query = ref("");
 const selectedRef = ref<RuleRef | undefined>();
-const bookId = ref<string | undefined>();
+const collectionName = ref<string | undefined>();
 const folder = ref<string[]>([]);
 const viewName = ref<string | undefined>();
+const sourceView = ref(false);
 const groupLabel = ref<string | undefined>();
 
 const searching = computed(() => query.value.trim().length > 0);
-const books = computed(() => compendiumSystem.listBooks());
-const book = computed(() => (books.value.some((item) => item.mod === bookId.value) ? bookId.value : undefined));
-const views = computed(() => (book.value === undefined ? [] : compendiumSystem.viewsAt(book.value, folder.value)));
+const collections = computed(() => {
+    const counts = new Map<string, number>();
+    for (const entry of compendiumState.reactive.byRef.values()) {
+        counts.set(entry.collection, (counts.get(entry.collection) ?? 0) + 1);
+    }
+    return [...counts].map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name));
+});
+const collection = computed(() =>
+    collections.value.some((item) => item.name === collectionName.value) ? collectionName.value : undefined,
+);
+const views = computed(() => {
+    if (collection.value === undefined) return [];
+    const seen = new Set<string>();
+    const items = [];
+    for (const item of compendiumState.reactive.views.get(collection.value) ?? []) {
+        if (!samePath(item.view.at, folder.value) || seen.has(item.view.name)) continue;
+        seen.add(item.view.name);
+        items.push(item.view);
+    }
+    return items;
+});
+const multipleMods = computed(() => {
+    if (collection.value === undefined) return false;
+    const mods = new Set<string>();
+    for (const entry of compendiumState.reactive.byRef.values()) {
+        if (
+            entry.collection !== collection.value ||
+            !samePath(entry.path.slice(0, folder.value.length), folder.value)
+        ) {
+            continue;
+        }
+        mods.add(entry.mod);
+        if (mods.size > 1) return true;
+    }
+    return false;
+});
 const view = computed(() => (views.value.some((item) => item.name === viewName.value) ? viewName.value : undefined));
+const groupingByMod = computed(() => sourceView.value && multipleMods.value);
 const level = computed(() => {
-    if (book.value === undefined) return undefined;
-    const active = views.value.find((item) => item.name === view.value);
-    return compendiumSystem.listLevel(
-        book.value,
-        folder.value,
-        active === undefined ? undefined : { by: active.by, order: active.order, group: groupLabel.value },
-    );
+    if (collection.value === undefined) return undefined;
+    const active = groupingByMod.value ? undefined : views.value.find((item) => item.name === view.value);
+    const grouping = groupingByMod.value
+        ? { by: "mod", order: undefined, group: groupLabel.value }
+        : active === undefined
+          ? undefined
+          : { by: active.by, order: active.order, group: groupLabel.value };
+    const entries: ListedEntry[] = [];
+    const pathCounts = new Map<string, number>();
+    const groupCounts = new Map<string, number>();
+    for (const entry of compendiumState.reactive.byRef.values()) {
+        if (
+            entry.collection !== collection.value ||
+            !samePath(entry.path.slice(0, folder.value.length), folder.value)
+        ) {
+            continue;
+        }
+        if (entry.path.length === folder.value.length) {
+            const label =
+                grouping === undefined ? undefined : grouping.by === "mod" ? entry.mod : entry.group?.[grouping.by];
+            if (grouping === undefined) entries.push(entry);
+            else if (grouping.group !== undefined) {
+                if (label === grouping.group) entries.push(entry);
+            } else if (label !== undefined) groupCounts.set(label, (groupCounts.get(label) ?? 0) + 1);
+            continue;
+        }
+        if (grouping?.group !== undefined) continue;
+        const child = entry.path[folder.value.length]!;
+        pathCounts.set(child, (pathCounts.get(child) ?? 0) + 1);
+    }
+    const pathFolders: CompendiumFolder[] = [...pathCounts]
+        .map(([name, count]) => ({ name, count, kind: "path" as const }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    const groupFolders: CompendiumFolder[] = sortGroups([...groupCounts.keys()], grouping?.order).map((name) => ({
+        name,
+        count: groupCounts.get(name) ?? 0,
+        kind: "group" as const,
+    }));
+    return {
+        folders: [...pathFolders, ...groupFolders],
+        entries: entries.sort((a, b) => a.name.localeCompare(b.name)),
+    };
 });
 const results = computed(() => (searching.value ? compendiumSystem.searchEntries(query.value) : []));
 const selected = computed(() =>
     selectedRef.value === undefined ? undefined : compendiumSystem.getEntry(selectedRef.value),
 );
-const bookName = computed(() => books.value.find((item) => item.mod === book.value)?.name);
-
 const crumbs = computed(() => {
     const items: { label: string; folder: string[] | undefined }[] = [
         { label: t("game.ui.compendium.title"), folder: undefined },
     ];
-    if (bookName.value === undefined) return items;
-    items.push({ label: bookName.value, folder: [] });
+    if (collection.value === undefined) return items;
+    items.push({ label: collection.value, folder: [] });
     for (let i = 0; i < folder.value.length; i++) {
         items.push({ label: folder.value[i]!, folder: folder.value.slice(0, i + 1) });
     }
-    if (view.value !== undefined && groupLabel.value !== undefined) {
+    if (groupLabel.value !== undefined && (view.value !== undefined || groupingByMod.value)) {
         items.push({ label: groupLabel.value, folder: [...folder.value] });
     }
     return items;
@@ -63,9 +162,10 @@ function close(): void {
 function openCrumb(next: string[] | undefined): void {
     selectedRef.value = undefined;
     if (next === undefined) {
-        bookId.value = undefined;
+        collectionName.value = undefined;
         folder.value = [];
         viewName.value = undefined;
+        sourceView.value = false;
         groupLabel.value = undefined;
         return;
     }
@@ -77,13 +177,15 @@ function openCrumb(next: string[] | undefined): void {
     }
     folder.value = next;
     viewName.value = undefined;
+    sourceView.value = false;
     groupLabel.value = undefined;
 }
 
-function openBook(mod: string): void {
-    bookId.value = mod;
+function openCollection(name: string): void {
+    collectionName.value = name;
     folder.value = [];
     viewName.value = undefined;
+    sourceView.value = false;
     groupLabel.value = undefined;
 }
 
@@ -94,24 +196,32 @@ function openFolder(item: CompendiumFolder): void {
     }
     folder.value = [...folder.value, item.name];
     viewName.value = undefined;
+    sourceView.value = false;
     groupLabel.value = undefined;
 }
 
 function pickView(name: string | undefined): void {
     viewName.value = name;
+    sourceView.value = false;
     groupLabel.value = undefined;
 }
 
-function choose(entry: IndexedEntry): void {
+function pickSource(): void {
+    viewName.value = undefined;
+    sourceView.value = true;
+    groupLabel.value = undefined;
+}
+
+function choose(entry: ListedEntry): void {
     selectedRef.value = entry.ref;
 }
 
-async function copyLink(entry: IndexedEntry): Promise<void> {
+async function copyLink(entry: ListedEntry): Promise<void> {
     await navigator.clipboard.writeText(ruleMarkdown(entry));
 }
 
-function place(entry: IndexedEntry): string {
-    return [entry.book, ...entry.path].join(" / ");
+function place(entry: ListedEntry): string {
+    return [entry.collection, ...entry.path].join(" / ");
 }
 </script>
 
@@ -144,22 +254,35 @@ function place(entry: IndexedEntry): string {
                             <small>{{ place(entry) }}</small>
                         </button>
                     </template>
-                    <template v-else-if="book === undefined">
-                        <p v-if="books.length === 0">{{ t("game.ui.compendium.empty") }}</p>
-                        <button v-for="item of books" :key="item.mod" type="button" @click="openBook(item.mod)">
-                            <span><font-awesome-icon icon="book" /> {{ item.name }}</span>
+                    <template v-else-if="collection === undefined">
+                        <p v-if="collections.length === 0">{{ t("game.ui.compendium.empty") }}</p>
+                        <button
+                            v-for="item of collections"
+                            :key="item.name"
+                            type="button"
+                            @click="openCollection(item.name)"
+                        >
+                            <span><font-awesome-icon icon="folder-tree" /> {{ item.name }}</span>
                             <small>{{ item.count }}</small>
                             <font-awesome-icon class="chevron" icon="chevron-right" />
                         </button>
                     </template>
                     <template v-else-if="level">
-                        <div v-if="views.length > 0" id="compendium-views">
+                        <div v-if="views.length > 0 || multipleMods" id="compendium-views">
                             <button
                                 type="button"
-                                :class="{ selected: view === undefined }"
+                                :class="{ selected: view === undefined && !groupingByMod }"
                                 @click="pickView(undefined)"
                             >
                                 {{ t("game.ui.compendium.alphabetical") }}
+                            </button>
+                            <button
+                                v-if="multipleMods"
+                                type="button"
+                                :class="{ selected: groupingByMod }"
+                                @click="pickSource"
+                            >
+                                {{ t("game.ui.compendium.source") }}
                             </button>
                             <button
                                 v-for="item of views"

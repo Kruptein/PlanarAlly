@@ -194,13 +194,24 @@ export interface ModHooks {
 }
 
 export interface CompendiumEntry {
+  // Unique ID within a mod that is used to create a ref (e.g. "compendium:mod/entry")
   id: string;
+  // Display name of the entry
   name: string;
-  kind: string;
-  path?: string[];
-  group?: Record<string, string>;
-  aliases?: string[];
+  // The content of the entry - markdown aware
   body: string;
+  // Structured data other mods can query.
+  // `system` is the mod tag of the mod that defines the schema shape, which can differ from the mod that wrote the entry.
+  // `kind` is that schema's entry type, for example "spell".
+  schema?: CompendiumSchema;
+  // path can list one or multiple entries to put the entry in subfolders
+  // when omitted the entry will be put in the root of the collection
+  path?: string[];
+  // groups are additional meta data that can be used to offer an alternative view of a folder
+  // e.g. group entries by a particular property like magic school
+  group?: Record<string, string>;
+  // Purely used for search and auto complete purposes
+  aliases?: string[];
 }
 
 export interface CompendiumView {
@@ -215,8 +226,23 @@ export interface CompendiumRegisterOptions {
   views?: CompendiumView[];
 }
 
+export interface CompendiumSchema {
+  system: string;
+  kind: string;
+  data?: unknown;
+}
+
+export interface CompendiumRecord extends CompendiumEntry {
+  mod: string;
+  collection: string;
+  ref: string;
+  path: string[];
+  schema: CompendiumSchema;
+}
+
 export interface CompendiumApi {
   register(entries: CompendiumEntry[], options?: CompendiumRegisterOptions): () => void;
+  getEntries(system: string, kind: string): CompendiumRecord[];
 }
 
 export interface GameApi {

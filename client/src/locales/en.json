@@ -707,6 +707,7 @@
                 "title": "Compendium",
                 "search": "Search the compendium",
                 "alphabetical": "A-Z",
+                "source": "Mod Source",
                 "empty": "No compendium entries yet. System mods can add them.",
                 "copy_link": "Copy link",
                 "missing": "This entry is not available. The system mod may be disabled.",

@@ -129,13 +129,27 @@ export async function syncDevMods(mods: ApiModMeta[], force: boolean): Promise<v
             }
             continue;
         }
-        if (existing && !force && existing.meta.reloadToken === meta.reloadToken) continue;
+        const server = devServerUrl(meta);
+        const loadedServer = existing === undefined ? undefined : devServerUrl(existing.meta);
+        // The same Vite URL means that dev server owns the module. Importing it
+        // again, even with a cache buster, gives the browser a second copy and
+        // breaks hot reload. Reload only when the URL appears, disappears, or changes.
+        if (server !== undefined && loadedServer === server) continue;
+        if (
+            existing &&
+            loadedServer === undefined &&
+            server === undefined &&
+            !force &&
+            existing.meta.reloadToken === meta.reloadToken
+        ) {
+            continue;
+        }
         if (existing) {
             // oxlint-disable-next-line no-await-in-loop
             await unloadMod(existing.id);
         }
         // oxlint-disable-next-line no-await-in-loop
-        const loaded = await loadMod(meta, cacheBust);
+        const loaded = await loadMod(meta, server === undefined ? cacheBust : undefined);
         if (loaded) {
             // oxlint-disable-next-line no-await-in-loop
             await activateMod(loaded);
@@ -227,7 +241,15 @@ export function unloadRoomMods(): void {
     for (const link of document.querySelectorAll("[data-room-mod]")) link.remove();
 }
 
+function devServerUrl(meta: ApiModMeta): string | undefined {
+    const url = meta.devServer;
+    if (url === undefined || url === null || url === "") return undefined;
+    return url;
+}
+
 function scriptUrl(meta: ApiModMeta, cacheBust?: string): string {
+    const devServer = devServerUrl(meta);
+    if (devServer !== undefined) return devServer;
     if (meta.dev) {
         const params = new URLSearchParams({ t: meta.reloadToken ?? "" });
         if (cacheBust !== undefined) params.set("r", cacheBust);
@@ -237,6 +259,7 @@ function scriptUrl(meta: ApiModMeta, cacheBust?: string): string {
 }
 
 function createCss(modId: string, meta: ApiModMeta, cacheBust?: string): void {
+    if (devServerUrl(meta) !== undefined) return;
     const link = document.createElement("link");
     if (meta.dev) {
         const params = new URLSearchParams({ t: meta.reloadToken ?? "" });

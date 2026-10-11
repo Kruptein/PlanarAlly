@@ -1,5 +1,10 @@
 ## Unreleased
 
+### [0.4.0]
+
+### Added
+- Vite config export to handle HMR and dev mode smoother
+
 ### [0.3.0]
 
 ### Added

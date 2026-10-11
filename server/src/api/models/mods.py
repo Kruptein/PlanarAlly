@@ -18,6 +18,8 @@ class ApiModMeta(CoreModMeta):
     dev: bool
     # Changes whenever a dev mod's files change, so clients can bypass the module cache.
     reloadToken: str = ""
+    # Absolute module URL when a Vite dev server is serving this mod.
+    devServer: str | None = None
 
 
 class ModToml(BaseModel):

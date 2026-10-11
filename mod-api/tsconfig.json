@@ -11,7 +11,8 @@
         "rootDir": "src",
         "skipLibCheck": true,
         "verbatimModuleSyntax": true,
-        "noUncheckedIndexedAccess": true
+        "noUncheckedIndexedAccess": true,
+        "types": ["node"]
     },
     "include": ["src"]
 }

@@ -11,7 +11,7 @@ from .dev import configured_roots, dev_signature, load_dev_mods
 _observer: Observer | None = None
 _loop: asyncio.AbstractEventLoop | None = None
 _timer: asyncio.TimerHandle | None = None
-_signature: tuple[tuple[str, str], ...] = ()
+_signature: tuple[tuple[str, str, str], ...] = ()
 _tasks: set[asyncio.Task[None]] = set()
 
 

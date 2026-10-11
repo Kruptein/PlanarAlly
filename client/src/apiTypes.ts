@@ -275,6 +275,7 @@ export interface ApiModMeta {
   hasCss: boolean;
   dev: boolean;
   reloadToken?: string;
+  devServer?: string | null;
 }
 export interface ApiRoomMod extends ApiModMeta {
   enabled: boolean;

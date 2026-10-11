@@ -23,6 +23,7 @@ tech changes will usually be stripped from release notes for the public
 -   [mods] Compendium functionality to add system rules or other concepts to a campaign
 -   [mods/DM] Enable/disable checkbox to temporarily turn off a mod without having to re-upload it later
 -   [mods/DM] Mods can export a `settings` Vue component, opened from a cog in the mod list
+-   [mods] Mods can now hook their dev server into the main vite dev server for smoother HMR
 
 ### Changed
 

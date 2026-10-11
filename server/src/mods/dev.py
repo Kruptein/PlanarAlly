@@ -1,6 +1,8 @@
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urljoin, urlsplit
 
 import rtoml
 from pydantic import ValidationError
@@ -84,8 +86,10 @@ def _warn_once(message: str) -> None:
     logger.warning(message)
 
 
-def dev_signature(mods: list[ApiModMeta]) -> tuple[tuple[str, str], ...]:
-    return tuple((mod.tag, mod.reloadToken) for mod in mods)
+def dev_signature(mods: list[ApiModMeta]) -> tuple[tuple[str, str, str], ...]:
+    # devServer has to be part of the signature: starting or stopping Vite rewrites
+    # vite-dev.json without touching the built files, so reloadToken stays put.
+    return tuple((mod.tag, mod.reloadToken, mod.devServer or "") for mod in mods)
 
 
 def _keep(found: dict[str, DevMod], mod: DevMod) -> None:
@@ -109,6 +113,9 @@ def _read_mod(folder: Path) -> DevMod | None:
     if not _TAG.fullmatch(meta.tag):
         _warn_once(f"Skipping dev mod {folder}: tag must match [A-Za-z0-9_-]+")
         return None
+    dev_server = _vite_dev_server(toml_path.parent)
+    if dev_server is None and not (asset_root / "index.js").is_file():
+        return None
     return DevMod(
         tag=meta.tag,
         toml_path=toml_path,
@@ -125,19 +132,46 @@ def _read_mod(folder: Path) -> DevMod | None:
             hasCss=(asset_root / "index.css").is_file(),
             dev=True,
             reloadToken=str(_newest_mtime_ns(asset_root, toml_path)),
+            devServer=dev_server,
         ),
     )
 
 
 def _locate(folder: Path) -> tuple[Path, Path] | None:
-    """Return the mod.toml path and the directory that contains index.js."""
+    """Return the mod.toml path and the directory that contains built assets."""
     if (folder / "mod.toml").is_file() and (folder / "dist" / "index.js").is_file():
         return folder / "mod.toml", folder / "dist"
     if (folder / "mod.toml").is_file() and (folder / "index.js").is_file():
         return folder / "mod.toml", folder
     if (folder / "index.js").is_file() and (folder.parent / "mod.toml").is_file():
         return folder.parent / "mod.toml", folder
+    # A running Vite server is enough; dist/ may not exist yet.
+    if (folder / "mod.toml").is_file() and (folder / "vite-dev.json").is_file():
+        return folder / "mod.toml", folder
     return None
+
+
+def _vite_dev_server(package_dir: Path) -> str | None:
+    """Absolute module URL from vite-dev.json, when origin and entry are strings."""
+    path = package_dir / "vite-dev.json"
+    if not path.is_file():
+        return None
+    try:
+        payload = json.loads(path.read_text())
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        _warn_once(f"Ignoring {path}: {error}")
+        return None
+    origin = payload.get("origin") if isinstance(payload, dict) else None
+    entry = payload.get("entry") if isinstance(payload, dict) else None
+    if not isinstance(origin, str) or not isinstance(entry, str) or not origin or not entry:
+        _warn_once(f"Ignoring {path}: origin and entry must be strings")
+        return None
+    url = urljoin(origin, entry)
+    parts = urlsplit(url)
+    if parts.scheme not in {"http", "https"} or not parts.netloc:
+        _warn_once(f"Ignoring {path}: {url} is not an absolute http(s) URL")
+        return None
+    return url
 
 
 def _newest_mtime_ns(asset_root: Path, toml_path: Path) -> int:

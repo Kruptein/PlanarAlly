@@ -17,6 +17,7 @@ import { selectedState } from "../../../systems/selected/state";
 const props = defineProps<{
     data: UiShapeCustomData;
     depth: number;
+    editable: boolean;
 }>();
 
 const { t } = useI18n();
@@ -106,9 +107,9 @@ async function removeElement(): Promise<void> {
                 {{ floempie.format(data) }}
             </div>
             <component :is="floempie.format.component" v-else :element="data" />
-            <font-awesome-icon icon="trash-alt" @click.stop="removeElement" />
+            <font-awesome-icon v-if="editable" icon="trash-alt" @click.stop="removeElement" />
         </div>
-        <div v-if="mode === 'edit'" class="edit-form">
+        <fieldset v-if="mode === 'edit'" class="edit-form" :disabled="!editable">
             <div>Name:</div>
             <input ref="nameInput" type="text" :value="data.name" @change="syncName" />
             <div>Type:</div>
@@ -131,7 +132,7 @@ async function removeElement(): Promise<void> {
             />
             <div>Description:</div>
             <textarea :value="data.description" @change="syncDescription" />
-        </div>
+        </fieldset>
     </div>
 </template>
 
@@ -165,6 +166,10 @@ async function removeElement(): Promise<void> {
     }
 
     .edit-form {
+        border: none;
+        margin: 0;
+        padding: 0;
+        min-width: 0;
         display: grid;
         grid-template-columns: [name] 1fr [value] 1fr [end];
         grid-row-gap: 0.5rem;

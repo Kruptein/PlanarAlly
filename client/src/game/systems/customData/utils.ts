@@ -7,28 +7,47 @@ import { customDataState } from "./state";
 import { type ElementId, type UiShapeCustomData } from "./types";
 
 const CUSTOM_DATA_VALID_CHARS = "\\w /";
-// This should mostly be kept in sync with the above (reads nicer as /../ compared to RegExp)
-// The first part of the full regex is an optional shape LocalId discriminator
-// This can only be used in dice tool input for now, we might have to change this to a part of the GlobalId
-// if we want to store this in the db
-const CUSTOM_DATA_REGEX = /{(\[\d+\])?([\w /]+)}/g;
+// The last group should mostly be kept in sync with the above (reads nicer as /../ compared to RegExp)
+// A reference has the form {[localId]source:prefix/reference}, where everything but the reference is optional
+// - The shape LocalId discriminator can only be used in dice tool input for now,
+//   we might have to change this to a part of the GlobalId if we want to store this in the db
+// - Source ids are not restricted to the valid chars (e.g. "srd-5.1"), so they are separated by a colon
+const CUSTOM_DATA_REGEX = /{(\[\d+\])?(?:([^{}[\]:]+):)?([\w /]+)}/g;
 
 type VariableSegment =
     | { text: string; isVariable: false }
-    | { text: string; isVariable: true; raw: string; ref: UiShapeCustomData | undefined; discriminator?: string };
+    | {
+          text: string;
+          isVariable: true;
+          raw: string;
+          // Only set if exactly one element matches
+          ref: UiShapeCustomData | undefined;
+          matches: readonly UiShapeCustomData[];
+          discriminator?: string;
+      };
 
 export function getCustomDataReference(name: string): string {
     return name.replaceAll(new RegExp(`[^${CUSTOM_DATA_VALID_CHARS}]`, "g"), "");
 }
 
-// The prefixed reference that uniquely identifies the data within a shape, e.g. "/attack/bonus"
-export function getCustomDataFullReference(data: Pick<UiShapeCustomData, "name" | "prefix" | "reference">): string {
+// The source qualified and prefixed reference that identifies the data within a shape, e.g. "srd-5.1:/attack/bonus"
+export function getCustomDataFullReference(
+    data: Pick<UiShapeCustomData, "name" | "prefix" | "reference" | "source">,
+): string {
     const reference = data.reference ?? getCustomDataReference(data.name);
-    if (data.prefix === "") return reference;
-    return `${getCustomDataReference(data.prefix).replace(/\/+$/, "")}/${reference}`;
+    if (data.prefix === "") return `${data.source}:${reference}`;
+    return `${data.source}:${getCustomDataReference(data.prefix).replace(/\/+$/, "")}/${reference}`;
 }
 
-export function getVariableSegments(data: string, shapeFocus?: LocalId): VariableSegment[] {
+export type CustomDataLookup = (shape: LocalId) => readonly UiShapeCustomData[] | undefined;
+
+const nonReactiveLookup: CustomDataLookup = (shape) => customDataState.readonly.data.get(shape);
+
+export function getVariableSegments(
+    data: string,
+    shapeFocus?: LocalId,
+    lookup: CustomDataLookup = nonReactiveLookup,
+): VariableSegment[] {
     const result: VariableSegment[] = [];
     let nextIndex = 0;
     for (const part of data.matchAll(CUSTOM_DATA_REGEX)) {
@@ -38,26 +57,29 @@ export function getVariableSegments(data: string, shapeFocus?: LocalId): Variabl
         }
         const shapeMatch = part[1];
         const shapeId = shapeMatch !== undefined ? (Number.parseInt(shapeMatch.slice(1, -1)) as LocalId) : undefined;
-        const refMatch = part[2]!;
+        const source = part[2]?.toLowerCase();
+        const refMatch = part[3]!;
         const parts = refMatch.split("/");
         if (parts.length === 0) continue;
         const last = parts.at(-1)!;
         let prefix = parts.length === 1 ? undefined : parts.slice(0, -1).join("/");
         if (prefix !== undefined && prefix[0] !== "/") prefix = `/${prefix}`;
+        const matches = (lookup(shapeId ?? shapeFocus ?? selectedState.reactive.focus!) ?? []).filter(
+            (shapeData) =>
+                shapeData.pending === undefined &&
+                (source === undefined || shapeData.source.toLowerCase() === source) &&
+                (prefix === undefined ||
+                    getCustomDataReference(shapeData.prefix.toLowerCase()) === prefix.toLowerCase()) &&
+                (shapeData.reference?.toLowerCase() ?? getCustomDataReference(shapeData.name.toLowerCase())) ===
+                    last.toLowerCase(),
+        );
         result.push({
             text: last,
             isVariable: true,
             raw: part[0],
             discriminator: (shapeId ?? shapeFocus)?.toString(),
-            ref: customDataState.readonly.data
-                .get(shapeId ?? shapeFocus ?? selectedState.reactive.focus!)
-                ?.find(
-                    (shapeData) =>
-                        (prefix === undefined ||
-                            getCustomDataReference(shapeData.prefix.toLowerCase()) === prefix.toLowerCase()) &&
-                        (shapeData.reference?.toLowerCase() ?? getCustomDataReference(shapeData.name.toLowerCase())) ===
-                            last.toLowerCase(),
-                ),
+            ref: matches.length === 1 ? matches[0] : undefined,
+            matches,
         });
         nextIndex = part.index + part[0].length;
     }
@@ -70,28 +92,45 @@ export function getVariableSegments(data: string, shapeFocus?: LocalId): Variabl
     return result;
 }
 
-// Shows references by name only, as the shape discriminator and prefix are not meaningful to other clients
+// Shows references by name only, the shape discriminator is not meaningful to other clients
+// and the source and prefix make the expression harder to read
 export function getDisplayExpression(data: string): string {
     return getVariableSegments(data)
         .map((segment) => (segment.isVariable ? `{${segment.text}}` : segment.text))
         .join("");
 }
 
+// Why a variable segment can not be resolved, if it can't
+export function getVariableProblem(segment: VariableSegment): string | undefined {
+    if (!segment.isVariable || segment.ref !== undefined) return;
+    if (segment.matches.length === 0) {
+        return i18n.global.t("game.ui.tools.DiceTool.unknown_variable", { name: segment.text });
+    }
+    const options = new Set(segment.matches.map((match) => `{${getCustomDataFullReference(match)}}`));
+    return i18n.global.t("game.ui.tools.DiceTool.ambiguous_variable", {
+        name: segment.text,
+        options: [...options].join(", "),
+    });
+}
+
 export class VariableError extends Error {}
 
-export function convertVariables(data: string, shapeFocus?: LocalId, seen: ReadonlySet<ElementId> = new Set()): string {
+export function convertVariables(
+    data: string,
+    shapeFocus?: LocalId,
+    lookup: CustomDataLookup = nonReactiveLookup,
+    seen: ReadonlySet<ElementId> = new Set(),
+): string {
     let result = "";
     let previousWasVariable = false;
-    for (const segment of getVariableSegments(data, shapeFocus)) {
+    for (const segment of getVariableSegments(data, shapeFocus, lookup)) {
         if (!segment.isVariable) {
             result += segment.text;
             previousWasVariable = false;
             continue;
         }
         const ref = segment.ref;
-        if (ref === undefined) {
-            throw new VariableError(i18n.global.t("game.ui.tools.DiceTool.unknown_variable", { name: segment.text }));
-        }
+        if (ref === undefined) throw new VariableError(getVariableProblem(segment));
         // Adjacent values should not merge into a single number
         if (previousWasVariable) result += " ";
         if (ref.kind === "dice-expression") {
@@ -102,11 +141,32 @@ export function convertVariables(data: string, shapeFocus?: LocalId, seen: Reado
             }
             // Variables in a dice expression refer to the shape that owns the expression
             const owner = getLocalId(ref.shapeId, false);
-            result += `(${convertVariables(ref.value, owner, new Set([...seen, ref.id]))})`;
+            result += `(${convertVariables(ref.value, owner, lookup, new Set([...seen, ref.id]))})`;
         } else {
             result += String(ref.value);
         }
         previousWasVariable = true;
     }
     return result;
+}
+
+// Every shape whose custom data `convertVariables` would read for this input
+export function getReferencedShapes(
+    data: string,
+    shapeFocus: LocalId,
+    lookup: CustomDataLookup = nonReactiveLookup,
+    seen: ReadonlySet<ElementId> = new Set(),
+): Set<LocalId> {
+    const shapes = new Set([shapeFocus]);
+    for (const segment of getVariableSegments(data, shapeFocus, lookup)) {
+        if (!segment.isVariable) continue;
+        if (segment.discriminator !== undefined) shapes.add(Number.parseInt(segment.discriminator) as LocalId);
+        const ref = segment.ref;
+        if (ref?.kind !== "dice-expression" || seen.has(ref.id)) continue;
+        const owner = getLocalId(ref.shapeId, false);
+        if (owner === undefined) continue;
+        for (const shape of getReferencedShapes(ref.value, owner, lookup, new Set([...seen, ref.id])))
+            shapes.add(shape);
+    }
+    return shapes;
 }

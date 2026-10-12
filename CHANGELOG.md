@@ -15,6 +15,8 @@ tech changes will usually be stripped from release notes for the public
 
 -   During panning and zooming a lower resolution render is now used if slower render times are detected
 -   Mirror action to shapes derived from assets
+-   Dice rolls support math on numbers and variables (`* / ( )`, `floor`, `ceil`, `round`, `abs`, `min`, `max`), e.g. `1d20 + floor(({str_score} - 10) / 2)`
+-   Dice history shows the roll as it was entered (with variable names) along with what it resolved to, rerolling your own rolls re-evaluates the variables
 -   [server] Added base server stats overview to admin panel
 -   [mods/server] Config now accepts a list of folders to auto-(re)load mods during mod development.
 -   [mods/DM] Uploading a new `.pam` whose tag is already in the campaign replaces that mod for everyone in the room
@@ -24,12 +26,13 @@ tech changes will usually be stripped from release notes for the public
 -   [mods/DM] Enable/disable checkbox to temporarily turn off a mod without having to re-upload it later
 -   [mods/DM] Mods can export a `settings` Vue component, opened from a cog in the mod list
 -   [mods] Mods can now hook their dev server into the main vite dev server for smoother HMR
--   Dice rolls support math on numbers and variables (`* / ( )`, `floor`, `ceil`, `round`, `abs`, `min`, `max`), e.g. `1d20 + floor(({str_score} - 10) / 2)`
--   Dice history shows the roll as it was entered (with variable names) along with what it resolved to, rerolling your own rolls re-evaluates the variables
+-   [mods] Dice variables can be qualified with their source, e.g. `{srd-5.1:str}` or `{srd-5.1:/abilities/scores/str}`
 
 ### Changed
 
 -   Light rendering performance improvements on big screens/slow hardware
+-   Dice variables that match multiple custom data elements now show an error listing the alternatives instead of using the first match
+-   [mods] Custom data in the shape dialog is split in tabs per mod, editing a mod's data has to be unlocked first
 
 ### Fixed
 
@@ -42,6 +45,8 @@ tech changes will usually be stripped from release notes for the public
 -   Variables inside a dice expression variable were looked up on the selected shape instead of the shape owning the expression
 -   Variables directly followed by dice syntax (e.g. `{prof}d6`) were not rolled correctly
 -   Dice autocomplete stopped suggesting after typing an underscore or capital letter
+-   Removing a custom data group also removed groups with the same name created by mods
+-   Custom data elements could be shown in the wrong group when an element had the same name as a group
 -   [DM] Location cloning was no longer opening the cloned location immediately
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons

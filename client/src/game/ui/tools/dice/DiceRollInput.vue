@@ -6,7 +6,7 @@ import { getImageSrcFromHash } from "../../../../assets/utils";
 import type { GlobalId } from "../../../../core/id";
 import { getLocalId, getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
-import { getVariableSegments } from "../../../systems/customData/utils";
+import { getVariableProblem, getVariableSegments } from "../../../systems/customData/utils";
 import { diceState } from "../../../systems/dice/state";
 
 import DiceAutoComplete from "./DiceAutoComplete.vue";
@@ -264,6 +264,7 @@ function getImage(shapeId: GlobalId): string {
                     v-if="segment.isVariable"
                     class="reference"
                     :class="{ incomplete: segment.ref === undefined }"
+                    :title="getVariableProblem(segment)"
                     :data-offset="index"
                 >
                     <img v-if="segment.image" :src="segment.image" />

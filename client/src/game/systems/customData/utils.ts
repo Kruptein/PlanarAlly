@@ -13,10 +13,17 @@ const CUSTOM_DATA_REGEX = /{(\[\d+\])?([\w /]+)}/g;
 
 type VariableSegment =
     | { text: string; isVariable: false }
-    | { text: string; isVariable: true; ref: UiShapeCustomData | undefined; discriminator?: string };
+    | { text: string; isVariable: true; raw: string; ref: UiShapeCustomData | undefined; discriminator?: string };
 
 export function getCustomDataReference(name: string): string {
     return name.replaceAll(new RegExp(`[^${CUSTOM_DATA_VALID_CHARS}]`, "g"), "");
+}
+
+// The prefixed reference that uniquely identifies the data within a shape, e.g. "/attack/bonus"
+export function getCustomDataFullReference(data: Pick<UiShapeCustomData, "name" | "prefix" | "reference">): string {
+    const reference = data.reference ?? getCustomDataReference(data.name);
+    if (data.prefix === "") return reference;
+    return `${getCustomDataReference(data.prefix).replace(/\/+$/, "")}/${reference}`;
 }
 
 export function getVariableSegments(data: string, shapeFocus?: LocalId): VariableSegment[] {
@@ -38,7 +45,8 @@ export function getVariableSegments(data: string, shapeFocus?: LocalId): Variabl
         result.push({
             text: last,
             isVariable: true,
-            discriminator: shapeMatch ?? shapeFocus?.toString(),
+            raw: part[0],
+            discriminator: (shapeId ?? shapeFocus)?.toString(),
             ref: customDataState.readonly.data
                 .get(shapeId ?? shapeFocus ?? selectedState.reactive.focus!)
                 ?.find(
@@ -49,7 +57,7 @@ export function getVariableSegments(data: string, shapeFocus?: LocalId): Variabl
                             last.toLowerCase(),
                 ),
         });
-        nextIndex = part.index + (shapeMatch?.length ?? 0) + refMatch.length + 2; // the { and }
+        nextIndex = part.index + part[0].length;
     }
     // no matches at all
     if (result.length === 0) {

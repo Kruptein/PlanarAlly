@@ -37,7 +37,9 @@ watch(
 );
 
 const segments = computed(() => {
-    return getVariableSegments(diceState.reactive.textInput).map((segment) => ({
+    const x = getVariableSegments(diceState.reactive.textInput);
+    console.log(x);
+    return x.map((segment) => ({
         ...segment,
         ...(segment.isVariable ? { image: segment.ref?.shapeId ? getImage(segment.ref.shapeId) : undefined } : {}),
     }));
@@ -150,12 +152,7 @@ function getCursorPositions(
     for (let i = 0; i < segmentIndexInt; i++) {
         const segment = segments.value[i];
         if (segment === undefined) continue;
-        statePos += segment.text.length;
-        // If we're dealing with a reference, we need to add 2 for the { and }
-        if (segment.isVariable) {
-            statePos += 2;
-            if (segment.discriminator !== undefined) statePos += segment.discriminator.length;
-        }
+        statePos += segment.isVariable ? segment.raw.length : segment.text.length;
     }
     statePos += textOffset;
     visualPos += textOffset;
@@ -166,7 +163,8 @@ function getCursorPositions(
         // for the node itself however, there is an extra space added to the front by the template engine
         // so that already accounts for the preceding {, the ending } should only be added if we're at the end of the node
         visualPos -= 1; // for the visual pos, the space is however ignored when doing the move forward by 1 character
-        if (segment.isVariable && segment.discriminator !== undefined) statePos += segment.discriminator.length;
+        // the discriminator and prefix are part of the state text, but are not shown
+        if (segment.isVariable) statePos += segment.raw.length - segment.text.length - 2;
         if ((text === " " || isRemove) && textOffset === textNode.textContent.length) {
             // if we're at the end of the node and we add a space, we want to go to the next segment,
             // so we add 1 as if the ending } was handled

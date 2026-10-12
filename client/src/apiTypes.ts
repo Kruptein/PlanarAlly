@@ -588,6 +588,7 @@ export interface CoreModMeta {
 export interface DiceRollResult {
   player: string;
   roll: string;
+  input?: string | null;
   shareWith: "all" | "dm" | "none";
 }
 export interface FloorBackgroundSet {

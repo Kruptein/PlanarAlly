@@ -9,6 +9,7 @@ import { i18n } from "../../../i18n";
 import { coreStore } from "../../../store/core";
 import { ToolName } from "../../models/tools";
 import type { ITool, ToolPermission } from "../../models/tools";
+import { convertVariables, getDisplayExpression } from "../../systems/customData/utils";
 import { diceSystem, getDiceEnvironment } from "../../systems/dice";
 import { sendDiceRollResult } from "../../systems/dice/emits";
 import { dxMathSyntax, resolveDiceMath } from "../../systems/dice/math";
@@ -90,8 +91,10 @@ class DiceTool extends Tool implements ITool {
         ];
     }
 
+    // The input can contain variable references, these are resolved before rolling
     async roll(input: string, use3d: boolean, shareWith: DiceRollResult["shareWith"]): Promise<RollResult<Part>> {
-        const resolvedInput = await resolveDiceMath(input, dxMathSyntax);
+        const displayInput = getDisplayExpression(input);
+        const resolvedInput = await resolveDiceMath(convertVariables(input), dxMathSyntax);
         let roll: RollResult<Part>;
         if (use3d) {
             const dieDefaults = await generate3dOptions();
@@ -109,11 +112,12 @@ class DiceTool extends Tool implements ITool {
             sendDiceRollResult({
                 player: coreStore.state.username,
                 roll: JSON.stringify(roll),
+                input: displayInput,
                 shareWith,
             });
         }
 
-        diceSystem.addToHistory(roll, coreStore.state.username);
+        diceSystem.addToHistory(roll, coreStore.state.username, { display: displayInput, raw: input });
 
         return roll;
     }

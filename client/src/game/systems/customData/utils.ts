@@ -70,6 +70,13 @@ export function getVariableSegments(data: string, shapeFocus?: LocalId): Variabl
     return result;
 }
 
+// Shows references by name only, as the shape discriminator and prefix are not meaningful to other clients
+export function getDisplayExpression(data: string): string {
+    return getVariableSegments(data)
+        .map((segment) => (segment.isVariable ? `{${segment.text}}` : segment.text))
+        .join("");
+}
+
 export class VariableError extends Error {}
 
 export function convertVariables(data: string, shapeFocus?: LocalId, seen: ReadonlySet<ElementId> = new Set()): string {

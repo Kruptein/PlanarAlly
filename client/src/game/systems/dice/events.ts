@@ -10,7 +10,11 @@ const toast = useToast();
 
 socket.on("Dice.Roll.Result", (data: DiceRollResult) => {
     const roll = JSON.parse(data.roll) as RollResult<Part>;
-    const rollString = diceSystem.addToHistory(roll, data.player);
+    const rollString = diceSystem.addToHistory(
+        roll,
+        data.player,
+        data.input === undefined || data.input === null ? undefined : { display: data.input },
+    );
 
     toast.info(`${data.player} rolled ${rollString} and threw a ${roll.result}`, {
         position: POSITION.TOP_RIGHT,

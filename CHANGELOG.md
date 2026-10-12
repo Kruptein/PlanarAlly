@@ -25,6 +25,7 @@ tech changes will usually be stripped from release notes for the public
 -   [mods/DM] Mods can export a `settings` Vue component, opened from a cog in the mod list
 -   [mods] Mods can now hook their dev server into the main vite dev server for smoother HMR
 -   Dice rolls support math on numbers and variables (`* / ( )`, `floor`, `ceil`, `round`, `abs`, `min`, `max`), e.g. `1d20 + floor(({str_score} - 10) / 2)`
+-   Dice history shows the roll as it was entered (with variable names) along with what it resolved to, rerolling your own rolls re-evaluates the variables
 
 ### Changed
 

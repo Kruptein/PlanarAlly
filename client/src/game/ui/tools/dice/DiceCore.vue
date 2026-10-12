@@ -3,20 +3,23 @@ import { type Part, type RollResult } from "@planarally/dice/core";
 import { DxConfig, DxSegmentType } from "@planarally/dice/systems/dx";
 import { type DeepReadonly, computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useToast } from "vue-toastification";
 
 import type { DiceRollResult } from "../../../../apiTypes";
 import ClickGroup from "../../../../core/components/ClickGroup.vue";
 import { arrToToggleGroup } from "../../../../core/components/toggleGroup";
 import ToggleGroup from "../../../../core/components/ToggleGroup.vue";
-import { convertVariables } from "../../../systems/customData/utils";
+import { VariableError, convertVariables } from "../../../systems/customData/utils";
 import { diceSystem } from "../../../systems/dice";
 import { DxHelper } from "../../../systems/dice/dx";
+import { DiceMathError } from "../../../systems/dice/math";
 import { diceState } from "../../../systems/dice/state";
 import { diceTool } from "../../../tools/variants/dice";
 
 import DiceRollInput from "./DiceRollInput.vue";
 
 const { t } = useI18n();
+const toast = useToast();
 
 // const limitOperatorOptionNames = [t('game.ui.tools.DiceTool.limit_operator_options.keep'), t('game.ui.tools.DiceTool.limit_operator_options.drop'), t('game.ui.tools.DiceTool.limit_operator_options.min'), t('game.ui.tools.DiceTool.limit_operator_options.max')]
 // const selectorOptionNames = ["=", ">", "<", t('game.ui.tools.DiceTool.selection_option_names.highest'), t('game.ui.tools.DiceTool.selection_option_names.lowest')]
@@ -177,11 +180,19 @@ async function roll(): Promise<void> {
     clear();
     awaitingRoll.value = true;
 
-    lastRoll.value = await diceTool.roll(
-        convertVariables(content),
-        dice3dSetting.value !== "off",
-        shareResult.value.toLowerCase() as DiceRollResult["shareWith"],
-    );
+    try {
+        lastRoll.value = await diceTool.roll(
+            convertVariables(content),
+            dice3dSetting.value !== "off",
+            shareResult.value.toLowerCase() as DiceRollResult["shareWith"],
+        );
+    } catch (error) {
+        awaitingRoll.value = false;
+        if (!(error instanceof DiceMathError || error instanceof VariableError)) throw error;
+        diceSystem.setInput(content);
+        toast.error(error.message);
+        return;
+    }
 
     // These lines are required to make sure that the transition for lastroll-results plays,
     // This covers the case of multiple 3D dice rolls awaiting results simultaneously. When one

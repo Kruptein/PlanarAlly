@@ -71,7 +71,7 @@ function checkAutoComplete(text: string): void {
         if (char === "{") {
             start = i + 1;
             break;
-        } else if (char?.match(/[a-z0-9[\]/]/) === null) {
+        } else if (char?.match(/[\w[\]/]/) === null) {
             if (i === text.length - 1 && char === "}") {
                 closedVariable = true;
                 continue;
@@ -101,7 +101,7 @@ function checkAutoComplete(text: string): void {
         if (text[i] === "}") {
             end = i;
             break;
-        } else if (text[i]?.match(/[a-z0-9]/) === null) {
+        } else if (text[i]?.match(/\w/) === null) {
             break;
         }
     }

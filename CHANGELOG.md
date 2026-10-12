@@ -24,6 +24,7 @@ tech changes will usually be stripped from release notes for the public
 -   [mods/DM] Enable/disable checkbox to temporarily turn off a mod without having to re-upload it later
 -   [mods/DM] Mods can export a `settings` Vue component, opened from a cog in the mod list
 -   [mods] Mods can now hook their dev server into the main vite dev server for smoother HMR
+-   Dice rolls support math on numbers and variables (`* / ( )`, `floor`, `ceil`, `round`, `abs`, `min`, `max`), e.g. `1d20 + floor(({str_score} - 10) / 2)`
 
 ### Changed
 
@@ -35,6 +36,11 @@ tech changes will usually be stripped from release notes for the public
 -   Dice macro UI was empty for shapes with a local ID of 1
 -   Dice autocomplete and macro roll buttons inserted variable references that did not resolve when the data had a custom reference, special characters in its name or a duplicate name in another group
 -   Custom data references were saved with unsupported characters, making them unusable in dice rolls
+-   Dice rolls silently ignored unsupported input and subtracting a negative number (e.g. a `-1` modifier) did not do what you would expect
+-   Dice rolls silently dropped unknown variables, they now show an error
+-   Variables inside a dice expression variable were looked up on the selected shape instead of the shape owning the expression
+-   Variables directly followed by dice syntax (e.g. `{prof}d6`) were not rolled correctly
+-   Dice autocomplete stopped suggesting after typing an underscore or capital letter
 -   [DM] Location cloning was no longer opening the cloned location immediately
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons

@@ -1,8 +1,10 @@
 import type { LocalId } from "../../../core/id";
+import { i18n } from "../../../i18n";
+import { getLocalId } from "../../id";
 import { selectedState } from "../selected/state";
 
 import { customDataState } from "./state";
-import { type UiShapeCustomData } from "./types";
+import { type ElementId, type UiShapeCustomData } from "./types";
 
 const CUSTOM_DATA_VALID_CHARS = "\\w /";
 // This should mostly be kept in sync with the above (reads nicer as /../ compared to RegExp)
@@ -68,15 +70,36 @@ export function getVariableSegments(data: string, shapeFocus?: LocalId): Variabl
     return result;
 }
 
-export function convertVariables(data: string): string {
-    const segments = getVariableSegments(data);
-    return segments
-        .filter((segment) => !segment.isVariable || segment.ref !== undefined)
-        .map((segment) => {
-            if (!segment.isVariable) return segment.text;
-            const ref = segment.ref!;
-            if (ref.kind === "dice-expression") return convertVariables(ref.value);
-            return ref.value;
-        })
-        .join(" ");
+export class VariableError extends Error {}
+
+export function convertVariables(data: string, shapeFocus?: LocalId, seen: ReadonlySet<ElementId> = new Set()): string {
+    let result = "";
+    let previousWasVariable = false;
+    for (const segment of getVariableSegments(data, shapeFocus)) {
+        if (!segment.isVariable) {
+            result += segment.text;
+            previousWasVariable = false;
+            continue;
+        }
+        const ref = segment.ref;
+        if (ref === undefined) {
+            throw new VariableError(i18n.global.t("game.ui.tools.DiceTool.unknown_variable", { name: segment.text }));
+        }
+        // Adjacent values should not merge into a single number
+        if (previousWasVariable) result += " ";
+        if (ref.kind === "dice-expression") {
+            if (seen.has(ref.id)) {
+                throw new VariableError(
+                    i18n.global.t("game.ui.tools.DiceTool.recursive_variable", { name: segment.text }),
+                );
+            }
+            // Variables in a dice expression refer to the shape that owns the expression
+            const owner = getLocalId(ref.shapeId, false);
+            result += `(${convertVariables(ref.value, owner, new Set([...seen, ref.id]))})`;
+        } else {
+            result += String(ref.value);
+        }
+        previousWasVariable = true;
+    }
+    return result;
 }

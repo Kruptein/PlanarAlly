@@ -11,6 +11,7 @@ import { ToolName } from "../../models/tools";
 import type { ITool, ToolPermission } from "../../models/tools";
 import { diceSystem, getDiceEnvironment } from "../../systems/dice";
 import { sendDiceRollResult } from "../../systems/dice/emits";
+import { dxMathSyntax, resolveDiceMath } from "../../systems/dice/math";
 import { diceState } from "../../systems/dice/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
@@ -90,17 +91,18 @@ class DiceTool extends Tool implements ITool {
     }
 
     async roll(input: string, use3d: boolean, shareWith: DiceRollResult["shareWith"]): Promise<RollResult<Part>> {
+        const resolvedInput = await resolveDiceMath(input, dxMathSyntax);
         let roll: RollResult<Part>;
         if (use3d) {
             const dieDefaults = await generate3dOptions();
             const { diceThrower } = await getDiceEnvironment();
-            roll = await rollString(input, diceState.raw.systems!["3d"], {
+            roll = await rollString(resolvedInput, diceState.raw.systems!["3d"], {
                 thrower: diceThrower!,
                 dieDefaults,
                 d100Mode: 100 as const,
             });
         } else {
-            roll = await rollString(input, diceState.raw.systems!["2d"], { d100Mode: 100 as const });
+            roll = await rollString(resolvedInput, diceState.raw.systems!["2d"], { d100Mode: 100 as const });
         }
 
         if (shareWith !== "none") {

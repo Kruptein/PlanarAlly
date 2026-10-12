@@ -266,6 +266,11 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         )
             return;
 
+        if (!prefix.startsWith("/")) {
+            console.warn(`Prefix "${prefix}" does not start with "/".`);
+            prefix = `/${prefix}`;
+        }
+
         const branchElement: UiShapeCustomData = {
             shapeId,
             source: "planarally",
@@ -285,6 +290,11 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
     addElement(element: DistributiveOmit<UiShapeCustomData, "id">, sync: boolean): void {
         const id = getLocalId(element.shapeId);
         if (!id) return;
+
+        if (element.prefix && !element.prefix.startsWith("/")) {
+            console.warn(`Prefix "${element.prefix}" does not start with "/".`);
+            element.prefix = `/${element.prefix}`;
+        }
 
         const fullElement = { ...element, id: ID++ as ElementId };
         if (this.getElementId(getIdentifier(fullElement)) !== undefined) return;

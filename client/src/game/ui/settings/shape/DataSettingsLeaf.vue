@@ -76,7 +76,7 @@ function syncReference(event: Event): void {
     const target = event.target as HTMLInputElement;
     const newReference = getCustomDataReference(target.value).trim();
     if (newReference === "") return;
-    customDataSystem.setReference(selectedState.raw.focus!, props.data.id, target.value, true);
+    customDataSystem.setReference(selectedState.raw.focus!, props.data.id, newReference, true);
 }
 
 function syncDescription(event: Event): void {

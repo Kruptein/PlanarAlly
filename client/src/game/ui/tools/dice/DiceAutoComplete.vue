@@ -8,6 +8,7 @@ import { getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
 import { customDataState } from "../../../systems/customData/state";
 import type { UiShapeCustomData } from "../../../systems/customData/types";
+import { getCustomDataFullReference } from "../../../systems/customData/utils";
 import { diceState } from "../../../systems/dice/state";
 import { getProperties } from "../../../systems/properties/state";
 import { selectedState } from "../../../systems/selected/state";
@@ -70,7 +71,7 @@ function checkAutoComplete(text: string): void {
         if (char === "{") {
             start = i + 1;
             break;
-        } else if (char?.match(/[a-z0-9[\]]/) === null) {
+        } else if (char?.match(/[a-z0-9[\]/]/) === null) {
             if (i === text.length - 1 && char === "}") {
                 closedVariable = true;
                 continue;
@@ -123,7 +124,7 @@ async function completeAutoComplete(option?: AutoCompleteOption): Promise<void> 
     const start = diceState.raw.lastCursorPosition - autoCompleteSearchTextBackward.length - 1;
 
     const oldMessage = diceState.raw.textInput;
-    const fullRef = `{[${option.shapeId}]${option.name}}`;
+    const fullRef = `{[${option.shapeId}]${getCustomDataFullReference(option)}}`;
     diceState.mutableReactive.lastCursorPosition = start + fullRef.length;
     diceState.mutableReactive.textInput =
         oldMessage.slice(0, start) +
@@ -173,9 +174,12 @@ async function handleAutoCompleteKey(event: KeyboardEvent): Promise<void> {
 function getAutoCompleteOptions(): AutoCompleteOption[] {
     const options: AutoCompleteOption[] = [];
 
-    // the regex is the discriminator part (see custom data utils)
-    // for the autocompletion we're just ignoring it, as we might want to change to a different shape
-    let pre = autoCompleteSearchTextBackward.toLowerCase().replace(/\[\d+\]/, "");
+    // the regexes are the discriminator and prefix parts (see custom data utils)
+    // for the autocompletion we're just ignoring them, as we might want to change to a different shape or branch
+    let pre = autoCompleteSearchTextBackward
+        .toLowerCase()
+        .replace(/\[\d+\]/, "")
+        .replace(/^.*\//, "");
     const post = autoCompleteSearchTextForward.toLowerCase();
     if (pre.endsWith("}")) {
         pre = pre.slice(0, -1);

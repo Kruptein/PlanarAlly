@@ -8,7 +8,7 @@ import { activateTool } from "../../../tools/tools";
 import { diceSystem } from "../../dice";
 import { selectedState } from "../../selected/state";
 import type { ElementId } from "../types";
-import { getVariableSegments } from "../utils";
+import { getCustomDataFullReference, getVariableSegments } from "../utils";
 
 const { element, shapeFocus } = defineProps<{
     element: ApiShapeCustomDataDiceExpression & { id: ElementId };
@@ -30,7 +30,7 @@ async function loadRoll(): Promise<void> {
             .map((segment) =>
                 segment.isVariable
                     ? segment.discriminator !== undefined
-                        ? `{[${segment.discriminator}]${segment.ref!.name}}`
+                        ? `{[${segment.discriminator}]${getCustomDataFullReference(segment.ref!)}}`
                         : segment.ref!.value
                     : segment.text,
             )

@@ -33,6 +33,8 @@ tech changes will usually be stripped from release notes for the public
 
 -   Locked shapes were movable by keyboard navigation
 -   Dice macro UI was empty for shapes with a local ID of 1
+-   Dice autocomplete and macro roll buttons inserted variable references that did not resolve when the data had a custom reference, special characters in its name or a duplicate name in another group
+-   Custom data references were saved with unsupported characters, making them unusable in dice rolls
 -   [DM] Location cloning was no longer opening the cloned location immediately
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons

@@ -650,6 +650,20 @@
                     "open_options_title": "Show Additional Options",
                     "toggle_advanced": "Toggle Advanced Mode",
                     "toggle_breakdown": "Toggle Breakdown",
+                    "unknown_variable": "Unknown variable \"{name}\"",
+                    "recursive_variable": "\"{name}\" refers to itself",
+                    "math_errors": {
+                        "invalid": "Could not read the dice expression: {error}",
+                        "unknown_name": "Unknown name \"{name}\"",
+                        "unknown_function": "Unknown function \"{name}\", supported functions are: {functions}",
+                        "unsupported": "\"{expression}\" is not supported in dice expressions",
+                        "unsupported_operator": "The \"{op}\" operator is not supported in dice expressions",
+                        "dice_operator": "Dice can't be combined using \"{op}\"",
+                        "dice_in_function": "Dice can't be used inside {name}()",
+                        "argument_count": "{name}() was called with the wrong number of arguments",
+                        "fraction": "{value} is not a whole number, use floor, ceil or round",
+                        "invalid_number": "The dice expression does not result in a valid number"
+                    },
                     "3D_options": {
                         "off": "Off",
                         "on": "On",

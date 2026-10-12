@@ -37,9 +37,7 @@ watch(
 );
 
 const segments = computed(() => {
-    const x = getVariableSegments(diceState.reactive.textInput);
-    console.log(x);
-    return x.map((segment) => ({
+    return getVariableSegments(diceState.reactive.textInput).map((segment) => ({
         ...segment,
         ...(segment.isVariable ? { image: segment.ref?.shapeId ? getImage(segment.ref.shapeId) : undefined } : {}),
     }));

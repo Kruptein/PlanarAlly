@@ -69,6 +69,11 @@ interface CharacterSystem {
   getShapeId(characterId: CharacterId): GlobalId | undefined;
 }
 
+interface CustomDataSystem {
+  addElement(element: ApiShapeCustomData, sync: boolean): void;
+  loadAndDropState(ids: ReadonlySet<LocalId>, source: string): void;
+}
+
 interface ReactiveState<T extends object> {
   reactive: T;
   mutableReactive: T;
@@ -85,6 +90,9 @@ interface SystemsState {
     characterIds: Set<CharacterId>;
   }> &
     NonReactiveState<{ characters: Map<CharacterId, ApiCharacter> }>;
+  customData: ReactiveState<{
+    data: Map<LocalId, ApiShapeCustomData[]>;
+  }>;
   game: ReactiveState<{
     roomName: string;
     roomCreator: string;
@@ -133,6 +141,38 @@ export interface ApiUserDataBlock extends ApiCoreDataBlock {
 export type ApiDataBlock = ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock;
 export type DistributiveOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 export type DbRepr = DistributiveOmit<ApiDataBlock, "data" | "source">;
+
+export type ApiShapeCustomData =
+  | ApiShapeCustomDataText
+  | ApiShapeCustomDataNumber
+  | ApiShapeCustomDataBoolean
+  | ApiShapeCustomDataDiceExpression;
+export interface ApiShapeCustomDataText extends ApiShapeCustomDataCore {
+  kind: "text";
+  value: string;
+}
+export interface ApiShapeCustomDataNumber extends ApiShapeCustomDataCore {
+  kind: "number";
+  value: number;
+}
+export interface ApiShapeCustomDataBoolean extends ApiShapeCustomDataCore {
+  kind: "boolean";
+  value: boolean;
+}
+export interface ApiShapeCustomDataDiceExpression extends ApiShapeCustomDataCore {
+  kind: "dice-expression";
+  value: string;
+}
+export interface ApiShapeCustomDataCore extends ApiShapeCustomDataIdentifier {
+  reference: string | null;
+  description: string | null;
+}
+export interface ApiShapeCustomDataIdentifier {
+  shapeId: GlobalId;
+  source: string;
+  prefix: string;
+  name: string;
+}
 
 export interface ApiModMeta {
   apiSchema: string;
@@ -193,14 +233,25 @@ export interface ModHooks {
   pipe(hook: string, initialValue: unknown, context: unknown): unknown;
 }
 
-export interface CompendiumEntry {
+export interface CompendiumEntry<T = unknown> {
+  // Unique ID within a mod that is used to create a ref (e.g. "compendium:mod/entry")
   id: string;
+  // Display name of the entry
   name: string;
-  kind: string;
-  path?: string[];
-  group?: Record<string, string>;
-  aliases?: string[];
+  // The content of the entry - markdown aware
   body: string;
+  // Structured data other mods can query.
+  // `system` is the mod tag of the mod that defines the schema shape, which can differ from the mod that wrote the entry.
+  // `kind` is that schema's entry type, for example "spell".
+  schema?: CompendiumSchema<T>;
+  // path can list one or multiple entries to put the entry in subfolders
+  // when omitted the entry will be put in the root of the collection
+  path?: string[];
+  // groups are additional meta data that can be used to offer an alternative view of a folder
+  // e.g. group entries by a particular property like magic school
+  group?: Record<string, string>;
+  // Purely used for search and auto complete purposes
+  aliases?: string[];
 }
 
 export interface CompendiumView {
@@ -215,12 +266,27 @@ export interface CompendiumRegisterOptions {
   views?: CompendiumView[];
 }
 
+export interface CompendiumSchema<T = unknown> {
+  system: string;
+  kind: string;
+  data?: T;
+}
+
+export interface CompendiumRecord<T = unknown> extends CompendiumEntry<T> {
+  mod: string;
+  collection: string;
+  ref: string;
+  path: string[];
+  schema: CompendiumSchema<T>;
+}
+
 export interface CompendiumApi {
   register(entries: CompendiumEntry[], options?: CompendiumRegisterOptions): () => void;
+  getEntries<T>(system: string, kind: string): CompendiumRecord<T>[];
 }
 
 export interface GameApi {
-  systems: { characters: CharacterSystem; trackers: TrackerSystem };
+  systems: { characters: CharacterSystem; customData: CustomDataSystem; trackers: TrackerSystem };
   systemsState: SystemsState;
 
   ui: {

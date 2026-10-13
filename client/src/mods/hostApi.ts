@@ -1,4 +1,4 @@
-import type { GameApi, ModalComponent } from "@planarally/mod-api";
+import type { CompendiumRecord, GameApi, ModalComponent } from "@planarally/mod-api";
 import { markRaw } from "vue";
 
 import { eventBus } from "../core/eventBus";
@@ -49,6 +49,8 @@ export async function buildModApi(modId: string, tag: string): Promise<GameApi> 
         compendium: {
             register: (entries, options) =>
                 trackRegistration(modId, compendiumSystem.registerEntries(tag, entries, options)),
+            getEntries: <T = unknown>(system: string, kind: string): CompendiumRecord<T>[] =>
+                compendiumSystem.getEntries<T>(system, kind),
         },
         ...getDataBlockFunctions(tag),
     };

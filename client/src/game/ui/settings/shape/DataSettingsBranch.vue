@@ -17,11 +17,16 @@ const {
     children,
     name,
     prefix,
+    source,
+    editable,
     depth = 0,
 } = defineProps<{
     children: (Branch | UiShapeCustomData)[];
     prefix?: string;
     name?: string;
+    // All elements in the tree share this source, new elements are created with it
+    source: string;
+    editable: boolean;
     depth?: number;
 }>();
 
@@ -35,6 +40,7 @@ function addBranch(): void {
     visible.value = true;
     customDataSystem.addBranch(
         selectedState.raw.focus!,
+        source,
         depth === 0 ? `/${newName}` : `${prefix ?? "/"}${name}/${newName}`,
     );
 }
@@ -45,7 +51,7 @@ function addElement(): void {
     customDataSystem.addElement(
         {
             shapeId,
-            source: "planarally",
+            source,
             prefix: (prefix ?? "/") + (name ?? ""),
             name: "",
             kind: "text",
@@ -63,7 +69,7 @@ async function removeBranch(): Promise<void> {
         t("game.ui.selection.edit_dialog.customData.removeBranchTitle"),
         t("game.ui.selection.edit_dialog.customData.removeBranchPrompt"),
     );
-    if (result === true) customDataSystem.removeBranch(selectedState.raw.focus!, `${prefix}${name}`);
+    if (result === true) customDataSystem.removeBranch(selectedState.raw.focus!, source, `${prefix}${name}`);
 }
 </script>
 
@@ -75,9 +81,11 @@ async function removeBranch(): Promise<void> {
                 <font-awesome-icon v-else icon="chevron-right" />
                 {{ name }}
                 <span style="flex: 1; min-width: 1rem"></span>
-                <font-awesome-icon icon="folder-tree" class="hover-only" @click.stop="addBranch" />
-                <font-awesome-icon icon="plus" class="hover-only" @click.stop="addElement" />
-                <font-awesome-icon icon="trash-alt" class="hover-only" @click.stop="removeBranch" />
+                <template v-if="editable">
+                    <font-awesome-icon icon="folder-tree" class="hover-only" @click.stop="addBranch" />
+                    <font-awesome-icon icon="plus" class="hover-only" @click.stop="addElement" />
+                    <font-awesome-icon icon="trash-alt" class="hover-only" @click.stop="removeBranch" />
+                </template>
             </div>
         </template>
         <div v-show="visible" class="children">
@@ -88,10 +96,12 @@ async function removeBranch(): Promise<void> {
                         :name="entry.name"
                         :depth="depth + 1"
                         :prefix="entry.prefix"
+                        :source="source"
+                        :editable="editable"
                     />
                 </template>
                 <template v-else>
-                    <DataSettingsLeaf :data="entry" :depth="depth + 1" />
+                    <DataSettingsLeaf :data="entry" :depth="depth + 1" :editable="editable" />
                 </template>
             </template>
         </div>
@@ -100,7 +110,7 @@ async function removeBranch(): Promise<void> {
                 {{ t("game.ui.selection.edit_dialog.customData.noChildren") }}
             </div>
             <div style="flex: 1"></div>
-            <div id="root-buttons">
+            <div v-if="editable" id="root-buttons">
                 <button @click="addBranch">
                     <font-awesome-icon icon="folder-tree" />
                     {{ t("game.ui.selection.edit_dialog.customData.addBranch") }}

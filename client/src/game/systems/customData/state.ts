@@ -4,7 +4,7 @@ import { buildState } from "../../../core/systems/state";
 import type { UiShapeCustomData } from "./types";
 
 interface ReactiveCustomDataState {
-    leases: Map<LocalId, Set<string>>;
+    leases: Map<LocalId, Set<string | symbol>>;
     data: Map<LocalId, UiShapeCustomData[]>;
 }
 

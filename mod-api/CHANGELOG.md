@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Added
+- Custom data apis
+- Dice simplification apis
+
 ### [0.4.0]
 
 ### Added

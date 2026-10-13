@@ -326,7 +326,12 @@
                         "removeBranchTitle": "Remove Branch",
                         "removeBranchPrompt": "Are you sure you want to remove this branch and all its children?",
                         "removeElementTitle": "Remove Element",
-                        "removeElementPrompt": "Are you sure you want to remove this element?"
+                        "removeElementPrompt": "Are you sure you want to remove this element?",
+                        "userSource": "User",
+                        "lockedHint": "This data is managed by a mod.",
+                        "unlockedHint": "Changes can break the mod or be overwritten by it.",
+                        "unlockEditing": "Unlock editing",
+                        "lockEditing": "Lock editing"
                     },
                     "variants": {
                         "variants": "Variants",
@@ -651,8 +656,10 @@
                     "toggle_advanced": "Toggle Advanced Mode",
                     "toggle_breakdown": "Toggle Breakdown",
                     "unknown_variable": "Unknown variable \"{name}\"",
+                    "ambiguous_variable": "\"{name}\" matches multiple variables, use one of {options}",
                     "recursive_variable": "\"{name}\" refers to itself",
                     "math_errors": {
+                        "empty": "The dice expression is empty",
                         "invalid": "Could not read the dice expression: {error}",
                         "unknown_name": "Unknown name \"{name}\"",
                         "unknown_function": "Unknown function \"{name}\", supported functions are: {functions}",

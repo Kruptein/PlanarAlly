@@ -9,6 +9,7 @@ import { compendiumSystem } from "../game/systems/compendium";
 import { registerContextMenuEntry, registerTab } from "../game/systems/ui/mods";
 
 import { getDataBlockFunctions } from "./db";
+import { simplifyDiceExpression, useSimplifiedDice } from "./dice";
 import { trackRegistration } from "./registry";
 
 export async function buildModApi(modId: string, tag: string): Promise<GameApi> {
@@ -32,6 +33,10 @@ export async function buildModApi(modId: string, tag: string): Promise<GameApi> 
             activateTool: (toolName: string) => {
                 activateTool(toolName as Parameters<typeof activateTool>[0]);
             },
+        },
+        dice: {
+            simplify: simplifyDiceExpression,
+            useSimplified: useSimplifiedDice,
         },
         getGlobalId,
         getShape,

@@ -5,7 +5,14 @@ import { i18n } from "../../../i18n";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const loadMathJs = () => import("mathjs");
 
-type MathJs = Awaited<ReturnType<typeof loadMathJs>>;
+export type MathJs = Awaited<ReturnType<typeof loadMathJs>>;
+
+let mathLoading: Promise<MathJs> | undefined;
+
+export function loadDiceMath(): Promise<MathJs> {
+    mathLoading ??= loadMathJs();
+    return mathLoading;
+}
 
 type DiceOperator = "add" | "subtract" | "unaryMinus" | "unaryPlus";
 
@@ -155,8 +162,13 @@ function resolveNode(node: MathNode, ctx: Context): Value {
  */
 export async function resolveDiceMath(input: string, syntax: DiceMathSyntax): Promise<string> {
     if (input.trim().length === 0) return input;
+    return resolveDiceMathSync(await loadDiceMath(), input, syntax);
+}
 
-    const ctx: Context = { math: await loadMathJs(), syntax, terms: new Map() };
+export function resolveDiceMathSync(math: MathJs, input: string, syntax: DiceMathSyntax): string {
+    if (input.trim().length === 0) return input;
+
+    const ctx: Context = { math, syntax, terms: new Map() };
     const prepared = input.replaceAll(syntax.termPattern, (term) => {
         const name = `_d${ctx.terms.size}_`;
         ctx.terms.set(name, term);

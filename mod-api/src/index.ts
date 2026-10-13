@@ -3,6 +3,7 @@ import type {
   DeepReadonly,
   DefineSetupFnComponent,
   MaybeRef,
+  MaybeRefOrGetter,
   Reactive,
   Ref,
   SlotsType,
@@ -71,7 +72,7 @@ interface CharacterSystem {
 
 interface CustomDataSystem {
   addElement(element: ApiShapeCustomData, sync: boolean): void;
-  loadAndDropState(ids: ReadonlySet<LocalId>, source: string): void;
+  loadAndDropState(ids: ReadonlySet<LocalId>, source: string | symbol): void;
 }
 
 interface ReactiveState<T extends object> {
@@ -164,11 +165,20 @@ export interface ApiShapeCustomDataDiceExpression extends ApiShapeCustomDataCore
   value: string;
 }
 export interface ApiShapeCustomDataCore extends ApiShapeCustomDataIdentifier {
+  // Name used in dice expressions, defaults to the name stripped of characters other than letters, digits, _, space and /.
+  // Expressions refer to elements as `{[localId]source:prefix/reference}`, where only the reference is required:
+  // - `[localId]` picks the shape, defaults to the shape the expression is evaluated for
+  // - `source:` restricts the match to elements of that source, it can not contain `:`, `{`, `}`, `[` or `]`
+  // - `prefix/` restricts the match to elements with that prefix
+  // A reference must match exactly one element, references matching elements of multiple sources or prefixes
+  // are an error and need to be qualified, e.g. `{srd-5.1:str}` or `{srd-5.1:/abilities/scores/str}`.
   reference: string | null;
   description: string | null;
 }
 export interface ApiShapeCustomDataIdentifier {
   shapeId: GlobalId;
+  // Use the mod tag, the shape dialog shows a tab per source labelled with the matching mod's name.
+  // "planarally" is used for elements created by users.
   source: string;
   prefix: string;
   name: string;
@@ -285,6 +295,28 @@ export interface CompendiumApi {
   getEntries<T>(system: string, kind: string): CompendiumRecord<T>[];
 }
 
+export type DiceSimplification =
+  | { kind: "number"; value: number }
+  // Dice remain after resolving variables and math, e.g. "1d20 + 3"
+  | { kind: "dice"; expression: string }
+  | { kind: "error"; message: string };
+
+// The math library behind dice simplification is still loading
+export type PendingDiceSimplification = { kind: "pending" };
+
+export interface DiceApi {
+  // Resolves custom data variables relative to `shape` and all math that does not depend on dice results,
+  // the same way a roll does, without rolling anything.
+  simplify(expression: string, shape: LocalId): Promise<DiceSimplification>;
+  // Reactive version of `simplify`, to be called in a component setup or another effect scope.
+  // Holds custom data leases on every shape the expression reads until the scope is disposed.
+  // Without a shape the result is undefined and no leases are held.
+  useSimplified(
+    expression: MaybeRefOrGetter<string>,
+    shape: MaybeRefOrGetter<LocalId | null | undefined>,
+  ): Readonly<Ref<DiceSimplification | PendingDiceSimplification | undefined>>;
+}
+
 export interface GameApi {
   systems: { characters: CharacterSystem; customData: CustomDataSystem; trackers: TrackerSystem };
   systemsState: SystemsState;
@@ -303,6 +335,8 @@ export interface GameApi {
   gameplay: {
     activateTool: (toolName: string) => void;
   };
+
+  dice: DiceApi;
 
   components: {
     Modal: ModalComponent;

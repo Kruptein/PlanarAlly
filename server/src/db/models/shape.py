@@ -18,9 +18,9 @@ if TYPE_CHECKING:
     from .circular_token import CircularToken
     from .font_awesome import FontAwesome
     from .line import Line
+    from .note_shape import NoteShape
     from .polygon import Polygon
     from .rect import Rect
-    from .note_shape import NoteShape
     from .shape_custom_data import ShapeCustomData
     from .shape_data_block import ShapeDataBlock
     from .shape_owner import ShapeOwner

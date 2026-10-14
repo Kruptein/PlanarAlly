@@ -1,0 +1,32 @@
+{
+    "name": "@planarally/mod-api",
+    "version": "0.5.0",
+    "description": "Types and helpers for PlanarAlly mods.",
+    "license": "MIT",
+    "type": "module",
+    "scripts": {
+        "build": "node scripts/write-vue-dev.mjs && tsc -p tsconfig.json"
+    },
+    "files": [
+        "dist",
+        "vue-dev.json"
+    ],
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./vite": {
+            "types": "./dist/vite.d.ts",
+            "import": "./dist/vite.js"
+        }
+    },
+    "peerDependencies": {
+        "vue": "^3.5.0"
+    },
+    "devDependencies": {
+        "@types/node": "^24.0.5",
+        "typescript": "^6.0.3"
+    }
+}

@@ -50,6 +50,7 @@
         "exit": "Exit",
         "assets": "Assets",
         "notes": "Notes",
+        "compendium": "Compendium",
         "markers": "Markers",
         "border_color": "Border colour",
         "fill_color": "Fill colour",
@@ -327,7 +328,12 @@
                         "removeBranchTitle": "Remove Branch",
                         "removeBranchPrompt": "Are you sure you want to remove this branch and all its children?",
                         "removeElementTitle": "Remove Element",
-                        "removeElementPrompt": "Are you sure you want to remove this element?"
+                        "removeElementPrompt": "Are you sure you want to remove this element?",
+                        "userSource": "User",
+                        "lockedHint": "This data is managed by a mod.",
+                        "unlockedHint": "Changes can break the mod or be overwritten by it.",
+                        "unlockEditing": "Unlock editing",
+                        "lockEditing": "Lock editing"
                     },
                     "variants": {
                         "variants": "Variants",
@@ -387,7 +393,8 @@
                         "title": "Splitting group",
                         "text": "Do you wish to keep the original badges?",
                         "no": "No, reset them"
-                    }
+                    },
+                    "mirror": "Mirror"
                 }
             },
             "settings": {
@@ -650,6 +657,22 @@
                     "open_options_title": "Show Additional Options",
                     "toggle_advanced": "Toggle Advanced Mode",
                     "toggle_breakdown": "Toggle Breakdown",
+                    "unknown_variable": "Unknown variable \"{name}\"",
+                    "ambiguous_variable": "\"{name}\" matches multiple variables, use one of {options}",
+                    "recursive_variable": "\"{name}\" refers to itself",
+                    "math_errors": {
+                        "empty": "The dice expression is empty",
+                        "invalid": "Could not read the dice expression: {error}",
+                        "unknown_name": "Unknown name \"{name}\"",
+                        "unknown_function": "Unknown function \"{name}\", supported functions are: {functions}",
+                        "unsupported": "\"{expression}\" is not supported in dice expressions",
+                        "unsupported_operator": "The \"{op}\" operator is not supported in dice expressions",
+                        "dice_operator": "Dice can't be combined using \"{op}\"",
+                        "dice_in_function": "Dice can't be used inside {name}()",
+                        "argument_count": "{name}() was called with the wrong number of arguments",
+                        "fraction": "{value} is not a whole number, use floor, ceil or round",
+                        "invalid_number": "The dice expression does not result in a valid number"
+                    },
                     "3D_options": {
                         "off": "Off",
                         "on": "On",
@@ -702,6 +725,16 @@
                 "open_settings": "Open settings",
                 "changelog_RELEASE_LOG": "# Release {release}\n*For more details visit https://www.planarally.io/blog/*\n{log}",
                 "return_to_content": "Click to return to content"
+            },
+            "compendium": {
+                "title": "Compendium",
+                "search": "Search the compendium",
+                "alphabetical": "A-Z",
+                "source": "Mod Source",
+                "empty": "No compendium entries yet. System mods can add them.",
+                "copy_link": "Copy link",
+                "missing": "This entry is not available. The system mod may be disabled.",
+                "insert_hint": "In notes and chat, type [[ to insert a compendium link."
             },
             "notes": {
                 "NoteCreate": {

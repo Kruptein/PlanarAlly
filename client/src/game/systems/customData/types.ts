@@ -9,6 +9,9 @@ const ToggleFormat = defineAsyncComponent(() => import("./components/ToggleForma
 
 export type ElementId = NumberId<"ElementId">;
 
+// The source of elements created by users in the shape dialog
+export const USER_CUSTOM_DATA_SOURCE = "planarally";
+
 export enum ShapeCustomDataPending {
     Branch,
     Leaf,

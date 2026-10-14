@@ -6,7 +6,7 @@ from ..helpers import TypeIdModel
 
 
 class ApiAssetCreateShare(TypeIdModel):
-    right: Literal["view"] | Literal["edit"]
+    right: Literal["view", "edit"]
     user: str
     asset: int = Field(json_schema_extra={"typeId": "AssetEntryId"})
 

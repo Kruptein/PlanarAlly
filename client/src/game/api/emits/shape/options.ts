@@ -20,6 +20,7 @@ export const sendShapeSetStrokeColour = wrapSocket<ShapeSetStringValue>("Shape.O
 export const sendShapeSetFillColour = wrapSocket<ShapeSetStringValue>("Shape.Options.FillColour.Set");
 
 export const sendShapeSkipDraw = wrapSocket<ShapeSetBooleanValue>("Shape.Options.SkipDraw.Set");
+export const sendShapeMirrored = wrapSocket<ShapeSetBooleanValue>("Shape.Options.Mirrored.Set");
 export const sendShapeSvgAsset = wrapSocket<ShapeSetOptionalStringValue>("Shape.Options.SvgAsset.Set");
 
 // grid related

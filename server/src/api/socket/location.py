@@ -25,6 +25,7 @@ from ...db.typed import safe_update_model_from_dict
 from ...logs import logger
 from ...models.access import has_ownership
 from ...models.role import Role
+from ...mods.dev import load_dev_mods
 from ...state.game import game_state
 from ...transform.to_api.asset import transform_asset_entry
 from ...transform.to_api.floor import transform_floor
@@ -33,7 +34,7 @@ from ..models.client import OptionalClientViewport
 from ..models.location import ApiLocationCore, LocationChange, LocationClone, LocationRename
 from ..models.location.settings import ApiOptionalLocationOptions, LocationOptionsSet, LocationSettingsSet
 from ..models.location.spawn_info import ApiSpawnInfo
-from ..models.mods import ApiModMeta
+from ..models.mods import ApiRoomMod
 from ..models.players.info import PlayerInfoCore, PlayersInfoSet
 from ..models.players.options import PlayerOptionsSet
 from ..models.room.info import RoomFeatures, RoomInfoSet
@@ -98,9 +99,15 @@ async def load_location(sid: str, location: Location, *, complete=False):
     # 1. Load room info
 
     if complete:
+        dev_mods = load_dev_mods()
+        dev_tags = {mod.tag for mod in dev_mods}
         mods = [
-            ApiModMeta(**mod.mod.as_pydantic().model_dump()) for mod in ModRoom.select().where(ModRoom.room == pr.room)
+            ApiRoomMod(**mod_room.mod.as_pydantic().model_dump(), enabled=mod_room.enabled)
+            for mod_room in ModRoom.select().where(ModRoom.room == pr.room)
+            if mod_room.mod.tag not in dev_tags
         ]
+        # Dev mods are always reported as enabled, their real status is managed in client localStorage
+        mods.extend(ApiRoomMod(**mod.model_dump(), enabled=True) for mod in dev_mods)
         await _send_game(
             "Room.Info.Set",
             RoomInfoSet(
@@ -301,8 +308,8 @@ async def set_location_options(sid: str, raw_data: Any):
     options.save()
 
     if data.location is MISSING:
-        for sid in game_state.get_sids(skip_sid=sid, room=pr.room):
-            await _send_game("Location.Options.Set", raw_data, room=sid)
+        for psid in game_state.get_sids(skip_sid=sid, room=pr.room):
+            await _send_game("Location.Options.Set", raw_data, room=psid)
     else:
         await _send_game(
             "Location.Options.Set",

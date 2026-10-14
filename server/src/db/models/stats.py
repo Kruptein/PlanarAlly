@@ -2,9 +2,10 @@ from datetime import datetime
 from enum import Enum
 from typing import cast
 
-from peewee import DateTimeField, IntegerField, TextField
+from peewee import IntegerField, TextField
 
 from ..base import BaseDbModel
+from ..fields import UtcDateTimeField, utc_now
 
 
 class StatsKind(Enum):
@@ -18,7 +19,7 @@ class StatsKind(Enum):
 
 class Stats(BaseDbModel):
     kind = cast(StatsKind, TextField())
-    timestamp = cast(datetime, DateTimeField(default=datetime.now))
+    timestamp = cast(datetime, UtcDateTimeField(default=utc_now))
     data = cast(str | None, TextField(null=True))
     # If relevant, the campaign that it applied to
     campaign_id = cast(int | None, IntegerField(null=True))

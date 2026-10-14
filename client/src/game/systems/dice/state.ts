@@ -7,13 +7,25 @@ import type { AsyncReturnType } from "../../../core/types";
 
 import { DiceUiState } from "./types";
 
+export interface DiceHistoryEntry {
+    roll: RollResult<Part>;
+    player: string;
+    // The expression as entered, with variables shown by name
+    input: string;
+    // The expression that was actually rolled, only set if it differs from the input
+    resolved?: string;
+    // The exact text input including variable references, only available for own rolls
+    rawInput?: string;
+}
+
 interface DiceState {
-    uiState: LocalId | DiceUiState;
+    uiState: DiceUiState;
+    uiActiveShapeId: LocalId | undefined;
     textInput: string;
     lastCursorPosition: number;
     updateInputCursor: boolean;
     dimensions3d: { width: number; height: number };
-    history: { roll: RollResult<Part>; name: string; player: string }[];
+    history: DiceHistoryEntry[];
     systems?: {
         "2d": AsyncReturnType<typeof SYSTEMS.DX>["DX"];
         "3d": AsyncReturnType<typeof SYSTEMS.DX3>["DX3"];
@@ -23,6 +35,7 @@ interface DiceState {
 
 const state = buildState<DiceState>({
     uiState: DiceUiState.Roll,
+    uiActiveShapeId: undefined,
     lastCursorPosition: 0,
     updateInputCursor: false,
     dimensions3d: { width: 0, height: 0 },

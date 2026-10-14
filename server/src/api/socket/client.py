@@ -13,7 +13,7 @@ from ...models.role import Role
 from ...state.game import game_state
 from ..helpers import _send_game
 from ..models.client import ClientMove, ClientPosition, ClientViewport, TempClientPosition, Viewport
-from ..models.client.activeLayer import ClientActiveLayerSet
+from ..models.client.active_layer import ClientActiveLayerSet
 from ..models.client.offset import ClientOffsetSet
 from ..models.helpers import missing_to_none
 

@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from ..app import app
 from ..db.models.user import User
@@ -17,7 +17,7 @@ class AuthState(State[User]):
 
     def add_reset_token(self, user_id: int) -> str:
         token = secrets.token_hex(16)
-        expiration = datetime.now() + timedelta(hours=1)
+        expiration = datetime.now(tz=UTC) + timedelta(hours=1)
         self.reset_tokens[token] = (user_id, expiration)
         return token
 
@@ -26,7 +26,7 @@ class AuthState(State[User]):
             return None
         user_id, expiration = self.reset_tokens[token]
         del self.reset_tokens[token]
-        if expiration < datetime.now():
+        if expiration < datetime.now(tz=UTC):
             return None
         return user_id
 

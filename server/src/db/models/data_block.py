@@ -14,6 +14,6 @@ class DataBlock(BaseDbModel):
     data = cast(str, TextField())
 
     def as_pydantic(self):
-        raise Exception(
+        raise Exception(  # noqa: TRY002
             "This DataBlock was instantiated using the astract super class instead of a specialized version."
         )

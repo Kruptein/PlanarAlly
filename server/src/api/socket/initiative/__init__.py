@@ -1,8 +1,5 @@
 import json
-from typing import (
-    Any,
-    Optional,
-)
+from typing import Any
 
 from .... import auth
 from ....app import app, sio
@@ -391,7 +388,7 @@ async def change_initiative_order(sid: str, raw_data: Any):
 
 
 def update_initiative_effects(
-    entry: dict[str, Any], direction: InitiativeDirection, timing: Optional[InitiativeEffectUpdateTiming] = None
+    entry: dict[str, Any], direction: InitiativeDirection, timing: InitiativeEffectUpdateTiming | None = None
 ):
     effect_list = entry["effects"]
     starting_len = len(effect_list)

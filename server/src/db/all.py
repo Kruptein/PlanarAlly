@@ -51,7 +51,7 @@ from .models.tracker import Tracker
 from .models.user import User
 from .models.user_data_block import UserDataBlock
 from .models.user_options import UserOptions
-from .signals import *  # noqa: F403
+from .signals import *
 
 ALL_NORMAL_MODELS: list[type[BaseDbModel]] = [
     AssetRect,

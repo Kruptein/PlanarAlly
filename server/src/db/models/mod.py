@@ -48,4 +48,6 @@ class Mod(BaseDbModel):
             description=self.description,
             shortDescription=self.short_description,
             hasCss=self.has_css,
+            dev=False,
+            reloadToken="",
         )

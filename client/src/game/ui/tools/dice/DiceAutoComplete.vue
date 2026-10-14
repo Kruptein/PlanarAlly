@@ -8,6 +8,7 @@ import { getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
 import { customDataState } from "../../../systems/customData/state";
 import type { UiShapeCustomData } from "../../../systems/customData/types";
+import { getCustomDataFullReference } from "../../../systems/customData/utils";
 import { diceState } from "../../../systems/dice/state";
 import { getProperties } from "../../../systems/properties/state";
 import { selectedState } from "../../../systems/selected/state";
@@ -70,7 +71,7 @@ function checkAutoComplete(text: string): void {
         if (char === "{") {
             start = i + 1;
             break;
-        } else if (char?.match(/[a-z0-9[\]]/) === null) {
+        } else if (char?.match(/[^{}\s]/) === null) {
             if (i === text.length - 1 && char === "}") {
                 closedVariable = true;
                 continue;
@@ -100,7 +101,7 @@ function checkAutoComplete(text: string): void {
         if (text[i] === "}") {
             end = i;
             break;
-        } else if (text[i]?.match(/[a-z0-9]/) === null) {
+        } else if (text[i]?.match(/\w/) === null) {
             break;
         }
     }
@@ -123,7 +124,7 @@ async function completeAutoComplete(option?: AutoCompleteOption): Promise<void> 
     const start = diceState.raw.lastCursorPosition - autoCompleteSearchTextBackward.length - 1;
 
     const oldMessage = diceState.raw.textInput;
-    const fullRef = `{[${option.shapeId}]${option.name}}`;
+    const fullRef = `{[${option.shapeId}]${getCustomDataFullReference(option)}}`;
     diceState.mutableReactive.lastCursorPosition = start + fullRef.length;
     diceState.mutableReactive.textInput =
         oldMessage.slice(0, start) +
@@ -173,9 +174,17 @@ async function handleAutoCompleteKey(event: KeyboardEvent): Promise<void> {
 function getAutoCompleteOptions(): AutoCompleteOption[] {
     const options: AutoCompleteOption[] = [];
 
-    // the regex is the discriminator part (see custom data utils)
-    // for the autocompletion we're just ignoring it, as we might want to change to a different shape
+    // the regexes are the discriminator, source and prefix parts (see custom data utils)
+    // for the autocompletion we're ignoring the discriminator and prefix, as we might want to change to a different shape or branch
+    // a typed source is used to narrow down the options
     let pre = autoCompleteSearchTextBackward.toLowerCase().replace(/\[\d+\]/, "");
+    let source: string | undefined;
+    const sourceEnd = pre.indexOf(":");
+    if (sourceEnd !== -1) {
+        source = pre.slice(0, sourceEnd);
+        pre = pre.slice(sourceEnd + 1);
+    }
+    pre = pre.replace(/^.*\//, "");
     const post = autoCompleteSearchTextForward.toLowerCase();
     if (pre.endsWith("}")) {
         pre = pre.slice(0, -1);
@@ -185,6 +194,8 @@ function getAutoCompleteOptions(): AutoCompleteOption[] {
         const shape = getShape(shapeId);
         if (shape === undefined) continue;
         for (const data of shapeData) {
+            if (data.pending !== undefined) continue;
+            if (source !== undefined && !data.source.toLowerCase().startsWith(source)) continue;
             if (data.name.toLowerCase().startsWith(pre) && data.name.toLowerCase().endsWith(post)) {
                 if (shape.type === "assetrect") {
                     options.push({ src: getImageSrcFromHash((shape as IAsset).assetHash), ...data, shapeId });
@@ -219,15 +230,15 @@ function getAutoCompleteOptions(): AutoCompleteOption[] {
             v-for="(option, i) of autoCompleteOptions"
             :key="`${option.shapeId}-${option.id}`"
             :class="{ selected: i === autoCompleteSearchIndex }"
+            :title="`{${getCustomDataFullReference(option)}}\n${option.value}`"
             @click="completeAutoComplete(option)"
         >
             <img v-if="option.src" :src="option.src" />
             <span v-else-if="option.letter" class="reference-letter">{{ option.letter }}</span>
-            <div>
+            <div class="ref-name">
                 <div class="ref-prefix">{{ option.prefix }}</div>
                 <div>{{ option.name }}</div>
             </div>
-            <div style="flex: 1"></div>
             <div class="ref-value">{{ option.value }}</div>
         </div>
     </div>
@@ -240,6 +251,7 @@ function getAutoCompleteOptions(): AutoCompleteOption[] {
     border: 1px solid #ccc;
     border-radius: 1em;
     max-height: 12.5em;
+    overflow-x: hidden;
     overflow-y: auto;
 
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
@@ -255,26 +267,39 @@ function getAutoCompleteOptions(): AutoCompleteOption[] {
     > div {
         display: flex;
         align-items: center;
-        padding: 0 0.25em;
+        gap: 0.5em;
+        padding: 0.25em 0.5em 0.25em 0.25em;
 
         > * {
-            height: 100%;
-            align-items: center;
+            flex-shrink: 0;
         }
 
-        > div:first-of-type {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+        .ref-name,
+        .ref-value {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .ref-name {
+            flex: 1 1 auto;
+
+            > div {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
 
             .ref-prefix {
                 opacity: 0.5;
+                font-size: 0.8em;
             }
         }
 
         .ref-value {
+            flex: 0 1 auto;
+            max-width: 50%;
             font-weight: bold;
-            padding-right: 0.5em;
         }
 
         &.selected,
@@ -285,7 +310,6 @@ function getAutoCompleteOptions(): AutoCompleteOption[] {
 
         img {
             height: 2em;
-            margin-right: 1em;
         }
     }
 }

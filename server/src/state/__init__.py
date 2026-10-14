@@ -1,14 +1,12 @@
 import asyncio
 from abc import ABC, abstractmethod
-from typing import Generator, Generic, TypeVar
+from collections.abc import Generator
 
 from ..app import sio
 from ..db.models.user import User
 
-T = TypeVar("T")
 
-
-class State(ABC, Generic[T]):
+class State[T](ABC):
     def __init__(self, namespace: str | None) -> None:
         self._sid_map: dict[str, T] = {}
         self.namespace = namespace
@@ -17,12 +15,12 @@ class State(ABC, Generic[T]):
         if self.namespace is None:
             return
 
-        await asyncio.gather(*[sio.disconnect(sid, namespace=self.namespace) for sid in self._sid_map.keys()])
+        await asyncio.gather(*[sio.disconnect(sid, namespace=self.namespace) for sid in self._sid_map])
 
-    async def add_sid(self, sid: str, value: T) -> None:
+    def add_sid(self, sid: str, value: T) -> None:
         self._sid_map[sid] = value
 
-    async def remove_sid(self, sid: str) -> None:
+    def remove_sid(self, sid: str) -> None:
         del self._sid_map[sid]
 
     def has_sid(self, sid: str) -> bool:
@@ -35,18 +33,18 @@ class State(ABC, Generic[T]):
     def get_user(self, sid: str) -> User:
         pass
 
-    def get_sids(self, skip_sid=None, **options) -> Generator[str, None, None]:
-        for sid, value in dict(self._sid_map).items():
+    def get_sids(self, skip_sid=None, **options) -> Generator[str]:
+        for sid in list(self._sid_map.keys()):
             if skip_sid == sid:
                 continue
 
             if all(getattr(self.get(sid), option, None) == value for option, value in options.items()):
                 yield sid
 
-    def get_t(self, **options) -> Generator[tuple[str, T], None, None]:
+    def get_t(self, **options) -> Generator[tuple[str, T]]:
         for sid in self.get_sids(**options):
             yield sid, self.get(sid)
 
-    def get_users(self, **options) -> Generator[tuple[str, User], None, None]:
+    def get_users(self, **options) -> Generator[tuple[str, User]]:
         for sid in self.get_sids(**options):
             yield sid, self.get_user(sid)

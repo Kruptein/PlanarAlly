@@ -32,7 +32,7 @@ class Character(BaseDbModel):
     def as_pydantic(self):
         file_hash = self.asset.file_hash
         if file_hash is None:
-            raise Exception("Character with illegal Asset link detected")
+            raise Exception("Character with illegal Asset link detected")  # noqa: TRY002
         return ApiCharacter(
             id=self.id,
             name=self.name,

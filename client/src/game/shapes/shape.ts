@@ -221,7 +221,7 @@ export abstract class Shape implements IShape {
             this._behindPatches = behindPatches;
             this.recalcVisionBbox();
         }
-        if (this._visionPath === undefined || floorIteration != this.floorIteration || visionAltered) {
+        if (this._visionPath === undefined || floorIteration !== this.floorIteration || visionAltered) {
             this._visionPath = polygon2path(this._visionPolygon);
             this.floorIteration = floorIteration;
         }

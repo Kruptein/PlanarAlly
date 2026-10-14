@@ -78,7 +78,7 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
 
     // REACTIVE
 
-    loadState(id: LocalId, source: string): void {
+    loadState(id: LocalId, source: string | symbol): void {
         if ($.leases.has(id)) {
             $.leases.get(id)!.add(source);
         } else {
@@ -89,7 +89,7 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         }
     }
 
-    dropState(id: LocalId, source: string | typeof CLEAR_ALL): void {
+    dropState(id: LocalId, source: string | symbol): void {
         let remove = source === CLEAR_ALL;
         if (source !== CLEAR_ALL) {
             const leases = $.leases.get(id);
@@ -104,7 +104,7 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
     }
 
     // A helper that handles load/drop for multiple ids at once without changing ids that remain active
-    loadAndDropState(ids: ReadonlySet<LocalId>, source: string): void {
+    loadAndDropState(ids: ReadonlySet<LocalId>, source: string | symbol): void {
         const activeLeases = new Set(
             map(
                 filter($.leases.entries(), ([, leases]) => leases.has(source)),
@@ -249,7 +249,7 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
             )?.id;
     }
 
-    addBranch(id: LocalId, prefix: string): void {
+    addBranch(id: LocalId, source: string, prefix: string): void {
         const shapeId = getGlobalId(id);
         if (shapeId === undefined) return;
         const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
@@ -259,16 +259,21 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
                 data.some(
                     (el) =>
                         el.prefix.toLowerCase() === prefix.toLowerCase() &&
-                        el.source.toLowerCase() === "planarally" &&
+                        el.source.toLowerCase() === source.toLowerCase() &&
                         el.shapeId === shapeId,
                 ),
             )
         )
             return;
 
+        if (!prefix.startsWith("/")) {
+            console.warn(`Prefix "${prefix}" does not start with "/".`);
+            prefix = `/${prefix}`;
+        }
+
         const branchElement: UiShapeCustomData = {
             shapeId,
-            source: "planarally",
+            source,
             prefix,
             name: "~~pending~branch~~", // a random name, empty strings will potentially conflict with addElement unique check
             kind: "text",
@@ -285,6 +290,11 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
     addElement(element: DistributiveOmit<UiShapeCustomData, "id">, sync: boolean): void {
         const id = getLocalId(element.shapeId);
         if (!id) return;
+
+        if (element.prefix && !element.prefix.startsWith("/")) {
+            console.warn(`Prefix "${element.prefix}" does not start with "/".`);
+            element.prefix = `/${element.prefix}`;
+        }
 
         const fullElement = { ...element, id: ID++ as ElementId };
         if (this.getElementId(getIdentifier(fullElement)) !== undefined) return;
@@ -319,11 +329,15 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
         eventBus.emit("customData:removed", { id, elementId, syncTo: { server: sync, ui: true } });
     }
 
-    removeBranch(id: LocalId, prefix: string): void {
+    // An empty prefix removes all elements of the source
+    removeBranch(id: LocalId, source: string, prefix: string): void {
         const target = ($.leases.has(id) ? $.data.get(id) : mutable.data.get(id)) ?? [];
         const filteredElements: UiShapeCustomData[] = [];
         for (const element of target) {
-            if (element.prefix !== prefix && !element.prefix.startsWith(`${prefix}/`)) {
+            if (
+                element.source.toLowerCase() !== source.toLowerCase() ||
+                (element.prefix !== prefix && !element.prefix.startsWith(`${prefix}/`))
+            ) {
                 filteredElements.push(element);
             } else {
                 sendShapeCustomDataRemove(getIdentifier(element));

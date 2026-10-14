@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from ..config import cfg
 from ..db.models.stats import Stats, StatsKind
@@ -37,7 +37,7 @@ def campaign_opened(campaign_id: int, player_id: int):
     if (
         last_event is not None
         and str(last_event.kind) == str(StatsKind.USER_GAME_DISCONNECTED)
-        and datetime.now() - last_event.timestamp <= RECONNECT_GRACE_PERIOD
+        and datetime.now(tz=UTC) - last_event.timestamp <= RECONNECT_GRACE_PERIOD
     ):
         last_event.delete_instance()
         return
@@ -59,7 +59,7 @@ def campaign_closed(campaign_id: int, player_id: int):
         .get_or_none()
     )
     # We only care about connect/disconnect events if the connection stays open for at least 60 seconds
-    if connect_event is not None and datetime.now() - connect_event.timestamp < timedelta(seconds=60):
+    if connect_event is not None and datetime.now(tz=UTC) - connect_event.timestamp < timedelta(seconds=60):
         connect_event.delete_instance()
     else:
         Stats.create(kind=StatsKind.USER_GAME_DISCONNECTED, campaign_id=c_id, user_id=p_id)

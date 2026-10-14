@@ -1,4 +1,5 @@
 import enum
+
 from pydantic import Field
 
 from .helpers import TypeIdModel

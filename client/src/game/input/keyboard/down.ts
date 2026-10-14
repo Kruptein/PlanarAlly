@@ -12,6 +12,7 @@ import { setCenterPosition } from "../../position";
 import { copyShapes, pasteShapes } from "../../shapes/utils";
 import { accessSystem } from "../../systems/access";
 import { toggleAssetManager } from "../../systems/assets/ui";
+import { compendiumSystem } from "../../systems/compendium";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
@@ -76,10 +77,10 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 offsetY += gridSize;
             }
             // in hex mode, if movement is diagonal, offsets have to be modified
-            if (locationSettingsState.raw.gridType.value === GridType.FlatHex && offsetX != 0) {
+            if (locationSettingsState.raw.gridType.value === GridType.FlatHex && offsetX !== 0) {
                 offsetX = (1.5 * offsetX) / Math.sqrt(3);
                 offsetY *= 0.5;
-            } else if (locationSettingsState.raw.gridType.value === GridType.PointyHex && offsetY != 0) {
+            } else if (locationSettingsState.raw.gridType.value === GridType.PointyHex && offsetY !== 0) {
                 offsetX *= 0.5;
                 offsetY = (1.5 * offsetY) / Math.sqrt(3);
             }
@@ -198,6 +199,8 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             toggleActiveMode();
         } else if (event.key === "n") {
             toggleNoteManager();
+        } else if (event.key === "c") {
+            compendiumSystem.toggle();
         } else if (event.key === "a") {
             toggleAssetManager();
         } else {

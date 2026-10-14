@@ -17,6 +17,10 @@ export async function getDiceEnvironment(): Promise<AsyncReturnType<typeof _env>
     return await _env();
 }
 
+function withoutSpaces(text: string): string {
+    return text.replaceAll(/\s/g, "");
+}
+
 class DiceSystem implements System {
     clear(reason: SystemClearReason): void {
         $.result = undefined;
@@ -32,11 +36,17 @@ class DiceSystem implements System {
         $.uiState = DiceUiState.Roll;
     }
 
-    addToHistory(roll: RollResult<Part>, player: string, name?: string): string {
-        let rollString = "";
-        for (const part of roll.parts) rollString += ` ${part.input}`;
-        $.history.push({ roll, player, name: name ?? rollString });
-        return rollString;
+    addToHistory(roll: RollResult<Part>, player: string, input?: { display: string; raw?: string }): string {
+        const resolved = roll.parts.map((part) => part.input ?? "").join(" ");
+        const display = input?.display ?? resolved;
+        $.history.push({
+            roll,
+            player,
+            input: display,
+            resolved: withoutSpaces(display) === withoutSpaces(resolved) ? undefined : resolved,
+            rawInput: input?.raw,
+        });
+        return display;
     }
 
     get isLoaded(): boolean {

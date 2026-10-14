@@ -20,7 +20,6 @@ class ApiInitiativeEffect(BaseModel):
 class InitiativeEffectNew(TypeIdModel):
     actor: str = Field(json_schema_extra={"typeId": "GlobalId"})
     effect: ApiInitiativeEffect
-    effect: ApiInitiativeEffect
 
 
 class InitiativeEffectRename(TypeIdModel):

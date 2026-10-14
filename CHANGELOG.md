@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 [DM] denotes changes only useful for the dungeon master\
 [server] denotes changes only useful for the server owner\
+[mods] denotes changes related to modding\
 [tech] denotes internal technical changes that are only useful for code contributors\
 tech changes will usually be stripped from release notes for the public
 [lang] this is a change to some translation string
@@ -14,15 +15,39 @@ tech changes will usually be stripped from release notes for the public
 <<<<<<< HEAD
 
 -   During panning and zooming a lower resolution render is now used if slower render times are detected
+-   Mirror action to shapes derived from assets
+-   Dice rolls support math on numbers and variables (`* / ( )`, `floor`, `ceil`, `round`, `abs`, `min`, `max`), e.g. `1d20 + floor(({str_score} - 10) / 2)`
+-   Dice history shows the roll as it was entered (with variable names) along with what it resolved to, rerolling your own rolls re-evaluates the variables
 -   [server] Added base server stats overview to admin panel
+-   [mods/server] Config now accepts a list of folders to auto-(re)load mods during mod development.
+-   [mods/DM] Uploading a new `.pam` whose tag is already in the campaign replaces that mod for everyone in the room
+-   [mods] Mods can export `events.dispose`. The host calls it before dropping tabs, context entries, event listeners, and hooks that the mod registered
+-   [mods] Mod-facing types now live in a published package (`@planarally/mod-api`)
+-   [mods] Compendium functionality to add system rules or other concepts to a campaign
+-   [mods/DM] Enable/disable checkbox to temporarily turn off a mod without having to re-upload it later
+-   [mods/DM] Mods can export a `settings` Vue component, opened from a cog in the mod list
+-   [mods] Mods can now hook their dev server into the main vite dev server for smoother HMR
+-   [mods] Dice variables can be qualified with their source, e.g. `{srd-5.1:str}` or `{srd-5.1:/abilities/scores/str}`
 
 ### Changed
 
 -   Light rendering performance improvements on big screens/slow hardware
+-   Dice variables that match multiple custom data elements now show an error listing the alternatives instead of using the first match
+-   [mods] Custom data in the shape dialog is split in tabs per mod, editing a mod's data has to be unlocked first
 
 ### Fixed
 
 -   Locked shapes were movable by keyboard navigation
+-   Dice macro UI was empty for shapes with a local ID of 1
+-   Dice autocomplete and macro roll buttons inserted variable references that did not resolve when the data had a custom reference, special characters in its name or a duplicate name in another group
+-   Custom data references were saved with unsupported characters, making them unusable in dice rolls
+-   Dice rolls silently ignored unsupported input and subtracting a negative number (e.g. a `-1` modifier) did not do what you would expect
+-   Dice rolls silently dropped unknown variables, they now show an error
+-   Variables inside a dice expression variable were looked up on the selected shape instead of the shape owning the expression
+-   Variables directly followed by dice syntax (e.g. `{prof}d6`) were not rolled correctly
+-   Dice autocomplete stopped suggesting after typing an underscore or capital letter
+-   Removing a custom data group also removed groups with the same name created by mods
+-   Custom data elements could be shown in the wrong group when an element had the same name as a group
 -   [DM] Location cloning was no longer opening the cloned location immediately
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons

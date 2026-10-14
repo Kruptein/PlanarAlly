@@ -1,10 +1,9 @@
-from datetime import date
-from typing import TYPE_CHECKING, cast
+from datetime import UTC, date, datetime
+from typing import TYPE_CHECKING, Self, cast
 
 import bcrypt
 from peewee import DateField, ForeignKeyField, TextField, fn
 from playhouse.shortcuts import model_to_dict
-from typing_extensions import Self
 
 from ..base import BaseDbModel
 from ..typed import SelectSequence
@@ -59,7 +58,7 @@ class User(BaseDbModel):
         return query.scalar()
 
     def update_last_login(self):
-        today = date.today()
+        today = datetime.now(tz=UTC).date()
         if self.last_login != today:
             self.last_login = today
             self.save()

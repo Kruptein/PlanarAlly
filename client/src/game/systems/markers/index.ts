@@ -27,7 +27,7 @@ class MarkerSystem implements System {
 
     jumpToMarker(marker: LocalId): void {
         const shape = getShape(marker);
-        if (shape == undefined) return;
+        if (shape === undefined) return;
         setCenterPosition(shape.center);
         if (shape.floorId !== undefined) floorSystem.selectFloor({ id: shape.floorId }, true);
     }

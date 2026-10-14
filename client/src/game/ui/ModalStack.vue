@@ -20,6 +20,7 @@ import { modalState } from "../systems/modals/state";
 import type { IndexedModal, ModalIndex } from "../systems/modals/types";
 
 import AssetManager from "./assets/AssetManager.vue";
+import CompendiumPanel from "./compendium/CompendiumPanel.vue";
 import DiceResults from "./dice/DiceResults.vue";
 import Initiative from "./initiative/Initiative.vue";
 import NoteManager from "./notes/NoteManager.vue";
@@ -39,6 +40,7 @@ const fixedModals = [
     { component: LocationSettings, condition: gameState.isDmOrFake },
     ShapeSettings,
     NoteManager,
+    CompendiumPanel,
     AssetManager,
     DiceResults,
 ];

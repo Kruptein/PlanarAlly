@@ -8,7 +8,7 @@ import { activateTool } from "../../../tools/tools";
 import { diceSystem } from "../../dice";
 import { selectedState } from "../../selected/state";
 import type { ElementId } from "../types";
-import { getVariableSegments } from "../utils";
+import { getCustomDataFullReference, getVariableProblem, getVariableSegments } from "../utils";
 
 const { element, shapeFocus } = defineProps<{
     element: ApiShapeCustomDataDiceExpression & { id: ElementId };
@@ -26,15 +26,17 @@ async function loadRoll(): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 100));
     diceSystem.setInput(
         segments.value
-            .filter((segment) => !segment.isVariable || segment.ref !== undefined)
-            .map((segment) =>
-                segment.isVariable
-                    ? segment.discriminator !== undefined
-                        ? `{[${segment.discriminator}]${segment.ref!.name}}`
-                        : segment.ref!.value
-                    : segment.text,
-            )
-            .join(" "),
+            .map((segment) => {
+                if (!segment.isVariable) return segment.text;
+                // Unresolved references are kept, so the roll reports why they can't be used
+                if (segment.ref === undefined) {
+                    if (segment.discriminator === undefined || segment.raw.startsWith("{[")) return segment.raw;
+                    return `{[${segment.discriminator}]${segment.raw.slice(1)}`;
+                }
+                if (segment.discriminator === undefined) return String(segment.ref.value);
+                return `{[${segment.discriminator}]${getCustomDataFullReference(segment.ref)}}`;
+            })
+            .join(""),
     );
 }
 </script>
@@ -45,8 +47,8 @@ async function loadRoll(): Promise<void> {
             <span
                 v-if="segment.isVariable"
                 class="variable"
-                :class="{ unknown: segment.ref === undefined }"
-                :title="segment.ref?.value.toString() ?? 'Unknown'"
+                :class="{ unknown: segment.matches.length === 0, ambiguous: segment.matches.length > 1 }"
+                :title="getVariableProblem(segment) ?? segment.ref?.value.toString()"
             >
                 {{ segment.text }}
             </span>
@@ -66,6 +68,12 @@ async function loadRoll(): Promise<void> {
 
     &.unknown {
         text-decoration: line-through;
+    }
+
+    &.ambiguous {
+        background-color: rgba(255, 190, 90, 0.6);
+        text-decoration: underline wavy rgba(190, 90, 0, 1);
+        cursor: help;
     }
 }
 

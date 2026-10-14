@@ -9,8 +9,10 @@ import { i18n } from "../../../i18n";
 import { coreStore } from "../../../store/core";
 import { ToolName } from "../../models/tools";
 import type { ITool, ToolPermission } from "../../models/tools";
+import { convertVariables, getDisplayExpression } from "../../systems/customData/utils";
 import { diceSystem, getDiceEnvironment } from "../../systems/dice";
 import { sendDiceRollResult } from "../../systems/dice/emits";
+import { dxMathSyntax, resolveDiceMath } from "../../systems/dice/math";
 import { diceState } from "../../systems/dice/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
@@ -89,29 +91,33 @@ class DiceTool extends Tool implements ITool {
         ];
     }
 
+    // The input can contain variable references, these are resolved before rolling
     async roll(input: string, use3d: boolean, shareWith: DiceRollResult["shareWith"]): Promise<RollResult<Part>> {
+        const displayInput = getDisplayExpression(input);
+        const resolvedInput = await resolveDiceMath(convertVariables(input), dxMathSyntax);
         let roll: RollResult<Part>;
         if (use3d) {
             const dieDefaults = await generate3dOptions();
             const { diceThrower } = await getDiceEnvironment();
-            roll = await rollString(input, diceState.raw.systems!["3d"], {
+            roll = await rollString(resolvedInput, diceState.raw.systems!["3d"], {
                 thrower: diceThrower!,
                 dieDefaults,
                 d100Mode: 100 as const,
             });
         } else {
-            roll = await rollString(input, diceState.raw.systems!["2d"], { d100Mode: 100 as const });
+            roll = await rollString(resolvedInput, diceState.raw.systems!["2d"], { d100Mode: 100 as const });
         }
 
         if (shareWith !== "none") {
             sendDiceRollResult({
                 player: coreStore.state.username,
                 roll: JSON.stringify(roll),
+                input: displayInput,
                 shareWith,
             });
         }
 
-        diceSystem.addToHistory(roll, coreStore.state.username);
+        diceSystem.addToHistory(roll, coreStore.state.username, { display: displayInput, raw: input });
 
         return roll;
     }

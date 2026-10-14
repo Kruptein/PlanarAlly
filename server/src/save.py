@@ -15,14 +15,14 @@ When writing migrations make sure that these things are respected:
 - It's often a good idea to start the server with a clean save and use `.schema <table_name>` in sqlite to get the exact schema output that a clean save creates
 """
 
-SAVE_VERSION = 119
+SAVE_VERSION = 120
 
 import asyncio
 import json
 import secrets
 import shutil
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from playhouse.sqlite_ext import SqliteExtDatabase
@@ -899,6 +899,21 @@ def upgrade(
         # Add Asset.kind_specific_data
         with db.atomic():
             db.execute_sql('ALTER TABLE "asset" ADD COLUMN "kind_specific_data" BLOB DEFAULT NULL')
+    elif version == 119:
+        # Stats timestamps and last_export_date were naive local times. Store them as naive UTC.
+        def to_utc_naive(value) -> str:
+            if isinstance(value, bytes):
+                value = value.decode()
+            parsed = value if isinstance(value, datetime) else datetime.fromisoformat(value)
+            parsed = parsed.astimezone(UTC)
+            return parsed.strftime("%Y-%m-%d %H:%M:%S.%f")
+
+        with db.atomic():
+            for row_id, timestamp in db.execute_sql("SELECT id, timestamp FROM stats").fetchall():
+                db.execute_sql("UPDATE stats SET timestamp = ? WHERE id = ?", (to_utc_naive(timestamp), row_id))
+            export_date = db.execute_sql("SELECT last_export_date FROM constants").fetchone()
+            if export_date is not None and export_date[0] is not None:
+                db.execute_sql("UPDATE constants SET last_export_date = ?", (to_utc_naive(export_date[0]),))
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

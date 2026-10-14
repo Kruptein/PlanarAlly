@@ -10,7 +10,7 @@ from . import campaign  # noqa: F401
 async def dashboard_connect(sid: str, environ):
     user = await get_authorized_user(environ["aiohttp.request"])
     if user is not None:
-        await dashboard_state.add_sid(sid, user)
+        dashboard_state.add_sid(sid, user)
         config = cfg()
         if config.general.enable_export:
             await sio.emit("Export.Enabled", True, to=sid, namespace=DASHBOARD_NS)
@@ -23,4 +23,4 @@ async def disconnect(sid):
     if not dashboard_state.has_sid(sid):
         return
 
-    await dashboard_state.remove_sid(sid)
+    dashboard_state.remove_sid(sid)

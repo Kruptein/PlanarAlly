@@ -26,10 +26,10 @@ from ..db.models.aura import Aura
 from ..db.models.character import Character
 from ..db.models.circle import Circle
 from ..db.models.circular_token import CircularToken
-from ..db.models.font_awesome import FontAwesome
 from ..db.models.constants import Constants
 from ..db.models.data_block import DataBlock
 from ..db.models.floor import Floor
+from ..db.models.font_awesome import FontAwesome
 from ..db.models.group import Group
 from ..db.models.initiative import Initiative
 from ..db.models.layer import Layer
@@ -148,7 +148,7 @@ def __import_campaign(
 
 def send_status(
     loop: asyncio.AbstractEventLoop | None,
-    mode: Literal["export"] | Literal["import"],
+    mode: Literal["export", "import"],
     sid: str | None,
     status: str,
 ):
@@ -174,7 +174,7 @@ class CampaignExporter:
         loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
         self.filename = name
-        self.copy_name = TEMP_DIR / f"PA-temp-{str(uuid.uuid4())}.sqlite"
+        self.copy_name = TEMP_DIR / f"PA-temp-{uuid.uuid4()!s}.sqlite"
         self.sid = sid
         self.loop = loop
 
@@ -254,11 +254,11 @@ class CampaignExporter:
             write_mode = "w:gz"
 
         with tarfile.open(tarpath, write_mode) as tar:
-            tar.addfile(sqlite_info, open(self.sqlite_path, "rb"))
+            tar.addfile(sqlite_info, open(self.sqlite_path, "rb"))  # noqa: SIM115
             tar.addfile(assets_dir_info)
 
             storage = get_storage()
-            for asset_id in self.migrator._asset_mapping.keys():
+            for asset_id in self.migrator._asset_mapping:
                 asset: Asset = Asset[asset_id]
                 if not asset.file_hash:
                     continue
@@ -272,7 +272,7 @@ class CampaignExporter:
                     info.mtime = time()  # type: ignore
                     info.mode = 0o755
                     tar.addfile(info, BytesIO(data))
-                except Exception:
+                except Exception:  # noqa: S110
                     pass
 
         self.migrator.from_db.close()
@@ -331,7 +331,7 @@ class CampaignImporter:
 
         with self.target_db.bind_ctx([Room]):
             if Room.get_or_none(name=new_room_name, creator=user):
-                raise Exception("Room with that name already exists")
+                raise Exception("Room with that name already exists")  # noqa: TRY002
 
         try:
             for room in self.migrator.rooms:
@@ -350,10 +350,10 @@ class CampaignImporter:
                 send_status(self.loop, "import", self.sid, "    > Importing notes")
                 self.migrator.migrate_notes(room)
             print("Completed campaign import")
-        except Exception as e:
+        except Exception:
             if r := Room.get_or_none(name=new_room_name, creator=user):
                 r.delete_instance(True)
-            raise e
+            raise
         finally:
             self.db.close()
 
@@ -396,7 +396,7 @@ class CampaignImporter:
                 elif member.name.endswith(".sqlite") and "/" not in member.name:
                     sqlite_f = tar.extractfile(member)
                     if sqlite_f is None:
-                        raise Exception("Faulty sqlite file")
+                        raise Exception("Faulty sqlite file")  # noqa: TRY002
                     with open(TEMP_DIR / f"import-{member.name}", "wb") as f:
                         f.write(sqlite_f.read())
                     self.db = open_db(TEMP_DIR / f"import-{member.name}")
@@ -432,14 +432,14 @@ class CampaignImporter:
 class CampaignMigrator:
     def __init__(
         self,
-        mode: Literal["export"] | Literal["import"],
+        mode: Literal["export", "import"],
         from_db: SqliteExtDatabase,
         to_db: SqliteExtDatabase,
         rooms: list[Room] | None = None,
         sid: str | None = None,
         loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
-        self.mode: Literal["export"] | Literal["import"] = mode
+        self.mode: Literal["export", "import"] = mode
         self.from_db = from_db
         self.to_db = to_db
         self.rooms = rooms if rooms else self.__rooms

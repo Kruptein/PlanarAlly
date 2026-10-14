@@ -7,11 +7,10 @@ import { getGlobalId, getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
 import { customDataSystem } from "../../../systems/customData";
 import { customDataState } from "../../../systems/customData/state";
+import { diceState } from "../../../systems/dice/state";
 import { DiceUiState } from "../../../systems/dice/types";
 import { getProperties } from "../../../systems/properties/state";
 import { selectedState } from "../../../systems/selected/state";
-
-const active = defineModel<LocalId | DiceUiState>({ required: true });
 
 watch(
     selectedState.reactive.selected,
@@ -41,22 +40,29 @@ const shapes = computed(() => {
     }
     return images;
 });
+
+function select(id: LocalId): void {
+    diceState.mutableReactive.uiActiveShapeId = id;
+    diceState.mutableReactive.uiState = DiceUiState.Macro;
+}
+
+function selectRoll(): void {
+    diceState.mutableReactive.uiState = DiceUiState.Roll;
+    diceState.mutableReactive.uiActiveShapeId = undefined;
+}
 </script>
 
 <template>
     <div id="dice-macro-selector">
-        <div class="entry" :class="{ active: active === DiceUiState.Roll }" @click="active = DiceUiState.Roll">
+        <div class="entry" :class="{ active: diceState.reactive.uiState === DiceUiState.Roll }" @click="selectRoll()">
             <font-awesome-icon icon="dice-d20" />
         </div>
-        <!-- <div class="entry" :class="{ active: active === DiceUiState.Macro }" @click="active = DiceUiState.Macro">
-            <font-awesome-icon icon="floppy-disk" />
-        </div> -->
         <div
             v-for="{ id, letter, src } in shapes"
             :key="id"
             class="entry"
-            :class="{ active: active === id }"
-            @click="active = id"
+            :class="{ active: diceState.reactive.uiActiveShapeId === id }"
+            @click="select(id)"
         >
             <img v-if="src" :src="src" width="30px" height="30px" />
             <span v-else>{{ letter }}</span>

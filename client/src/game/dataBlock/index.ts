@@ -51,16 +51,16 @@ export async function loadDataBlock<S extends DBR = never, D = S>(
         return undefined;
     }
 
-    let rawDataBlock: { data: string } | undefined;
+    let rawDataBlock: { data: string } | null | undefined;
     if (!loadAttempts.has(id)) {
-        rawDataBlock = await new Promise<{ data: string }>((resolve) => {
-            socket.emit("DataBlock.Load", repr, (data: { data: string }) => {
+        rawDataBlock = await new Promise<{ data: string } | null>((resolve) => {
+            socket.emit("DataBlock.Load", repr, (data: { data: string } | null) => {
                 resolve(data);
             });
         });
     }
 
-    if (rawDataBlock !== undefined) {
+    if (rawDataBlock !== undefined && rawDataBlock !== null) {
         try {
             const dataBlockData = parseDataBlockData(rawDataBlock.data, options?.serializer);
             const db = new DataBlock(repr, dataBlockData, true, options);

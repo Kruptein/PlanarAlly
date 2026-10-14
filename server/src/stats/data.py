@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import aiohttp
 
@@ -13,12 +13,14 @@ from ..logs import logger
 
 
 async def send_stats(data):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
+    async with (
+        aiohttp.ClientSession() as session,
+        session.post(
             f"{cfg().stats.stats_url}/api/stats",
             json=data,
-        ) as response:
-            response.raise_for_status()
+        ) as response,
+    ):
+        response.raise_for_status()
 
 
 async def export_stats():
@@ -55,7 +57,7 @@ async def export_stats():
 
         # Update last export date if at least 1 chunk succeeded,
         # if a later chunk fails we just suck it up right now and accept that that data is not transmitted
-        c.last_export_date = datetime.now()
+        c.last_export_date = datetime.now(tz=UTC)
     c.save()
 
 
@@ -65,7 +67,7 @@ async def start_tracking():
 
     last_export_date = Constants.get().last_export_date
 
-    if last_export_date is None or last_export_date < datetime.now() - timedelta(days=1):
+    if last_export_date is None or last_export_date < datetime.now(tz=UTC) - timedelta(days=1):
         await export_stats()
 
     # Once a day save the stats to the database

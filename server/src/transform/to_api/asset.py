@@ -19,7 +19,7 @@ def transform_asset_entry(
     if children:
         pydantic_children = []
         # We add all the regular child assets
-        for child in AssetEntry.select().where((AssetEntry.parent == entry)):
+        for child in AssetEntry.select().where(AssetEntry.parent == entry):
             pydantic_children.append(
                 transform_asset_entry(child, user, children=children and recursive, recursive=recursive)
             )

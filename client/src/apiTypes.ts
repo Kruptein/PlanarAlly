@@ -26,28 +26,28 @@ export type InitiativeEffectUpdateTiming = 0 | 1;
 export type DefaultNoteFilter = "NO_FILTER" | "ACTIVE_FILTER" | "NO_LINK_FILTER";
 export type InitiativeDirection = -1 | 0 | 1;
 
+export interface ApiAssetAdd {
+  asset: ApiAssetEntry;
+  parent: AssetEntryId;
+}
+export interface ApiAssetEntry {
+  id: AssetEntryId;
+  name: string;
+  owner: string;
+  children: ApiAssetEntry[] | null;
+  shares: ApiAssetShare[];
+  asset: ApiAssetCore | null;
+}
+export interface ApiAssetShare {
+  user: string;
+  right: "view" | "edit";
+}
 export interface ApiAssetCore {
   id: AssetId;
   fileHash: string;
   kind: string;
   hasTemplates: boolean;
   hasExtraData: boolean;
-}
-export interface ApiAssetEntry {
-  id: AssetEntryId;
-  name: string;
-  owner: string;
-  asset: ApiAssetCore | null;
-  children: ApiAssetEntry[] | null;
-  shares: ApiAssetShare[];
-}
-export interface ApiAssetShare {
-  user: string;
-  right: "view" | "edit";
-}
-export interface ApiAssetAdd {
-  asset: ApiAssetEntry;
-  parent: AssetEntryId;
 }
 export interface ApiAssetCreateFolder {
   name: string;
@@ -256,6 +256,30 @@ export interface ApiDeleteShapeOwner {
   shape: GlobalId;
   user: string;
 }
+export interface ApiDevModsUpdate {
+  mods: ApiModMeta[];
+  force?: boolean;
+}
+export interface ApiDevModsActiveState {
+  disabled: string[];
+}
+export interface ApiModMeta {
+  apiSchema: string;
+  tag: string;
+  name: string;
+  version: string;
+  author: string;
+  shortDescription: string;
+  description: string;
+  hash: string;
+  hasCss: boolean;
+  dev: boolean;
+  reloadToken?: string;
+  devServer?: string | null;
+}
+export interface ApiRoomMod extends ApiModMeta {
+  enabled: boolean;
+}
 export interface ApiFloor {
   index: number;
   name: string;
@@ -342,16 +366,12 @@ export interface ApiModLink {
   version: string;
   hash: string;
 }
-export interface ApiModMeta {
-  apiSchema: string;
-  tag: string;
-  name: string;
-  version: string;
-  author: string;
-  shortDescription: string;
-  description: string;
-  hash: string;
-  hasCss: boolean;
+export interface ApiModEnabled extends ApiModLink {
+  enabled: boolean;
+}
+export interface ApiModReplace {
+  mod: ApiModMeta;
+  previous: ApiModLink[];
 }
 export interface ApiNoteAccessEdit extends ApiNoteAccess {
   note: NoteId;
@@ -568,6 +588,7 @@ export interface CoreModMeta {
 export interface DiceRollResult {
   player: string;
   roll: string;
+  input?: string | null;
   shareWith: "all" | "dm" | "none";
 }
 export interface FloorBackgroundSet {
@@ -670,6 +691,9 @@ export interface LogicTeleportRequest {
   toZone: GlobalId;
   transfers: GlobalId[];
 }
+export interface ModToml {
+  mod: CoreModMeta;
+}
 export interface NotificationShow {
   uuid: string;
   message: string;
@@ -734,7 +758,7 @@ export interface RoomInfoSet {
   isLocked: boolean;
   clientUrl: string;
   features: RoomFeatures;
-  mods: ApiModMeta[];
+  mods: ApiRoomMod[];
 }
 export interface ShapeAssetImageSet {
   uuid: GlobalId;

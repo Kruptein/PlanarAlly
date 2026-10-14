@@ -1,7 +1,7 @@
-from typing import Literal, cast
+from typing import Literal, Self, cast
 
 from peewee import ForeignKeyField, TextField
-from typing_extensions import Self, TypedDict
+from typing_extensions import TypedDict
 
 from ..base import BaseDbModel
 from ..typed import SelectSequence
@@ -43,9 +43,8 @@ class AssetEntry(BaseDbModel):
         asset = AssetEntry.get_or_none(
             (AssetEntry.owner == self.owner) & (AssetEntry.parent == self) & (AssetEntry.name == name)  # type: ignore
         )
-        if not asset:
-            if share := AssetShare.get_or_none(user=self.owner, name=name, parent=self):
-                asset = share.entry
+        if not asset and (share := AssetShare.get_or_none(user=self.owner, name=name, parent=self)):
+            asset = share.entry
         return asset
 
     def can_be_accessed_by(self, user: User, *, right: Literal["edit", "view", "all"]) -> bool:
@@ -81,8 +80,8 @@ class AssetEntry(BaseDbModel):
             parent = cls.get_root_folder(user)
         # ideally we change this to a single query to get all assets and process them as such
         data: AssetStructure = {"__files": []}
-        entries = [*AssetEntry.select().where((AssetEntry.parent == parent))]
-        for asset_share in AssetShare().select().where((AssetShare.parent == parent)):
+        entries = [*AssetEntry.select().where(AssetEntry.parent == parent)]
+        for asset_share in AssetShare().select().where(AssetShare.parent == parent):
             entries.append(asset_share.entry)
         for entry in entries:
             if entry.asset:
@@ -96,8 +95,8 @@ class AssetEntry(BaseDbModel):
         if parent is None:
             parent = cls.get_root_folder(user)
 
-        entries = [*AssetEntry.select().where((AssetEntry.parent == parent))]
-        for asset_share in AssetShare().select().where((AssetShare.parent == parent)):
+        entries = [*AssetEntry.select().where(AssetEntry.parent == parent)]
+        for asset_share in AssetShare().select().where(AssetShare.parent == parent):
             entries.append(asset_share.entry)
         for entry in entries:
             yield entry

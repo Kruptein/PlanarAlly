@@ -6,7 +6,6 @@ from ..base import BaseDbModel
 from ..typed import SelectSequence
 from .user import User
 
-
 if TYPE_CHECKING:
     from .note_tag import NoteTag
 

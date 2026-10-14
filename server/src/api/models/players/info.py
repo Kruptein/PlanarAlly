@@ -3,7 +3,7 @@ from pydantic_core import MISSING
 
 from ..client import OptionalClientViewport
 from ..helpers import TypeIdModel
-from ..location.userOption import ApiLocationUserOption
+from ..location.user_option import ApiLocationUserOption
 
 
 class PlayerInfoCore(TypeIdModel):

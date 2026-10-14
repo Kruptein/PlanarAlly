@@ -10,4 +10,4 @@ def get_table(name: str):
 
 
 def reduce_data_to_model(model: type[BaseDbModel], data: dict):
-    return {k: data[k] for k in model._meta.fields.keys() if k in data}
+    return {k: data[k] for k in model._meta.fields if k in data}

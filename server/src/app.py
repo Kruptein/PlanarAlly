@@ -1,5 +1,5 @@
 import os
-from typing import Callable, Iterable, Type
+from collections.abc import Callable, Iterable
 
 import aiohttp_security
 import aiohttp_session
@@ -27,7 +27,7 @@ def setup_app(middlewares: Iterable[Callable] = ()) -> web.Application:
     return app
 
 
-async def setup_runner(app: web.Application, site: Type[web.BaseSite], **kwargs):
+async def setup_runner(app: web.Application, site: type[web.BaseSite], **kwargs):
     runner = web.AppRunner(app)
     runners.append(runner)
     await runner.setup()

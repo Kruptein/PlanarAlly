@@ -123,27 +123,19 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
         for (let i = 1; i < trackers.length; i++) {
             const trackerInList = trackers[i];
             if (trackerId === trackerInList!.uuid) {
-                const swappingTracker = trackers[i - 1];
-                if (swappingTracker) {
-                    return swappingTracker.uuid;
-                }
+                return trackers[i - 1]!.uuid; 
             }
         }
-        return;
     }
 
     getNextTrackerId(id: LocalId, trackerId: TrackerId): TrackerId | undefined {
         const trackers = this.data.get(id) ?? [];
-        for (let i = 0; i < trackers.length; i++) {
+        for (let i = 0; i < trackers.length -1; i++) {
             const trackerInList = trackers[i];
             if (trackerId === trackerInList!.uuid) {
-                const swappingTracker = trackers[i + 1];
-                if (swappingTracker) {
-                    return swappingTracker.uuid;
-                }
+                return trackers[i + 1]!.uuid;
             }
         }
-        return;
     }
 
     add(id: LocalId, tracker: Tracker, syncTo: Sync): void {

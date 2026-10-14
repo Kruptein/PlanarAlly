@@ -12,12 +12,12 @@ tech changes will usually be stripped from release notes for the public
 ## Unreleased
 
 ### Added
-<<<<<<< HEAD
 
 -   During panning and zooming a lower resolution render is now used if slower render times are detected
 -   Mirror action to shapes derived from assets
 -   Dice rolls support math on numbers and variables (`* / ( )`, `floor`, `ceil`, `round`, `abs`, `min`, `max`), e.g. `1d20 + floor(({str_score} - 10) / 2)`
 -   Dice history shows the roll as it was entered (with variable names) along with what it resolved to, rerolling your own rolls re-evaluates the variables
+-   Trackers for a shape can now be moved up or down by pressing arrows next to trash can.
 -   [server] Added base server stats overview to admin panel
 -   [mods/server] Config now accepts a list of folders to auto-(re)load mods during mod development.
 -   [mods/DM] Uploading a new `.pam` whose tag is already in the campaign replaces that mod for everyone in the room
@@ -52,10 +52,6 @@ tech changes will usually be stripped from release notes for the public
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons
 -   [server] session stats data had a dumb bug causing all the session stats to not be saved
-=======
--   Move Trackers
-   -   Trackers for a shape can now be moved up or down by pressing arrows next to trash can.
->>>>>>> refs/remotes/origin/feature/move-trackers
 
 ## [2026.2]
 

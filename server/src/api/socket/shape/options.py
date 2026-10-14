@@ -6,6 +6,7 @@ from pydantic_core import MISSING
 from .... import auth
 from ....api.helpers import _send_game
 from ....app import app, sio
+from ....db.db import db
 from ....db.models.aura import Aura
 from ....db.models.player_room import PlayerRoom
 from ....db.models.shape import Shape
@@ -26,7 +27,7 @@ from ...models.shape.options import (
 )
 from ...models.tracker import ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove, TrackerSwapOrdering
 from ..constants import GAME_NS
-from .utils import get_owner_sids, get_shape_or_none, create_tracker_from_data, swap_tracker_ordering
+from .utils import get_owner_sids, get_shape_or_none, create_tracker_from_data
 
 
 async def send_name(
@@ -550,7 +551,12 @@ async def swap_ordering(sid: str, raw_data: Any):
     tracker = Tracker.get_by_id(data.tracker)
     other_tracker = Tracker.get_by_id(data.other_tracker)
     if tracker.shape == other_tracker.shape:
-        swap_tracker_ordering(tracker, other_tracker)
+        with db.atomic("IMMEDIATE"):
+            tmp = tracker.index
+            tracker.index = other_tracker.index
+            other_tracker.index = tmp
+            tracker.save()
+            other_tracker.save()
         await _send_game(
             "Shape.Options.Tracker.SwapOrdering",
             raw_data,

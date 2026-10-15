@@ -34,6 +34,7 @@ async def add_shape_custom_data(sid: str, raw_data: Any):
         kind=data.kind,
         value=json.dumps(data.value),
         description=data.description,
+        reference=data.reference,
     )
 
     for psid in get_owner_sids(pr, shape, skip_sid=sid):

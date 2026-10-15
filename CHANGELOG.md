@@ -47,6 +47,7 @@ tech changes will usually be stripped from release notes for the public
 -   Dice autocomplete stopped suggesting after typing an underscore or capital letter
 -   Removing a custom data group also removed groups with the same name created by mods
 -   Custom data elements could be shown in the wrong group when an element had the same name as a group
+-   Custom data references were not being saved in initial custom data creation
 -   [DM] Location cloning was no longer opening the cloned location immediately
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons

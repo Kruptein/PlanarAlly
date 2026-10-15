@@ -8,7 +8,7 @@ import { getShape } from "../../../id";
 import type { IAsset } from "../../../interfaces/shapes/asset";
 import { customDataState } from "../../../systems/customData/state";
 import type { UiShapeCustomData } from "../../../systems/customData/types";
-import { getCustomDataFullReference } from "../../../systems/customData/utils";
+import { getCustomDataFullReference, getCustomDataReference } from "../../../systems/customData/utils";
 import { diceState } from "../../../systems/dice/state";
 import { getProperties } from "../../../systems/properties/state";
 import { selectedState } from "../../../systems/selected/state";
@@ -196,7 +196,11 @@ function getAutoCompleteOptions(): AutoCompleteOption[] {
         for (const data of shapeData) {
             if (data.pending !== undefined) continue;
             if (source !== undefined && !data.source.toLowerCase().startsWith(source)) continue;
-            if (data.name.toLowerCase().startsWith(pre) && data.name.toLowerCase().endsWith(post)) {
+            // References are what gets resolved, but users might also search by the displayed name
+            const candidates = [data.name, data.reference ?? getCustomDataReference(data.name)].map((c) =>
+                c.toLowerCase(),
+            );
+            if (candidates.some((candidate) => candidate.startsWith(pre) && candidate.endsWith(post))) {
                 if (shape.type === "assetrect") {
                     options.push({ src: getImageSrcFromHash((shape as IAsset).assetHash), ...data, shapeId });
                 } else {

@@ -64,7 +64,7 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         is_teleport_zone=shape.is_teleport_zone,
         group=None if shape.group is None else shape.group.uuid,
         owners=owners,
-        custom_data=custom_data,
+        custom_data=[] if not edit_access else custom_data,
         trackers=trackers,
         auras=auras,
         character=shape.character_id,

@@ -49,6 +49,7 @@ tech changes will usually be stripped from release notes for the public
 -   Removing a custom data group also removed groups with the same name created by mods
 -   Custom data elements could be shown in the wrong group when an element had the same name as a group
 -   Custom data references were not being saved in initial custom data creation
+-   Custom data was for shapes you don't own was still being transmitted
 -   [DM] Location cloning was no longer opening the cloned location immediately
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons

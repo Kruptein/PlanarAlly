@@ -45,6 +45,7 @@ tech changes will usually be stripped from release notes for the public
 -   Variables inside a dice expression variable were looked up on the selected shape instead of the shape owning the expression
 -   Variables directly followed by dice syntax (e.g. `{prof}d6`) were not rolled correctly
 -   Dice autocomplete stopped suggesting after typing an underscore or capital letter
+-   Dice autocomplete did not suggest custom data when typing its reference instead of its name
 -   Removing a custom data group also removed groups with the same name created by mods
 -   Custom data elements could be shown in the wrong group when an element had the same name as a group
 -   Custom data references were not being saved in initial custom data creation

@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { type Part, type RollResult } from "@planarally/dice/core";
 import { DxConfig, DxSegmentType } from "@planarally/dice/systems/dx";
-import { type DeepReadonly, computed, nextTick, ref, watch } from "vue";
+import { type DeepReadonly, computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useToast } from "vue-toastification";
 
-import type { DiceRollResult } from "../../../../apiTypes";
 import ClickGroup from "../../../../core/components/ClickGroup.vue";
 import { arrToToggleGroup } from "../../../../core/components/toggleGroup";
 import ToggleGroup from "../../../../core/components/ToggleGroup.vue";
@@ -13,7 +12,7 @@ import { VariableError } from "../../../systems/customData/utils";
 import { diceSystem } from "../../../systems/dice";
 import { DxHelper } from "../../../systems/dice/dx";
 import { DiceMathError } from "../../../systems/dice/math";
-import { diceState } from "../../../systems/dice/state";
+import { dice3dOptions, diceState, shareResultOptions } from "../../../systems/dice/state";
 import { diceTool } from "../../../tools/variants/dice";
 
 import DiceRollInput from "./DiceRollInput.vue";
@@ -24,11 +23,19 @@ const toast = useToast();
 // const limitOperatorOptionNames = [t('game.ui.tools.DiceTool.limit_operator_options.keep'), t('game.ui.tools.DiceTool.limit_operator_options.drop'), t('game.ui.tools.DiceTool.limit_operator_options.min'), t('game.ui.tools.DiceTool.limit_operator_options.max')]
 // const selectorOptionNames = ["=", ">", "<", t('game.ui.tools.DiceTool.selection_option_names.highest'), t('game.ui.tools.DiceTool.selection_option_names.lowest')]
 
-const dice3dOptions = ["off", "on", "box"] as const;
-const dice3dSetting = ref<(typeof dice3dOptions)[number]>("off");
+const dice3dSetting = computed({
+    get: () => diceState.reactive.dice3d,
+    set: (value) => {
+        diceState.mutableReactive.dice3d = value;
+    },
+});
 
-const shareResultOptions = ["all", "dm", "none"] as const;
-const shareResult = ref<(typeof shareResultOptions)[number]>("all");
+const shareResult = computed({
+    get: () => diceState.reactive.shareResult,
+    set: (value) => {
+        diceState.mutableReactive.shareResult = value;
+    },
+});
 
 const breakdownDetailOptions = ["detailed", "simple"] as const;
 const breakdownDetailOptionHistory = ref<(typeof breakdownDetailOptions)[number]>(
@@ -69,9 +76,17 @@ const translationMapping = {
 const showOptionsSubmenu = ref(false);
 const awaitingRoll = ref(false);
 const awaiting3dLoad = ref(false);
-const lastRoll = ref<RollResult<Part>>({
+const emptyRoll: RollResult<Part> = {
     result: "-",
     parts: [{ input: undefined, shortResult: t("game.ui.tools.DiceTool.empty_history") }],
+};
+const lastRoll = computed(() => diceState.reactive.lastRoll ?? emptyRoll);
+
+onMounted(() => {
+    diceSystem.setBoxCanvas(canvasElement.value ?? undefined);
+});
+onBeforeUnmount(() => {
+    diceSystem.setBoxCanvas(undefined);
 });
 
 const literalOptions = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ...DxConfig.symbolOptions] as const;
@@ -182,11 +197,7 @@ async function roll(): Promise<void> {
     awaitingRoll.value = true;
 
     try {
-        lastRoll.value = await diceTool.roll(
-            content,
-            dice3dSetting.value !== "off",
-            shareResult.value.toLowerCase() as DiceRollResult["shareWith"],
-        );
+        await diceTool.roll(content);
     } catch (error) {
         awaitingRoll.value = false;
         if (!(error instanceof DiceMathError || error instanceof VariableError)) throw error;

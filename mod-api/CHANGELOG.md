@@ -1,5 +1,13 @@
 ## Unreleased
 
+## [0.6.0]
+
+### Added
+- `dice.roll` to roll dice as the current player without opening the dice tool
+- `dice.prefill` to open the dice tool with an expression filled in
+
+## [0.5.0]
+
 ### Added
 - Custom data apis
 - Dice simplification apis

@@ -100,6 +100,23 @@ export function getDisplayExpression(data: string): string {
         .join("");
 }
 
+// Makes the references in the input explicit about the shape they resolve against,
+// so the expression can be used without that shape being focused, e.g. in the dice tool
+export function qualifyReferences(data: string, shapeFocus: LocalId | undefined = selectedState.raw.focus): string {
+    return getVariableSegments(data, shapeFocus)
+        .map((segment) => {
+            if (!segment.isVariable) return segment.text;
+            // Unresolved references are kept, so the roll reports why they can't be used
+            if (segment.ref === undefined) {
+                if (segment.discriminator === undefined || segment.raw.startsWith("{[")) return segment.raw;
+                return `{[${segment.discriminator}]${segment.raw.slice(1)}`;
+            }
+            if (segment.discriminator === undefined) return String(segment.ref.value);
+            return `{[${segment.discriminator}]${getCustomDataFullReference(segment.ref)}}`;
+        })
+        .join("");
+}
+
 // Why a variable segment can not be resolved, if it can't
 export function getVariableProblem(segment: VariableSegment): string | undefined {
     if (!segment.isVariable || segment.ref !== undefined) return;

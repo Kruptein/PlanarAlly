@@ -1,5 +1,7 @@
+import type { DiceThrower } from "@planarally/dice/3d";
 import { SYSTEMS, type Part, type RollResult } from "@planarally/dice/core";
 import type { DeepReadonly } from "vue";
+import { POSITION, useToast } from "vue-toastification";
 
 import { registerSystem } from "../../../core/systems";
 import type { System, SystemClearReason } from "../../../core/systems/models";
@@ -13,6 +15,8 @@ const _env = () => import("./environment");
 
 const { mutableReactive: $ } = diceState;
 
+const toast = useToast();
+
 export async function getDiceEnvironment(): Promise<AsyncReturnType<typeof _env>> {
     return await _env();
 }
@@ -22,10 +26,13 @@ function withoutSpaces(text: string): string {
 }
 
 class DiceSystem implements System {
+    private boxCanvas: HTMLCanvasElement | undefined;
+
     clear(reason: SystemClearReason): void {
         $.result = undefined;
         if (reason !== "full-loading") {
             $.history = [];
+            $.lastRoll = undefined;
         }
     }
 
@@ -61,9 +68,33 @@ class DiceSystem implements System {
         $.systems = { "2d": DX, "3d": DX3 };
     }
 
-    async load3d(canvas?: HTMLCanvasElement): Promise<void> {
+    async load3d(canvas?: HTMLCanvasElement): Promise<DiceThrower> {
         const env = await getDiceEnvironment();
-        await env.loadDiceEnv(canvas);
+        return await env.loadDiceEnv(canvas);
+    }
+
+    setBoxCanvas(canvas: HTMLCanvasElement | undefined): void {
+        this.boxCanvas = canvas;
+    }
+
+    // The thrower matching the player's 3D setting, undefined if 3D dice can't be used and rolls should be 2D
+    async getThrower(): Promise<DiceThrower | undefined> {
+        // The dice box is part of the dice tool UI, while it's hidden the full screen environment is used instead
+        const canvas =
+            diceState.raw.dice3d === "box" && this.boxCanvas?.checkVisibility() === true ? this.boxCanvas : undefined;
+        try {
+            return await this.load3d(canvas);
+        } catch (error) {
+            console.warn("Could not load the 3D dice environment, rolling 2D dice instead", error);
+            return undefined;
+        }
+    }
+
+    showRollToast(player: string, display: string, roll: DeepReadonly<RollResult<Part>>): void {
+        toast.info(`${player} rolled ${display} and threw a ${roll.result}`, {
+            position: POSITION.TOP_RIGHT,
+            onClick: () => this.showResults(roll),
+        });
     }
 
     getSystem(

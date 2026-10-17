@@ -3,12 +3,10 @@ import { computed } from "vue";
 
 import type { ApiShapeCustomDataDiceExpression } from "../../../../apiTypes";
 import type { LocalId } from "../../../../core/id";
-import { ToolName } from "../../../models/tools";
-import { activateTool } from "../../../tools/tools";
-import { diceSystem } from "../../dice";
+import { prefillDiceTool } from "../../dice/prefill";
 import { selectedState } from "../../selected/state";
 import type { ElementId } from "../types";
-import { getCustomDataFullReference, getVariableProblem, getVariableSegments } from "../utils";
+import { getVariableProblem, getVariableSegments } from "../utils";
 
 const { element, shapeFocus } = defineProps<{
     element: ApiShapeCustomDataDiceExpression & { id: ElementId };
@@ -19,25 +17,8 @@ const segments = computed(() => {
     return getVariableSegments(element.value, shapeFocus ?? selectedState.reactive.focus);
 });
 
-async function loadRoll(): Promise<void> {
-    if (!diceSystem.isLoaded) await diceSystem.loadSystems();
-    activateTool(ToolName.Dice);
-    // We need a short timeout when loading the dice tool for the first time
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    diceSystem.setInput(
-        segments.value
-            .map((segment) => {
-                if (!segment.isVariable) return segment.text;
-                // Unresolved references are kept, so the roll reports why they can't be used
-                if (segment.ref === undefined) {
-                    if (segment.discriminator === undefined || segment.raw.startsWith("{[")) return segment.raw;
-                    return `{[${segment.discriminator}]${segment.raw.slice(1)}`;
-                }
-                if (segment.discriminator === undefined) return String(segment.ref.value);
-                return `{[${segment.discriminator}]${getCustomDataFullReference(segment.ref)}}`;
-            })
-            .join(""),
-    );
+function loadRoll(): void {
+    prefillDiceTool(element.value, shapeFocus ?? selectedState.reactive.focus);
 }
 </script>
 

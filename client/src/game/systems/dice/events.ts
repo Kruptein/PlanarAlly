@@ -1,12 +1,9 @@
 import type { Part, RollResult } from "@planarally/dice/core";
-import { POSITION, useToast } from "vue-toastification";
 
 import type { DiceRollResult } from "../../../apiTypes";
 import { socket } from "../../api/socket";
 
 import { diceSystem } from ".";
-
-const toast = useToast();
 
 socket.on("Dice.Roll.Result", (data: DiceRollResult) => {
     const roll = JSON.parse(data.roll) as RollResult<Part>;
@@ -16,8 +13,5 @@ socket.on("Dice.Roll.Result", (data: DiceRollResult) => {
         data.input === undefined || data.input === null ? undefined : { display: data.input },
     );
 
-    toast.info(`${data.player} rolled ${rollString} and threw a ${roll.result}`, {
-        position: POSITION.TOP_RIGHT,
-        onClick: () => diceSystem.showResults(roll),
-    });
+    diceSystem.showRollToast(data.player, rollString, roll);
 });

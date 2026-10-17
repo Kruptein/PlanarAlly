@@ -1,19 +1,20 @@
 import type { Vector3 } from "@babylonjs/core/Maths/math";
-import { type Part, type RollResult, rollString } from "@planarally/dice/core";
+import { type RollResult, rollString } from "@planarally/dice/core";
+import type { DxSegment } from "@planarally/dice/systems/dx";
 import tinycolor from "tinycolor2";
 import { reactive } from "vue";
 
-import type { DiceRollResult } from "../../../apiTypes";
+import type { LocalId } from "../../../core/id";
 import { randomInterval } from "../../../core/utils";
 import { i18n } from "../../../i18n";
 import { coreStore } from "../../../store/core";
 import { ToolName } from "../../models/tools";
 import type { ITool, ToolPermission } from "../../models/tools";
 import { convertVariables, getDisplayExpression } from "../../systems/customData/utils";
-import { diceSystem, getDiceEnvironment } from "../../systems/dice";
+import { diceSystem } from "../../systems/dice";
 import { sendDiceRollResult } from "../../systems/dice/emits";
-import { dxMathSyntax, resolveDiceMath } from "../../systems/dice/math";
-import { diceState } from "../../systems/dice/state";
+import { DiceMathError, dxMathSyntax, resolveDiceMath } from "../../systems/dice/math";
+import { type ShareResultSetting, diceState } from "../../systems/dice/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { SelectFeatures } from "../models/select";
 import { Tool } from "../tool";
@@ -64,6 +65,26 @@ async function generate3dOptions(): Promise<{
     };
 }
 
+export interface DiceRollOptions {
+    // Shape that unqualified references resolve against, defaults to the focused shape
+    shape?: LocalId;
+    // Shown instead of the expression in the history and to other players
+    label?: string;
+    // Default to the player's dice tool settings
+    use3d?: boolean;
+    shareWith?: ShareResultSetting;
+}
+
+export interface DiceRoll {
+    roll: RollResult<DxSegment>;
+    // The expression shown in the history and to other players
+    display: string;
+    // The expression that was rolled, after resolving variables and math
+    resolved: string;
+    used3d: boolean;
+    shareWith: ShareResultSetting;
+}
+
 class DiceTool extends Tool implements ITool {
     readonly toolName = ToolName.Dice;
     readonly toolTranslation = i18n.global.t("tool.Dice");
@@ -91,35 +112,41 @@ class DiceTool extends Tool implements ITool {
         ];
     }
 
-    // The input can contain variable references, these are resolved before rolling
-    async roll(input: string, use3d: boolean, shareWith: DiceRollResult["shareWith"]): Promise<RollResult<Part>> {
-        const displayInput = getDisplayExpression(input);
-        const resolvedInput = await resolveDiceMath(convertVariables(input), dxMathSyntax);
-        let roll: RollResult<Part>;
-        if (use3d) {
+    // Every roll made by this player goes through here, whether it comes from the dice tool UI or a mod.
+    // The input can contain variable references, these are resolved before rolling.
+    async roll(input: string, options: DiceRollOptions = {}): Promise<DiceRoll> {
+        if (input.trim().length === 0) {
+            throw new DiceMathError(i18n.global.t("game.ui.tools.DiceTool.math_errors.empty"));
+        }
+        const shareWith = options.shareWith ?? diceState.raw.shareResult;
+        const display = options.label ?? getDisplayExpression(input);
+        const resolved = await resolveDiceMath(convertVariables(input, options.shape), dxMathSyntax);
+
+        await diceSystem.loadSystems();
+        const systems = diceState.raw.systems!;
+        const thrower = (options.use3d ?? diceState.raw.dice3d !== "off") ? await diceSystem.getThrower() : undefined;
+
+        let roll: RollResult<DxSegment>;
+        if (thrower !== undefined) {
             const dieDefaults = await generate3dOptions();
-            const { diceThrower } = await getDiceEnvironment();
-            roll = await rollString(resolvedInput, diceState.raw.systems!["3d"], {
-                thrower: diceThrower!,
-                dieDefaults,
-                d100Mode: 100 as const,
-            });
+            roll = await rollString(resolved, systems["3d"], { thrower, dieDefaults, d100Mode: 100 as const });
         } else {
-            roll = await rollString(resolvedInput, diceState.raw.systems!["2d"], { d100Mode: 100 as const });
+            roll = await rollString(resolved, systems["2d"], { d100Mode: 100 as const });
         }
 
         if (shareWith !== "none") {
             sendDiceRollResult({
                 player: coreStore.state.username,
                 roll: JSON.stringify(roll),
-                input: displayInput,
+                input: display,
                 shareWith,
             });
         }
 
-        diceSystem.addToHistory(roll, coreStore.state.username, { display: displayInput, raw: input });
+        diceSystem.addToHistory(roll, coreStore.state.username, { display, raw: input });
+        diceState.mutableReactive.lastRoll = roll;
 
-        return roll;
+        return { roll, display, resolved, used3d: thrower !== undefined, shareWith };
     }
 }
 

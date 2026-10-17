@@ -22,18 +22,21 @@ const emit = defineEmits<{
 // Update the scroll position of the input element when the text input changes
 // This is only set when the input was changed explicitly through the dice system
 // manual text changes will not trigger this (on purpose)
+// Immediate, as the input can be set before the dice tool is mounted for the first time
 watch(
     () => diceState.reactive.updateInputCursor,
     async (value) => {
         if (!value) return;
         await nextTick();
-        inputElement.value!.focus();
+        if (inputElement.value === null) return;
+        inputElement.value.focus();
         diceState.mutableReactive.updateInputCursor = false;
         const sel = document.getSelection();
         if (sel === null) return;
-        sel.selectAllChildren(inputElement.value!);
+        sel.selectAllChildren(inputElement.value);
         sel.collapseToEnd();
     },
+    { immediate: true },
 );
 
 const segments = computed(() => {

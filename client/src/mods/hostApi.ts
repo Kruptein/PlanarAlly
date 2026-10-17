@@ -9,7 +9,7 @@ import { compendiumSystem } from "../game/systems/compendium";
 import { registerContextMenuEntry, registerTab } from "../game/systems/ui/mods";
 
 import { getDataBlockFunctions } from "./db";
-import { simplifyDiceExpression, useSimplifiedDice } from "./dice";
+import { prefillDice, rollDice, simplifyDiceExpression, useSimplifiedDice } from "./dice";
 import { trackRegistration } from "./registry";
 
 export async function buildModApi(modId: string, tag: string): Promise<GameApi> {
@@ -37,6 +37,9 @@ export async function buildModApi(modId: string, tag: string): Promise<GameApi> 
         dice: {
             simplify: simplifyDiceExpression,
             useSimplified: useSimplifiedDice,
+            // Rolling registers nothing, so these don't need to be tracked per mod
+            roll: rollDice,
+            prefill: prefillDice,
         },
         getGlobalId,
         getShape,

@@ -15,7 +15,7 @@ When writing migrations make sure that these things are respected:
 - It's often a good idea to start the server with a clean save and use `.schema <table_name>` in sqlite to get the exact schema output that a clean save creates
 """
 
-SAVE_VERSION = 120
+SAVE_VERSION = 121
 
 import asyncio
 import json
@@ -914,6 +914,13 @@ def upgrade(
             export_date = db.execute_sql("SELECT last_export_date FROM constants").fetchone()
             if export_date is not None and export_date[0] is not None:
                 db.execute_sql("UPDATE constants SET last_export_date = ?", (to_utc_naive(export_date[0]),))
+    elif version == 120:
+        with db.atomic():
+            shape_id_counter = {}
+            db.execute_sql('ALTER TABLE "tracker" ADD COLUMN "index" INTEGER DEFAULT 0')
+            for row_id, shape_id in db.execute_sql('SELECT "uuid", "shape_id" FROM tracker').fetchall():
+                shape_id_counter[shape_id] = shape_id_counter.get(shape_id, 0) + 1
+                db.execute_sql('UPDATE tracker SET "index" = ? WHERE uuid = ?', (shape_id_counter[shape_id], row_id))
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

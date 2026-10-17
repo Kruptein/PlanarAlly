@@ -147,7 +147,7 @@ class MapTool extends Tool implements ITool {
 
         this.active.value = false;
 
-        if (selectedState.raw.selected.size !== 1) {
+        if (selectedState.raw.selected.size !== 1 || this.rect.w === 0 || this.rect.h === 0) {
             this.removeRect();
             return Promise.resolve();
         }
@@ -173,7 +173,18 @@ class MapTool extends Tool implements ITool {
             return;
         }
 
+        if (
+            !Number.isFinite(this.state.sizeX) ||
+            !Number.isFinite(this.state.sizeY) ||
+            this.state.sizeX <= 0 ||
+            this.state.sizeY <= 0
+        ) {
+            this.state.error = "Input should be a positive number";
+            return;
+        }
+
         if (this.rect !== undefined) {
+            if (this.rect.w <= 0 || this.rect.h <= 0) return;
             const xFactor = this.state.sizeX / this.rect.w;
             const yFactor = this.state.sizeY / this.rect.h;
 

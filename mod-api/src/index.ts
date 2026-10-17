@@ -304,6 +304,58 @@ export type DiceSimplification =
 // The math library behind dice simplification is still loading
 export type PendingDiceSimplification = { kind: "pending" };
 
+export type DiceShareWith = "all" | "dm" | "none";
+
+export interface DiceRollOptions {
+  // Shape that unqualified references resolve against, defaults to the focused shape like the dice tool
+  shape?: LocalId;
+  // Shown in the dice history and to other players instead of the expression, e.g. "Investigation check"
+  label?: string;
+  // Defaults to the player's current dice tool setting
+  shareWith?: DiceShareWith;
+  // Defaults to the player's current dice tool setting, falls back to 2D if 3D dice can't be loaded
+  use3d?: boolean;
+  // Don't show a toast when the roll fails, the promise still rejects
+  silent?: boolean;
+}
+
+export interface DicePrefillOptions {
+  // Shape that unqualified references resolve against, defaults to the focused shape
+  shape?: LocalId;
+}
+
+export interface DiceRollDie {
+  value: number;
+  // Whether the die adds to the total, e.g. false for dice dropped by `2d20kh1`
+  counted: boolean;
+  // `overridden` is the original roll replaced by a min/max modifier, the replacement follows it
+  status?: "kept" | "dropped" | "overridden";
+}
+
+export type DiceRollPart =
+  | { kind: "dice"; expression: string; amount: number; sides: number; total: number; dice: DiceRollDie[] }
+  | { kind: "number"; value: number }
+  | { kind: "operator"; operator: "+" | "-" };
+
+export interface DiceRollOutcome {
+  total: number;
+  // The expression as passed to `roll`
+  input: string;
+  label: string | undefined;
+  // The expression that was rolled, after resolving references and math, e.g. "1d20 + 5"
+  expression: string;
+  parts: DiceRollPart[];
+  shareWith: DiceShareWith;
+  used3d: boolean;
+}
+
+// `roll` and `prefill` reject with this error for problems with the expression or when dice are disabled in the room.
+// Other errors are unexpected and passed on as is.
+export interface DiceRollError extends Error {
+  name: "DiceRollError";
+  reason: "reference" | "math" | "disabled";
+}
+
 export interface DiceApi {
   // Resolves custom data variables relative to `shape` and all math that does not depend on dice results,
   // the same way a roll does, without rolling anything.
@@ -315,6 +367,11 @@ export interface DiceApi {
     expression: MaybeRefOrGetter<string>,
     shape: MaybeRefOrGetter<LocalId | null | undefined>,
   ): Readonly<Ref<DiceSimplification | PendingDiceSimplification | undefined>>;
+  // Rolls the expression as the current player, exactly like the dice tool does, without opening it.
+  // The result is shared, added to the dice history and shown to the player.
+  roll(expression: string, options?: DiceRollOptions): Promise<DiceRollOutcome>;
+  // Opens the dice tool with the expression filled in, references are qualified with the shape they resolve against.
+  prefill(expression: string, options?: DicePrefillOptions): Promise<void>;
 }
 
 export interface GameApi {

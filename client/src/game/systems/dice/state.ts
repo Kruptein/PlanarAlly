@@ -1,6 +1,7 @@
 import { type Part, type RollResult, type SYSTEMS } from "@planarally/dice/core";
 import type { DeepReadonly } from "vue";
 
+import type { DiceRollResult } from "../../../apiTypes";
 import type { LocalId } from "../../../core/id";
 import { buildState } from "../../../core/systems/state";
 import type { AsyncReturnType } from "../../../core/types";
@@ -18,7 +19,16 @@ export interface DiceHistoryEntry {
     rawInput?: string;
 }
 
+export const dice3dOptions = ["off", "on", "box"] as const;
+export type Dice3dSetting = (typeof dice3dOptions)[number];
+
+export const shareResultOptions = ["all", "dm", "none"] as const satisfies DiceRollResult["shareWith"][];
+export type ShareResultSetting = (typeof shareResultOptions)[number];
+
 interface DiceState {
+    // Player preferences used by every roll that doesn't override them
+    dice3d: Dice3dSetting;
+    shareResult: ShareResultSetting;
     uiState: DiceUiState;
     uiActiveShapeId: LocalId | undefined;
     textInput: string;
@@ -31,9 +41,13 @@ interface DiceState {
         "3d": AsyncReturnType<typeof SYSTEMS.DX3>["DX3"];
     };
     result?: DeepReadonly<RollResult<Part>>;
+    // The latest roll made by this player
+    lastRoll?: DeepReadonly<RollResult<Part>>;
 }
 
 const state = buildState<DiceState>({
+    dice3d: "off",
+    shareResult: "all",
     uiState: DiceUiState.Roll,
     uiActiveShapeId: undefined,
     lastCursorPosition: 0,

@@ -15,33 +15,42 @@ import { baseAdjust } from "../../../core/http";
 
 import { diceSystem } from ".";
 
-export let diceThrower: DiceThrower | undefined;
-
 interface ThrowerConfig {
     thrower: DiceThrower;
     width: number;
     height: number;
 }
 
-const throwers = new Map<HTMLCanvasElement, ThrowerConfig>();
+// Pending loads are stored as well, so concurrent loads for the same canvas share a single thrower
+const throwers = new Map<HTMLCanvasElement, Promise<ThrowerConfig>>();
 
 // This is in fact used in dice.ts using dynamic import
 // eslint-disable-next-line import/no-unused-modules
-export async function loadDiceEnv(canvas?: HTMLCanvasElement): Promise<void> {
+export async function loadDiceEnv(canvas?: HTMLCanvasElement): Promise<DiceThrower> {
     let cameraHeight = 15;
     if (canvas === undefined) {
-        canvas = document.getElementById("babylon") as unknown as HTMLCanvasElement;
+        const babylonCanvas = document.getElementById("babylon");
+        if (!(babylonCanvas instanceof HTMLCanvasElement)) throw new Error("The 3D dice canvas is not available");
+        canvas = babylonCanvas;
         cameraHeight = 40;
     }
-    const existingThrower = throwers.get(canvas);
 
-    if (existingThrower) {
-        diceThrower = existingThrower.thrower;
-        diceSystem.set3dDimensions(existingThrower.width, existingThrower.height);
-        return;
+    let config = throwers.get(canvas);
+    if (config === undefined) {
+        const target = canvas;
+        config = createThrower(target, cameraHeight);
+        throwers.set(target, config);
+        // A failed load can be retried
+        void config.catch(() => throwers.delete(target));
     }
 
-    diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.05, angular: 0.1 } });
+    const { thrower, width, height } = await config;
+    diceSystem.set3dDimensions(width, height);
+    return thrower;
+}
+
+async function createThrower(canvas: HTMLCanvasElement, cameraHeight: number): Promise<ThrowerConfig> {
+    const diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.05, angular: 0.1 } });
     const scene = diceThrower.scene;
 
     scene.clearColor = new Color4(0, 0, 0, 0);
@@ -71,16 +80,18 @@ export async function loadDiceEnv(canvas?: HTMLCanvasElement): Promise<void> {
     const groundMat = new ShadowOnlyMaterial("shadowOnly", scene);
     groundMat.activeLight = light;
 
-    loadDiceBox(scene, canvas);
+    const { width, height } = loadDiceBox(scene, canvas);
 
     diceThrower.startRenderLoop();
+
+    return { thrower: diceThrower, width, height };
 }
 
 function paPredicate(mesh: AbstractMesh): boolean {
     return mesh.isPickable && mesh.isEnabled();
 }
 
-function loadDiceBox(scene: Scene, canvas: HTMLCanvasElement): void {
+function loadDiceBox(scene: Scene, canvas: HTMLCanvasElement): { width: number; height: number } {
     const ground = MeshBuilder.CreateGround("ground", { width: 100, height: 100 }, scene);
     ground.position = new Vector3(0, 0, 0);
     ground.material = scene.getMaterialByName("shadowOnly");
@@ -95,8 +106,6 @@ function loadDiceBox(scene: Scene, canvas: HTMLCanvasElement): void {
 
     const width = Math.abs(topRight.x - topLeft.x);
     const height = Math.abs(botLeft.z - topLeft.z);
-    throwers.set(canvas, { thrower: diceThrower!, width: width, height: height });
-    diceSystem.set3dDimensions(width, height);
 
     const wall1 = MeshBuilder.CreateBox("north", { width, depth: 1, height: 40 }, scene);
     wall1.isVisible = false;
@@ -145,4 +154,6 @@ function loadDiceBox(scene: Scene, canvas: HTMLCanvasElement): void {
         restitution,
         friction,
     });
+
+    return { width, height };
 }

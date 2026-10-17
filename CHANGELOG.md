@@ -53,6 +53,7 @@ tech changes will usually be stripped from release notes for the public
 -   [DM] Location cloning was no longer opening the cloned location immediately
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons
+-   [DM] Map tool corrupted the shape's size and position when the drawn rectangle had no width or height (e.g. a click without dragging)
 -   [server] session stats data had a dumb bug causing all the session stats to not be saved
 
 ## [2026.2]

@@ -1,7 +1,7 @@
 from typing import Any, cast
 
 from peewee import Case
-from pydantic import TypeAdapter
+from pydantic import TypeAdapter, ValidationError
 from pydantic_core import MISSING
 
 from .... import auth
@@ -131,9 +131,13 @@ async def add_shape(sid: str, raw_data: Any):
 @sio.on("Shapes.Position.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def update_shape_positions(sid: str, raw_data: Any):
-    data = ShapesPositionUpdateList(**raw_data)
-
     pr: PlayerRoom = game_state.get(sid)
+
+    try:
+        data = ShapesPositionUpdateList(**raw_data)
+    except ValidationError as e:
+        logger.warning(f"User {pr.player.name} sent an invalid shape position update: {e.errors()}")
+        return
 
     if not data.temporary:
         shapes: list[tuple[Shape, ShapePositionUpdate]] = []
@@ -489,9 +493,13 @@ async def set_text_value(sid: str, raw_data: Any):
 @sio.on("Shape.Rect.Size.Update", namespace=GAME_NS)
 @auth.login_required(app, sio, "game")
 async def update_rect_size(sid: str, raw_data: Any):
-    data = ShapeRectSizeUpdate(**raw_data)
-
     pr: PlayerRoom = game_state.get(sid)
+
+    try:
+        data = ShapeRectSizeUpdate(**raw_data)
+    except ValidationError as e:
+        logger.warning(f"User {pr.player.name} sent an invalid rect size update: {e.errors()}")
+        return
 
     if not data.temporary:
         shape: AssetRect | Rect | FontAwesome

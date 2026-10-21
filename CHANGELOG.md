@@ -55,6 +55,7 @@ tech changes will usually be stripped from release notes for the public
 -   [DM] Styling issue on disabled location buttons
 -   [DM] Map tool corrupted the shape's size and position when the drawn rectangle had no width or height (e.g. a click without dragging)
 -   [server] session stats data had a dumb bug causing all the session stats to not be saved
+-   [server] Docker images report their tag and commit as the version environment again instead of `docker:-`
 
 ## [2026.2]
 

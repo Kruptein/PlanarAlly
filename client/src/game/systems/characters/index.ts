@@ -12,7 +12,7 @@ import { selectedState } from "../selected/state";
 import type { CharacterId } from "./models";
 import { characterState } from "./state";
 
-const { mutable, readonly, mutableReactive: $ } = characterState;
+const { raw, mutableReactive: $ } = characterState;
 
 class CharacterSystem implements System {
     // CORE
@@ -20,15 +20,14 @@ class CharacterSystem implements System {
     clear(reason: SystemClearReason): void {
         $.activeCharacterId = undefined;
         if (reason !== "partial-loading") {
-            $.characterIds.clear();
-            mutable.characters.clear();
+            $.characters.clear();
         }
     }
 
     // REACTIVE
 
     loadState(id: LocalId): void {
-        $.activeCharacterId = find(readonly.characters.entries(), ([, char]) => char.shapeId === getGlobalId(id))?.[0];
+        $.activeCharacterId = find(raw.characters.entries(), ([, char]) => char.shapeId === getGlobalId(id))?.[0];
     }
 
     dropState(): void {
@@ -38,28 +37,31 @@ class CharacterSystem implements System {
     // BEHAVIOUR
 
     addCharacter(character: ApiCharacter): void {
-        $.characterIds.add(character.id);
-        mutable.characters.set(character.id, character);
+        $.characters.set(character.id, character);
 
         checkSelectedForCharacterState(selectedState.reactive.focus);
     }
 
     removeCharacter(characterId: CharacterId): void {
         if ($.activeCharacterId === characterId) $.activeCharacterId = undefined;
-        $.characterIds.delete(characterId);
         const shape = this.getShape(characterId);
         if (shape) {
             shape.character = undefined;
         }
-        mutable.characters.delete(characterId);
+        $.characters.delete(characterId);
+    }
+
+    setName(characterId: CharacterId, name: string): void {
+        const character = $.characters.get(characterId);
+        if (character) character.name = name;
     }
 
     getAllCharacters(): IterableIterator<DeepReadonly<ApiCharacter>> {
-        return readonly.characters.values();
+        return raw.characters.values();
     }
 
     getShape(character: CharacterId): IShape | undefined {
-        const shapeId = mutable.characters.get(character)?.shapeId;
+        const shapeId = raw.characters.get(character)?.shapeId;
         if (shapeId) {
             const localId = getLocalId(shapeId, false);
             if (localId) {
@@ -69,7 +71,7 @@ class CharacterSystem implements System {
     }
 
     getShapeId(character: CharacterId): GlobalId | undefined {
-        return mutable.characters.get(character)?.shapeId;
+        return raw.characters.get(character)?.shapeId;
     }
 }
 

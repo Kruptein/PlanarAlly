@@ -347,6 +347,12 @@ async def set_name(sid: str, raw_data: Any):
     shape.name = data.value
     shape.save()
 
+    # Keep the linked character's name in sync with its shape
+    character = shape.character
+    if character is not None:
+        character.name = data.value
+        character.save()
+
     if shape.name_visible:
         await send_name(data, room=pr.active_location.get_path(), skip_sid=sid)
     else:

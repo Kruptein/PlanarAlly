@@ -26,6 +26,7 @@ import {
 } from "../../api/emits/shape/options";
 import { getGlobalId, getShape } from "../../id";
 import type { ShapeSize } from "../../interfaces/shape";
+import { characterSystem } from "../characters";
 import { doorSystem } from "../logic/door";
 import { selectedState } from "../selected/state";
 
@@ -109,6 +110,10 @@ class PropertiesSystem implements ShapeSystem<Partial<ShapeProperties>> {
         }
 
         shape.name = name;
+
+        // Keep the linked character's name in sync with its shape
+        const characterId = getShape(id)?.character;
+        if (characterId !== undefined) characterSystem.setName(characterId, name);
 
         if (syncTo.server) {
             const shape = getGlobalId(id);

@@ -39,6 +39,10 @@ class CharacterSystem implements System {
     addCharacter(character: ApiCharacter): void {
         $.characters.set(character.id, character);
 
+        // Link the local shape to its character (e.g. when a character was just created)
+        const shape = this.getShape(character.id);
+        if (shape) shape.character = character.id;
+
         checkSelectedForCharacterState(selectedState.reactive.focus);
     }
 

@@ -13,4 +13,3 @@ class ApiCharacter(TypeIdModel):
 
 class CharacterCreate(TypeIdModel):
     shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
-    name: str

@@ -10,6 +10,7 @@ from ....app import app, sio
 from ....db.db import db
 from ....db.models.asset import Asset
 from ....db.models.asset_rect import AssetRect
+from ....db.models.character import Character
 from ....db.models.circle import Circle
 from ....db.models.circular_token import CircularToken
 from ....db.models.floor import Floor
@@ -46,6 +47,7 @@ from ...models.shape import (
 )
 from ...models.shape.position import ShapePositionUpdate, ShapesPositionUpdateList
 from .. import initiative
+from ..character import send_character_update
 from ..constants import GAME_NS
 from ..groups import remove_group_if_empty
 from . import access, custom_data, options, variants  # noqa: F401
@@ -98,10 +100,11 @@ async def add_shape(sid: str, raw_data: Any):
     if not is_temp:
         if data.shape.character:
             # Restore shape from character (e.g. undo a shape delete related to a character)
-            shape = Shape.get_or_none(Shape.character_id == data.shape.character)
-            if shape is None:
+            character = Character.get_or_none(Character.id == data.shape.character)
+            if character is None:
                 logger.error(f"Add shape failed: character {data.shape.character} not found")
                 return
+            shape = character.shape
             shape.layer = layer
             shape.x = data.shape.x
             shape.y = data.shape.y
@@ -217,7 +220,7 @@ async def remove_shapes(sid: str, raw_data: Any):
             if shape.group:
                 group_ids.add(shape.group.uuid)
 
-            if shape.character_id is None:
+            if shape.character is None:
                 asset_to_clean = None
                 if shape.type_ == "assetrect":
                     rect = cast(AssetRect, shape.subtype)
@@ -570,6 +573,9 @@ async def change_asset_image(sid: str, raw_data: Any):
     asset_rect.save()
 
     await _send_game("Shape.Asset.Image.Set", data, room=pr.active_location.get_path(), skip_sid=sid)
+
+    if character := asset_rect.shape.character:
+        await send_character_update(pr, character)
 
 
 @sio.on("Shape.Template.Add", namespace=GAME_NS)

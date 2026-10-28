@@ -353,7 +353,6 @@ function createCharacter(): boolean {
     if (shape === undefined || shape.character !== undefined) return false;
     const data: CharacterCreate = {
         shape: getGlobalId(selectedId)!,
-        name: getProperties(selectedId)!.name,
     };
     sendCreateCharacter(data);
     return true;

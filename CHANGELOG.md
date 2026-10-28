@@ -38,6 +38,8 @@ tech changes will usually be stripped from release notes for the public
 ### Fixed
 
 -   Locked shapes were movable by keyboard navigation
+-   Renaming a shape or changing its image did not update its character
+-   Removing an asset could remove characters that were created from it
 -   Dice macro UI was empty for shapes with a local ID of 1
 -   Dice autocomplete and macro roll buttons inserted variable references that did not resolve when the data had a custom reference, special characters in its name or a duplicate name in another group
 -   Custom data references were saved with unsupported characters, making them unusable in dice rolls

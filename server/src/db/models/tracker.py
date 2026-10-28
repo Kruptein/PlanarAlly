@@ -20,6 +20,7 @@ class Tracker(BaseDbModel):
     draw = cast(bool, BooleanField())
     primary_color = cast(str, TextField())
     secondary_color = cast(str, TextField())
+    index = cast(int, IntegerField())
 
     def __repr__(self):
         return f"<Tracker {self.name} {self.shape.get_path()}>"

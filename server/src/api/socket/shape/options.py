@@ -6,6 +6,7 @@ from pydantic_core import MISSING
 from .... import auth
 from ....api.helpers import _send_game
 from ....app import app, sio
+from ....db.db import db
 from ....db.models.aura import Aura
 from ....db.models.player_room import PlayerRoom
 from ....db.models.shape import Shape
@@ -24,9 +25,9 @@ from ...models.shape.options import (
     ShapeSetStringValue,
     ShapeSetTeleportLocationValue,
 )
-from ...models.tracker import ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove
+from ...models.tracker import ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove, TrackerSwapOrdering
 from ..constants import GAME_NS
-from .utils import get_owner_sids, get_shape_or_none
+from .utils import get_owner_sids, get_shape_or_none, create_tracker_from_data
 
 
 async def send_name(
@@ -463,9 +464,7 @@ async def create_tracker(sid: str, raw_data: Any):
     if shape is None:
         return
 
-    model = reduce_data_to_model(Tracker, data.model_dump())
-    tracker = Tracker.create(**model)
-    tracker.save()
+    tracker = create_tracker_from_data(data)
 
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
     for psid in owners:
@@ -542,6 +541,28 @@ async def move_tracker(sid: str, raw_data: Any):
         skip_sid=sid,
         room=pr.active_location.get_path(),
     )
+
+
+@sio.on("Shape.Options.Tracker.SwapOrdering", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def swap_ordering(sid: str, raw_data: Any):
+    data = TrackerSwapOrdering(**raw_data)
+    pr: PlayerRoom = game_state.get(sid)
+    tracker = Tracker.get_by_id(data.tracker)
+    other_tracker = Tracker.get_by_id(data.other_tracker)
+    if tracker.shape == other_tracker.shape:
+        with db.atomic("IMMEDIATE"):
+            tmp = tracker.index
+            tracker.index = other_tracker.index
+            other_tracker.index = tmp
+            tracker.save()
+            other_tracker.save()
+        await _send_game(
+            "Shape.Options.Tracker.SwapOrdering",
+            raw_data,
+            skip_sid=sid,
+            room=pr.active_location.get_path(),
+        )
 
 
 @sio.on("Shape.Options.Aura.Create", namespace=GAME_NS)

@@ -7,13 +7,13 @@ from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, Smal
 from ...api.models.common import PositionTuple
 from ..base import BaseDbModel
 from ..typed import SelectSequence
-from .character import Character
 from .group import Group
 from .layer import Layer
 
 if TYPE_CHECKING:
     from .asset_rect import AssetRect
     from .aura import Aura
+    from .character import Character
     from .circle import Circle
     from .circular_token import CircularToken
     from .font_awesome import FontAwesome
@@ -41,7 +41,7 @@ class Shape(BaseDbModel):
     polygon_set: SelectSequence["Polygon"]
     rect_set: SelectSequence["Rect"]
     text_set: SelectSequence["Text"]
-    character_id: int | None
+    characters: SelectSequence["Character"]
     data_blocks: SelectSequence["ShapeDataBlock"]
     custom_data: SelectSequence["ShapeCustomData"]
     notes: SelectSequence["NoteShape"]
@@ -80,10 +80,6 @@ class Shape(BaseDbModel):
     ignore_zoom_size = cast(bool, BooleanField(default=False))
     is_door = cast(bool, BooleanField(default=False))
     is_teleport_zone = cast(bool, BooleanField(default=False))
-    character = cast(
-        Character | None,
-        ForeignKeyField(Character, backref="shapes", null=True, default=None, on_delete="SET NULL"),
-    )
     odd_hex_orientation = cast(bool, BooleanField(default=False))
     size_x = cast(int, IntegerField(default=0))
     size_y = cast(int, IntegerField(default=0))
@@ -117,6 +113,10 @@ class Shape(BaseDbModel):
         x_off, y_off = self.subtype.get_center_offset()
         self.x = center.x - x_off
         self.y = center.y - y_off
+
+    @property
+    def character(self) -> "Character | None":
+        return self.characters.first()
 
     @property
     def subtype(self) -> "ShapeType":

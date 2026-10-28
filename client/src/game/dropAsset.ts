@@ -75,7 +75,7 @@ export async function handleDropEvent(event: DragEvent): Promise<void> {
 
 async function dropHelper(assetInfo: DropAssetInfo, location: GlobalPoint): Promise<void> {
     if ("characterId" in assetInfo) {
-        const character = characterState.readonly.characters.get(assetInfo.characterId);
+        const character = characterState.raw.characters.get(assetInfo.characterId);
         if (character === undefined) {
             throw new Error("Unknown character ID encountered");
         }

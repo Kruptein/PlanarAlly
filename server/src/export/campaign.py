@@ -187,11 +187,10 @@ class CampaignExporter:
             self.export_users(room)
             send_status(self.loop, "export", self.sid, "    > Exporting room info")
             self.migrator.migrate_room(room, room.name)
-            send_status(self.loop, "export", self.sid, "    > Exporting characters")
-            self.migrator.migrate_characters(room)
             send_status(self.loop, "export", self.sid, "    > Exporting locations")
             self.migrator.migrate_locations(room)
-            self.migrator.migrate_character_shapes()
+            send_status(self.loop, "export", self.sid, "    > Exporting characters")
+            self.migrator.migrate_characters(room)
             send_status(self.loop, "export", self.sid, "    > Exporting player info")
             self.migrator.migrate_players(room)
             send_status(self.loop, "export", self.sid, "    > Exporting notes")
@@ -340,11 +339,10 @@ class CampaignImporter:
                 self.import_users(room)
                 send_status(self.loop, "import", self.sid, "    > Importing room info")
                 self.migrator.migrate_room(room, new_room_name)
-                send_status(self.loop, "import", self.sid, "    > Importing characters")
-                self.migrator.migrate_characters(room)
                 send_status(self.loop, "import", self.sid, "    > Importing locations")
                 self.migrator.migrate_locations(room)
-                self.migrator.migrate_character_shapes()
+                send_status(self.loop, "import", self.sid, "    > Importing characters")
+                self.migrator.migrate_characters(room)
                 send_status(self.loop, "import", self.sid, "    > Importing player info")
                 self.migrator.migrate_players(room)
                 send_status(self.loop, "import", self.sid, "    > Importing notes")
@@ -449,7 +447,6 @@ class CampaignMigrator:
         self._asset_mapping: dict[int, int] = {}
         self._asset_entry_mapping: dict[int, int] = {}
         self.aura_mapping: dict[UUID, UUID] = {}
-        self.character_mapping: dict[int, int] = {}
         self._group_mapping: dict[UUID, UUID] = {}
         self.layer_mapping: dict[int, int] = {}
         self.location_mapping: dict[int, int] = {}
@@ -544,31 +541,17 @@ class CampaignMigrator:
                 with self.to_db.bind_ctx([DataBlock, RoomDataBlock]):
                     RoomDataBlock.create(**data_block_data)
 
+    # This has to run after the locations are migrated,
+    # character shapes that are not on a layer are only migrated here
     def migrate_characters(self, room: Room):
         with self.from_db.bind_ctx([Character]):
             for character in Character.filter(campaign=room):
-                character_data = model_to_dict(character, recurse=False)
-
-                del character_data["id"]
-                character_data["owner"] = self.user_mapping.get(character_data["owner"])
-                character_data["asset"] = self.migrate_asset(character_data["asset"])
-
-                if character_data["campaign"]:
-                    character_data["campaign"] = self.room_mapping[room.id]
+                self.migrate_shape(character.shape_id)
+                if character.shape_id not in self._shape_mapping:
+                    continue
 
                 with self.to_db.bind_ctx([Character]):
-                    c = Character.create(**character_data)
-                    self.character_mapping[character.id] = c.id
-
-    # Shapes are only migrated if they were associated with a layer so far
-    # This function ensures that shapes _not_ associated with a layer,
-    # but associated with a character that is related to the campaign
-    # are also migrated
-    def migrate_character_shapes(self):
-        for character_id in self.character_mapping:
-            with self.from_db.bind_ctx([Shape]):
-                for shape in Shape.filter(character=character_id):
-                    self.migrate_shape(shape.uuid)
+                    Character.create(shape=self._shape_mapping[character.shape_id], campaign=self.room_mapping[room.id])
 
     def migrate_locations(self, room: Room):
         with self.from_db.bind_ctx([Location, LocationOptions]):
@@ -649,9 +632,6 @@ class CampaignMigrator:
                     shape_data["layer"] = None
             if shape_data["group"]:
                 shape_data["group"] = self.migrate_group(shape_data["group"])
-            if shape_data["character"]:
-                shape_data["character"] = self.character_mapping[shape_data["character"]]
-
             with self.to_db.bind_ctx([Shape]):
                 Shape.create(**shape_data)
 

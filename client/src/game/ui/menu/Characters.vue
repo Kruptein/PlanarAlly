@@ -21,7 +21,7 @@ const characterId = ref<CharacterId | undefined>(undefined);
 const charAsset = computed(() => {
     if (characterId.value === undefined) return undefined;
 
-    const char = characterState.readonly.characters.get(characterId.value);
+    const char = characterState.reactive.characters.get(characterId.value);
     if (char === undefined) return undefined;
 
     return { assetHash: char.assetHash, assetId: char.assetId };
@@ -48,7 +48,7 @@ function focus(charId: CharacterId): void {
 }
 
 async function remove(charId: CharacterId): Promise<void> {
-    const name = characterState.readonly.characters.get(charId)?.name ?? "??";
+    const name = characterState.raw.characters.get(charId)?.name ?? "??";
     const confirmed = await modals.confirm("Character Removal", `Are you sure you wish to remove character ${name}?`);
     if (confirmed ?? false) {
         sendRemoveCharacter(charId);
@@ -61,19 +61,19 @@ async function remove(charId: CharacterId): Promise<void> {
     <div class="menu-accordion-panel">
         <div class="menu-accordion-subpanel" style="position: relative">
             <div
-                v-for="char in characterState.reactive.characterIds"
-                :key="char"
+                v-for="[charId, char] of characterState.reactive.characters"
+                :key="charId"
                 class="character"
                 :draggable="gameState.isDmOrFake.value"
                 @dragstart="dragStart"
-                @mouseover="characterId = char"
+                @mouseover="characterId = charId"
                 @mouseout="characterId = undefined"
-                @click="focus(char)"
+                @click="focus(charId)"
             >
-                {{ characterState.readonly.characters.get(char)?.name ?? "??" }}
-                <span class="remove" title="Remove character" @click.stop="remove(char)">X</span>
+                {{ char.name }}
+                <span class="remove" title="Remove character" @click.stop="remove(charId)">X</span>
             </div>
-            <div v-if="!characterState.reactive.characterIds.size">
+            <div v-if="!characterState.reactive.characters.size">
                 {{ t("game.ui.menu.MenuBar.no_characters") }}
             </div>
             <div v-if="charAsset !== undefined" class="preview">

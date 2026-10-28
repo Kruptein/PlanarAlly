@@ -5,13 +5,21 @@ from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...db.models.asset_rect import AssetRect
 from ...db.models.character import Character
+from ...db.models.player_room import PlayerRoom
 from ...db.models.shape import Shape
 from ...logs import logger
 from ...models.access import has_ownership
-from ...models.role import Role
 from ...state.game import game_state
 from ..helpers import _send_game
 from ..models.character import CharacterCreate
+
+
+async def send_character_update(pr: PlayerRoom, character: Character):
+    shape = character.shape
+    data = character.as_pydantic()
+    for psid, ppr in game_state.get_t(room=pr.room):
+        if has_ownership(shape, ppr, edit=True):
+            await _send_game("Character.Updated", data, room=psid)
 
 
 @sio.on("Character.Create", namespace=GAME_NS)
@@ -21,7 +29,7 @@ async def create_character(sid: str, raw_data: Any):
 
     pr = game_state.get(sid)
 
-    shape = Shape.get_by_id(data.shape)
+    shape = Shape.get_or_none(Shape.uuid == data.shape)
 
     if shape is None or shape.type_ != "assetrect":
         logger.error("Attempt to create character for incorrect shape")
@@ -34,18 +42,15 @@ async def create_character(sid: str, raw_data: Any):
     if not has_ownership(shape, pr, edit=True):
         logger.warning("Attempt to create character without access")
         return
-    elif shape.character_id is not None:
+    elif shape.character is not None:
         logger.warning("Shape is already associated with a character")
         return
 
     try:
-        char = Character.create(name=data.name, owner=pr.player, campaign=pr.room, asset=ar.asset)
+        char = Character.create(shape=shape, campaign=pr.room)
     except:
         logger.exception("Failed to create character")
         return
-    else:
-        shape.character = char
-        shape.save()
 
     for psid, ppr in game_state.get_t(room=pr.room):
         if has_ownership(shape, ppr, edit=True):
@@ -61,7 +66,7 @@ async def create_character(sid: str, raw_data: Any):
 async def remove_character(sid: str, char_id: int):
     pr = game_state.get(sid)
 
-    character = Character.get_by_id(char_id)
+    character = Character.get_or_none(Character.id == char_id)
 
     if character is None:
         logger.error("Attempt to remove unknown character")
@@ -69,12 +74,12 @@ async def remove_character(sid: str, char_id: int):
     elif character.campaign != pr.room:
         logger.error("Attempt to remove character from other campaign")
         return
-    # Only the owner and the DM can remove a character
-    elif character.owner != pr.player and pr.role != Role.DM:
-        logger.error("Attempt to remove character by player without access")
-        return
 
     shape = character.shape
+
+    if not has_ownership(shape, pr, edit=True):
+        logger.error("Attempt to remove character by player without access")
+        return
 
     for psid, ppr in game_state.get_t(room=pr.room):
         if has_ownership(shape, ppr, edit=True):
@@ -84,8 +89,8 @@ async def remove_character(sid: str, char_id: int):
                 room=psid,
             )
 
-    # If the associated shape is not placed anywhere, remove it as well
-    if character.shape.layer is None:
-        character.shape.delete_instance(True)
-
     character.delete_instance(True)
+
+    # If the associated shape is not placed anywhere, remove it as well
+    if shape.layer is None:
+        shape.delete_instance(True)

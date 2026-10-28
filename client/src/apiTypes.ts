@@ -538,7 +538,6 @@ export interface AuraRef {
 }
 export interface CharacterCreate {
   shape: GlobalId;
-  name: string;
 }
 export interface ClientActiveLayerSet {
   floor: string;

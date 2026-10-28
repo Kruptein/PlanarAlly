@@ -1,6 +1,7 @@
 import { type DeepReadonly, watch } from "vue";
 
 import type { ApiCharacter } from "../../../apiTypes";
+import type { AssetId } from "../../../assets/models";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { find } from "../../../core/iter";
 import { registerSystem } from "../../../core/systems";
@@ -58,6 +59,14 @@ class CharacterSystem implements System {
     setName(characterId: CharacterId, name: string): void {
         const character = $.characters.get(characterId);
         if (character) character.name = name;
+    }
+
+    setAsset(characterId: CharacterId, assetId: AssetId, assetHash: string): void {
+        const character = $.characters.get(characterId);
+        if (character) {
+            character.assetId = assetId;
+            character.assetHash = assetHash;
+        }
     }
 
     getAllCharacters(): IterableIterator<DeepReadonly<ApiCharacter>> {

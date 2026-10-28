@@ -569,6 +569,12 @@ async def change_asset_image(sid: str, raw_data: Any):
     asset_rect.asset_id = data.assetId
     asset_rect.save()
 
+    # Keep the linked character's asset in sync with its shape
+    character = asset_rect.shape.character
+    if character is not None:
+        character.asset_id = data.assetId
+        character.save()
+
     await _send_game("Shape.Asset.Image.Set", data, room=pr.active_location.get_path(), skip_sid=sid)
 
 

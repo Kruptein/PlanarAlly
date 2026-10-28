@@ -9,6 +9,7 @@ import { sendAssetRectImageChange } from "../../api/emits/shape/asset";
 import { getGlobalId } from "../../id";
 import type { IAsset } from "../../interfaces/shapes/asset";
 import { loadSvgData } from "../../svg";
+import { characterSystem } from "../../systems/characters";
 import { getProperties } from "../../systems/properties/state";
 import { VisionBlock } from "../../systems/properties/types";
 import { TriangulationTarget, visionState } from "../../vision/state";
@@ -93,6 +94,8 @@ export class Asset extends IImage implements IAsset {
         this.assetId = assetId;
         this.assetHash = hash;
         this.changeImage(getImageSrcFromHash(hash));
+        // Keep the linked character's asset in sync with its shape
+        if (this.character !== undefined) characterSystem.setAsset(this.character, assetId, hash);
         const uuid = getGlobalId(this.id);
         if (uuid && sync) sendAssetRectImageChange({ uuid, assetHash: hash, assetId });
     }

@@ -126,6 +126,10 @@ export function instantiateCompactForm(
     if (mode !== "load") {
         compact.core.uuid = uuidv4();
     }
+    // A character is linked to a single shape
+    if (mode === "duplicate") {
+        compact.core.character = null;
+    }
 
     const newShape = createShapeInstanceFromCore(compact);
     if (newShape === undefined) {

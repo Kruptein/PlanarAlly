@@ -564,7 +564,13 @@ async def change_asset_image(sid: str, raw_data: Any):
 
     pr: PlayerRoom = game_state.get(sid)
 
-    asset_rect = AssetRect.get_by_id(data.uuid)
+    asset_rect = AssetRect.get_or_none(AssetRect.shape == data.uuid)
+    if asset_rect is None:
+        logger.warning(f"User {pr.player.name} attempted to change the image of an unknown asset shape ({data.uuid}).")
+        return
+    elif not has_ownership(asset_rect.shape, pr, edit=True):
+        logger.warning(f"User {pr.player.name} attempted to change the image of a shape it does not own.")
+        return
 
     asset_rect.asset_id = data.assetId
     asset_rect.save()

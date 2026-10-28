@@ -32,14 +32,14 @@ function updateTracker(tracker: DeepReadonly<UiTracker>, delta: Partial<Tracker>
 
 function moveTrackerUp(tracker: DeepReadonly<UiTracker>): void {
     const previousTrackerUUID = trackerSystem.getPreviousTrackerId(tracker.shape, tracker.uuid);
-    if (typeof previousTrackerUUID != "undefined") {
+    if (previousTrackerUUID !== undefined) {
         trackerSystem.swapTrackerPositions(tracker.shape, tracker.uuid, previousTrackerUUID, SERVER_SYNC);
     }
 }
 
 function moveTrackerDown(tracker: DeepReadonly<UiTracker>): void {
     const nextTrackerUUID = trackerSystem.getNextTrackerId(tracker.shape, tracker.uuid);
-    if (typeof nextTrackerUUID != "undefined") {
+    if (nextTrackerUUID !== undefined) {
         trackerSystem.swapTrackerPositions(tracker.shape, tracker.uuid, nextTrackerUUID, SERVER_SYNC);
     }
 }

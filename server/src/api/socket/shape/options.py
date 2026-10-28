@@ -26,6 +26,7 @@ from ...models.shape.options import (
     ShapeSetTeleportLocationValue,
 )
 from ...models.tracker import ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove, TrackerSwapOrdering
+from ..character import send_character_update
 from ..constants import GAME_NS
 from .utils import create_tracker_from_data, get_owner_sids, get_shape_or_none
 
@@ -353,6 +354,9 @@ async def set_name(sid: str, raw_data: Any):
     else:
         for _sid in get_owner_sids(pr, shape, skip_sid=sid):
             await send_name(data, room=_sid)
+
+    if character := shape.character:
+        await send_character_update(pr, character)
 
 
 @sio.on("Shape.Options.NameVisible.Set", namespace=GAME_NS)

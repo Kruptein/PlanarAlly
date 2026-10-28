@@ -15,7 +15,7 @@ When writing migrations make sure that these things are respected:
 - It's often a good idea to start the server with a clean save and use `.schema <table_name>` in sqlite to get the exact schema output that a clean save creates
 """
 
-SAVE_VERSION = 121
+SAVE_VERSION = 122
 
 import asyncio
 import json
@@ -921,6 +921,49 @@ def upgrade(
             for row_id, shape_id in db.execute_sql('SELECT "uuid", "shape_id" FROM tracker').fetchall():
                 shape_id_counter[shape_id] = shape_id_counter.get(shape_id, 0) + 1
                 db.execute_sql('UPDATE tracker SET "index" = ? WHERE uuid = ?', (shape_id_counter[shape_id], row_id))
+    elif version == 121:
+        # Character refactor: a Character refers to its Shape and derives its name and asset from it
+        with db.atomic():
+            # Shape.character allowed multiple shapes per character, the first shape was the one in use
+            character_data = db.execute_sql(
+                'SELECT c.id, c.campaign_id, (SELECT s.uuid FROM shape s WHERE s.character_id = c.id ORDER BY s.rowid LIMIT 1) FROM "character" c'
+            ).fetchall()
+            unlinked_shapes = db.execute_sql(
+                "SELECT COUNT(*) FROM shape s WHERE s.character_id IS NOT NULL AND s.rowid != (SELECT MIN(s2.rowid) FROM shape s2 WHERE s2.character_id = s.character_id)"
+            ).fetchone()[0]
+
+            db.execute_sql('DROP TABLE "character"')
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "character" ("id" INTEGER NOT NULL PRIMARY KEY, "shape_id" TEXT NOT NULL, "campaign_id" INTEGER, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("campaign_id") REFERENCES "room" ("id") ON DELETE SET NULL)'
+            )
+            db.execute_sql('CREATE UNIQUE INDEX "character_shape_id" ON "character" ("shape_id")')
+            db.execute_sql('CREATE INDEX "character_campaign_id" ON "character" ("campaign_id")')
+
+            db.execute_sql("CREATE TEMPORARY TABLE _shape_121 AS SELECT * FROM shape")
+            db.execute_sql("DROP TABLE shape")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, "is_invisible" INTEGER NOT NULL, "is_defeated" INTEGER NOT NULL, "default_movement_access" INTEGER NOT NULL, "is_locked" INTEGER NOT NULL, "angle" REAL NOT NULL, "stroke_width" INTEGER NOT NULL, "group_id" TEXT, "ignore_zoom_size" INTEGER NOT NULL, "is_door" INTEGER NOT NULL, "is_teleport_zone" INTEGER NOT NULL, "odd_hex_orientation" INTEGER NOT NULL, "size_x" INTEGER NOT NULL, "size_y" INTEGER NOT NULL, "show_cells" INTEGER NOT NULL, "cell_fill_colour" TEXT, "cell_stroke_colour" TEXT, "cell_stroke_width" INTEGER, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid") ON DELETE SET NULL)'
+            )
+            db.execute_sql('CREATE INDEX "shape_layer_id" ON "shape" ("layer_id")')
+            db.execute_sql('CREATE INDEX "shape_group_id" ON "shape" ("group_id")')
+            db.execute_sql(
+                'INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, is_defeated, default_movement_access, is_locked, angle, stroke_width, group_id, ignore_zoom_size, is_door, is_teleport_zone, odd_hex_orientation, size_x, size_y, show_cells, cell_fill_colour, cell_stroke_colour, cell_stroke_width) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, is_defeated, default_movement_access, is_locked, angle, stroke_width, group_id, ignore_zoom_size, is_door, is_teleport_zone, odd_hex_orientation, size_x, size_y, show_cells, cell_fill_colour, cell_stroke_colour, cell_stroke_width FROM _shape_121'
+            )
+            db.execute_sql("DROP TABLE _shape_121")
+
+            dropped_characters = 0
+            for character_id, campaign_id, shape_id in character_data:
+                if shape_id is None:
+                    dropped_characters += 1
+                    continue
+                db.execute_sql(
+                    'INSERT INTO "character" (id, shape_id, campaign_id) VALUES (?, ?, ?)',
+                    (character_id, shape_id, campaign_id),
+                )
+            if dropped_characters:
+                logger.warning(f"Removed {dropped_characters} character(s) without an associated shape")
+            if unlinked_shapes:
+                logger.warning(f"Unlinked {unlinked_shapes} duplicate shape(s) from their character")
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

@@ -123,14 +123,14 @@ class TrackerSystem implements ShapeSystem<Tracker[]> {
         for (let i = 1; i < trackers.length; i++) {
             const trackerInList = trackers[i];
             if (trackerId === trackerInList!.uuid) {
-                return trackers[i - 1]!.uuid; 
+                return trackers[i - 1]!.uuid;
             }
         }
     }
 
     getNextTrackerId(id: LocalId, trackerId: TrackerId): TrackerId | undefined {
         const trackers = this.data.get(id) ?? [];
-        for (let i = 0; i < trackers.length -1; i++) {
+        for (let i = 0; i < trackers.length - 1; i++) {
             const trackerInList = trackers[i];
             if (trackerId === trackerInList!.uuid) {
                 return trackers[i + 1]!.uuid;

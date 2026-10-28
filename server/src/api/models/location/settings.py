@@ -1,5 +1,4 @@
-from pydantic import BaseModel, Field
-from pydantic.experimental.missing_sentinel import MISSING
+from pydantic import MISSING, BaseModel, Field
 
 from ..helpers import TypeIdModel
 

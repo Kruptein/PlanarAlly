@@ -7,10 +7,10 @@ from ....db.models.player_room import PlayerRoom
 from ....db.models.shape import Shape
 from ....db.models.tracker import Tracker
 from ....db.utils import reduce_data_to_model
-from ...models.tracker import ApiTracker
 from ....logs import logger
 from ....models.access import has_ownership
 from ....state.game import game_state
+from ...models.tracker import ApiTracker
 
 
 def get_shape_or_none(pr: PlayerRoom, shape_id: str, action: str) -> Shape | None:

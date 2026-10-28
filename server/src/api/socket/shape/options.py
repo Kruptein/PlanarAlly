@@ -27,7 +27,7 @@ from ...models.shape.options import (
 )
 from ...models.tracker import ApiOptionalTracker, ApiTracker, ShapeSetTrackerValue, TrackerMove, TrackerSwapOrdering
 from ..constants import GAME_NS
-from .utils import get_owner_sids, get_shape_or_none, create_tracker_from_data
+from .utils import create_tracker_from_data, get_owner_sids, get_shape_or_none
 
 
 async def send_name(

@@ -1,40 +1,48 @@
 {
-    "$schema": "./client/node_modules/oxlint/configuration_schema.json",
-    "categories": {
-        "correctness": "error",
-        "suspicious": "error",
-        "perf": "error"
-    },
-    "options": {
-        "typeAware": true
-    },
-    "rules": {
-        "eslint-plugin-unicorn/no-array-reverse": "off",
-        "eslint-plugin-unicorn/no-array-sort": "off",
-        "eslint-plugin-unicorn/prefer-add-event-listener": "off",
-        "eslint/no-debugger": "warn",
-        "eslint/no-shadow": ["error", { "ignoreOnInitialization": true }],
-        "eslint/prefer-const": "warn",
-        "eslint/eqeqeq": "error",
-        "eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "destructuredArrayIgnorePattern": "^_", "ignoreRestSiblings": true }],
-        "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }],
-        "no-map-spread": "off",
-        "promise/always-return": [
-            "error",
-            {
-                "ignoreLastCallback": true
-            }
-        ],
-        "typescript/consistent-type-assertions": ["error", { "assertionStyle": "as" }],
-        // currently off due to vue template reporting missing
-        "typescript/consistent-type-imports": "error",
-        "typescript/no-unnecessary-type-assertion": "off",
-        "typescript/explicit-function-return-type": [2, { "allowExpressions": true }],
-        "typescript/no-unsafe-type-assertion": "off",
-        "typescript/require-await": "error",
-        "typescript/strict-boolean-expressions": "error",
-        "typescript/consistent-return": "off",
-        "eslint/no-underscore-dangle": "off"
-    },
-    "plugins": ["eslint", "unicorn", "oxc", "import", "promise", "typescript", "vue"]
+  "$schema": "./client/node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "eslint-plugin-unicorn/no-array-reverse": "off",
+    "eslint-plugin-unicorn/no-array-sort": "off",
+    "eslint-plugin-unicorn/prefer-add-event-listener": "off",
+    "eslint/no-debugger": "warn",
+    "eslint/no-shadow": ["error", { "ignoreOnInitialization": true }],
+    "eslint/prefer-const": "warn",
+    "eslint/eqeqeq": "error",
+    "eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
+    "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }],
+    "no-map-spread": "off",
+    "promise/always-return": [
+      "error",
+      {
+        "ignoreLastCallback": true
+      }
+    ],
+    "typescript/consistent-type-assertions": ["error", { "assertionStyle": "as" }],
+    // currently off due to vue template reporting missing
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-unnecessary-type-assertion": "off",
+    "typescript/explicit-function-return-type": [2, { "allowExpressions": true }],
+    "typescript/no-unsafe-type-assertion": "off",
+    "typescript/require-await": "error",
+    "typescript/strict-boolean-expressions": "error",
+    "typescript/consistent-return": "off",
+    "typescript/no-unsafe-enum-assignment": "off",
+    "eslint/no-underscore-dangle": "off"
+  },
+  "plugins": ["eslint", "unicorn", "oxc", "import", "promise", "typescript", "vue"]
 }

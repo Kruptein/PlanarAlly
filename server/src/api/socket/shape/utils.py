@@ -1,10 +1,16 @@
 from collections.abc import Generator
 
+from peewee import fn
+
+from ....db.db import db
 from ....db.models.player_room import PlayerRoom
 from ....db.models.shape import Shape
+from ....db.models.tracker import Tracker
+from ....db.utils import reduce_data_to_model
 from ....logs import logger
 from ....models.access import has_ownership
 from ....state.game import game_state
+from ...models.tracker import ApiTracker
 
 
 def get_shape_or_none(pr: PlayerRoom, shape_id: str, action: str) -> Shape | None:
@@ -27,3 +33,13 @@ def get_owner_sids(pr: PlayerRoom, shape: Shape, skip_sid=None) -> Generator[str
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=skip_sid):
         if has_ownership(shape, game_state.get(psid), edit=True):
             yield psid
+
+
+def create_tracker_from_data(data: ApiTracker) -> Tracker:
+    model = reduce_data_to_model(Tracker, data.model_dump())
+    with db.atomic("IMMEDIATE"):
+        model["index"] = (
+            Tracker.select(fn.MAX(Tracker.index)).where(Tracker.shape == model["shape"]).scalar() or 0
+        ) + 1
+        tracker = Tracker.create(**model)
+    return tracker

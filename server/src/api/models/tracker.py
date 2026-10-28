@@ -1,5 +1,4 @@
-from pydantic import Field
-from pydantic.experimental.missing_sentinel import MISSING
+from pydantic import MISSING, Field
 
 from .helpers import TypeIdModel
 
@@ -33,6 +32,12 @@ class TrackerMove(TypeIdModel):
     shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
     tracker: str = Field(json_schema_extra={"typeId": "TrackerId"})
     new_shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
+
+
+class TrackerSwapOrdering(TypeIdModel):
+    shape: str = Field(json_schema_extra={"typeId": "GlobalId"})
+    tracker: str = Field(json_schema_extra={"typeId": "TrackerId"})
+    other_tracker: str = Field(json_schema_extra={"typeId": "TrackerId"})
 
 
 class ShapeSetTrackerValue(TypeIdModel):

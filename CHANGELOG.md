@@ -61,6 +61,9 @@ tech changes will usually be stripped from release notes for the public
 -   [DM] Map tool corrupted the shape's size and position when the drawn rectangle had no width or height (e.g. a click without dragging)
 -   [server] session stats data had a dumb bug causing all the session stats to not be saved
 -   [server] Docker images report their tag and commit as the version environment again instead of `docker:-`
+-   [mods] User DataBlocks were sent to all players in the location, overwriting their own DataBlock with the same name
+-   [mods] Shape DataBlocks could be loaded for shapes outside of the active campaign and saved without edit access to the shape
+-   [mods] Room and shape DataBlock changes were only sent to players in the same location, leaving stale data for players in other locations
 
 ## [2026.2]
 

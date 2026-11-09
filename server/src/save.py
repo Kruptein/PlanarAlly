@@ -15,7 +15,7 @@ When writing migrations make sure that these things are respected:
 - It's often a good idea to start the server with a clean save and use `.schema <table_name>` in sqlite to get the exact schema output that a clean save creates
 """
 
-SAVE_VERSION = 122
+SAVE_VERSION = 123
 
 import asyncio
 import json
@@ -964,6 +964,28 @@ def upgrade(
                 logger.warning(f"Removed {dropped_characters} character(s) without an associated shape")
             if unlinked_shapes:
                 logger.warning(f"Unlinked {unlinked_shapes} duplicate shape(s) from their character")
+    elif version == 122:
+        # Add read/write access levels to shape and room datablocks
+        with db.atomic():
+            db.execute_sql('ALTER TABLE "shape_data_block" ADD COLUMN "read_access" TEXT NOT NULL DEFAULT \'owner\'')
+            db.execute_sql('ALTER TABLE "shape_data_block" ADD COLUMN "write_access" TEXT NOT NULL DEFAULT \'owner\'')
+            db.execute_sql('ALTER TABLE "room_data_block" ADD COLUMN "read_access" TEXT NOT NULL DEFAULT \'room\'')
+            db.execute_sql('ALTER TABLE "room_data_block" ADD COLUMN "write_access" TEXT NOT NULL DEFAULT \'room\'')
+            # The unique (source, name, owner) index was only created in migrations, not on new saves
+            for table, owner in (
+                ("shape_data_block", "shape_id"),
+                ("room_data_block", "room_id"),
+                ("user_data_block", "user_id"),
+            ):
+                removed = db.execute_sql(
+                    f'DELETE FROM "{table}" WHERE id NOT IN (SELECT MIN(id) FROM "{table}" GROUP BY source, name, {owner})'
+                ).rowcount
+                if removed:
+                    logger.warning(f"Removed {removed} duplicate {table} row(s)")
+                db.execute_sql(f'DROP INDEX IF EXISTS "{table}_keys"')
+                db.execute_sql(
+                    f'CREATE UNIQUE INDEX IF NOT EXISTS "{table}_source_name_{owner}" ON "{table}" ("source", "name", "{owner}")'
+                )
     else:
         raise UnknownVersionException(f"No upgrade code for save format {version} was found.")
     inc_save_version(db)

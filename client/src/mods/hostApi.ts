@@ -8,6 +8,7 @@ import { getGlobalId, getShape } from "../game/id";
 import { compendiumSystem } from "../game/systems/compendium";
 import { registerContextMenuEntry, registerTab } from "../game/systems/ui/mods";
 
+import { getModApi, provideModApi } from "./apis";
 import { getDataBlockFunctions } from "./db";
 import { prefillDice, rollDice, simplifyDiceExpression, useSimplifiedDice } from "./dice";
 import { trackRegistration } from "./registry";
@@ -61,5 +62,7 @@ export async function buildModApi(modId: string, tag: string): Promise<GameApi> 
                 compendiumSystem.getEntries<T>(system, kind),
         },
         ...getDataBlockFunctions(tag),
+        provideApi: (api) => trackRegistration(modId, provideModApi(tag, api)),
+        getModApi,
     };
 }

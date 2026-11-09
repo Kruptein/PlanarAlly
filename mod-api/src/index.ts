@@ -109,10 +109,27 @@ interface SystemsState {
 
 type DBR = Record<string, unknown> | unknown[];
 
+// Who can read or write a DataBlock, the DM always has full access.
+// - "dm": only the DM
+// - "room": everyone in the campaign
+// - "owner": users with edit access on the shape, including everyone if the shape grants edit access by default (shape DataBlocks only)
+// Room DataBlocks default to "room" for both, shape DataBlocks default to "owner" for both.
+// User DataBlocks are always private to the user and don't support access settings.
+export type DataBlockAccessLevel = "dm" | "owner" | "room";
+
+export interface DataBlockAccess {
+  read: DataBlockAccessLevel;
+  write: DataBlockAccessLevel;
+}
+
 export interface DataBlock<S extends DBR, D = S> {
   data: D;
   get existsOnServer(): boolean;
   get reactiveData(): Ref<D>;
+  // null for user DataBlocks and for DataBlocks that will use the server defaults on creation
+  get access(): DataBlockAccess | null;
+  // Changing access is only allowed for users that can currently read and write the DataBlock
+  setAccess(access: DataBlockAccess): Promise<boolean>;
   sync(): void;
   createOnServer(): void;
   updateData(data: D): void;
@@ -228,6 +245,8 @@ export interface DataBlockOptions<S extends DBR, D = S> {
   createOnServer?: boolean;
   defaultData?: () => D;
   serializer?: DataBlockSerializer<S, D>;
+  // Only used when the DataBlock is created, use `DataBlock.setAccess` to change it afterwards
+  access?: DataBlockAccess;
 }
 
 export type ModRepr = DistributiveOmit<DbRepr, "source">;
@@ -429,6 +448,13 @@ export interface GameApi {
     save: () => void;
     write: (data: D) => void;
   };
+
+  // Makes `api` available to other mods under this mod's tag, replacing a previously provided api.
+  // The api is removed again when the mod is unloaded.
+  provideApi: (api: object) => () => void;
+  // Returns the api another mod provided, if that mod is loaded and has provided one.
+  // This is reactive: use it in a computed or watch to react to the other mod (re)loading or unloading.
+  getModApi: <T extends object = Record<string, unknown>>(tag: string) => T | undefined;
 }
 
 export function getModUrl(meta: ApiModMeta): string {

@@ -28,12 +28,15 @@ tech changes will usually be stripped from release notes for the public
 -   [mods/DM] Mods can export a `settings` Vue component, opened from a cog in the mod list
 -   [mods] Mods can now hook their dev server into the main vite dev server for smoother HMR
 -   [mods] Dice variables can be qualified with their source, e.g. `{srd-5.1:str}` or `{srd-5.1:/abilities/scores/str}`
+-   [mods] Shape and room DataBlocks have configurable read and write access (`dm`, `room` and for shapes also `owner`)
+-   [mods] Mods can provide an api to other mods with `provideApi`, which other mods can access with `getModApi`
 
 ### Changed
 
 -   Light rendering performance improvements on big screens/slow hardware
 -   Dice variables that match multiple custom data elements now show an error listing the alternatives instead of using the first match
 -   [mods] Custom data in the shape dialog is split in tabs per mod, editing a mod's data has to be unlocked first
+-   [mods] Shape DataBlocks can by default only be read by users with edit access to the shape, existing shape DataBlocks are migrated to this default
 
 ### Fixed
 
@@ -61,6 +64,9 @@ tech changes will usually be stripped from release notes for the public
 -   [DM] Map tool corrupted the shape's size and position when the drawn rectangle had no width or height (e.g. a click without dragging)
 -   [server] session stats data had a dumb bug causing all the session stats to not be saved
 -   [server] Docker images report their tag and commit as the version environment again instead of `docker:-`
+-   [mods] User DataBlocks were sent to all players in the location, overwriting their own DataBlock with the same name
+-   [mods] Shape DataBlocks could be loaded for shapes outside of the active campaign and saved without edit access to the shape
+-   [mods] Room and shape DataBlock changes were only sent to players in the same location, leaving stale data for players in other locations
 
 ## [2026.2]
 

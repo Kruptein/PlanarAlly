@@ -9,6 +9,9 @@ from .user import User
 class UserDataBlock(DataBlock):
     user = cast(User, ForeignKeyField(User, backref="data_blocks", on_delete="CASCADE"))
 
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
+        indexes = ((("source", "name", "user"), True),)
+
     def as_pydantic(self):
         from ...api.models.data_block import ApiUserDataBlock
 

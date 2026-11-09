@@ -1,3 +1,4 @@
+import type { ApiDataBlockAccess, ApiDataBlockWithAccess } from "../../apiTypes";
 import { socket } from "../api/socket";
 
 import { DataBlock, type DataBlockOptions } from "./db";
@@ -51,19 +52,19 @@ export async function loadDataBlock<S extends DBR = never, D = S>(
         return undefined;
     }
 
-    let rawDataBlock: { data: string } | null | undefined;
+    let response: ApiDataBlockWithAccess | null | undefined;
     if (!loadAttempts.has(id)) {
-        rawDataBlock = await new Promise<{ data: string } | null>((resolve) => {
-            socket.emit("DataBlock.Load", repr, (data: { data: string } | null) => {
+        response = await new Promise<ApiDataBlockWithAccess | null>((resolve) => {
+            socket.emit("DataBlock.Load", repr, (data: ApiDataBlockWithAccess | null) => {
                 resolve(data);
             });
         });
     }
 
-    if (rawDataBlock !== undefined && rawDataBlock !== null) {
+    if (response !== undefined && response !== null) {
         try {
-            const dataBlockData = parseDataBlockData(rawDataBlock.data, options?.serializer);
-            const db = new DataBlock(repr, dataBlockData, true, options);
+            const dataBlockData = parseDataBlockData(response.dataBlock.data, options?.serializer);
+            const db = new DataBlock(repr, dataBlockData, true, { ...options, access: response.access ?? undefined });
             dataBlocks.set(id, db as DataBlock<DBR, DBR>);
             return db;
         } catch {
@@ -108,14 +109,25 @@ export function createDataBlock<S extends DBR = never, D = S>(
     return db;
 }
 
-export function updateDataBlock(repr: DbRepr, rawData: string): void {
+export function updateDataBlock(repr: DbRepr, rawData: string, access?: ApiDataBlockAccess | null): void {
+    const id = getId(repr);
     let db: DataBlock<DBR, DBR> | undefined = getDataBlock(repr);
     // If the DB is not known yet, check if it's in the loadAttempts map
-    if (db === undefined && loadAttempts.has(getId(repr))) {
-        db = new DataBlock(repr, {}, true, {});
+    const attemptOptions = loadAttempts.get(id);
+    if (db === undefined && loadAttempts.has(id)) {
+        db = new DataBlock(repr, {}, true, attemptOptions);
+        dataBlocks.set(id, db);
+        loadAttempts.delete(id);
     }
     // If the DB is known, update it
     if (db) {
-        db.loadData(rawData);
+        db.loadData(rawData, access);
     }
+}
+
+// Used when the server revokes read access, a future load will go to the server again
+export function forgetDataBlock(repr: DbRepr): void {
+    const id = getId(repr);
+    dataBlocks.delete(id);
+    loadAttempts.delete(id);
 }

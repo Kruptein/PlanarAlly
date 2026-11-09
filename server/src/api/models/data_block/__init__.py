@@ -1,6 +1,6 @@
 from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from ..helpers import TypeIdModel
 
@@ -30,3 +30,23 @@ ApiDataBlock = Annotated[
     ApiRoomDataBlock | ApiShapeDataBlock | ApiUserDataBlock,
     Field(discriminator="category"),
 ]
+
+# Room DataBlocks only accept "dm" and "room"
+# Shape DataBlocks accept all levels, "owner" refers to users with edit access on the shape
+# User DataBlocks are always private to the user and have no access configuration
+DataBlockAccessLevel = Literal["dm", "owner", "room"]
+
+
+class ApiDataBlockAccess(BaseModel):
+    read: DataBlockAccessLevel
+    write: DataBlockAccessLevel
+
+
+class ApiDataBlockCreate(BaseModel):
+    dataBlock: ApiDataBlock
+    access: ApiDataBlockAccess | None = None
+
+
+class ApiDataBlockWithAccess(BaseModel):
+    dataBlock: ApiDataBlock
+    access: ApiDataBlockAccess | None

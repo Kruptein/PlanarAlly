@@ -246,6 +246,18 @@ export interface ApiCoreShape {
   notes: ApiNote[];
   variants: ApiVariant[] | null;
 }
+export interface ApiDataBlockAccess {
+  read: "dm" | "owner" | "room";
+  write: "dm" | "owner" | "room";
+}
+export interface ApiDataBlockCreate {
+  dataBlock: ApiDataBlock;
+  access?: ApiDataBlockAccess | null;
+}
+export interface ApiDataBlockWithAccess {
+  dataBlock: ApiDataBlock;
+  access: ApiDataBlockAccess | null;
+}
 export interface ApiDefaultShapeOwner {
   edit_access: boolean;
   movement_access: boolean;

@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Added
+- `access` option on DataBlock creation and `DataBlock.access` / `DataBlock.setAccess` to control which users can read and write a DataBlock
+- `provideApi` and `getModApi` to share functionality and data between mods
+
 ## [0.6.0]
 
 ### Added

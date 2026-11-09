@@ -125,7 +125,6 @@ const alerts = computed(() => {
                     v-model:colour="drawTool.state.borderColour"
                     class="draw-select-option"
                     :v-show="showBorderColour"
-                    :disabled="defaultColoursApply"
                     :title="t('game.ui.tools.DrawTool.background_color')"
                 />
                 <ColourPicker

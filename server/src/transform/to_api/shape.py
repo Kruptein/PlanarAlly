@@ -30,6 +30,7 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         for n in shape.notes
         if n.note.creator == pr.player or any((not a.user or a.user == pr.player) and a.can_view for a in n.note.access)
     ]
+    character = shape.character
     variants = None
     if edit_access and shape.type_ == "assetrect":
         assetrect = shape.assetrect_set.get()
@@ -67,7 +68,7 @@ def transform_shape(shape: Shape, pr: PlayerRoom) -> ApiShapeSubType:
         custom_data=[] if not edit_access else custom_data,
         trackers=trackers,
         auras=auras,
-        character=shape.character_id,
+        character=None if character is None else character.id,
         odd_hex_orientation=shape.odd_hex_orientation,
         size_x=shape.size_x,
         size_y=shape.size_y,

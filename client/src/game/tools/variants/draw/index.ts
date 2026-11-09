@@ -11,6 +11,7 @@ import type { PromptFunction } from "../../../../core/plugins/modals/prompt";
 import { ctrlOrCmdPressed, mostReadable } from "../../../../core/utils";
 import { i18n } from "../../../../i18n";
 import { sendShapeSizeUpdate } from "../../../api/emits/shape/core";
+import type { Colour } from "../../../colour";
 import type { ILayer } from "../../../interfaces/layer";
 import type { IShape } from "../../../interfaces/shape";
 import type { ICircle } from "../../../interfaces/shapes/circle";
@@ -100,7 +101,9 @@ class DrawTool extends Tool implements ITool {
     });
     hasBrushSize = computed(() => [DrawShape.Brush, DrawShape.Polygon].includes(this.state.selectedShape));
     colours = computed(() => {
-        const overruledColour = getDrawColours(this.state.blocksVision, this.state.blocksMovement, this.state.isDoor);
+        let overruledColour: Colour | undefined = undefined;
+        if (this.state.preferDefaultColours)
+            overruledColour = getDrawColours(this.state.blocksVision, this.state.blocksMovement, this.state.isDoor);
         return {
             fill: overruledColour ?? this.state.fillColour,
             stroke: overruledColour ?? this.state.borderColour,

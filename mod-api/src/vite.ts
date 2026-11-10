@@ -1,98 +1,49 @@
-import { readFileSync, unlinkSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { unlinkSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 
-interface DevPlugin {
-  name: string;
-  apply?: "serve";
-  enforce?: "pre";
-  resolveId?: (id: string) => { id: string; external: true } | undefined;
-  configureServer?: (server: {
-    httpServer: { once(event: string, listener: () => void): void } | null;
-  }) => void;
-}
+import type { Plugin, PluginOption, UserConfig } from "vite";
 
-function packageRoot(): string {
-  let dir = dirname(fileURLToPath(import.meta.url));
-  for (let i = 0; i < 4; i++) {
-    try {
-      const parsed = JSON.parse(readFileSync(resolve(dir, "package.json"), "utf8")) as { name?: unknown };
-      if (parsed.name === "@planarally/mod-api") return dir;
-    } catch {
-      // Keep walking until the package root.
-    }
-    dir = resolve(dir, "..");
-  }
-  return dirname(fileURLToPath(import.meta.url));
-}
+const HOST_VUE_PATH = "/@planarally/host-vue.js";
 
-function httpUrl(value: string | undefined): string | undefined {
-  if (value !== undefined && /^https?:\/\//.test(value)) return value;
-  return undefined;
-}
-
-function readEnvUrl(file: string): string | undefined {
-  try {
-    const match = /^VITE_VUE_URL=(?:"([^"]+)"|'([^']+)'|([^\s#]+))/m.exec(readFileSync(file, "utf8"));
-    return httpUrl(match?.[1] ?? match?.[2] ?? match?.[3]);
-  } catch {
-    return undefined;
-  }
-}
-
-function readShippedUrl(file: string): string | undefined {
-  try {
-    const parsed = JSON.parse(readFileSync(file, "utf8")) as { url?: unknown };
-    return typeof parsed.url === "string" ? httpUrl(parsed.url) : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-// The dev client loads this module through its import map. A second copy of Vue
-// cannot update components the host already mounted.
-function hostVueUrl(): string {
-  const fromEnv = httpUrl(process.env.VITE_VUE_URL);
-  if (fromEnv !== undefined) return fromEnv;
-  const root = packageRoot();
-  const live = readEnvUrl(resolve(root, "../client/.env.development"));
-  if (live !== undefined) return live;
-  const shipped = readShippedUrl(resolve(root, "vue-dev.json"));
-  if (shipped !== undefined) return shipped;
-  throw new Error(
-    "Could not find the PlanarAlly dev Vue URL. Set VITE_VUE_URL, or use a @planarally/mod-api build that includes vue-dev.json.",
-  );
-}
-
-function externalizeVue(vueUrl: string): DevPlugin {
+// The mod has to use the same Vue instance as the host, a second copy cannot update components the host mounted.
+// Vite rewrites bare imports in dev, so `vue` is pointed at a module on this dev server that re-exports
+// the bare `vue` specifier, which the browser then resolves through the host page's import map.
+function hostVue(origin: string): Plugin {
   return {
-    name: "externalize-vue",
+    name: "host-vue",
     apply: "serve",
     enforce: "pre",
     resolveId(id) {
-      if (id === "vue") return { id: vueUrl, external: true };
+      if (id === "vue") return { id: `${origin}${HOST_VUE_PATH}`, external: true };
+    },
+    configureServer(server) {
+      server.middlewares.use(HOST_VUE_PATH, (_req, res) => {
+        res.setHeader("Content-Type", "text/javascript");
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.end('export * from "vue";\n');
+      });
     },
   };
 }
 
-function advertiseDevServer(root: string, origin: string): DevPlugin {
+function advertiseDevServer(root: string, origin: string): Plugin {
   const file = resolve(root, "vite-dev.json");
+  const write = (): void => {
+    writeFileSync(file, `${JSON.stringify({ origin, entry: "/src/main.ts" })}\n`);
+  };
+  const remove = (): void => {
+    try {
+      unlinkSync(file);
+    } catch {
+      // The file is only removed once.
+    }
+  };
   return {
     name: "advertise-dev-server",
     apply: "serve",
     configureServer(server) {
       const http = server.httpServer;
       if (http === null) return;
-      const write = (): void => {
-        writeFileSync(file, `${JSON.stringify({ origin, entry: "/src/main.ts" })}\n`);
-      };
-      const remove = (): void => {
-        try {
-          unlinkSync(file);
-        } catch {
-          // The file is only removed once.
-        }
-      };
       http.once("listening", write);
       http.once("close", remove);
     },
@@ -106,14 +57,14 @@ export function modOptions(
     port: number;
     root: string;
     minify?: boolean;
-    vue: (options: { features: { componentIdGenerator: "filepath" } }) => object;
+    vue: (options: { features: { componentIdGenerator: "filepath" } }) => PluginOption;
   },
-) {
+): UserConfig {
   const origin = `http://127.0.0.1:${options.port}`;
   return {
     root: options.root,
     plugins: [
-      externalizeVue(hostVueUrl()),
+      hostVue(origin),
       options.vue({
         features: { componentIdGenerator: "filepath" },
       }),

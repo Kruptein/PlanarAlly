@@ -4,6 +4,12 @@
 - `access` option on DataBlock creation and `DataBlock.access` / `DataBlock.setAccess` to control which users can read and write a DataBlock
 - `provideApi` and `getModApi` to share functionality and data between mods
 
+### Changed
+- `modOptions` returns Vite's `UserConfig`, so the `as UserConfig` cast in mod configs is no longer needed (`vite` is now an optional peer dependency)
+
+### Fixed
+- Mod dev servers use the host's Vue instead of a Vue URL baked into the mod-api release, which broke HMR when the versions differed
+
 ## [0.6.0]
 
 ### Added

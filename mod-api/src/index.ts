@@ -352,7 +352,14 @@ export interface DiceRollDie {
 }
 
 export type DiceRollPart =
-  | { kind: "dice"; expression: string; amount: number; sides: number; total: number; dice: DiceRollDie[] }
+  | {
+      kind: "dice";
+      expression: string;
+      amount: number;
+      sides: number;
+      total: number;
+      dice: DiceRollDie[];
+    }
   | { kind: "number"; value: number }
   | { kind: "operator"; operator: "+" | "-" };
 
@@ -454,6 +461,7 @@ export interface GameApi {
   provideApi: (api: object) => () => void;
   // Returns the api another mod provided, if that mod is loaded and has provided one.
   // This is reactive: use it in a computed or watch to react to the other mod (re)loading or unloading.
+  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters
   getModApi: <T extends object = Record<string, unknown>>(tag: string) => T | undefined;
 }
 

@@ -1,0 +1,105 @@
+// Type-only views of the host systems, which the mod api declarations are checked against.
+// Only type imports are allowed here, so this does not affect the module loading order.
+
+import type { assetSystem } from "../assets";
+import type { assetState } from "../assets/state";
+import type { accessSystem } from "../game/systems/access";
+import type { accessState } from "../game/systems/access/state";
+import type { assetGameSystem } from "../game/systems/assets";
+import type { assetGameState } from "../game/systems/assets/state";
+import type { auraSystem } from "../game/systems/auras";
+import type { characterSystem } from "../game/systems/characters";
+import type { characterState } from "../game/systems/characters/state";
+import type { chatSystem } from "../game/systems/chat";
+import type { chatState } from "../game/systems/chat/state";
+import type { clientSystem } from "../game/systems/client";
+import type { clientState } from "../game/systems/client/state";
+import type { compendiumSystem } from "../game/systems/compendium";
+import type { compendiumState } from "../game/systems/compendium/state";
+import type { customDataSystem } from "../game/systems/customData";
+import type { customDataState } from "../game/systems/customData/state";
+import type { diceState } from "../game/systems/dice/state";
+import type { floorSystem } from "../game/systems/floors";
+import type { floorState } from "../game/systems/floors/state";
+import type { gameSystem } from "../game/systems/game";
+import type { gameState } from "../game/systems/game/state";
+import type { groupSystem } from "../game/systems/groups";
+import type { groupState } from "../game/systems/groups/state";
+import type { doorSystem } from "../game/systems/logic/door";
+import type { teleportZoneSystem } from "../game/systems/logic/tp";
+import type { markerSystem } from "../game/systems/markers";
+import type { markerState } from "../game/systems/markers/state";
+import type { noteSystem } from "../game/systems/notes";
+import type { noteState } from "../game/systems/notes/state";
+import type { playerSystem } from "../game/systems/players";
+import type { playerState } from "../game/systems/players/state";
+import type { positionSystem } from "../game/systems/position";
+import type { positionState } from "../game/systems/position/state";
+import type { propertiesSystem } from "../game/systems/properties";
+import type { propertiesState } from "../game/systems/properties/state";
+import type { roomSystem } from "../game/systems/room";
+import type { roomState } from "../game/systems/room/state";
+import type { selectedSystem } from "../game/systems/selected";
+import type { selectedState } from "../game/systems/selected/state";
+import type { locationSettingsSystem } from "../game/systems/settings/location";
+import type { locationSettingsState } from "../game/systems/settings/location/state";
+import type { playerSettingsState } from "../game/systems/settings/players/state";
+import type { trackerSystem } from "../game/systems/trackers";
+import type { uiSystem } from "../game/systems/ui";
+import type { uiState } from "../game/systems/ui/state";
+import type { variantsSystem } from "../game/systems/variants";
+import type { variantsState } from "../game/systems/variants/state";
+
+export interface HostSystems {
+    access: typeof accessSystem;
+    asset: typeof assetSystem;
+    assetGame: typeof assetGameSystem;
+    auras: typeof auraSystem;
+    characters: typeof characterSystem;
+    chat: typeof chatSystem;
+    client: typeof clientSystem;
+    compendium: typeof compendiumSystem;
+    customData: typeof customDataSystem;
+    door: typeof doorSystem;
+    floors: typeof floorSystem;
+    game: typeof gameSystem;
+    groups: typeof groupSystem;
+    locationSettings: typeof locationSettingsSystem;
+    markers: typeof markerSystem;
+    notes: typeof noteSystem;
+    players: typeof playerSystem;
+    position: typeof positionSystem;
+    properties: typeof propertiesSystem;
+    room: typeof roomSystem;
+    selected: typeof selectedSystem;
+    tp: typeof teleportZoneSystem;
+    trackers: typeof trackerSystem;
+    ui: typeof uiSystem;
+    variants: typeof variantsSystem;
+}
+
+export interface HostSystemsState {
+    access: typeof accessState;
+    asset: typeof assetState;
+    assetGame: typeof assetGameState;
+    characters: typeof characterState;
+    chat: typeof chatState;
+    client: typeof clientState;
+    compendium: typeof compendiumState;
+    customData: typeof customDataState;
+    dice: typeof diceState;
+    floors: typeof floorState;
+    game: typeof gameState;
+    groups: typeof groupState;
+    locationSettings: typeof locationSettingsState;
+    markers: typeof markerState;
+    notes: typeof noteState;
+    playerSettings: typeof playerSettingsState;
+    players: typeof playerState;
+    position: typeof positionState;
+    properties: typeof propertiesState;
+    room: typeof roomState;
+    selected: typeof selectedState;
+    ui: typeof uiState;
+    variants: typeof variantsState;
+}

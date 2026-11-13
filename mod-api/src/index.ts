@@ -1,13 +1,16 @@
 import type {
   Component,
-  DeepReadonly,
+  ComputedRef,
   DefineSetupFnComponent,
   MaybeRef,
   MaybeRefOrGetter,
-  Reactive,
   Ref,
   SlotsType,
 } from "vue";
+
+import type { ElementId, ModSystems, ModSystemsState } from "./systems";
+
+export * from "./systems";
 
 export type NumberId<T extends string> = number & { __brand: T };
 export type StringId<T extends string> = string & { __brand: T };
@@ -39,75 +42,12 @@ export interface ModShape {
   character: CharacterId | undefined;
 }
 
-interface TrackerState {
-  id: LocalId | undefined;
-  trackers: UiTracker[];
-  parentId: LocalId | undefined;
-  parentTrackers: UiTracker[];
-}
+// A custom data element as stored by the host, the id is needed to update or remove it
+export type UiShapeCustomData = ApiShapeCustomData & { id: ElementId };
 
-interface TrackerSystem {
-  state: DeepReadonly<Reactive<TrackerState>>;
-  get(id: LocalId, trackerId: TrackerId, includeParent: boolean): Readonly<Tracker> | undefined;
-  getOrCreate(
-    id: LocalId,
-    trackerId: TrackerId,
-    sync: Sync,
-    initialData?: () => Partial<Tracker>,
-  ): { tracker: Readonly<Tracker>; created: boolean };
-  remove(id: LocalId, trackerId: TrackerId, syncTo: Sync): void;
-  update(id: LocalId, trackerId: TrackerId, delta: Partial<Tracker>, syncTo: Sync): void;
-}
-
-interface ApiCharacter {
-  id: CharacterId;
-  shapeId: GlobalId;
-}
-
-interface CharacterSystem {
-  getAllCharacters(): IterableIterator<Readonly<ApiCharacter>>;
-  getShape(characterId: CharacterId): ModShape | undefined;
-  getShapeId(characterId: CharacterId): GlobalId | undefined;
-}
-
-interface CustomDataSystem {
-  addElement(element: ApiShapeCustomData, sync: boolean): void;
-  loadAndDropState(ids: ReadonlySet<LocalId>, source: string | symbol): void;
-}
-
-interface ReactiveState<T extends object> {
-  reactive: T;
-  mutableReactive: T;
-}
-
-interface NonReactiveState<U> {
-  readonly: U;
-  mutable: U;
-}
-
-interface SystemsState {
-  characters: ReactiveState<{
-    activeCharacterId: CharacterId | undefined;
-    characterIds: Set<CharacterId>;
-  }> &
-    NonReactiveState<{ characters: Map<CharacterId, ApiCharacter> }>;
-  customData: ReactiveState<{
-    data: Map<LocalId, ApiShapeCustomData[]>;
-  }>;
-  game: ReactiveState<{
-    roomName: string;
-    roomCreator: string;
-  }>;
-  properties: NonReactiveState<{
-    data: Map<number, { name: string }>;
-  }>;
-  selected: ReactiveState<{
-    focus: LocalId | undefined;
-    selected: Set<LocalId>;
-  }>;
-}
-
-type DBR = Record<string, unknown> | unknown[];
+// The shape DataBlock data has to have in its serialized form
+export type DBR = Record<string, unknown> | unknown[];
+export type DataBlockData = DBR;
 
 // Who can read or write a DataBlock, the DM always has full access.
 // - "dm": only the DM
@@ -251,15 +191,68 @@ export interface DataBlockOptions<S extends DBR, D = S> {
 
 export type ModRepr = DistributiveOmit<DbRepr, "source">;
 
+// Events emitted by the host, mods can add their own events through module augmentation:
+// declare module "@planarally/mod-api" { interface ModEventMap { "my-mod:event": { ... } } }
+export interface ModEventMap {
+  "tracker:added": { id: LocalId; tracker: Tracker; syncTo: Sync };
+  "tracker:updated": { id: LocalId; trackerId: TrackerId; delta: Partial<Tracker>; syncTo: Sync };
+  "tracker:removed": { id: LocalId; trackerId: TrackerId; syncTo: Sync };
+  "customData:added": { id: LocalId; element: UiShapeCustomData; syncTo: Sync };
+  "customData:updated": {
+    id: LocalId;
+    elementId: ElementId;
+    delta: Partial<ApiShapeCustomData>;
+    syncTo: Sync;
+  };
+  "customData:removed": { id: LocalId; elementId: ElementId; syncTo: Sync };
+}
+
+// Hooks piped by the host, a handler receives the current value and returns the (modified) value.
+// Mods can add their own hooks through module augmentation, like events.
+export interface ModHookMap {
+  "pre:tracker:update": {
+    value: Partial<Tracker>;
+    context: { id: LocalId; tracker: Tracker; syncTo: Sync };
+  };
+  "pre:customData:update": {
+    value: Partial<ApiShapeCustomData> | ApiShapeCustomData;
+    context: { id: LocalId; element: UiShapeCustomData; syncTo: Sync };
+  };
+}
+
+// Unknown names fall back to `unknown`
+export type ModEventPayload<K extends string> = K extends keyof ModEventMap
+  ? ModEventMap[K]
+  : unknown;
+export type ModHookValue<K extends string> = K extends keyof ModHookMap
+  ? ModHookMap[K]["value"]
+  : unknown;
+export type ModHookContext<K extends string> = K extends keyof ModHookMap
+  ? ModHookMap[K]["context"]
+  : unknown;
+
 export interface ModEventBus {
-  on(event: string, handler: (payload: unknown) => void): () => void;
-  once(event: string, handler: (payload: unknown) => void): () => void;
-  emit(event: string, payload: unknown): void;
+  on<K extends string>(
+    event: K,
+    handler: (payload: ModEventPayload<K>) => void | Promise<void>,
+  ): () => void;
+  once<K extends string>(
+    event: K,
+    handler: (payload: ModEventPayload<K>) => void | Promise<void>,
+  ): () => void;
+  emit<K extends string>(event: K, payload: ModEventPayload<K>): void;
 }
 
 export interface ModHooks {
-  tap(hook: string, handler: (value: unknown, context: unknown) => unknown): () => void;
-  pipe(hook: string, initialValue: unknown, context: unknown): unknown;
+  tap<K extends string>(
+    hook: K,
+    handler: (value: ModHookValue<K>, context: ModHookContext<K>) => ModHookValue<K>,
+  ): () => void;
+  pipe<K extends string>(
+    hook: K,
+    initialValue: ModHookValue<K>,
+    context: ModHookContext<K>,
+  ): ModHookValue<K>;
 }
 
 export interface CompendiumEntry<T = unknown> {
@@ -301,17 +294,59 @@ export interface CompendiumSchema<T = unknown> {
   data?: T;
 }
 
-export interface CompendiumRecord<T = unknown> extends CompendiumEntry<T> {
+// A registered entry, which does not necessarily have a schema
+export interface CompendiumIndexedEntry<T = unknown> extends CompendiumEntry<T> {
   mod: string;
   collection: string;
+  // `<mod tag>/<entry id>`, as used in `compendium:` markdown links
   ref: string;
   path: string[];
+}
+
+export interface CompendiumRecord<T = unknown> extends CompendiumIndexedEntry<T> {
   schema: CompendiumSchema<T>;
 }
 
 export interface CompendiumApi {
   register(entries: CompendiumEntry[], options?: CompendiumRegisterOptions): () => void;
   getEntries<T>(system: string, kind: string): CompendiumRecord<T>[];
+  // `ref` is `<mod tag>/<entry id>`, as in `compendium:` markdown links
+  getEntry(ref: string): CompendiumIndexedEntry | undefined;
+  // Opens the host's rule popover for the entry at the given screen coordinates
+  openRuleAt(ref: string, x: number, y: number): void;
+}
+
+// A modal mounted by the host, while `condition` is true (or always when omitted)
+export interface FullModal {
+  component: Component;
+  condition?: ComputedRef<boolean>;
+  props?: Record<string, unknown>;
+}
+
+export interface ModModals {
+  // Registers a modal, the returned function removes it again. Modals are removed when the mod is unloaded.
+  add(modal: FullModal): () => void;
+  confirm(
+    title: string,
+    text?: string,
+    buttons?: { yes?: string; no?: string; focus?: "confirm" | "deny"; showNo?: boolean },
+  ): Promise<boolean | undefined>;
+  prompt(
+    question: string,
+    title: string,
+    validation?: (value: string) => { valid: true } | { valid: false; reason: string },
+  ): Promise<string | undefined>;
+  selectionBox(
+    title: string,
+    choices: string[],
+    options?: {
+      text?: string;
+      defaultButton?: string;
+      customButton?: string;
+      multiSelect?: boolean;
+      defaultSelect?: string[];
+    },
+  ): Promise<string[] | undefined>;
 }
 
 export type DiceSimplification =
@@ -401,8 +436,8 @@ export interface DiceApi {
 }
 
 export interface GameApi {
-  systems: { characters: CharacterSystem; customData: CustomDataSystem; trackers: TrackerSystem };
-  systemsState: SystemsState;
+  systems: ModSystems;
+  systemsState: ModSystemsState;
 
   ui: {
     shape: {
@@ -412,7 +447,7 @@ export interface GameApi {
         filter?: MaybeRef<(shape: LocalId, hasEditAccess: boolean) => boolean>,
       ) => () => void;
     };
-    modals: unknown;
+    modals: ModModals;
   };
 
   gameplay: {

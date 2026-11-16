@@ -139,6 +139,13 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
         );
     }
 
+    // Equivalent to hasAccessTo but for reactive UI operations
+    // This is smaller in scope as it excludes the active token logic
+    hasAccessToReactive(id: LocalId, access: AccessLevel): boolean {
+        if (gameState.reactive.isDm) return true;
+        return accessState.reactive.ownedTokens.get(access)?.has(id) ?? false;
+    }
+
     // Low-level internal access check
     // This decides whether a shape is regarded as owned for a certain access level
     private _hasAccessTo(id: LocalId, access: AccessLevel): boolean {

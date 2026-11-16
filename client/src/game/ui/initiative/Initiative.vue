@@ -94,17 +94,13 @@ watch(
 );
 
 watch(
-    () => initiativeState.reactive.locationData,
-    (newList, oldList) => {
-        for (const item of oldList ?? []) {
-            if (item.localId !== undefined) {
-                propertiesSystem.dropState(item.localId, "initiative-ui");
-            }
+    () => new Set(initiativeState.reactive.locationData.map((actor) => actor.localId).filter((id) => id !== undefined)),
+    (newIds, oldIds) => {
+        for (const id of oldIds ?? []) {
+            if (!newIds.has(id)) propertiesSystem.dropState(id, "initiative-ui");
         }
-        for (const item of newList) {
-            if (item.localId !== undefined) {
-                propertiesSystem.loadState(item.localId, "initiative-ui");
-            }
+        for (const id of newIds) {
+            if (!oldIds?.has(id)) propertiesSystem.loadState(id, "initiative-ui");
         }
     },
     { immediate: true },
@@ -171,7 +167,7 @@ function getName(actor: InitiativeData): string {
     const props = propertiesState.reactive.data.get(actor.localId);
     if (props !== undefined) {
         if (props.nameVisible) return props.name;
-        if (accessSystem.hasAccessTo(actor.localId, "edit")) return props.name;
+        if (accessSystem.hasAccessToReactive(actor.localId, "edit")) return props.name;
     }
     return "?";
 }
@@ -303,9 +299,9 @@ function getImage(actor: InitiativeData): string {
 }
 
 function canSee(actor: DeepReadonly<InitiativeData>): boolean {
-    if (gameState.raw.isDm || actor.isVisible) return true;
+    if (gameState.reactive.isDm || actor.isVisible) return true;
     if (actor.localId === undefined) return false;
-    return accessSystem.hasAccessTo(actor.localId, "edit");
+    return accessSystem.hasAccessToReactive(actor.localId, "edit");
 }
 
 function reset(): void {

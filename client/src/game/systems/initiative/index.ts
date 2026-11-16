@@ -1,9 +1,7 @@
-import { watch } from "vue";
-
 import type { ApiInitiative } from "../../../apiTypes";
 import type { GlobalId, LocalId } from "../../../core/id";
 import { registerSystem } from "../../../core/systems";
-import type { System } from "../../../core/systems/models";
+import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { i18n } from "../../../i18n";
 import { getGlobalId, getLocalId, getShape } from "../../id";
 import { setCenterPosition } from "../../position";
@@ -11,6 +9,7 @@ import { accessSystem } from "../access";
 import { accessState } from "../access/state";
 import { floorSystem } from "../floors";
 import { gameState } from "../game/state";
+import { groupSystem } from "../groups";
 import { playerSettingsState } from "../settings/players/state";
 
 import {
@@ -32,6 +31,7 @@ import {
     sendInitiativeWipe,
 } from "./emits";
 import {
+    type CommonInitiativeData,
     type InitiativeData,
     type InitiativeEffect,
     type InitiativeSort,
@@ -53,6 +53,13 @@ function getDefaultTimedEffect(): InitiativeEffect {
     return { name, turns: "10", highlightsActor: false, updateTiming: InitiativeEffectUpdateTiming.TurnEnd };
 }
 
+// Actors only get a localId while their shape is present, the UI relies on this to react to shapes being added or removed
+function getPresentLocalId(globalId: GlobalId): LocalId | undefined {
+    const localId = getLocalId(globalId, false);
+    if (localId === undefined || getShape(localId) === undefined) return undefined;
+    return localId;
+}
+
 function updateActorEffects(turnDelta: number, actor: InitiativeData, timing?: InitiativeEffectUpdateTiming): void {
     if (actor === undefined) return;
 
@@ -67,19 +74,61 @@ function updateActorEffects(turnDelta: number, actor: InitiativeData, timing?: I
     }
 }
 
-class InitiativeSystem implements System {
+class InitiativeSystem implements ShapeSystem<CommonInitiativeData | undefined> {
     // CORE
 
     clear(): void {
         $.locationData = [];
     }
 
+    drop(id: LocalId): void {
+        for (const actor of [...$.locationData, ...$.newData]) {
+            if (actor.localId === id) actor.localId = undefined;
+        }
+    }
+
+    importLate(id: LocalId, data: CommonInitiativeData | undefined, mode: SystemInformMode): void {
+        const globalId = getGlobalId(id);
+        if (globalId === undefined) return;
+
+        if (mode === "load") {
+            for (const actor of [...$.locationData, ...$.newData]) {
+                if (actor.globalId === globalId) actor.localId = id;
+            }
+        } else if (mode === "create" && data !== undefined) {
+            this.restoreInitiative(id, globalId, data);
+        }
+    }
+
+    // Re-adds the entry of a shape that is re-created from its exported data (e.g. undoing a shape removal)
+    private restoreInitiative(id: LocalId, globalId: GlobalId, data: CommonInitiativeData): void {
+        if (data.isGroup) {
+            // The server hands a group entry over to another member when the shape is removed
+            const groupId = groupSystem.getGroupId(id);
+            const groupHasEntry =
+                groupId !== undefined &&
+                $.locationData.some(
+                    (a) => a.isGroup && a.localId !== undefined && groupSystem.getGroupId(a.localId) === groupId,
+                );
+            if (groupHasEntry) return;
+        }
+
+        $.locationData.push({ ...data, globalId, localId: id });
+        sendInitiativeAdd({ ...data, shape: globalId });
+    }
+
+    export(id: LocalId): CommonInitiativeData | undefined {
+        const actor = this.getDataSet().find((a) => a.localId === id);
+        if (actor === undefined) return undefined;
+        const { globalId: _globalId, localId: _localId, ...data } = actor;
+        return data;
+    }
+
     setData(data: ApiInitiative): void {
         const initiativeData: InitiativeData[] = [];
         for (const d of data.data) {
             const { shape: globalId, ...shapeData } = d;
-            const localId = getLocalId(globalId, false);
-            initiativeData.push({ ...shapeData, globalId, localId });
+            initiativeData.push({ ...shapeData, globalId, localId: getPresentLocalId(globalId) });
         }
         if ($.editLock !== undefined) $.newData = initiativeData;
         else $.locationData = initiativeData;
@@ -94,11 +143,6 @@ class InitiativeSystem implements System {
             updateEffects: false,
         });
         $.sort = data.sort;
-    }
-
-    // Ideally we get rid of this
-    _forceUpdate(): void {
-        $.locationData = [...$.locationData];
     }
 
     // ACTIVE
@@ -424,15 +468,13 @@ class InitiativeSystem implements System {
     }
 
     owns(globalId?: GlobalId): boolean {
-        if (gameState.raw.isDm) return true;
-        if (globalId === undefined) {
-            const actor = $.locationData[$.turnCounter];
-            if (actor === undefined) return false;
-            globalId = actor.globalId;
-        }
-        const localId = getLocalId(globalId, false);
-        if (localId === undefined) return false;
-        return accessSystem.hasAccessTo(localId, "edit");
+        if (gameState.reactive.isDm) return true;
+        const actor =
+            globalId === undefined
+                ? $.locationData[$.turnCounter]
+                : this.getDataSet().find((a) => a.globalId === globalId);
+        if (actor?.localId === undefined) return false;
+        return accessSystem.hasAccessToReactive(actor.localId, "edit");
     }
 
     toggleOption(index: number, option: "isVisible" | "isGroup"): void {
@@ -450,11 +492,4 @@ class InitiativeSystem implements System {
 }
 
 export const initiativeSystem = new InitiativeSystem();
-registerSystem("initiative", initiativeSystem, false, initiativeState);
-
-// Access checks read the non-reactive owned tokens, so the UI has to be refreshed explicitly when ownership changes
-watch(
-    () => accessState.reactive.ownedTokens,
-    () => initiativeSystem._forceUpdate(),
-    { deep: true },
-);
+registerSystem("initiative", initiativeSystem, true, initiativeState);

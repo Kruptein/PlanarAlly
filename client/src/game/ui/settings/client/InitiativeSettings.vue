@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-import { InitiativeEffectMode } from "../../../models/initiative";
+import { InitiativeEffectMode } from "../../../systems/initiative/models";
 
 import OverrideReset from "./OverrideReset.vue";
 import { useClientSettings } from "./useClientSettings";

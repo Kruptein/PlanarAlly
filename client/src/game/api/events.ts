@@ -10,6 +10,7 @@ import "../systems/chat/events";
 import "../systems/customData/events";
 import "../systems/dice/events";
 import "../systems/groups/events";
+import "../systems/initiative/events";
 import "../systems/logic/door/events";
 import "../systems/logic/tp/events";
 import "../systems/markers/events";
@@ -20,7 +21,6 @@ import "../systems/variants/events";
 
 import "./events/client";
 import "./events/floor";
-import "./events/initiative";
 import "./events/location";
 import "./events/mods";
 import "./events/logic";

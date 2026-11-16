@@ -1,5 +1,5 @@
 import type { ApiOptionalUserOptions, ApiUserOptions } from "../../../../apiTypes";
-import type { InitiativeEffectMode } from "../../../models/initiative";
+import type { InitiativeEffectMode } from "../../initiative/models";
 
 import type { PlayerOptions } from "./models";
 

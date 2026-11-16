@@ -8,7 +8,6 @@ import { registerSystem } from "../../../core/systems";
 import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { coreStore } from "../../../store/core";
 import { getGlobalId, getShape } from "../../id";
-import { initiativeStore } from "../../ui/initiative/state";
 import { floorSystem } from "../floors";
 import { gameState } from "../game/state";
 import { playerSystem } from "../players";
@@ -54,7 +53,6 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
         }
 
         this._updateOwnedState(id);
-        initiativeStore._forceUpdate();
     }
 
     export(id: LocalId): AccessMap | undefined {
@@ -203,7 +201,6 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
         this._updateOwnedState(shapeId);
 
         if (locationSettingsSystem.isLosActive()) floorSystem.invalidateLightAllFloors();
-        if (syncTo.ui) initiativeStore._forceUpdate();
     }
 
     updateAccess(shapeId: LocalId, user: ACCESS_KEY, access: Partial<AccessConfig>, syncTo: Sync): void {
@@ -257,7 +254,6 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
             }
             floorSystem.invalidateLightAllFloors();
         }
-        initiativeStore._forceUpdate();
     }
 
     removeAccess(shapeId: LocalId, user: string, syncTo: Sync): void {
@@ -286,7 +282,6 @@ class AccessSystem implements ShapeSystem<AccessMap | undefined> {
         this._updateOwnedState(shapeId);
 
         if (locationSettingsSystem.isLosActive()) floorSystem.invalidateLightAllFloors();
-        initiativeStore._forceUpdate();
     }
 
     getOwners(id: LocalId): Iterable<string> {

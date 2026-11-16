@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { type InitiativeEffect, InitiativeEffectUpdateTiming } from "../../models/initiative";
+import { type InitiativeEffect, InitiativeEffectUpdateTiming } from "../../systems/initiative/models";
 
 const emit = defineEmits<{
     (e: "submit", effect: InitiativeEffect): void;

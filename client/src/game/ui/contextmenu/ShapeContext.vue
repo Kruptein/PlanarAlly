@@ -30,6 +30,9 @@ import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
 import { groupSystem } from "../../systems/groups";
+import { initiativeSystem } from "../../systems/initiative";
+import { initiativeState } from "../../systems/initiative/state";
+import { openInitiativeDialog } from "../../systems/initiative/ui";
 import { markerSystem } from "../../systems/markers";
 import { markerState } from "../../systems/markers/state";
 import { NoteManagerMode } from "../../systems/notes/types";
@@ -43,7 +46,6 @@ import { locationSettingsState } from "../../systems/settings/location/state";
 import { uiState } from "../../systems/ui/state";
 import { moveFloor, moveLayer } from "../../temp";
 import { activeToolMode } from "../../tools/tools";
-import { initiativeStore } from "../initiative/state";
 import { layerTranslationMapping } from "../translations";
 
 import { shapeContextLeft, shapeContextTop, showShapeContextMenu } from "./state";
@@ -128,22 +130,22 @@ async function addToInitiative(): Promise<boolean> {
     for (const shape of selection) {
         const groupId = groupSystem.getGroupId(shape.id);
         if (!groupInitiatives || groupId === undefined || !groupsProcessed.has(groupId)) {
-            initiativeStore.addInitiative(shape.id, groupInitiatives && groupId !== undefined);
+            initiativeSystem.addInitiative(shape.id, groupInitiatives && groupId !== undefined);
             groupsProcessed.add(groupId);
         }
     }
-    initiativeStore.show(true, true);
+    openInitiativeDialog(true);
     return true;
 }
 
 function getInitiativeWord(): string {
     const selection = selectedState.raw.selected;
     if (selection.size === 1) {
-        return initiativeStore.state.locationData.some((i) => i.localId === [...selection][0])
+        return initiativeState.reactive.locationData.some((i) => i.localId === [...selection][0])
             ? t("game.ui.selection.ShapeContext.show_initiative")
             : t("game.ui.selection.ShapeContext.add_initiative");
     } else {
-        return [...selection].every((shape) => initiativeStore.state.locationData.some((i) => i.localId === shape))
+        return [...selection].every((shape) => initiativeState.reactive.locationData.some((i) => i.localId === shape))
             ? t("game.ui.selection.ShapeContext.show_initiative")
             : t("game.ui.selection.ShapeContext.add_all_initiative");
     }

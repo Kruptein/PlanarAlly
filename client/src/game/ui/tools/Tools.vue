@@ -9,11 +9,12 @@ import { accessState } from "../../systems/access/state";
 import { floorSystem } from "../../systems/floors";
 import { gameSystem } from "../../systems/game";
 import { gameState } from "../../systems/game/state";
+import { initiativeSystem } from "../../systems/initiative";
+import { initiativeState } from "../../systems/initiative/state";
 import { roomState } from "../../systems/room/state";
 import { locationSettingsState } from "../../systems/settings/location/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
 import { activeModeTools, activeTool, activeToolMode, dmTools, toggleActiveMode, toolMap } from "../../tools/tools";
-import { initiativeStore } from "../initiative/state";
 
 import DiceTool from "./DiceTool.vue";
 import DrawTool from "./DrawTool.vue";
@@ -127,9 +128,9 @@ function toggleLoS(): void {
                         {{ t("game.ui.tools.tools.LOS") }}
                     </div>
                     <div
-                        :class="{ active: initiativeStore.state.isActive }"
+                        :class="{ active: initiativeState.reactive.isActive }"
                         :title="t('game.ui.tools.tools.INI_title')"
-                        @click="initiativeStore.toggleActive"
+                        @click="initiativeSystem.toggleActive()"
                     >
                         {{ t("game.ui.tools.tools.INI") }}
                     </div>

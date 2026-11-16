@@ -11,10 +11,14 @@ import RollingCounter from "../../../core/components/RollingCounter.vue";
 import type { GlobalId } from "../../../core/id";
 import { map } from "../../../core/iter";
 import { getTarget, getValue } from "../../../core/utils";
-import { sendRequestInitiatives } from "../../api/emits/initiative";
 import { getShape } from "../../id";
 import type { IShape } from "../../interfaces/shape";
 import type { IAsset } from "../../interfaces/shapes/asset";
+import { accessSystem } from "../../systems/access";
+import { gameState } from "../../systems/game/state";
+import { groupSystem } from "../../systems/groups";
+import { initiativeSystem } from "../../systems/initiative";
+import { sendRequestInitiatives } from "../../systems/initiative/emits";
 import {
     type InitiativeData,
     type InitiativeEffect,
@@ -22,10 +26,9 @@ import {
     InitiativeEffectUpdateTiming,
     InitiativeSort,
     InitiativeTurnDirection,
-} from "../../models/initiative";
-import { accessSystem } from "../../systems/access";
-import { gameState } from "../../systems/game/state";
-import { groupSystem } from "../../systems/groups";
+} from "../../systems/initiative/models";
+import { initiativeState } from "../../systems/initiative/state";
+import { closeInitiativeDialog } from "../../systems/initiative/ui";
 import { propertiesSystem } from "../../systems/properties";
 import { propertiesState } from "../../systems/properties/state";
 import { playerSettingsState } from "../../systems/settings/players/state";
@@ -33,14 +36,13 @@ import { uiSystem } from "../../systems/ui";
 import { ClientSettingCategory } from "../settings/client/categories";
 
 import CreateEffectDialog from "./CreateEffectDialog.vue";
-import { initiativeStore } from "./state";
 
 const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
 const close = (): void => {
-    initiativeStore.show(false, false);
+    closeInitiativeDialog();
     emit("close");
 };
 defineExpose({ close });
@@ -59,25 +61,25 @@ const entryFocus = ref<{ index: number; mouseOver: boolean; focused: boolean }>(
     focused: false,
 });
 
-const hasVisibleActor = computed(() => initiativeStore.state.locationData.some((actor) => canSee(actor)));
+const hasVisibleActor = computed(() => initiativeState.reactive.locationData.some((actor) => canSee(actor)));
 
-const owns = (actorId?: GlobalId): boolean => initiativeStore.owns(actorId);
+const owns = (actorId?: GlobalId): boolean => initiativeSystem.owns(actorId);
 const toggleOption = (actor: InitiativeData, index: number, option: "isVisible" | "isGroup"): void => {
     if (option === "isGroup") {
         toggleGroupHighlight(actor, !actor.isGroup);
     }
-    initiativeStore.toggleOption(index, option);
+    initiativeSystem.toggleOption(index, option);
 };
 
 onMounted(() => {
-    initiativeStore.show(false, false);
+    closeInitiativeDialog();
     setTimeout(() => {
         scrollToInitiative();
     }, 300);
 });
 
 watch(
-    () => initiativeStore.state.turnCounter,
+    () => initiativeState.reactive.turnCounter,
     async () => {
         await nextTick();
         scrollToInitiative();
@@ -92,7 +94,7 @@ watch(
 );
 
 watch(
-    () => initiativeStore.state.locationData,
+    () => initiativeState.reactive.locationData,
     (newList, oldList) => {
         for (const item of oldList ?? []) {
             if (item.localId !== undefined) {
@@ -127,14 +129,14 @@ function confirmation(confirm: boolean): void {
 async function clearInitiativeEntries(): Promise<void> {
     const result = await loadConfirmationDialog(t("game.ui.initiative.clear_entries_msg"));
     if (result) {
-        initiativeStore.clearEntries(true);
+        initiativeSystem.clearEntries(true);
     }
 }
 
 async function clearInitiativeValues(): Promise<void> {
     const result = await loadConfirmationDialog(t("game.ui.initiative.clear_initiatives_msg"));
     if (result) {
-        initiativeStore.clearValues(true);
+        initiativeSystem.clearValues(true);
     }
 }
 
@@ -150,7 +152,7 @@ function scrollToInitiative(): void {
 function getListEntry(id: GlobalId): Element | undefined {
     if (listElement.value === null || listElement.value.children.length <= 0) return undefined;
 
-    const entries = initiativeStore.getDataSet();
+    const entries = initiativeSystem.getDataSet();
     const index = entries.findIndex((actor) => actor.globalId === id);
     return listElement.value.children[0]!.children[index];
 }
@@ -159,10 +161,10 @@ function scrollToEntry(entry: Element): void {
     entry.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-const nextRound = (): void => initiativeStore.nextRound();
-const previousRound = (): void => initiativeStore.previousRound();
-const nextTurn = (): void => initiativeStore.nextTurn();
-const previousTurn = (): void => initiativeStore.previousTurn();
+const nextRound = (): void => initiativeSystem.nextRound();
+const previousRound = (): void => initiativeSystem.previousRound();
+const nextTurn = (): void => initiativeSystem.nextTurn();
+const previousTurn = (): void => initiativeSystem.previousTurn();
 
 function getName(actor: InitiativeData): string {
     if (actor.localId === undefined) return "?";
@@ -185,15 +187,15 @@ async function removeInitiative(actor: InitiativeData): Promise<void> {
         if (!result) return;
     }
     if (addEffect.value === actor.globalId) addEffect.value = null;
-    initiativeStore.removeInitiative(actor.globalId, true);
+    initiativeSystem.removeInitiative(actor.globalId, true);
 }
 
 function setEffectName(shape: GlobalId, index: number, name: string): void {
-    if (initiativeStore.owns(shape)) initiativeStore.setEffectName(shape, index, name, true);
+    if (initiativeSystem.owns(shape)) initiativeSystem.setEffectName(shape, index, name, true);
 }
 
 function setEffectTurns(shape: GlobalId, index: number, turns: string): void {
-    if (initiativeStore.owns(shape)) initiativeStore.setEffectTurns(shape, index, turns, true);
+    if (initiativeSystem.owns(shape)) initiativeSystem.setEffectTurns(shape, index, turns, true);
 }
 
 async function openEffectDialog(shape: GlobalId): Promise<void> {
@@ -219,12 +221,12 @@ function closeEffectDialog(): void {
 }
 
 function createEffect(shape: GlobalId, effect: InitiativeEffect): void {
-    if (initiativeStore.owns(shape)) initiativeStore.createEffect(shape, effect, true);
+    if (initiativeSystem.owns(shape)) initiativeSystem.createEffect(shape, effect, true);
     closeEffectDialog();
 }
 
 function removeEffect(shape: GlobalId, index: number): void {
-    if (initiativeStore.owns(shape)) initiativeStore.removeEffect(shape, index, true);
+    if (initiativeSystem.owns(shape)) initiativeSystem.removeEffect(shape, index, true);
 }
 
 function invertEffectTiming(timing: InitiativeEffectUpdateTiming): InitiativeEffectUpdateTiming {
@@ -233,7 +235,7 @@ function invertEffectTiming(timing: InitiativeEffectUpdateTiming): InitiativeEff
 }
 
 function changeEffectTiming(shape: GlobalId, index: number, timing: InitiativeEffectUpdateTiming): void {
-    if (initiativeStore.owns(shape)) initiativeStore.setEffectUpdateTiming(shape, index, timing, true);
+    if (initiativeSystem.owns(shape)) initiativeSystem.setEffectUpdateTiming(shape, index, timing, true);
 }
 
 function toggleGroupHighlight(actor: InitiativeData, show: boolean): void {
@@ -307,11 +309,11 @@ function canSee(actor: DeepReadonly<InitiativeData>): boolean {
 }
 
 function reset(): void {
-    initiativeStore.setTurnCounter(0, InitiativeTurnDirection.Null, {
+    initiativeSystem.setTurnCounter(0, InitiativeTurnDirection.Null, {
         sync: true,
         updateEffects: false,
     });
-    initiativeStore.setRoundCounter(1, InitiativeTurnDirection.Null, {
+    initiativeSystem.setRoundCounter(1, InitiativeTurnDirection.Null, {
         sync: true,
         updateEffects: false,
     });
@@ -320,30 +322,30 @@ function reset(): void {
 }
 
 function lock(globalId: GlobalId): void {
-    if (initiativeStore.owns(globalId)) initiativeStore.lock(globalId);
+    if (initiativeSystem.owns(globalId)) initiativeSystem.lock(globalId);
 }
 
 function unlock(): void {
-    if (initiativeStore.state.editLock !== undefined) initiativeStore.unlock();
+    if (initiativeState.reactive.editLock !== undefined) initiativeSystem.unlock();
 }
 
 function setInitiative(shape: GlobalId, value: string): void {
     const numValue = Number.parseInt(value);
     if (isNaN(numValue)) return;
 
-    if (initiativeStore.owns(shape)) initiativeStore.setInitiative(shape, numValue, true);
+    if (initiativeSystem.owns(shape)) initiativeSystem.setInitiative(shape, numValue, true);
 }
 
 function changeOrder(event: SortableEvent): void {
     const realEvent = event as DraggableEvent<InitiativeData>;
     if (gameState.raw.isDm && realEvent.newIndex !== realEvent.oldIndex)
-        initiativeStore.changeOrder(realEvent.data.globalId, realEvent.oldIndex!, realEvent.newIndex!);
+        initiativeSystem.changeOrder(realEvent.data.globalId, realEvent.oldIndex!, realEvent.newIndex!);
 }
 
 function changeSort(): void {
     if (gameState.raw.isDm) {
-        const sort = (initiativeStore.state.sort + 1) % (Object.keys(InitiativeSort).length / 2);
-        initiativeStore.changeSort(sort, true);
+        const sort = (initiativeState.reactive.sort + 1) % (Object.keys(InitiativeSort).length / 2);
+        initiativeSystem.changeSort(sort, true);
     }
 }
 
@@ -380,7 +382,12 @@ function n(e: any): number {
 </script>
 
 <template>
-    <Modal :visible="initiativeStore.state.showInitiative" :mask="false" extra-class="initiative-modal" @close="close">
+    <Modal
+        :visible="initiativeState.reactive.showInitiative"
+        :mask="false"
+        extra-class="initiative-modal"
+        @close="close"
+    >
         <template #header="m">
             <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
                 <div>{{ t("common.initiative") }}</div>
@@ -396,14 +403,14 @@ function n(e: any): number {
                         <VueDraggable
                             v-if="hasVisibleActor"
                             id="initiative-list"
-                            :model-value="initiativeStore.getDataSet()"
+                            :model-value="initiativeSystem.getDataSet()"
                             handle=".drag-handle"
                             ghost-class="moving-entry"
                             :animation="200"
                             @end="changeOrder"
                         >
                             <TransitionGroup name="initiative-slide">
-                                <template v-for="(actor, index) of initiativeStore.getDataSet()" :key="actor.globalId">
+                                <template v-for="(actor, index) of initiativeSystem.getDataSet()" :key="actor.globalId">
                                     <div
                                         v-if="canSee(actor)"
                                         class="initiative-entry"
@@ -414,10 +421,10 @@ function n(e: any): number {
                                         <div
                                             class="initiative-actor"
                                             :class="{
-                                                'initiative-selected': initiativeStore.state.turnCounter === index,
+                                                'initiative-selected': initiativeState.reactive.turnCounter === index,
                                                 blurred:
-                                                    initiativeStore.state.editLock !== undefined &&
-                                                    initiativeStore.state.editLock !== actor.globalId,
+                                                    initiativeState.reactive.editLock !== undefined &&
+                                                    initiativeState.reactive.editLock !== actor.globalId,
                                             }"
                                             @mouseenter="toggleHighlight(actor, true)"
                                             @mouseleave="toggleHighlight(actor, false)"
@@ -541,13 +548,14 @@ function n(e: any): number {
                                                 v-if="
                                                     actor.effects.length > 0 &&
                                                     (alwaysShowEffects ||
-                                                        initiativeStore.state.turnCounter === index ||
+                                                        initiativeState.reactive.turnCounter === index ||
                                                         (entryFocus.index === index &&
                                                             (entryFocus.mouseOver || entryFocus.focused)))
                                                 "
                                                 class="initiative-effect"
                                                 :class="{
-                                                    'initiative-selected': initiativeStore.state.turnCounter === index,
+                                                    'initiative-selected':
+                                                        initiativeState.reactive.turnCounter === index,
                                                 }"
                                             >
                                                 <!-- Hacky workaround for stuttering animations -->
@@ -597,7 +605,7 @@ function n(e: any): number {
                                                         <ResizingTextArea
                                                             v-model="effect.name"
                                                             :disabled="!owns(actor.globalId)"
-                                                            :visible="initiativeStore.state.showInitiative"
+                                                            :visible="initiativeState.reactive.showInitiative"
                                                             @change="setEffectName(actor.globalId, n(e), $event)"
                                                             @focus="setEntryFocus(index, true, false)"
                                                             @blur="setEntryFocus(index, false, false)"
@@ -659,7 +667,7 @@ function n(e: any): number {
                     </div>
                     <div class="initiative-round-display">
                         <div>{{ t("game.ui.initiative.round_N") }}</div>
-                        <RollingCounter :value="initiativeStore.state.roundCounter" :fixed-width="2" />
+                        <RollingCounter :value="initiativeState.reactive.roundCounter" :fixed-width="2" />
                     </div>
                     <div class="initiative-bar-button" :title="t('game.ui.initiative.next')" @click="nextTurn">
                         <font-awesome-icon icon="chevron-right" />
@@ -688,8 +696,8 @@ function n(e: any): number {
                     </div>
                     <div class="initiative-bar-button" :title="t('game.ui.initiative.change_sort')" @click="changeSort">
                         <font-awesome-icon
-                            :key="initiativeStore.state.sort"
-                            :icon="translateSort(initiativeStore.state.sort)"
+                            :key="initiativeState.reactive.sort"
+                            :icon="translateSort(initiativeState.reactive.sort)"
                         />
                     </div>
                 </div>
@@ -697,7 +705,7 @@ function n(e: any): number {
             <div v-else>
                 <div class="initiative-round-display">
                     <div>{{ t("game.ui.initiative.round_N") }}</div>
-                    <RollingCounter :value="initiativeStore.state.roundCounter" :fixed-width="2" />
+                    <RollingCounter :value="initiativeState.reactive.roundCounter" :fixed-width="2" />
                 </div>
             </div>
             <div id="initiative-settings" :title="t('game.ui.initiative.settings')" @click="openSettings">

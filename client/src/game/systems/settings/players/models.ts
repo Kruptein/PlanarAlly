@@ -1,4 +1,4 @@
-import type { InitiativeEffectMode } from "../../../models/initiative";
+import type { InitiativeEffectMode } from "../../initiative/models";
 
 export interface PlayerOptions {
     // Appearance

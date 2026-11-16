@@ -15,11 +15,11 @@ import { FontAwesomeIcon } from "../../shapes/variants/fontAwesomeIcon";
 import { floorSystem } from "../../systems/floors";
 import { floorState } from "../../systems/floors/state";
 import { gameState } from "../../systems/game/state";
+import { openInitiativeDialog } from "../../systems/initiative/ui";
 import { propertiesSystem } from "../../systems/properties";
 import { getProperties } from "../../systems/properties/state";
 import { locationSettingsSystem } from "../../systems/settings/location";
 import { locationSettingsState } from "../../systems/settings/location/state";
-import { initiativeStore } from "../initiative/state";
 import { openCreateTokenDialog } from "../tokendialog/state";
 
 import { defaultContextLeft, defaultContextTop, showDefaultContextMenu } from "./state";
@@ -91,7 +91,7 @@ async function createSpawnLocation(): Promise<boolean> {
 }
 
 function showInitiativeDialog(): boolean {
-    initiativeStore.show(true, true);
+    openInitiativeDialog(true);
     return true;
 }
 

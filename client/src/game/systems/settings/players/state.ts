@@ -2,7 +2,7 @@ import { computed } from "vue";
 
 import { DEFAULT_GRID_SIZE } from "../../../../core/grid";
 import { buildState } from "../../../../core/systems/state";
-import { InitiativeEffectMode } from "../../../models/initiative";
+import { InitiativeEffectMode } from "../../initiative/models";
 import { locationSettingsState } from "../location/state";
 
 import { GridModeLabelFormat, type PlayerOptions } from "./models";

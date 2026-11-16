@@ -17,9 +17,9 @@ import { loadFromServer } from "../../../shapes/transformations";
 import { deleteShapes } from "../../../shapes/utils";
 import { accessSystem } from "../../../systems/access";
 import { floorSystem } from "../../../systems/floors";
+import { initiativeSystem } from "../../../systems/initiative";
 import { selectedSystem } from "../../../systems/selected";
 import { addShape, moveFloor, moveLayer } from "../../../temp";
-import { initiativeStore } from "../../../ui/initiative/state";
 import { socket } from "../../socket";
 
 socket.on("Shape.Set", async (data: ApiShapeWithLayer) => {
@@ -49,7 +49,7 @@ socket.on("Shape.Set", async (data: ApiShapeWithLayer) => {
 socket.on("Shape.Add", async (data: ApiShapeWithLayer) => {
     const floorId = floorSystem.getFloor({ name: data.floor })!.id;
     addShape(await loadFromServer(data.shape, floorId, data.layer), SyncMode.NO_SYNC, "load");
-    initiativeStore._forceUpdate();
+    initiativeSystem._forceUpdate();
 });
 
 socket.on("Shapes.Add", async (shapes: ApiShapeWithLayer[]) => {
@@ -58,13 +58,13 @@ socket.on("Shapes.Add", async (shapes: ApiShapeWithLayer[]) => {
         // oxlint-disable-next-line no-await-in-loop
         addShape(await loadFromServer(data.shape, floorId, data.layer), SyncMode.NO_SYNC, "load");
     }
-    initiativeStore._forceUpdate();
+    initiativeSystem._forceUpdate();
 });
 
 socket.on("Shapes.Remove", (shapeIds: GlobalId[]) => {
     const shapes = shapeIds.map((s) => getShapeFromGlobal(s)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
-    initiativeStore._forceUpdate();
+    initiativeSystem._forceUpdate();
 });
 
 socket.on("Shapes.Position.Update", (data: ShapePositionUpdate[]) => {

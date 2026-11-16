@@ -6,12 +6,13 @@ import { getShape } from "../id";
 import type { IShape } from "../interfaces/shape";
 import { accessSystem } from "../systems/access";
 import { gameState } from "../systems/game/state";
+import { initiativeSystem } from "../systems/initiative";
+import { initiativeState } from "../systems/initiative/state";
 import { teleportZoneSystem } from "../systems/logic/tp";
 import { getProperties } from "../systems/properties/state";
 import { VisionBlock } from "../systems/properties/types";
 import { selectedSystem } from "../systems/selected";
 import { locationSettingsState } from "../systems/settings/location/state";
-import { initiativeStore } from "../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../vision/state";
 
 import type { MovementOperation, ShapeMovementOperation } from "./model";
@@ -110,7 +111,7 @@ function canMove(shapeId: LocalId): boolean {
     if (getProperties(shapeId)?.isLocked === true) return false;
     if (!accessSystem.hasAccessTo(shapeId, "movement")) return false;
     if (!locationSettingsState.raw.limitMovementDuringInitiative.value) return true;
-    if (!initiativeStore.state.isActive) return true;
+    if (!initiativeState.raw.isActive) return true;
     if (gameState.raw.isDm) return true;
-    return initiativeStore.getActor()?.localId === shapeId;
+    return initiativeSystem.getActor()?.localId === shapeId;
 }

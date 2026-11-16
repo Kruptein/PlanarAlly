@@ -1,3 +1,8 @@
+## Unreleased
+
+### Added
+- `systems.initiative` and `systemsState.initiative`, with the `InitiativeData`, `InitiativeEffect`, `InitiativeSort` and `InitiativeEffectUpdateTiming` types
+
 ## [0.7.0]
 
 ### Added

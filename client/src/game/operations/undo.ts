@@ -2,7 +2,7 @@ import { toGP, Vector } from "../../core/geometry";
 import type { GlobalPoint } from "../../core/geometry";
 import type { LocalId } from "../../core/id";
 import { SyncMode } from "../../core/models/types";
-import { getLocalId, getShape } from "../id";
+import { getGlobalId, getLocalId, getShape } from "../id";
 import type { LayerName } from "../models/floor";
 import { ToolName } from "../models/tools";
 import type { ISelectTool } from "../models/tools";
@@ -143,7 +143,12 @@ function handleLayerMove(shapes: LocalId[], from: LayerName, to: LayerName, dire
 
 function handleShapeRemove(shapes: CompactForm[], direction: "undo" | "redo"): void {
     if (direction === "undo") {
-        for (const shape of shapes) addShape(shape, SyncMode.FULL_SYNC, "create");
+        for (const shape of shapes) {
+            const newShape = addShape(shape, SyncMode.FULL_SYNC, "create");
+            // Re-creating generates a new uuid, later redo/undo steps need it to find the shape again
+            const uuid = newShape === undefined ? undefined : getGlobalId(newShape.id);
+            if (uuid !== undefined) shape.core.uuid = uuid;
+        }
     } else {
         deleteShapes(
             shapes.map((s) => getShape(getLocalId(s.core.uuid)!)!),

@@ -1,7 +1,17 @@
 import type { ApiInitiative } from "../../../apiTypes";
 import type { GlobalId, LocalId } from "../../../core/id";
-import { Store } from "../../../core/store";
+import { registerSystem } from "../../../core/systems";
+import type { ShapeSystem, SystemInformMode } from "../../../core/systems/models";
 import { i18n } from "../../../i18n";
+import { getGlobalId, getLocalId, getShape } from "../../id";
+import { setCenterPosition } from "../../position";
+import { accessSystem } from "../access";
+import { accessState } from "../access/state";
+import { floorSystem } from "../floors";
+import { gameState } from "../game/state";
+import { groupSystem } from "../groups";
+import { playerSettingsState } from "../settings/players/state";
+
 import {
     sendInitiativeNewEffect,
     sendInitiativeOptionSet,
@@ -19,18 +29,19 @@ import {
     sendInitiativeSetSort,
     sendInitiativeActive,
     sendInitiativeWipe,
-} from "../../api/emits/initiative";
-import { getGlobalId, getLocalId, getShape } from "../../id";
-import { type InitiativeData, type InitiativeEffect, InitiativeSort } from "../../models/initiative";
-import { InitiativeTurnDirection, InitiativeEffectUpdateTiming } from "../../models/initiative";
-import { setCenterPosition } from "../../position";
-import { accessSystem } from "../../systems/access";
-import { accessState } from "../../systems/access/state";
-import { floorSystem } from "../../systems/floors";
-import { gameState } from "../../systems/game/state";
-import { playerSettingsState } from "../../systems/settings/players/state";
+} from "./emits";
+import {
+    type CommonInitiativeData,
+    type InitiativeData,
+    type InitiativeEffect,
+    type InitiativeSort,
+    InitiativeEffectUpdateTiming,
+    InitiativeTurnDirection,
+} from "./models";
+import { initiativeState } from "./state";
+import { closeInitiativeDialog, openInitiativeDialog } from "./ui";
 
-let activeTokensBackup: Set<LocalId> | undefined = undefined;
+const { mutableReactive: $, mutable } = initiativeState;
 
 function getDefaultEffect(): InitiativeEffect {
     const name = i18n.global.t("game.ui.initiative.new_effect");
@@ -40,6 +51,13 @@ function getDefaultEffect(): InitiativeEffect {
 function getDefaultTimedEffect(): InitiativeEffect {
     const name = i18n.global.t("game.ui.initiative.new_effect");
     return { name, turns: "10", highlightsActor: false, updateTiming: InitiativeEffectUpdateTiming.TurnEnd };
+}
+
+// Actors only get a localId while their shape is present, the UI relies on this to react to shapes being added or removed
+function getPresentLocalId(globalId: GlobalId): LocalId | undefined {
+    const localId = getLocalId(globalId, false);
+    if (localId === undefined || getShape(localId) === undefined) return undefined;
+    return localId;
 }
 
 function updateActorEffects(turnDelta: number, actor: InitiativeData, timing?: InitiativeEffectUpdateTiming): void {
@@ -56,59 +74,66 @@ function updateActorEffects(turnDelta: number, actor: InitiativeData, timing?: I
     }
 }
 
-interface InitiativeState {
-    manuallyOpened: boolean;
-    showInitiative: boolean;
-    locationData: InitiativeData[];
-    newData: InitiativeData[];
-
-    roundCounter: number;
-    turnCounter: number;
-    sort: InitiativeSort;
-
-    editLock: GlobalId | undefined;
-
-    isActive: boolean;
-}
-
-class InitiativeStore extends Store<InitiativeState> {
-    protected data(): InitiativeState {
-        return {
-            manuallyOpened: false,
-            showInitiative: false,
-            locationData: [],
-            newData: [],
-
-            roundCounter: 1,
-            turnCounter: 0,
-            sort: InitiativeSort.Down,
-
-            editLock: undefined,
-
-            isActive: false,
-        };
-    }
+class InitiativeSystem implements ShapeSystem<CommonInitiativeData | undefined> {
+    // CORE
 
     clear(): void {
-        this._state.locationData = [];
+        $.locationData = [];
     }
 
-    show(show: boolean, manuallyOpened: boolean): void {
-        this._state.showInitiative = show;
-        this._state.manuallyOpened = manuallyOpened;
+    drop(id: LocalId): void {
+        for (const actor of [...$.locationData, ...$.newData]) {
+            if (actor.localId === id) actor.localId = undefined;
+        }
+    }
+
+    importLate(id: LocalId, data: CommonInitiativeData | undefined, mode: SystemInformMode): void {
+        const globalId = getGlobalId(id);
+        if (globalId === undefined) return;
+
+        if (mode === "load") {
+            for (const actor of [...$.locationData, ...$.newData]) {
+                if (actor.globalId === globalId) actor.localId = id;
+            }
+        } else if (mode === "create" && data !== undefined) {
+            this.restoreInitiative(id, globalId, data);
+        }
+    }
+
+    // Re-adds the entry of a shape that is re-created from its exported data (e.g. undoing a shape removal)
+    private restoreInitiative(id: LocalId, globalId: GlobalId, data: CommonInitiativeData): void {
+        if (data.isGroup) {
+            // The server hands a group entry over to another member when the shape is removed
+            const groupId = groupSystem.getGroupId(id);
+            const groupHasEntry =
+                groupId !== undefined &&
+                $.locationData.some(
+                    (a) => a.isGroup && a.localId !== undefined && groupSystem.getGroupId(a.localId) === groupId,
+                );
+            if (groupHasEntry) return;
+        }
+
+        $.locationData.push({ ...data, globalId, localId: id });
+        sendInitiativeAdd({ ...data, shape: globalId });
+    }
+
+    export(id: LocalId): CommonInitiativeData | undefined {
+        const actor = this.getDataSet().find((a) => a.localId === id);
+        if (actor === undefined) return undefined;
+        const { globalId: _globalId, localId: _localId, ...data } = actor;
+        return data;
     }
 
     setData(data: ApiInitiative): void {
         const initiativeData: InitiativeData[] = [];
         for (const d of data.data) {
             const { shape: globalId, ...shapeData } = d;
-            const localId = getLocalId(globalId, false);
-            initiativeData.push({ ...shapeData, globalId, localId });
+            initiativeData.push({ ...shapeData, globalId, localId: getPresentLocalId(globalId) });
         }
-        if (this._state.editLock !== undefined) this._state.newData = initiativeData;
-        else this._state.locationData = initiativeData;
+        if ($.editLock !== undefined) $.newData = initiativeData;
+        else $.locationData = initiativeData;
 
-        if (!this._state.manuallyOpened) this.setActive(data.isActive);
+        if (!$.manuallyOpened) this.setActive(data.isActive);
         this.setRoundCounter(data.round, InitiativeTurnDirection.Null, {
             sync: false,
             updateEffects: false,
@@ -117,36 +142,35 @@ class InitiativeStore extends Store<InitiativeState> {
             sync: false,
             updateEffects: false,
         });
-        this._state.sort = data.sort;
-    }
-
-    // Ideally we get rid of this
-    _forceUpdate(): void {
-        this._state.locationData = [...this._state.locationData];
+        $.sort = data.sort;
     }
 
     // ACTIVE
 
     setActive(isActive: boolean): void {
-        this._state.isActive = isActive;
-        if (playerSettingsState.raw.initiativeOpenOnActivate.value) this.show(isActive, false);
+        $.isActive = isActive;
+        if (playerSettingsState.raw.initiativeOpenOnActivate.value) {
+            if (isActive) openInitiativeDialog(false);
+            else closeInitiativeDialog();
+        }
         if (isActive) {
-            if (accessState.raw.activeTokenFilters === undefined) activeTokensBackup = undefined;
-            else activeTokensBackup = new Set(accessState.raw.activeTokenFilters.get("vision") ?? []);
+            if (accessState.raw.activeTokenFilters === undefined) mutable.activeTokensBackup = undefined;
+            else mutable.activeTokensBackup = new Set(accessState.raw.activeTokenFilters.get("vision") ?? []);
             this.handleCameraLock();
             this.handleVisionLock();
         } else if (playerSettingsState.raw.initiativeVisionLock.value) {
-            if (activeTokensBackup === undefined || activeTokensBackup.size === 0) {
+            const backup = mutable.activeTokensBackup;
+            if (backup === undefined || backup.size === 0) {
                 accessSystem.clearActiveVisionTokens();
             } else {
-                accessSystem.setActiveVisionTokens(...activeTokensBackup.values());
+                accessSystem.setActiveVisionTokens(...backup.values());
             }
         }
     }
 
     toggleActive(): void {
-        this.setActive(!this._state.isActive);
-        sendInitiativeActive(this._state.isActive);
+        this.setActive(!$.isActive);
+        sendInitiativeActive($.isActive);
     }
 
     // PURE INITIATIVE
@@ -158,7 +182,7 @@ class InitiativeStore extends Store<InitiativeState> {
             return;
         }
 
-        let actor = this._state.locationData.find((a) => a.globalId === globalId);
+        let actor = $.locationData.find((a) => a.globalId === globalId);
         if (actor === undefined) {
             actor = {
                 globalId,
@@ -168,7 +192,7 @@ class InitiativeStore extends Store<InitiativeState> {
                 isVisible: !gameState.raw.isDm,
                 initiative: undefined,
             };
-            this._state.locationData.push(actor);
+            $.locationData.push(actor);
         } else {
             // actor already known.
             return;
@@ -201,7 +225,7 @@ class InitiativeStore extends Store<InitiativeState> {
             shape.showHighlight = false;
             shape.layer?.invalidate(true);
         }
-        if (this._state.editLock === globalId) this.unlock();
+        if ($.editLock === globalId) this.unlock();
     }
 
     clearEntries(sync: boolean): void {
@@ -214,8 +238,9 @@ class InitiativeStore extends Store<InitiativeState> {
         }
         if (sync) sendInitiativeWipe();
     }
+
     clearValues(sync: boolean): void {
-        for (const data of this._state.locationData) {
+        for (const data of $.locationData) {
             data.initiative = undefined;
         }
         if (sync) sendInitiativeClear();
@@ -242,11 +267,11 @@ class InitiativeStore extends Store<InitiativeState> {
             let entry: number;
             let next: number;
             if (direction === InitiativeTurnDirection.Forward) {
-                entry = this._state.turnCounter;
+                entry = $.turnCounter;
                 next = turn;
             } else {
                 entry = turn;
-                next = this._state.turnCounter;
+                next = $.turnCounter;
             }
 
             const actor = this.getDataSet()[entry];
@@ -255,7 +280,7 @@ class InitiativeStore extends Store<InitiativeState> {
             if (nextActor !== undefined)
                 updateActorEffects(direction, nextActor, InitiativeEffectUpdateTiming.TurnStart);
         }
-        this._state.turnCounter = turn;
+        $.turnCounter = turn;
 
         this.handleCameraLock();
         this.handleVisionLock();
@@ -268,7 +293,7 @@ class InitiativeStore extends Store<InitiativeState> {
         options: { sync: boolean; updateEffects: boolean },
     ): void {
         if (options.sync && !gameState.raw.isDm && !this.owns()) return;
-        this._state.roundCounter = round;
+        $.roundCounter = round;
         if (options.updateEffects) {
             for (const actor of this.getDataSet()) {
                 updateActorEffects(direction, actor);
@@ -280,14 +305,14 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     nextRound(): void {
-        this.setRoundCounter(this._state.roundCounter + 1, InitiativeTurnDirection.Forward, {
+        this.setRoundCounter($.roundCounter + 1, InitiativeTurnDirection.Forward, {
             sync: true,
             updateEffects: true,
         });
     }
 
     previousRound(): void {
-        this.setRoundCounter(this._state.roundCounter - 1, InitiativeTurnDirection.Backward, {
+        this.setRoundCounter($.roundCounter - 1, InitiativeTurnDirection.Backward, {
             sync: true,
             updateEffects: true,
         });
@@ -296,14 +321,14 @@ class InitiativeStore extends Store<InitiativeState> {
     nextTurn(): void {
         if (!gameState.raw.isDm && !this.owns()) return;
         if (this.getDataSet().length === 0) return;
-        if (this._state.turnCounter >= this.getDataSet().length - 1) {
-            this.setRoundCounter(this._state.roundCounter + 1, InitiativeTurnDirection.Forward, {
+        if ($.turnCounter >= this.getDataSet().length - 1) {
+            this.setRoundCounter($.roundCounter + 1, InitiativeTurnDirection.Forward, {
                 sync: true,
                 updateEffects: false,
             });
             this.setTurnCounter(0, InitiativeTurnDirection.Forward, { sync: true, updateEffects: true });
         } else {
-            this.setTurnCounter(this._state.turnCounter + 1, InitiativeTurnDirection.Forward, {
+            this.setTurnCounter($.turnCounter + 1, InitiativeTurnDirection.Forward, {
                 sync: true,
                 updateEffects: true,
             });
@@ -312,8 +337,8 @@ class InitiativeStore extends Store<InitiativeState> {
 
     previousTurn(): void {
         if (!gameState.raw.isDm) return;
-        if (this._state.turnCounter === 0 && this.getDataSet().length > 0) {
-            this.setRoundCounter(this._state.roundCounter - 1, InitiativeTurnDirection.Backward, {
+        if ($.turnCounter === 0 && this.getDataSet().length > 0) {
+            this.setRoundCounter($.roundCounter - 1, InitiativeTurnDirection.Backward, {
                 sync: true,
                 updateEffects: false,
             });
@@ -321,16 +346,16 @@ class InitiativeStore extends Store<InitiativeState> {
                 sync: true,
                 updateEffects: true,
             });
-        } else if (this._state.turnCounter > 0) {
-            this.setTurnCounter(this._state.turnCounter - 1, InitiativeTurnDirection.Backward, {
+        } else if ($.turnCounter > 0) {
+            this.setTurnCounter($.turnCounter - 1, InitiativeTurnDirection.Backward, {
                 sync: true,
                 updateEffects: true,
             });
         }
     }
 
-    changeSort(sort: number, sync: boolean): void {
-        this._state.sort = sort;
+    changeSort(sort: InitiativeSort, sync: boolean): void {
+        $.sort = sort;
         if (sync) sendInitiativeSetSort(sort);
     }
 
@@ -396,21 +421,21 @@ class InitiativeStore extends Store<InitiativeState> {
         if (sync) sendInitiativeRemoveEffect({ shape: globalId, index });
     }
 
-    // Locks
+    // LOCKS
 
     lock(shape: GlobalId): void {
-        this._state.editLock = shape;
-        this._state.newData = this._state.locationData.map((d) => ({ ...d, effects: [...d.effects] }));
+        $.editLock = shape;
+        $.newData = $.locationData.map((d) => ({ ...d, effects: [...d.effects] }));
     }
 
     unlock(): void {
-        this._state.editLock = undefined;
-        this._state.locationData = this._state.newData;
+        $.editLock = undefined;
+        $.locationData = $.newData;
     }
 
     handleCameraLock(): void {
-        if (this._state.isActive && playerSettingsState.raw.initiativeCameraLock.value) {
-            const actor = this.getDataSet()[this._state.turnCounter];
+        if ($.isActive && playerSettingsState.raw.initiativeCameraLock.value) {
+            const actor = this.getDataSet()[$.turnCounter];
             if (actor?.localId === undefined) return;
             if (accessSystem.hasAccessTo(actor.localId, "vision")) {
                 const shape = getShape(actor.localId);
@@ -422,8 +447,8 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 
     handleVisionLock(): void {
-        if (this._state.isActive && playerSettingsState.raw.initiativeVisionLock.value) {
-            const actor = this.getDataSet()[this._state.turnCounter];
+        if ($.isActive && playerSettingsState.raw.initiativeVisionLock.value) {
+            const actor = this.getDataSet()[$.turnCounter];
             if (actor?.localId !== undefined && accessSystem.hasAccessTo(actor.localId, "vision")) {
                 accessSystem.setActiveVisionTokens(actor.localId);
             } else {
@@ -435,23 +460,21 @@ class InitiativeStore extends Store<InitiativeState> {
     // EXTRA
 
     getActor(): InitiativeData | undefined {
-        return this._state.locationData[this._state.turnCounter];
+        return $.locationData[$.turnCounter];
     }
 
     getDataSet(): InitiativeData[] {
-        return this._state[this._state.editLock === undefined ? "locationData" : "newData"];
+        return $[$.editLock === undefined ? "locationData" : "newData"];
     }
 
     owns(globalId?: GlobalId): boolean {
-        if (gameState.raw.isDm) return true;
-        if (globalId === undefined) {
-            const actor = this._state.locationData[this._state.turnCounter];
-            if (actor === undefined) return false;
-            globalId = actor.globalId;
-        }
-        const localId = getLocalId(globalId, false);
-        if (localId === undefined) return false;
-        return accessSystem.hasAccessTo(localId, "edit");
+        if (gameState.reactive.isDm) return true;
+        const actor =
+            globalId === undefined
+                ? $.locationData[$.turnCounter]
+                : this.getDataSet().find((a) => a.globalId === globalId);
+        if (actor?.localId === undefined) return false;
+        return accessSystem.hasAccessToReactive(actor.localId, "edit");
     }
 
     toggleOption(index: number, option: "isVisible" | "isGroup"): void {
@@ -468,6 +491,5 @@ class InitiativeStore extends Store<InitiativeState> {
     }
 }
 
-export const initiativeStore = new InitiativeStore();
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-(window as any).initiativeStore = initiativeStore;
+export const initiativeSystem = new InitiativeSystem();
+registerSystem("initiative", initiativeSystem, true, initiativeState);

@@ -38,6 +38,7 @@ tech changes will usually be stripped from release notes for the public
 -   UI for dice roll notifications is a bit more visually pleasing
 -   [mods] Custom data in the shape dialog is split in tabs per mod, editing a mod's data has to be unlocked first
 -   [mods] Shape DataBlocks can by default only be read by users with edit access to the shape, existing shape DataBlocks are migrated to this default
+-   [tech] Initiative moved to the common systems setup, no longer using a legacy store
 
 ### Fixed
 
@@ -60,6 +61,7 @@ tech changes will usually be stripped from release notes for the public
 -   Custom data was for shapes you don't own was still being transmitted
 -   Changing a shape's asset did not check whether the user has edit access to the shape
 -   The draw tool's 'prefert default colours' checkbox was not working properly when unchecked
+-   Undo of a shape removal, will restore as much as possible of the initiative state of the shape
 -   [DM] Location cloning was no longer opening the cloned location immediately
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons

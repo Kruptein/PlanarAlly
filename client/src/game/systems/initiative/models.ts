@@ -1,6 +1,6 @@
-import type { GlobalId, LocalId } from "../../core/id";
+import type { GlobalId, LocalId } from "../../../core/id";
 
-interface CommonInitiativeData {
+export interface CommonInitiativeData {
     initiative?: number;
     isVisible: boolean;
     isGroup: boolean;

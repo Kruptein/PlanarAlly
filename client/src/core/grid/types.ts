@@ -10,3 +10,9 @@ export type AxialCoords = { q: number; r: number };
  * Some algorithms work smoother with cube coords, so it's useful to have both.
  */
 export type CubeCoord = { q: number; r: number; s: number };
+
+export enum GridType {
+    Square = "SQUARE",
+    PointyHex = "POINTY_HEX",
+    FlatHex = "FLAT_HEX",
+}

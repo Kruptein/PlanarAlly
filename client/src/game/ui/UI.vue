@@ -8,6 +8,7 @@ import { baseAdjust } from "../../core/http";
 import { activeShapeStore } from "../../store/activeShape";
 import { coreStore } from "../../store/core";
 import { gameState } from "../systems/game/state";
+import { closeInitiativeDialog } from "../systems/initiative/ui";
 import { positionSystem } from "../systems/position";
 import { positionState } from "../systems/position/state";
 import { roomState } from "../systems/room/state";
@@ -20,7 +21,6 @@ import DefaultContext from "./contextmenu/DefaultContext.vue";
 import ShapeContext from "./contextmenu/ShapeContext.vue";
 import { showDefaultContextMenu, showShapeContextMenu } from "./contextmenu/state";
 import Floors from "./Floors.vue";
-import { initiativeStore } from "./initiative/state";
 import LocationBar from "./menu/LocationBar.vue";
 import MenuBar from "./menu/MenuBar.vue";
 import ModalStack from "./ModalStack.vue";
@@ -62,7 +62,7 @@ const showChangelog = computed(() => {
 onMounted(() => {
     // hide all UI elements that were previously open
     activeShapeStore.setShowEditDialog(false);
-    initiativeStore.show(false, false);
+    closeInitiativeDialog();
     showDefaultContextMenu.value = false;
     showShapeContextMenu.value = false;
     tokenDialogVisible.value = false;

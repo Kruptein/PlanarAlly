@@ -3,7 +3,7 @@ import { type GlobalPoint, toGP, getPointDistanceSquared } from "../geometry";
 import { getClosestPoint } from "../math";
 
 import { axialRound } from "./hex";
-import type { AxialCoords } from "./types";
+import { type AxialCoords, GridType } from "./types";
 
 /*
 
@@ -43,11 +43,7 @@ export const DEFAULT_GRID_SIZE = 50;
 export const SQRT3 = Math.sqrt(3);
 export const DEFAULT_HEX_RADIUS = DEFAULT_GRID_SIZE / SQRT3;
 
-export enum GridType {
-    Square = "SQUARE",
-    PointyHex = "POINTY_HEX",
-    FlatHex = "FLAT_HEX",
-}
+export { GridType };
 
 export function getClosestCellCenter(position: GlobalPoint, gridType: GridType): GlobalPoint {
     return getCellCenter(getCellFromPoint(position, gridType), gridType);

@@ -3,9 +3,9 @@ import type { System } from "../../../../core/systems/models";
 import { sendRoomClientOptions } from "../../../api/emits/client";
 import { Colour, registerColour, updateFogColour } from "../../../colour";
 import { LayerName } from "../../../models/floor";
-import type { InitiativeEffectMode } from "../../../models/initiative";
 import { floorSystem } from "../../floors";
 import { floorState } from "../../floors/state";
+import type { InitiativeEffectMode } from "../../initiative/models";
 
 import type { GridModeLabelFormat, PlayerOptions } from "./models";
 import { playerSettingsState } from "./state";

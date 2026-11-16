@@ -275,6 +275,68 @@ interface GroupSystem {
   getBadgeCharacters(shape: LocalId): string;
 }
 
+// Initiative
+
+export const InitiativeSort = { Down: 0, Up: 1, Manual: 2 } as const;
+export type InitiativeSort = (typeof InitiativeSort)[keyof typeof InitiativeSort];
+
+// Whether an effect's remaining turns are lowered at the start or end of the actor's turn
+export const InitiativeEffectUpdateTiming = { TurnEnd: 0, TurnStart: 1 } as const;
+export type InitiativeEffectUpdateTiming =
+  (typeof InitiativeEffectUpdateTiming)[keyof typeof InitiativeEffectUpdateTiming];
+
+export interface InitiativeEffect {
+  name: string;
+  // Remaining turns, `null` for effects without a duration
+  turns: string | null;
+  highlightsActor: boolean;
+  updateTiming: InitiativeEffectUpdateTiming;
+}
+
+export interface InitiativeData {
+  globalId: GlobalId;
+  // Only set while the shape is present on the board
+  localId?: LocalId;
+  initiative?: number;
+  isVisible: boolean;
+  // The entry represents the shape's entire group
+  isGroup: boolean;
+  effects: InitiativeEffect[];
+}
+
+interface InitiativeSystem {
+  // The entry whose turn it is
+  getActor(): DeepReadonly<InitiativeData> | undefined;
+  // Whether the current user can edit the entry, defaults to the entry whose turn it is
+  owns(shape?: GlobalId): boolean;
+  // Always synced
+  addInitiative(shape: LocalId, isGroup?: boolean): void;
+  setInitiative(shape: GlobalId, value: number, sync: boolean): void;
+  removeInitiative(shape: GlobalId, sync: boolean): void;
+  // Removes all entries
+  clearEntries(sync: boolean): void;
+  // Clears the initiative values, but keeps the entries
+  clearValues(sync: boolean): void;
+  // Starts or stops the initiative and syncs it, DM only
+  toggleActive(): void;
+  nextTurn(): void;
+  previousTurn(): void;
+  nextRound(): void;
+  previousRound(): void;
+  changeSort(sort: InitiativeSort, sync: boolean): void;
+  // Without an effect a default effect is created
+  createEffect(shape: GlobalId, effect: InitiativeEffect | undefined, sync: boolean): void;
+  setEffectName(shape: GlobalId, index: number, name: string, sync: boolean): void;
+  setEffectTurns(shape: GlobalId, index: number, turns: string, sync: boolean): void;
+  setEffectUpdateTiming(
+    shape: GlobalId,
+    index: number,
+    timing: InitiativeEffectUpdateTiming,
+    sync: boolean,
+  ): void;
+  removeEffect(shape: GlobalId, index: number, sync: boolean): void;
+}
+
 // Doors and teleport zones
 
 // Player names, "default" applies to every player
@@ -578,6 +640,7 @@ export interface ModSystems {
   floors: FloorSystem;
   game: GameSystem;
   groups: GroupSystem;
+  initiative: InitiativeSystem;
   locationSettings: LocationSettingsSystem;
   markers: MarkerSystem;
   notes: NoteSystem;
@@ -649,6 +712,17 @@ export interface ModSystemsState {
   groups: NonReactiveState<{
     groups: Map<string, Group>;
     groupMembers: Map<string, Set<LocalId>>;
+  }>;
+  initiative: ReactiveState<{
+    // Whether the initiative panel is open
+    showInitiative: boolean;
+    // The entries of the active location, in turn order
+    locationData: InitiativeData[];
+    roundCounter: number;
+    // Index in `locationData` of the entry whose turn it is
+    turnCounter: number;
+    sort: InitiativeSort;
+    isActive: boolean;
   }>;
   locationSettings: ReactiveState<
     { [K in keyof LocationOptions]: WithLocationDefault<LocationOptions[K]> } & {

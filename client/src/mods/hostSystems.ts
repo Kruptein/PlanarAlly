@@ -25,6 +25,8 @@ import type { gameSystem } from "../game/systems/game";
 import type { gameState } from "../game/systems/game/state";
 import type { groupSystem } from "../game/systems/groups";
 import type { groupState } from "../game/systems/groups/state";
+import type { initiativeSystem } from "../game/systems/initiative";
+import type { initiativeState } from "../game/systems/initiative/state";
 import type { doorSystem } from "../game/systems/logic/door";
 import type { teleportZoneSystem } from "../game/systems/logic/tp";
 import type { markerSystem } from "../game/systems/markers";
@@ -64,6 +66,7 @@ export interface HostSystems {
     floors: typeof floorSystem;
     game: typeof gameSystem;
     groups: typeof groupSystem;
+    initiative: typeof initiativeSystem;
     locationSettings: typeof locationSettingsSystem;
     markers: typeof markerSystem;
     notes: typeof noteSystem;
@@ -91,6 +94,7 @@ export interface HostSystemsState {
     floors: typeof floorState;
     game: typeof gameState;
     groups: typeof groupState;
+    initiative: typeof initiativeState;
     locationSettings: typeof locationSettingsState;
     markers: typeof markerState;
     notes: typeof noteState;

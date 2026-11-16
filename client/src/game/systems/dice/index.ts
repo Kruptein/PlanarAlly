@@ -6,6 +6,7 @@ import { POSITION, useToast } from "vue-toastification";
 import { registerSystem } from "../../../core/systems";
 import type { System, SystemClearReason } from "../../../core/systems/models";
 import type { AsyncReturnType } from "../../../core/types";
+import DiceRollToast from "../../ui/toasts/DiceRollToast.vue";
 
 import { diceState } from "./state";
 import { DiceUiState } from "./types";
@@ -91,10 +92,15 @@ class DiceSystem implements System {
     }
 
     showRollToast(player: string, display: string, roll: DeepReadonly<RollResult<Part>>): void {
-        toast.info(`${player} rolled ${display} and threw a ${roll.result}`, {
-            position: POSITION.TOP_RIGHT,
-            onClick: () => this.showResults(roll),
-        });
+        toast(
+            { component: DiceRollToast, props: { player, display, result: roll.result } },
+            {
+                position: POSITION.TOP_RIGHT,
+                icon: false,
+                toastClassName: "dice-roll-toast",
+                onClick: () => this.showResults(roll),
+            },
+        );
     }
 
     getSystem(

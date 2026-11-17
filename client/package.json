@@ -20,14 +20,15 @@
         "coverage": "vitest run --coverage"
     },
     "dependencies": {
-        "@babylonjs/core": "^8.22.2",
-        "@babylonjs/materials": "^8.22.2",
+        "@babylonjs/core": "^9.37.0",
+        "@babylonjs/havok": "^1.3.14",
+        "@babylonjs/materials": "^9.37.0",
         "@fortawesome/fontawesome-svg-core": "^7.3.1",
         "@fortawesome/free-brands-svg-icons": "^7.3.1",
         "@fortawesome/free-regular-svg-icons": "^7.3.1",
         "@fortawesome/free-solid-svg-icons": "^7.3.1",
         "@fortawesome/vue-fontawesome": "3.3.3",
-        "@planarally/dice": "^0.8.0",
+        "@planarally/dice": "^0.9.1",
         "@vueuse/core": "^15.0.0",
         "dompurify": "^3.4.18",
         "lodash": "^4.18.1",

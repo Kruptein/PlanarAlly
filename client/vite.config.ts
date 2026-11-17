@@ -56,6 +56,8 @@ export default defineConfig({
         exclude: ["@babylonjs/havok"],
     },
     resolve: {
+        // this is only here for testing against a local planarally-dice copy
+        dedupe: ["@babylonjs/core", "@babylonjs/havok"],
         alias: [
             {
                 find: "@planarally/mod-api",

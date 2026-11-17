@@ -50,7 +50,7 @@ export async function loadDiceEnv(canvas?: HTMLCanvasElement): Promise<DiceThrow
 }
 
 async function createThrower(canvas: HTMLCanvasElement, cameraHeight: number): Promise<ThrowerConfig> {
-    const diceThrower = new DiceThrower({ canvas, tresholds: { linear: 0.05, angular: 0.1 } });
+    const diceThrower = new DiceThrower({ canvas, thresholds: { linear: 0.05, angular: 0.1 } });
     const scene = diceThrower.scene;
 
     scene.clearColor = new Color4(0, 0, 0, 0);

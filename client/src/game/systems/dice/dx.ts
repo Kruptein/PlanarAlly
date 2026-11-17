@@ -13,7 +13,14 @@ const parts = ref<DxSegment[]>([]);
 watch(
     () => diceState.reactive.textInput,
     (text) => {
-        parts.value = diceState.raw.systems!["2d"].parse(text);
+        if (text.trim().length === 0) {
+            parts.value = [];
+            return;
+        }
+        // Parsing fails on incomplete input (e.g. "1d20 +") while typing, keep the last valid parts
+        try {
+            parts.value = diceState.raw.systems!["2d"].parse(text);
+        } catch {}
     },
 );
 
@@ -75,12 +82,8 @@ function stringifySegments(): string {
             text += `${seg.amount}${seg.die}`;
             if (seg.operator === "keep") text += "k";
             else if (seg.operator === "drop") text += "p";
-            else if (seg.operator === "explode") text += "e";
             else if (seg.operator === "min") text += "mi";
             else if (seg.operator === "max") text += "ma";
-            else if (seg.operator === "inf") text += "rr";
-            else if (seg.operator === "add") text += "ra";
-            else if (seg.operator === "once") text += "ro";
 
             if (seg.selector === "highest") text += "h";
             else if (seg.selector === "lowest") text += "l";

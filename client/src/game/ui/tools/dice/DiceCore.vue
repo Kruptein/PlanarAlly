@@ -8,10 +8,8 @@ import { useToast } from "vue-toastification";
 import ClickGroup from "../../../../core/components/ClickGroup.vue";
 import { arrToToggleGroup } from "../../../../core/components/toggleGroup";
 import ToggleGroup from "../../../../core/components/ToggleGroup.vue";
-import { VariableError } from "../../../systems/customData/utils";
 import { diceSystem } from "../../../systems/dice";
 import { DxHelper } from "../../../systems/dice/dx";
-import { DiceMathError } from "../../../systems/dice/math";
 import { dice3dOptions, diceState, shareResultOptions } from "../../../systems/dice/state";
 import { diceTool } from "../../../tools/variants/dice";
 
@@ -200,9 +198,8 @@ async function roll(): Promise<void> {
         await diceTool.roll(content);
     } catch (error) {
         awaitingRoll.value = false;
-        if (!(error instanceof DiceMathError || error instanceof VariableError)) throw error;
         diceSystem.setInput(content);
-        toast.error(error.message);
+        toast.error(error instanceof Error ? error.message : String(error));
         return;
     }
 

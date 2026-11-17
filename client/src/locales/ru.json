@@ -300,9 +300,7 @@
                 "discord_msg": "Вступить в сообщество в discord!",
                 "patreon_msg": "Учавствовать в компании на patreon!",
                 "open_loc_menu": "Открыть меню регионов",
-                "new_ver_msg": "Есть новая версия!",
-                "open_settings": "Открыть настройки",
-                "changelog_RELEASE_LOG": "# Релиз {release}\n*Читайте подробности по ссылке: https://www.planarally.io/blog/*\n{log}"
+                "open_settings": "Открыть настройки"
             }
         }
     },

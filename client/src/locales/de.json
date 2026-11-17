@@ -348,9 +348,7 @@
                 "discord_msg": "Tritt der Community auf discord bei!",
                 "patreon_msg": "Leiste einen Beitrag über patreon!",
                 "open_loc_menu": "Orte-Menü öffnen",
-                "new_ver_msg": "Eine neue Version ist erschienen!",
-                "open_settings": "Einstellungen öffnen",
-                "changelog_RELEASE_LOG": "# Versionsnummer {release}\n*Für mehr Details besuche https://www.planarally.io/blog\n{log}"
+                "open_settings": "Einstellungen öffnen"
             }
         }
     },

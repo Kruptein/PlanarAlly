@@ -36,9 +36,14 @@ tech changes will usually be stripped from release notes for the public
 -   Light rendering performance improvements on big screens/slow hardware
 -   Dice variables that match multiple custom data elements now show an error listing the alternatives instead of using the first match
 -   UI for dice roll notifications is a bit more visually pleasing
+-   A new release is announced with a notification linking to the release notes instead of a changelog popup
 -   [mods] Custom data in the shape dialog is split in tabs per mod, editing a mod's data has to be unlocked first
 -   [mods] Shape DataBlocks can by default only be read by users with edit access to the shape, existing shape DataBlocks are migrated to this default
 -   [tech] Initiative moved to the common systems setup, no longer using a legacy store
+
+### Removed
+
+-   [tech] The `/api/changelog` endpoint, only the first line (the release) of the server's `VERSION` file is still used
 
 ### Fixed
 

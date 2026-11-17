@@ -16,13 +16,7 @@ router.beforeEach(async (to) => {
         // Launch core requests
         const promiseArray = [http.get("/api/auth"), http.get("/api/version")];
 
-        // Launch extra requests (changelog & notifications)
-        http.get("/api/changelog")
-            .then(async (response) => {
-                const data = (await response.json()) as { changelog: string };
-                coreStore.setChangelog(data.changelog);
-            })
-            .catch(() => console.warn("Failed to retrieve changelog"));
+        // Launch extra requests (notifications)
         http.get("/api/notifications")
             .then(async (response) => {
                 const data = (await response.json()) as { uuid: string; message: string }[];

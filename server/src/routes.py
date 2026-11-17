@@ -74,7 +74,6 @@ main_app.router.add_post(f"{subpath}/api/rooms/import/{{name}}", rooms.import_in
 main_app.router.add_post(f"{subpath}/api/rooms/import/{{name}}/{{chunk}}", rooms.import_chunk)
 main_app.router.add_post(f"{subpath}/api/invite", http.claim_invite)
 main_app.router.add_get(f"{subpath}/api/version", version.get_version)
-main_app.router.add_get(f"{subpath}/api/changelog", version.get_changelog)
 main_app.router.add_get(f"{subpath}/api/notifications", notifications.collect)
 main_app.router.add_post(f"{subpath}/api/mod/upload", mods.upload)
 

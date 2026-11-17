@@ -722,9 +722,10 @@
                 "discord_msg": "Join the community on discord!",
                 "patreon_msg": "Contribute using patreon!",
                 "open_loc_menu": "Open location menu",
-                "new_ver_msg": "There is a new version!",
                 "open_settings": "Open settings",
-                "changelog_RELEASE_LOG": "# Release {release}\n*For more details visit https://www.planarally.io/blog/*\n{log}",
+                "updated_to_RELEASE": "Updated to {release}",
+                "update_msg": "PlanarAlly has been updated, check out what's new!",
+                "whats_new": "What's new",
                 "return_to_content": "Click to return to content"
             },
             "compendium": {

@@ -597,9 +597,7 @@
                     "discord_msg": "Rejoignez la communauté sur discord !",
                     "patreon_msg": "Contribuez via patreon !",
                     "open_loc_menu": "Ouvrir le menu des lieux",
-                    "new_ver_msg": "Une nouvelle version est disponible !",
                     "open_settings": "Ouvrir les paramètres",
-                    "changelog_RELEASE_LOG": "# Version {release}\n*Pour plus de détails, visitez https://www.planarally.io/blog/*\n{log}",
                     "return_to_content": "Cliquez pour revenir au contenu"
                 },
                 "notes": {

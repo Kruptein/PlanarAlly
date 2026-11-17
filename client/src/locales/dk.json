@@ -300,9 +300,7 @@
                 "discord_msg": "Bliv en del af fælleskabet på discord!",
                 "patreon_msg": "Bidrag ved hjælp af patreon!",
                 "open_loc_menu": "Åben placeringsmenu",
-                "new_ver_msg": "Der er en ny version!",
-                "open_settings": "Åben instillinger",
-                "changelog_RELEASE_LOG": "# Versionnummer {release}\n*For flere detaljer, besøg https://www.planarally.io/blog/*\n{log}"
+                "open_settings": "Åben instillinger"
             }
         }
     },

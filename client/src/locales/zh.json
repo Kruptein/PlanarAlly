@@ -697,9 +697,7 @@
                 "discord_msg": "加入Discord社群！",
                 "patreon_msg": "使用Patreon捐助！",
                 "open_loc_menu": "打开地点菜单",
-                "new_ver_msg": "新版本上线啦！",
                 "open_settings": "打开设置",
-                "changelog_RELEASE_LOG": "# 新上线版本 {release}\n*需要了解更多细节，请参见 https://www.planarally.io/blog/*\n{log}",
                 "return_to_content": "点击返回主要场地"
             },
             "notes": {

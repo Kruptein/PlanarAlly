@@ -7,11 +7,10 @@ from ...utils import FILE_DIR
 
 release_version: str | None
 env_version: str | None
-changelog: list[str] | None
 
 try:
     with open(FILE_DIR / "VERSION", "r") as version_file:
-        release_version, _, *changelog = version_file.read().splitlines()
+        release_version = version_file.readline().strip()
 
     env_version = release_version
 
@@ -25,7 +24,6 @@ try:
 except:
     release_version = None
     env_version = None
-    changelog = None
 
 
 async def get_version(_request: web.Request):
@@ -41,10 +39,3 @@ async def get_version(_request: web.Request):
             "assetUrl": get_storage().get_public_url_base(),
         }
     )
-
-
-async def get_changelog(_request: web.Request):
-    if changelog is None:
-        return web.HTTPInternalServerError(reason="Version file could not be loaded")
-
-    return web.json_response({"changelog": "\n".join(changelog)})

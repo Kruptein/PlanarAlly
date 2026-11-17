@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { POSITION, useToast } from "vue-toastification";
 
-import MarkdownModal from "../../core/components/modals/MarkdownModal.vue";
 import SliderComponent from "../../core/components/slider/SliderComponent.vue";
 import { baseAdjust } from "../../core/http";
 import { activeShapeStore } from "../../store/activeShape";
@@ -25,6 +25,7 @@ import LocationBar from "./menu/LocationBar.vue";
 import MenuBar from "./menu/MenuBar.vue";
 import ModalStack from "./ModalStack.vue";
 import SelectionInfo from "./SelectionInfo.vue";
+import UpdateToast from "./toasts/UpdateToast.vue";
 import CreateTokenDialog from "./tokendialog/CreateTokenDialog.vue";
 import { tokenDialogVisible } from "./tokendialog/state";
 import TokenDirections from "./TokenDirections.vue";
@@ -34,6 +35,7 @@ const uiEl = ref<HTMLDivElement | null>(null);
 
 const coreState = coreStore.state;
 const { t } = useI18n();
+const toast = useToast();
 
 const visible = reactive({
     locations: false,
@@ -41,25 +43,48 @@ const visible = reactive({
 });
 const topLeft = computed(() => visible.locations && visible.settings);
 
-const changelogText = computed(() =>
-    t("game.ui.ui.changelog_RELEASE_LOG", {
-        release: coreState.version.release,
-        log: coreState.changelog,
-    }),
-);
-
 const releaseVersion = computed(() => coreState.version.release);
 
-const showChangelog = computed(() => {
-    const version = localStorage.getItem("last-version");
-    if (version !== coreState.version.release) {
-        localStorage.setItem("last-version", coreState.version.release);
-        return true;
-    }
-    return false;
-});
+// Strips the patch part (2026.1.2 -> 2026.1), as only these major releases get a blog post.
+// Returns undefined for versions that are not a release (e.g. dev builds).
+function getMajorRelease(version: string): string | undefined {
+    return /^(\d{4}\.\d+)(\.\d+)?$/.exec(version)?.[1];
+}
+
+function notifyNewVersion(): void {
+    const release = coreState.version.release;
+    if (release === "") return;
+    const lastVersion = localStorage.getItem("last-version");
+    if (lastVersion === release) return;
+    localStorage.setItem("last-version", release);
+    // First visit, there is nothing new for this user
+    if (lastVersion === null) return;
+
+    const majorRelease = getMajorRelease(release);
+    if (majorRelease === undefined || majorRelease === getMajorRelease(lastVersion)) return;
+
+    toast(
+        {
+            component: UpdateToast,
+            props: {
+                title: t("game.ui.ui.updated_to_RELEASE", { release: majorRelease }),
+                message: t("game.ui.ui.update_msg"),
+                whatsNewText: t("game.ui.ui.whats_new"),
+                blogUrl: `https://www.planarally.io/blog/release-${majorRelease}/`,
+            },
+        },
+        {
+            position: POSITION.TOP_RIGHT,
+            timeout: 15_000,
+            icon: false,
+            closeOnClick: false,
+            toastClassName: "update-toast",
+        },
+    );
+}
 
 onMounted(() => {
+    notifyNewVersion();
     // hide all UI elements that were previously open
     activeShapeStore.setShowEditDialog(false);
     closeInitiativeDialog();
@@ -222,7 +247,6 @@ function setTempZoomDisplay(value: number): void {
         <!-- Modals that require immediate attention -->
         <CreateTokenDialog />
         <div id="teleport-modals"></div>
-        <MarkdownModal v-if="showChangelog" :title="t('game.ui.ui.new_ver_msg')" :source="changelogText" />
         <!-- end of main modals -->
     </div>
 </template>

@@ -8,7 +8,6 @@ interface CoreState {
     username: string;
     email?: string;
     version: { release: string; env: string };
-    changelog: string;
     assetUrlBase: string | null;
 }
 
@@ -20,7 +19,6 @@ class CoreStore extends Store<CoreState> {
             username: "",
             loading: false,
             version: { release: "", env: "" },
-            changelog: "",
             assetUrlBase: null,
         };
     }
@@ -45,10 +43,6 @@ class CoreStore extends Store<CoreState> {
 
     setEmail(email: string): void {
         this._state.email = email;
-    }
-
-    setChangelog(changelog: string): void {
-        this._state.changelog = changelog;
     }
 
     setVersion(version: { release: string; env: string }): void {

@@ -312,9 +312,7 @@
                 "discord_msg": "加入Discord社群！",
                 "patreon_msg": "使用Patreon捐助！",
                 "open_loc_menu": "打開地點畫面",
-                "new_ver_msg": "新版本上線啦！",
-                "open_settings": "打開設定",
-                "changelog_RELEASE_LOG": "# 新上線版本 {release}\n*需要了解更多細節，請參見 https://www.planarally.io/blog/*\n{log}"
+                "open_settings": "打開設定"
             }
         }
     },

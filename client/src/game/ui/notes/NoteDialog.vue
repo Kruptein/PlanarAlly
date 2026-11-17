@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
-import VueMarkdown from "vue-markdown-render";
 
 import Modal from "../../../core/components/modals/Modal.vue";
+import SanitizedMarkdown from "../../../core/components/SanitizedMarkdown.vue";
 import { coreStore } from "../../../store/core";
 import { compendiumSystem } from "../../systems/compendium";
 import { rulePlugins } from "../../systems/compendium/markdown";
@@ -193,7 +193,7 @@ function windowToggle(windowed: boolean): void {
         </template>
 
         <div v-if="!collapsed.active" class="note-body" @click="compendiumSystem.ruleClick">
-            <VueMarkdown v-if="!editing" :source="note.text" :options="{ html: true }" :plugins="rulePlugins" />
+            <SanitizedMarkdown v-if="!editing" :source="note.text" :plugins="rulePlugins" />
             <template v-else>
                 <RuleSuggest :input="noteText" />
                 <textarea

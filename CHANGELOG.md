@@ -62,6 +62,7 @@ tech changes will usually be stripped from release notes for the public
 -   Changing a shape's asset did not check whether the user has edit access to the shape
 -   The draw tool's 'prefert default colours' checkbox was not working properly when unchecked
 -   Undo of a shape removal, will restore as much as possible of the initiative state of the shape
+-   HTML in notes and their hover annotations could run scripts for other users, it is now sanitized (scripts, event handlers, embeds, styles and forms are removed)
 -   [DM] Location cloning was no longer opening the cloned location immediately
 -   [DM] Location cloning was no longer working properly when there were assets
 -   [DM] Styling issue on disabled location buttons

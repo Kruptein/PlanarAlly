@@ -55,13 +55,13 @@ jobs:
             - run:
                   name: Zip artifacts
                   command: |
-                      VERSION=$(head -1 server/VERSION)
+                      VERSION=$(grep -m1 '^version = ' server/pyproject.toml | cut -d'"' -f2)
                       zip -r /tmp/archives/planarally-bin-${VERSION}.zip server/*
 
             - run:
                   name: Gunzip artifacts
                   command: |
-                      VERSION=$(head -1 server/VERSION)
+                      VERSION=$(grep -m1 '^version = ' server/pyproject.toml | cut -d'"' -f2)
                       tar -czf /tmp/archives/planarally-bin-${VERSION}.tar.gz server/*
 
             - when:
@@ -72,7 +72,7 @@ jobs:
                       - run:
                             name: "Publish release on github"
                             command: |
-                                VERSION=$(head -1 server/VERSION)
+                                VERSION=$(grep -m1 '^version = ' server/pyproject.toml | cut -d'"' -f2)
                                 ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace v${VERSION} /tmp/archives
 
     build-windows:
@@ -105,13 +105,13 @@ jobs:
             - run: uv add ordered-set nuitka
 
             - run:
-                  command: uv run -m nuitka --standalone --assume-yes-for-downloads --include-data-files=VERSION=VERSION --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico ./planarally.py
+                  command: uv run -m nuitka --standalone --assume-yes-for-downloads --include-data-files=pyproject.toml=pyproject.toml --include-data-dir=static=static --include-data-dir=templates=templates --windows-icon-from-ico=static/favicon.ico ./planarally.py
                   no_output_timeout: 30m
 
             - run:
                   name: Zip artifacts
                   command: |
-                      $VERSION=$(Get-Content -TotalCount 1 VERSION)
+                      $VERSION=$(uv version --short)
                       Compress-Archive -Path .\planarally.dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}.zip
 
             - when:
@@ -125,7 +125,7 @@ jobs:
                       - run:
                             name: Publish release on github
                             command: |
-                                $VERSION=$(Get-Content -TotalCount 1 VERSION)
+                                $VERSION=$(uv version --short)
                                 ~\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace v$VERSION C:\Users\circleci\archives
 
             - when:

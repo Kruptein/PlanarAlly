@@ -43,7 +43,7 @@ tech changes will usually be stripped from release notes for the public
 
 ### Removed
 
--   [tech] The `/api/changelog` endpoint, only the first line (the release) of the server's `VERSION` file is still used
+-   [tech] The `/api/changelog` endpoint and the server's `VERSION` file, the version is now read from `server/pyproject.toml`
 
 ### Fixed
 

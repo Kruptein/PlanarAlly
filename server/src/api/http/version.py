@@ -1,5 +1,6 @@
 import os
 import subprocess
+import tomllib
 
 from aiohttp import web
 
@@ -9,8 +10,8 @@ release_version: str | None
 env_version: str | None
 
 try:
-    with open(FILE_DIR / "VERSION", "r") as version_file:
-        release_version = version_file.readline().strip()
+    with open(FILE_DIR / "pyproject.toml", "rb") as pyproject_file:
+        release_version = tomllib.load(pyproject_file)["project"]["version"]
 
     env_version = release_version
 
@@ -28,7 +29,7 @@ except:
 
 async def get_version(_request: web.Request):
     if env_version is None:
-        return web.HTTPInternalServerError(reason="Version file could not be loaded")
+        return web.HTTPInternalServerError(reason="Version could not be loaded from pyproject.toml")
 
     from ...storage import get_storage
 

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onActivated, ref, watch, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
-import VueMarkdown from "vue-markdown-render";
 import { useToast } from "vue-toastification";
 
+import SanitizedMarkdown from "../../../core/components/SanitizedMarkdown.vue";
 import type { LocalId } from "../../../core/id";
 import { useModal } from "../../../core/plugins/modals/plugin";
 import { mostReadable } from "../../../core/utils";
@@ -376,7 +376,7 @@ function searchTag(tag: string): void {
             </div>
         </div>
         <div v-if="activeTab === TabLabel.View" id="editor" class="tab-container" @click="compendiumSystem.ruleClick">
-            <VueMarkdown :source="note.text" :options="{ html: true }" :plugins="rulePlugins" />
+            <SanitizedMarkdown :source="note.text" :plugins="rulePlugins" />
         </div>
         <div v-else-if="activeTab === TabLabel.Edit" id="editor" class="tab-container">
             <em>{{ t("game.ui.notes.NoteEdit.md_aware") }}</em>

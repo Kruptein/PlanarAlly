@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import VueMarkdown from "vue-markdown-render";
-
+import SanitizedMarkdown from "../../core/components/SanitizedMarkdown.vue";
 import { compendiumSystem } from "../systems/compendium";
 import { rulePlugins } from "../systems/compendium/markdown";
 import { uiState } from "../systems/ui/state";
@@ -8,7 +7,7 @@ import { uiState } from "../systems/ui/state";
 
 <template>
     <div v-show="uiState.reactive.annotationText.length > 0" id="annotation" @click="compendiumSystem.ruleClick">
-        <VueMarkdown :source="uiState.reactive.annotationText" :options="{ html: true }" :plugins="rulePlugins" />
+        <SanitizedMarkdown :source="uiState.reactive.annotationText" :plugins="rulePlugins" />
     </div>
 </template>
 

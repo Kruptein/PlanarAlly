@@ -59,7 +59,7 @@ async def connect(sid, environ):
         skip_sid=sid,
     )
 
-    stats.events.campaign_opened(pr.room.id, user.id)
+    stats.events.campaign_opened(pr.room.id, user.id, sid)
 
 
 @sio.on("disconnect", namespace=GAME_NS)
@@ -82,4 +82,4 @@ async def disconnect(sid):
         skip_sid=sid,
     )
 
-    stats.events.campaign_closed(pr.room.id, pr.player.id)
+    stats.events.campaign_closed(sid)

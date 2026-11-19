@@ -47,3 +47,7 @@ export function sendRoomClientOptions<T extends keyof ApiUserOptions>(
 }
 
 export const sendMoveClient = wrapSocket<ClientMove>("Client.Move");
+
+export function sendIdleState(idle: boolean): void {
+    socket.emit(idle ? "Client.Idle" : "Client.Active");
+}

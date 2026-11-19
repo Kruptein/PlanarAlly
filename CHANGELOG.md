@@ -38,6 +38,11 @@ tech changes will usually be stripped from release notes for the public
 -   UI for dice roll notifications is a bit more visually pleasing
 -   A new release is announced with a notification linking to the release notes instead of a changelog popup
 -   Chat only turns full urls (e.g. https://example.com) into links, bare domains (e.g. example.com) are no longer linked
+-   [admin] The server overview shows time spent in game and splits its activity chart into time in game, players and campaigns, and growth
+-   [stats] A game session ends after 30 minutes without user input, so tabs that are left open no longer count as time in game
+-   [stats] Game sessions get a session id, so that multiple tabs of the same user in a campaign are tracked separately
+-   [admin] The server overview groups activity by the admin's local day and mentions when stats collection is disabled
+-   [tech] Indexes on the stats table, which is queried on every game connect and disconnect
 -   [mods] Custom data in the shape dialog is split in tabs per mod, editing a mod's data has to be unlocked first
 -   [mods] Shape DataBlocks can by default only be read by users with edit access to the shape, existing shape DataBlocks are migrated to this default
 -   [tech] Initiative moved to the common systems setup, no longer using a legacy store
@@ -48,6 +53,7 @@ tech changes will usually be stripped from release notes for the public
 
 ### Fixed
 
+-   Stats recorded while an export was running, or after a failed export chunk, were never exported
 -   Locked shapes were movable by keyboard navigation
 -   Copy/pasting a shape marked as a character, wasn't properly working
 -   Renaming a shape or changing its image did not update its character

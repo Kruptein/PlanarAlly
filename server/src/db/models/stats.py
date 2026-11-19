@@ -25,6 +25,15 @@ class Stats(BaseDbModel):
     campaign_id = cast(int | None, IntegerField(null=True))
     # If relevant, the user that it applied to
     user_id = cast(int | None, IntegerField(null=True))
+    # Links the connect and disconnect events of a single game session
+    session_id = cast(str | None, TextField(null=True))
+
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
+        indexes = (
+            (("timestamp",), False),
+            (("campaign_id", "user_id", "timestamp"), False),
+            (("session_id",), False),
+        )
 
     def to_export_format(self):
         return {
@@ -33,4 +42,5 @@ class Stats(BaseDbModel):
             "data": self.data,
             "campaign_id": self.campaign_id,
             "user_id": self.user_id,
+            "session_id": self.session_id,
         }

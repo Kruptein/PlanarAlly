@@ -37,6 +37,7 @@ tech changes will usually be stripped from release notes for the public
 -   Dice variables that match multiple custom data elements now show an error listing the alternatives instead of using the first match
 -   UI for dice roll notifications is a bit more visually pleasing
 -   A new release is announced with a notification linking to the release notes instead of a changelog popup
+-   Chat only turns full urls (e.g. https://example.com) into links, bare domains (e.g. example.com) are no longer linked
 -   [mods] Custom data in the shape dialog is split in tabs per mod, editing a mod's data has to be unlocked first
 -   [mods] Shape DataBlocks can by default only be read by users with edit access to the shape, existing shape DataBlocks are migrated to this default
 -   [tech] Initiative moved to the common systems setup, no longer using a legacy store

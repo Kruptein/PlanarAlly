@@ -13,17 +13,17 @@ dependencies = [
     "cryptography==50.0.2",
     "peewee==3.19.0",
     "pillow==13.0.0",
-    "pydantic[email]==2.14.1",
-    "python-engineio==4.15.0",
-    "python-socketio==5.17.0",
+    "pydantic[email]==2.14.4",
+    "python-engineio==4.15.1",
+    "python-socketio==5.18.1",
     "redmail==0.6.0",
     "rtoml==0.14.0",
     "typing-extensions==4.16.0",
-    "watchdog==6.0.0",
+    "watchdog==7.1.0",
 ]
 
 [dependency-groups]
-dev = ["pydantic-to-typescript==2.0.0", "ruff==0.17.3"]
+dev = ["pydantic-to-typescript==2.0.0", "ruff==0.17.5"]
 
 [tool.ruff]
 line-length = 120

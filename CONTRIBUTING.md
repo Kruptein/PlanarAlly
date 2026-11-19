@@ -27,7 +27,7 @@ npm run lint
 
 All code of the server is located in the `server` folder at the root level of the git repository.
 The server infrastructure runs on aiohttp, a python async webframework.
-Install python >=3.6 (a virtual environment is recommended) and install all the dependencies.
+Install python >=3.11 (a virtual environment is recommended) and install all the dependencies.
 
 ### Install & Setup
 

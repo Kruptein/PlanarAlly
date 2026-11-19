@@ -189,7 +189,6 @@ def server_main(args):
 
     loop.create_task(start_servers())
     loop.create_task(stats.data.start_tracking())
-
     try:
         main_app.on_cleanup.append(on_cleanup)
         main_app.on_shutdown.append(on_shutdown)

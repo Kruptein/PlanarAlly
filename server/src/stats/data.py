@@ -27,16 +27,18 @@ async def export_stats():
     c = Constants.get()
 
     # Get all entries since last export
-    stats = Stats.select()
+    query = Stats.select().order_by(Stats.timestamp, Stats.id)
     if c.last_export_date:
-        stats = stats.where(Stats.timestamp > c.last_export_date)
+        query = query.where(Stats.timestamp > c.last_export_date)
+    stats = list(query)
 
     if len(stats) == 0:
         return
 
     for chunk in range(0, len(stats), 1000):
+        batch = stats[chunk : chunk + 1000]
         data = {
-            "stats": [s.to_export_format() for s in stats[chunk : chunk + 1000]],
+            "stats": [s.to_export_format() for s in batch],
             "serverId": c.stats_uuid,
             "totals": {
                 "users": User.select().count(),
@@ -45,7 +47,7 @@ async def export_stats():
             "versions": {
                 "serverEnv": env_version,
                 "serverRelease": release_version,
-                "statsFormat": 2,
+                "statsFormat": 3,
             },
         }
 
@@ -55,10 +57,10 @@ async def export_stats():
             logger.warning(f"Error exporting stats: {e}")
             break
 
-        # Update last export date if at least 1 chunk succeeded,
-        # if a later chunk fails we just suck it up right now and accept that that data is not transmitted
-        c.last_export_date = datetime.now(tz=UTC)
-    c.save()
+        # Only move past what was actually sent, so that events created during the export
+        # or belonging to a failed chunk are picked up by the next export
+        c.last_export_date = batch[-1].timestamp
+        c.save()
 
 
 async def start_tracking():

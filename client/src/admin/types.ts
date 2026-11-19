@@ -12,6 +12,8 @@ export interface DailyActivity {
     activeCampaigns: number;
     connectedPlayers: number;
     sessions: number;
+    // in seconds
+    playTime: number;
 }
 
 export interface AdminOverview {
@@ -25,6 +27,9 @@ export interface AdminOverview {
         newUsers: number;
         newCampaigns: number;
         sessions: number;
+        // in seconds
+        playTime: number;
+        averageSession: number;
     };
     telemetry: {
         enabled: boolean;

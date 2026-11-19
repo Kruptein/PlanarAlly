@@ -1,32 +1,43 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 
+import BarChart from "./BarChart.vue";
 import { socket } from "./socket";
-import type { AdminOverview } from "./types";
+import type { AdminOverview, DailyActivity } from "./types";
+
+const colors = {
+    playTime: "#77d6c9",
+    players: "#7ec8ff",
+    campaigns: "#b99cff",
+    newUsers: "#ffa8bf",
+    newCampaigns: "#ffcf70",
+};
 
 const overview = ref<AdminOverview>();
 const loading = ref(true);
 const failed = ref(false);
 
-const maxDailyActivity = computed(() => {
-    if (overview.value === undefined) return 0;
-    return Math.max(
-        0,
-        ...overview.value.dailyActivity.flatMap((day) => [
-            day.newUsers,
-            day.newCampaigns,
-            day.activeCampaigns,
-            day.connectedPlayers,
-            day.sessions,
-        ]),
-    );
-});
+const dayLabels = computed(() => overview.value?.dailyActivity.map((day) => formatDay(day.date)) ?? []);
+
+function daily(key: Exclude<keyof DailyActivity, "date">): number[] {
+    return overview.value?.dailyActivity.map((day) => day[key]) ?? [];
+}
+
+const maxPlayTime = computed(() => Math.max(0, ...(overview.value?.dailyActivity.map((day) => day.playTime) ?? [])));
+const maxUsage = computed(() =>
+    Math.max(0, ...(overview.value?.dailyActivity.flatMap((day) => [day.connectedPlayers, day.activeCampaigns]) ?? [])),
+);
+const maxGrowth = computed(() =>
+    Math.max(0, ...(overview.value?.dailyActivity.flatMap((day) => [day.newUsers, day.newCampaigns]) ?? [])),
+);
 
 async function load(): Promise<void> {
     loading.value = true;
     failed.value = false;
     try {
-        overview.value = (await socket.emitWithAck("Stats.Overview")) as AdminOverview;
+        // The server groups the chart per day in the admin's timezone
+        const utcOffsetMinutes = -new Date().getTimezoneOffset();
+        overview.value = (await socket.emitWithAck("Stats.Overview", utcOffsetMinutes)) as AdminOverview;
         failed.value = overview.value === undefined;
     } catch {
         failed.value = true;
@@ -35,9 +46,18 @@ async function load(): Promise<void> {
     }
 }
 
-function barHeight(value: number): string {
-    if (value === 0 || maxDailyActivity.value === 0) return "0";
-    return `${Math.max(6, (value / maxDailyActivity.value) * 100)}%`;
+function formatDuration(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.round((seconds % 3600) / 60);
+    if (hours === 0) return `${minutes} min`;
+    if (hours >= 10 || minutes === 0) return `${hours} h`;
+    return `${hours} h ${minutes} min`;
+}
+
+function playTimeTitle(index: number): string {
+    const day = overview.value?.dailyActivity[index];
+    if (day === undefined) return "";
+    return `${formatDuration(day.playTime)} in game\n${day.sessions} sessions`;
 }
 
 function formatDate(value: Date, includeYear: boolean): string {
@@ -87,6 +107,11 @@ onMounted(load);
         </div>
 
         <template v-else>
+            <div v-if="!overview.telemetry.enabled" class="notice">
+                Stats collection is disabled in the server config. The activity below only includes what was collected
+                while it was enabled.
+            </div>
+
             <div class="stats-grid">
                 <article class="stat-card">
                     <span class="stat-label">Users</span>
@@ -109,62 +134,87 @@ onMounted(load);
                     <small>Last 30 days</small>
                 </article>
                 <article class="stat-card">
-                    <span class="stat-label">Player sessions</span>
-                    <strong>{{ overview.activity.sessions }}</strong>
-                    <small>Last 30 days; reconnects within 5 minutes are merged</small>
+                    <span class="stat-label">Time in game</span>
+                    <strong>{{ formatDuration(overview.activity.playTime) }}</strong>
+                    <small>
+                        Last 30 days; {{ overview.activity.sessions }} sessions,
+                        {{ formatDuration(overview.activity.averageSession) }} on average
+                    </small>
                 </article>
             </div>
 
             <div class="overview-panels">
-                <article class="panel activity-panel">
-                    <div class="panel-heading">
-                        <div>
-                            <h2>Activity</h2>
-                            <p>Last 14 days</p>
-                        </div>
-                        <div class="legend">
-                            <span class="new-users">New users</span>
-                            <span class="new-campaigns">New campaigns</span>
-                            <span class="active-campaigns">Active campaigns</span>
-                            <span class="connected-players">Connected players</span>
-                            <span class="sessions">Sessions</span>
-                        </div>
-                    </div>
-
-                    <div v-if="maxDailyActivity === 0" class="empty-activity">No tracked activity in this period.</div>
-                    <div v-else class="activity-chart">
-                        <div v-for="day in overview.dailyActivity" :key="day.date" class="day">
-                            <div class="bars">
-                                <div
-                                    class="bar new-users"
-                                    :style="{ height: barHeight(day.newUsers) }"
-                                    :title="`${day.newUsers} new users`"
-                                ></div>
-                                <div
-                                    class="bar new-campaigns"
-                                    :style="{ height: barHeight(day.newCampaigns) }"
-                                    :title="`${day.newCampaigns} new campaigns`"
-                                ></div>
-                                <div
-                                    class="bar active-campaigns"
-                                    :style="{ height: barHeight(day.activeCampaigns) }"
-                                    :title="`${day.activeCampaigns} active campaigns`"
-                                ></div>
-                                <div
-                                    class="bar connected-players"
-                                    :style="{ height: barHeight(day.connectedPlayers) }"
-                                    :title="`${day.connectedPlayers} connected players`"
-                                ></div>
-                                <div
-                                    class="bar sessions"
-                                    :style="{ height: barHeight(day.sessions) }"
-                                    :title="`${day.sessions} player sessions`"
-                                ></div>
+                <div class="charts">
+                    <article class="panel">
+                        <div class="panel-heading">
+                            <div>
+                                <h2>Time in game</h2>
+                                <p>
+                                    Last 14 days; a session ends after 30 minutes without user input, hover a day for
+                                    details
+                                </p>
                             </div>
-                            <span>{{ formatDay(day.date) }}</span>
                         </div>
-                    </div>
-                </article>
+
+                        <div v-if="maxPlayTime === 0" class="empty-activity">No sessions in this period.</div>
+                        <BarChart
+                            v-else
+                            :labels="dayLabels"
+                            :series="[{ label: 'Time in game', color: colors.playTime, values: daily('playTime') }]"
+                            :format-value="formatDuration"
+                            duration
+                            :day-title="playTimeTitle"
+                        />
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-heading">
+                            <div>
+                                <h2>Players and campaigns</h2>
+                                <p>Last 14 days; unique players that connected and campaigns that were played</p>
+                            </div>
+                            <div class="legend">
+                                <span><i :style="{ backgroundColor: colors.players }"></i>Players</span>
+                                <span><i :style="{ backgroundColor: colors.campaigns }"></i>Campaigns</span>
+                            </div>
+                        </div>
+
+                        <div v-if="maxUsage === 0" class="empty-activity">No sessions in this period.</div>
+                        <BarChart
+                            v-else
+                            :labels="dayLabels"
+                            :series="[
+                                { label: 'Players', color: colors.players, values: daily('connectedPlayers') },
+                                { label: 'Campaigns', color: colors.campaigns, values: daily('activeCampaigns') },
+                            ]"
+                        />
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-heading">
+                            <div>
+                                <h2>Growth</h2>
+                                <p>Last 14 days</p>
+                            </div>
+                            <div class="legend">
+                                <span><i :style="{ backgroundColor: colors.newUsers }"></i>New users</span>
+                                <span><i :style="{ backgroundColor: colors.newCampaigns }"></i>New campaigns</span>
+                            </div>
+                        </div>
+
+                        <div v-if="maxGrowth === 0" class="empty-activity">
+                            No new users or campaigns in this period.
+                        </div>
+                        <BarChart
+                            v-else
+                            :labels="dayLabels"
+                            :series="[
+                                { label: 'New users', color: colors.newUsers, values: daily('newUsers') },
+                                { label: 'New campaigns', color: colors.newCampaigns, values: daily('newCampaigns') },
+                            ]"
+                        />
+                    </article>
+                </div>
 
                 <article class="panel telemetry-panel">
                     <h2>Telemetry</h2>
@@ -186,7 +236,7 @@ onMounted(load);
                             <dd>{{ overview.telemetry.pendingEvents }}</dd>
                         </div>
                         <div>
-                            <dt>Last export</dt>
+                            <dt>Exported up to</dt>
                             <dd>{{ formatDateTime(overview.telemetry.lastExport) }}</dd>
                         </div>
                         <div>
@@ -227,6 +277,15 @@ onMounted(load);
     }
 }
 
+.notice {
+    margin-bottom: 1rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 207, 112, 0.5);
+    border-radius: 12px;
+    background: rgba(255, 207, 112, 0.1);
+    color: #ffcf70;
+}
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
@@ -265,7 +324,15 @@ onMounted(load);
 .overview-panels {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(15rem, 1fr);
+    align-items: start;
     gap: 1rem;
+}
+
+.charts {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
 }
 
 .panel {
@@ -293,8 +360,7 @@ onMounted(load);
     gap: 0.75rem;
     font-size: 0.8rem;
 
-    span::before {
-        content: "";
+    i {
         display: inline-block;
         width: 0.65rem;
         height: 0.65rem;
@@ -303,77 +369,9 @@ onMounted(load);
     }
 }
 
-.activity-chart {
-    display: grid;
-    grid-template-columns: repeat(14, minmax(1.5rem, 1fr));
-    gap: 0.35rem;
-    min-height: 13rem;
-    margin-top: 1rem;
-}
-
-.day {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-
-    > span {
-        color: #bbb;
-        font-size: 0.65rem;
-        margin-top: 0.4rem;
-        overflow: hidden;
-        text-align: center;
-        white-space: nowrap;
-    }
-}
-
-.bars {
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 2px;
-    flex: 1;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-}
-
-.bar {
-    width: 17%;
-    min-height: 0;
-    border-radius: 3px 3px 0 0;
-    transition: height 0.2s ease;
-}
-
-.new-users,
-.new-users::before {
-    background-color: #ffa8bf;
-}
-
-.new-campaigns,
-.new-campaigns::before {
-    background-color: #ffcf70;
-}
-
-.active-campaigns,
-.active-campaigns::before {
-    background-color: #b99cff;
-}
-
-.connected-players,
-.connected-players::before {
-    background-color: #7ec8ff;
-}
-
-.sessions,
-.sessions::before {
-    background-color: #77d6c9;
-}
-
-.legend span {
-    background: transparent;
-}
-
 .empty-activity {
     color: #bbb;
-    min-height: 12rem;
+    min-height: 9rem;
     display: grid;
     place-items: center;
 }
@@ -411,11 +409,6 @@ onMounted(load);
 }
 
 @media (max-width: 768px) {
-    .activity-chart {
-        overflow-x: auto;
-        grid-template-columns: repeat(14, minmax(2rem, 1fr));
-    }
-
     .panel-heading {
         flex-direction: column;
     }

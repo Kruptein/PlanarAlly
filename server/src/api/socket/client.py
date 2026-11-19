@@ -1,6 +1,6 @@
 from typing import Any
 
-from ... import auth
+from ... import auth, stats
 from ...api.socket.constants import GAME_NS
 from ...app import app, sio
 from ...db.db import db
@@ -147,3 +147,15 @@ async def set_offset(sid: str, raw_data: Any):
         room=pr.active_location.get_path(),
         skip_sid=sid,
     )
+
+
+@sio.on("Client.Idle", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_idle(sid: str):
+    stats.events.player_idle(sid)
+
+
+@sio.on("Client.Active", namespace=GAME_NS)
+@auth.login_required(app, sio, "game")
+async def set_active(sid: str):
+    stats.events.player_active(sid)

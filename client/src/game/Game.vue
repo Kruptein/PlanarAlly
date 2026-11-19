@@ -10,6 +10,7 @@ import { coreStore } from "../store/core";
 
 import { createConnection, socket } from "./api/socket";
 import { handleDropEvent } from "./dropAsset";
+import { useIdleReporting } from "./idle";
 import { scrollZoom } from "./input/mouse";
 import { clearUndoStacks } from "./operations/undo";
 import { getGestureScale } from "./rendering/core";
@@ -76,6 +77,7 @@ export default defineComponent({
     setup() {
         const modals = useModal();
         setSelectionBoxFunction(modals.selectionBox);
+        useIdleReporting();
 
         const mediaQuery = matchMedia(`(resolution: ${devicePixelRatio}dppx)`);
         let throttledMoveSet = false;

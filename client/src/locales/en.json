@@ -699,6 +699,10 @@
                     "clear_selection_title": "Clear Selection",
                     "roll": "Roll!",
                     "reroll_previous_title": "Reroll Previous",
+                    "macros": {
+                        "filter": "Filter macros",
+                        "no_match": "No macros match the filter"
+                    },
                     "limit_operator_options": {
                         "keep": "keep",
                         "drop": "drop",

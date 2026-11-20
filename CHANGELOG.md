@@ -37,6 +37,8 @@ tech changes will usually be stripped from release notes for the public
 -   Light rendering performance improvements on big screens/slow hardware
 -   Dice variables that match multiple custom data elements now show an error listing the alternatives instead of using the first match
 -   UI for dice roll notifications is a bit more visually pleasing
+-   Dice macros are shown as a compact, scrollable list grouped by prefix with their resolved value (e.g. `1d20 + 5`), the full formula is in the tooltip and long lists can be filtered
+-   Dice input and dice expressions in custom data wrap more cleanly when they get long
 -   A new release is announced with a notification linking to the release notes instead of a changelog popup
 -   Chat only turns full urls (e.g. https://example.com) into links, bare domains (e.g. example.com) are no longer linked
 -   [admin] The server overview shows time spent in game and splits its activity chart into time in game, players and campaigns, and growth

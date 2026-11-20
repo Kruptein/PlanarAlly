@@ -34,6 +34,7 @@ class DiceSystem implements System {
         if (reason !== "full-loading") {
             $.history = [];
             $.lastRoll = undefined;
+            $.lastRollInput = undefined;
         }
     }
 

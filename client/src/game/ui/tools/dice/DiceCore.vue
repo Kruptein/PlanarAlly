@@ -187,6 +187,12 @@ function populateInputFromHistoryIndex(index: number): void {
     else populateInputFromHistoryRoll(historyItem.roll);
 }
 
+function rerollPrevious(): void {
+    const lastRollInput = diceState.reactive.lastRollInput;
+    if (lastRollInput !== undefined) diceSystem.setInput(lastRollInput);
+    else populateInputFromHistoryRoll(lastRoll.value);
+}
+
 async function roll(): Promise<void> {
     const content = diceState.raw.textInput;
     if (content.length === 0) return;
@@ -469,7 +475,7 @@ async function roll(): Promise<void> {
                 class="svg-button"
                 icon="rotate-left"
                 :title="t('game.ui.tools.DiceTool.reroll_previous_title')"
-                @click="lastRoll.result === '-' ? {} : populateInputFromHistoryRoll(lastRoll)"
+                @click="lastRoll.result === '-' ? {} : rerollPrevious()"
             />
         </div>
         <div id="buttons">

@@ -54,6 +54,7 @@ tech changes will usually be stripped from release notes for the public
 ### Fixed
 
 -   Stats recorded while an export was running, or after a failed export chunk, were never exported
+-   The dice tool's reroll previous button replaced variable references with the values they had when rolling
 -   Locked shapes were movable by keyboard navigation
 -   Copy/pasting a shape marked as a character, wasn't properly working
 -   Renaming a shape or changing its image did not update its character

@@ -43,6 +43,8 @@ interface DiceState {
     result?: DeepReadonly<RollResult<Part>>;
     // The latest roll made by this player
     lastRoll?: DeepReadonly<RollResult<Part>>;
+    // The exact text input of the latest roll, including variable references
+    lastRollInput?: string;
 }
 
 const state = buildState<DiceState>({

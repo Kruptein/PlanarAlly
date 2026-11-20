@@ -145,6 +145,7 @@ class DiceTool extends Tool implements ITool {
 
         diceSystem.addToHistory(roll, coreStore.state.username, { display, raw: input });
         diceState.mutableReactive.lastRoll = roll;
+        diceState.mutableReactive.lastRollInput = input;
 
         return { roll, display, resolved, used3d: thrower !== undefined, shareWith };
     }

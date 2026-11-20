@@ -60,6 +60,7 @@ const entryFocus = ref<{ index: number; mouseOver: boolean; focused: boolean }>(
     mouseOver: false,
     focused: false,
 });
+const initiativeDraft = ref<{ globalId: GlobalId; value: string } | undefined>(undefined);
 
 const hasVisibleActor = computed(() => initiativeState.reactive.locationData.some((actor) => canSee(actor)));
 
@@ -322,10 +323,21 @@ function lock(globalId: GlobalId): void {
 }
 
 function unlock(): void {
+    initiativeDraft.value = undefined;
     if (initiativeState.reactive.editLock !== undefined) initiativeSystem.unlock();
 }
 
+function getInitiative(actor: InitiativeData): number | string | undefined {
+    if (initiativeDraft.value?.globalId === actor.globalId) return initiativeDraft.value.value;
+    return actor.initiative;
+}
+
+function setInitiativeDraft(actor: InitiativeData, value: string): void {
+    initiativeDraft.value = { globalId: actor.globalId, value };
+}
+
 function setInitiative(shape: GlobalId, value: string): void {
+    initiativeDraft.value = undefined;
     const numValue = Number.parseInt(value);
     if (isNaN(numValue)) return;
 
@@ -522,11 +534,12 @@ function n(e: any): number {
                                                 class="initiative-value"
                                                 type="text"
                                                 :placeholder="t('common.value')"
-                                                :value="actor.initiative"
+                                                :value="getInitiative(actor)"
                                                 :disabled="!owns(actor.globalId)"
                                                 :class="{ disabled: !owns(actor.globalId) }"
                                                 @focus="lock(actor.globalId)"
                                                 @blur="unlock"
+                                                @input="setInitiativeDraft(actor, getValue($event))"
                                                 @change="setInitiative(actor.globalId, getValue($event))"
                                                 @keyup.enter="getTarget($event).blur()"
                                                 @keydown.enter.prevent

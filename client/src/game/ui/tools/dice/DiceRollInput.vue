@@ -323,16 +323,17 @@ function getImage(shapeId: GlobalId): string {
         border: none;
         flex: 1 1 auto;
         white-space: pre-wrap;
-
-        display: flex;
-        align-items: center;
+        overflow-wrap: anywhere;
+        min-width: 0;
 
         min-height: 24px;
 
         .reference {
-            display: flex;
+            display: inline-flex;
             align-items: center;
+            vertical-align: middle;
             white-space: normal;
+            margin: 1px 0;
 
             border: solid 1px rgb(255, 168, 191);
             border-radius: 0.5rem;

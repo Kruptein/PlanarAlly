@@ -41,9 +41,11 @@ function loadRoll(): void {
 
 <style scoped lang="scss">
 .variable {
+    display: inline-block;
     background-color: rgba(255, 168, 191, 0.5);
-    padding: 0.25rem 0.5rem;
-    margin: 0 0.25rem;
+    padding: 0.125rem 0.5rem;
+    margin: 0.125rem 0.25rem;
+    overflow-wrap: anywhere;
     border-radius: 0.5rem;
     font-weight: bold;
 

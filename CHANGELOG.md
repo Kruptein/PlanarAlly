@@ -24,6 +24,7 @@ tech changes will usually be stripped from release notes for the public
 -   [mods] Mods can export `events.dispose`. The host calls it before dropping tabs, context entries, event listeners, and hooks that the mod registered
 -   [mods] Mod-facing types now live in a published package (`@planarally/mod-api`)
 -   [mods] Compendium functionality to add system rules or other concepts to a campaign
+-   [mods] All custom data of a mod on a shape can be deleted at once from its tab in the shape dialog, after unlocking editing
 -   [mods/DM] Enable/disable checkbox to temporarily turn off a mod without having to re-upload it later
 -   [mods/DM] Mods can export a `settings` Vue component, opened from a cog in the mod list
 -   [mods] Mods can now hook their dev server into the main vite dev server for smoother HMR

@@ -340,7 +340,7 @@ class CustomDataSystem implements ShapeSystem<UiShapeCustomData[]> {
             ) {
                 filteredElements.push(element);
             } else {
-                sendShapeCustomDataRemove(getIdentifier(element));
+                if (element.pending === undefined) sendShapeCustomDataRemove(getIdentifier(element));
                 eventBus.emit("customData:removed", { id, elementId: element.id, syncTo: { server: true, ui: true } });
             }
         }

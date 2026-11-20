@@ -2,6 +2,7 @@
 import { computed, ref, watch, type ComputedRef } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { useModal } from "../../../../core/plugins/modals/plugin";
 import { roomMods } from "../../../../mods";
 import { customDataSystem } from "../../../systems/customData";
 import { customDataState } from "../../../systems/customData/state";
@@ -17,6 +18,7 @@ defineProps<{
 defineEmits<(e: "close") => void>();
 
 const { t } = useI18n();
+const modals = useModal();
 
 watch(
     () => selectedState.reactive.focus,
@@ -62,6 +64,21 @@ const editable = computed(() => isUserSource.value || unlocked.value);
 watch([selectedSource, () => selectedState.reactive.focus], () => {
     unlocked.value = false;
 });
+
+async function removeSource(): Promise<void> {
+    const shape = selectedState.raw.focus;
+    if (shape === undefined) return;
+    const source = selectedSource.value;
+    const label = getSourceLabel(source);
+    const count = elements.value.filter(
+        (element) => element.source.toLowerCase() === source.toLowerCase() && element.pending === undefined,
+    ).length;
+    const result = await modals.confirm(
+        t("game.ui.selection.edit_dialog.customData.removeSourceTitle", { source: label }),
+        t("game.ui.selection.edit_dialog.customData.removeSourcePrompt", { source: label, count }),
+    );
+    if (result === true) customDataSystem.removeBranch(shape, source, "");
+}
 
 const tree = computed(() => {
     const tree: Tree = [];
@@ -115,6 +132,10 @@ const tree = computed(() => {
                         ? t("game.ui.selection.edit_dialog.customData.lockEditing")
                         : t("game.ui.selection.edit_dialog.customData.unlockEditing")
                 }}
+            </button>
+            <button v-if="unlocked" class="danger" @click="removeSource">
+                <font-awesome-icon icon="trash-alt" />
+                {{ t("game.ui.selection.edit_dialog.customData.removeSource") }}
             </button>
         </div>
         <DataSettingsBranch :key="selectedSource" :children="tree" :source="selectedSource" :editable="editable" />
@@ -187,6 +208,15 @@ const tree = computed(() => {
 
         &:hover {
             background-color: #ffa8bf;
+        }
+
+        &.danger {
+            background-color: rgb(200, 35, 51);
+            color: white;
+
+            &:hover {
+                background-color: rgb(165, 25, 40);
+            }
         }
     }
 }

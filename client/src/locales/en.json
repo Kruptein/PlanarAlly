@@ -333,7 +333,10 @@
                         "lockedHint": "This data is managed by a mod.",
                         "unlockedHint": "Changes can break the mod or be overwritten by it.",
                         "unlockEditing": "Unlock editing",
-                        "lockEditing": "Lock editing"
+                        "lockEditing": "Lock editing",
+                        "removeSource": "Delete all",
+                        "removeSourceTitle": "Delete all data of {source}",
+                        "removeSourcePrompt": "Are you sure you want to delete all {count} data elements of {source} on this shape? The mod might add its data again."
                     },
                     "variants": {
                         "variants": "Variants",

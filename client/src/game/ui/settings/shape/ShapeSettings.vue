@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, unref, watchEffect } from "vue";
+import { computed, shallowRef, unref, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
@@ -24,7 +24,7 @@ import TrackerSettings from "./TrackerSettings.vue";
 import VariantSettings from "./VariantSettings.vue";
 
 const { t } = useI18n();
-const shape = ref<IShape | null>(null);
+const shape = shallowRef<IShape | null>(null);
 
 const visible = computed({
     get() {

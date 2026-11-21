@@ -1,3 +1,5 @@
+import { ref } from "vue";
+
 import type { AssetId } from "../../../assets/models";
 import { getImageSrcFromHash } from "../../../assets/utils";
 import { toGP } from "../../../core/geometry";
@@ -21,7 +23,15 @@ import { Polygon } from "./polygon";
 export class Asset extends IImage implements IAsset {
     type: SHAPE_TYPE = "assetrect";
     assetId: AssetId;
-    assetHash: string;
+    private _assetHash = ref("");
+
+    get assetHash(): string {
+        return this._assetHash.value;
+    }
+
+    set assetHash(value: string) {
+        this._assetHash.value = value;
+    }
 
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
 

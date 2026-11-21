@@ -177,36 +177,40 @@ export async function dropAsset(
     const layer = floorState.currentLayer.value!;
 
     return new Promise((resolve) => {
-        image.addEventListener("load", () => {
-            const asset = new Asset(
-                image,
-                position,
-                dimensions?.width ?? l2gz(image.width),
-                dimensions?.height ?? l2gz(image.height),
-                data.assetId,
-                assetHash,
-                { uuid },
-            );
+        image.addEventListener(
+            "load",
+            () => {
+                const asset = new Asset(
+                    image,
+                    position,
+                    dimensions?.width ?? l2gz(image.width),
+                    dimensions?.height ?? l2gz(image.height),
+                    data.assetId,
+                    assetHash,
+                    { uuid },
+                );
 
-            asset.setLayer(layer.floor, layer.name); // set this early to avoid conflicts
+                asset.setLayer(layer.floor, layer.name); // set this early to avoid conflicts
 
-            if (locationSettingsState.raw.useGrid.value) {
-                const gridType = locationSettingsState.raw.gridType.value;
-                asset.refPoint = snapPointToGrid(asset.refPoint, gridType, {
-                    snapDistance: Number.MAX_VALUE,
-                })[0];
-            }
+                if (locationSettingsState.raw.useGrid.value) {
+                    const gridType = locationSettingsState.raw.gridType.value;
+                    asset.refPoint = snapPointToGrid(asset.refPoint, gridType, {
+                        snapDistance: Number.MAX_VALUE,
+                    })[0];
+                }
 
-            accessSystem.addAccess(
-                asset.id,
-                playerSystem.getCurrentPlayer()!.name,
-                { edit: true, movement: true, vision: true },
-                UI_SYNC,
-            );
+                accessSystem.addAccess(
+                    asset.id,
+                    playerSystem.getCurrentPlayer()!.name,
+                    { edit: true, movement: true, vision: true },
+                    UI_SYNC,
+                );
 
-            layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+                layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 
-            resolve(asset);
-        });
+                resolve(asset);
+            },
+            { once: true },
+        );
     });
 }

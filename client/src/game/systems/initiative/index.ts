@@ -78,7 +78,9 @@ class InitiativeSystem implements ShapeSystem<CommonInitiativeData | undefined> 
     // CORE
 
     clear(): void {
+        $.editLock = undefined;
         $.locationData = [];
+        $.newData = [];
     }
 
     drop(id: LocalId): void {
@@ -107,13 +109,13 @@ class InitiativeSystem implements ShapeSystem<CommonInitiativeData | undefined> 
             const groupId = groupSystem.getGroupId(id);
             const groupHasEntry =
                 groupId !== undefined &&
-                $.locationData.some(
+                this.getDataSet().some(
                     (a) => a.isGroup && a.localId !== undefined && groupSystem.getGroupId(a.localId) === groupId,
                 );
             if (groupHasEntry) return;
         }
 
-        $.locationData.push({ ...data, globalId, localId: id });
+        this.getDataSet().push({ ...data, globalId, localId: id });
         sendInitiativeAdd({ ...data, shape: globalId });
     }
 
@@ -182,7 +184,7 @@ class InitiativeSystem implements ShapeSystem<CommonInitiativeData | undefined> 
             return;
         }
 
-        let actor = $.locationData.find((a) => a.globalId === globalId);
+        let actor = this.getDataSet().find((a) => a.globalId === globalId);
         if (actor === undefined) {
             actor = {
                 globalId,
@@ -192,7 +194,7 @@ class InitiativeSystem implements ShapeSystem<CommonInitiativeData | undefined> 
                 isVisible: !gameState.raw.isDm,
                 initiative: undefined,
             };
-            $.locationData.push(actor);
+            this.getDataSet().push(actor);
         } else {
             // actor already known.
             return;
@@ -240,7 +242,7 @@ class InitiativeSystem implements ShapeSystem<CommonInitiativeData | undefined> 
     }
 
     clearValues(sync: boolean): void {
-        for (const data of $.locationData) {
+        for (const data of this.getDataSet()) {
             data.initiative = undefined;
         }
         if (sync) sendInitiativeClear();
@@ -460,7 +462,7 @@ class InitiativeSystem implements ShapeSystem<CommonInitiativeData | undefined> 
     // EXTRA
 
     getActor(): InitiativeData | undefined {
-        return $.locationData[$.turnCounter];
+        return this.getDataSet()[$.turnCounter];
     }
 
     getDataSet(): InitiativeData[] {
@@ -469,10 +471,7 @@ class InitiativeSystem implements ShapeSystem<CommonInitiativeData | undefined> 
 
     owns(globalId?: GlobalId): boolean {
         if (gameState.reactive.isDm) return true;
-        const actor =
-            globalId === undefined
-                ? $.locationData[$.turnCounter]
-                : this.getDataSet().find((a) => a.globalId === globalId);
+        const actor = globalId === undefined ? this.getActor() : this.getDataSet().find((a) => a.globalId === globalId);
         if (actor?.localId === undefined) return false;
         return accessSystem.hasAccessToReactive(actor.localId, "edit");
     }

@@ -57,6 +57,7 @@ tech changes will usually be stripped from release notes for the public
 ### Fixed
 
 -   Stats recorded while an export was running, or after a failed export chunk, were never exported
+-   Initiative changes made while someone was typing an initiative value (e.g. the DM clearing all values) were lost for that player once they stopped editing
 -   Changing the asset of a shape that was dropped onto the map during the current session created a new shape every time the image loaded
 -   The dice tool's reroll previous button replaced variable references with the values they had when rolling
 -   Locked shapes were movable by keyboard navigation

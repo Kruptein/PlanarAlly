@@ -1,4 +1,5 @@
 import clamp from "lodash/clamp";
+import { markRaw } from "vue";
 
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
 import { addP, cloneP, equalsP, subtractP, toArrayP, toGP, Vector } from "../../core/geometry";
@@ -134,6 +135,9 @@ export abstract class Shape implements IShape {
         },
         properties?: Partial<ShapeProperties>,
     ) {
+        // Shapes are not reactive, a Vue proxy would break private fields and identity checks against the raw shape
+        // Shapes also tend to have a lot of data that hampers performance when proxied
+        markRaw(this);
         this._refPoint = refPoint;
         this.id = options?.id ?? generateLocalId(this, options?.uuid);
         this.strokeWidth = options?.strokeWidth ?? 5;

@@ -61,7 +61,7 @@ const entryFocus = ref<{ index: number; mouseOver: boolean; focused: boolean }>(
     focused: false,
 });
 
-const hasVisibleActor = computed(() => initiativeSystem.getDataSet().some((actor) => canSee(actor)));
+const hasVisibleActor = computed(() => initiativeState.reactive.locationData.some((actor) => canSee(actor)));
 
 const owns = (actorId?: GlobalId): boolean => initiativeSystem.owns(actorId);
 const toggleOption = (actor: InitiativeData, index: number, option: "isVisible" | "isGroup"): void => {
@@ -94,13 +94,7 @@ watch(
 );
 
 watch(
-    () =>
-        new Set(
-            initiativeSystem
-                .getDataSet()
-                .map((actor) => actor.localId)
-                .filter((id) => id !== undefined),
-        ),
+    () => new Set(initiativeState.reactive.locationData.map((actor) => actor.localId).filter((id) => id !== undefined)),
     (newIds, oldIds) => {
         for (const id of oldIds ?? []) {
             if (!newIds.has(id)) propertiesSystem.dropState(id, "initiative-ui");
@@ -301,7 +295,7 @@ function hasImage(actor: InitiativeData): boolean {
 
 function getImage(actor: InitiativeData): string {
     if (actor.localId === undefined) return "";
-    return getImageSrcFromHash((getShape(actor.localId) as IAsset).assetHash);
+    return getImageSrcFromHash((getShape(actor.localId) as IAsset).assetHash.value);
 }
 
 function canSee(actor: DeepReadonly<InitiativeData>): boolean {

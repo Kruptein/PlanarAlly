@@ -434,7 +434,11 @@ async def get_folder_path(sid: str, asset_id: int):
 
     path = []
     while entry is not None:
-        path.insert(0, {"id": entry.id, "name": entry.name})
-        entry = entry.parent
+        if share := next((s for s in entry.shares if s.user == user), None):
+            path.insert(0, {"id": entry.id, "name": share.name})
+            entry = share.parent
+        else:
+            path.insert(0, {"id": entry.id, "name": entry.name})
+            entry = entry.parent
 
     return path

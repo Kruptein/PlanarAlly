@@ -60,8 +60,9 @@ const entryFocus = ref<{ index: number; mouseOver: boolean; focused: boolean }>(
     mouseOver: false,
     focused: false,
 });
+const initiativeDraft = ref<string | undefined>(undefined);
 
-const hasVisibleActor = computed(() => initiativeSystem.getDataSet().some((actor) => canSee(actor)));
+const hasVisibleActor = computed(() => initiativeState.reactive.locationData.some((actor) => canSee(actor)));
 
 const owns = (actorId?: GlobalId): boolean => initiativeSystem.owns(actorId);
 const toggleOption = (actor: InitiativeData, index: number, option: "isVisible" | "isGroup"): void => {
@@ -94,13 +95,7 @@ watch(
 );
 
 watch(
-    () =>
-        new Set(
-            initiativeSystem
-                .getDataSet()
-                .map((actor) => actor.localId)
-                .filter((id) => id !== undefined),
-        ),
+    () => new Set(initiativeState.reactive.locationData.map((actor) => actor.localId).filter((id) => id !== undefined)),
     (newIds, oldIds) => {
         for (const id of oldIds ?? []) {
             if (!newIds.has(id)) propertiesSystem.dropState(id, "initiative-ui");
@@ -328,10 +323,21 @@ function lock(globalId: GlobalId): void {
 }
 
 function unlock(): void {
+    initiativeDraft.value = undefined;
     if (initiativeState.reactive.editLock !== undefined) initiativeSystem.unlock();
 }
 
+function getInitiative(actor: InitiativeData): number | string | undefined {
+    if (initiativeState.reactive.editLock === actor.globalId) return initiativeDraft.value ?? actor.initiative;
+    return actor.initiative;
+}
+
+function setInitiativeDraft(value: string): void {
+    initiativeDraft.value = value;
+}
+
 function setInitiative(shape: GlobalId, value: string): void {
+    initiativeDraft.value = undefined;
     const numValue = Number.parseInt(value);
     if (isNaN(numValue)) return;
 
@@ -528,11 +534,12 @@ function n(e: any): number {
                                                 class="initiative-value"
                                                 type="text"
                                                 :placeholder="t('common.value')"
-                                                :value="actor.initiative"
+                                                :value="getInitiative(actor)"
                                                 :disabled="!owns(actor.globalId)"
                                                 :class="{ disabled: !owns(actor.globalId) }"
                                                 @focus="lock(actor.globalId)"
                                                 @blur="unlock"
+                                                @input="setInitiativeDraft(getValue($event))"
                                                 @change="setInitiative(actor.globalId, getValue($event))"
                                                 @keyup.enter="getTarget($event).blur()"
                                                 @keydown.enter.prevent

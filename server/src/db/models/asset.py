@@ -50,7 +50,7 @@ class Asset(BaseDbModel):
     async def generate_thumbnails(self) -> None:
         await generate_thumbnail_for_asset(self.file_hash)
 
-    def has_entry_with_access(self, user: User, right: Literal["edit", "view", "all"]) -> bool:
+    def has_entry_with_access(self, user: User, right: Literal["edit", "view"]) -> bool:
         return any(entry.can_be_accessed_by(user, right=right) for entry in self.entries)
 
     def as_pydantic(self) -> ApiAssetCore:

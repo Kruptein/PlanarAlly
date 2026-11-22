@@ -90,6 +90,7 @@ tech changes will usually be stripped from release notes for the public
 -   [mods] User DataBlocks were sent to all players in the location, overwriting their own DataBlock with the same name
 -   [mods] Shape DataBlocks could be loaded for shapes outside of the active campaign and saved without edit access to the shape
 -   [mods] Room and shape DataBlock changes were only sent to players in the same location, leaving stale data for players in other locations
+-   An asset folder that was shared with edit rights was accidentally preventing the invitee from viewing sub-folders
 
 ## [2026.2]
 

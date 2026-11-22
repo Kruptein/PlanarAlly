@@ -53,7 +53,7 @@ async def disconnect(sid):
 
 
 def _get_folder(entry: AssetEntry, user: User, *, path: list[int] | None):
-    if entry.can_be_accessed_by(user, right="all"):
+    if entry.can_be_accessed_by(user, right="view"):
         shared_parent = None
         if sp := entry.get_shared_parent(user):
             shared_parent = transform_asset_entry(sp.entry, user)

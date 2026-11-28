@@ -31,7 +31,7 @@ const shapes = computed(() => {
         const shape = getShape(id);
         if (shape === undefined) continue;
         if (shape.type === "assetrect") {
-            images.push({ id, src: getImageSrcFromHash((shape as IAsset).assetHash) });
+            images.push({ id, src: getImageSrcFromHash((shape as IAsset).assetHash.value) });
         } else {
             const props = getProperties(id);
             if (props === undefined) continue;

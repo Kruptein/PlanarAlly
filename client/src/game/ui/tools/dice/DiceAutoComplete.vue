@@ -202,7 +202,7 @@ function getAutoCompleteOptions(): AutoCompleteOption[] {
             );
             if (candidates.some((candidate) => candidate.startsWith(pre) && candidate.endsWith(post))) {
                 if (shape.type === "assetrect") {
-                    options.push({ src: getImageSrcFromHash((shape as IAsset).assetHash), ...data, shapeId });
+                    options.push({ src: getImageSrcFromHash((shape as IAsset).assetHash.value), ...data, shapeId });
                 } else {
                     const props = getProperties(shapeId);
                     if (props === undefined) continue;

@@ -32,7 +32,7 @@ function toggle(token: LocalId): void {
 
 function getImageSrc(token: IShape): string {
     if (token.type === "assetrect") {
-        return getImageSrcFromHash((token as IAsset).assetHash);
+        return getImageSrcFromHash((token as IAsset).assetHash.value);
     }
     return "";
 }

@@ -1,3 +1,5 @@
+import { type Ref, ref } from "vue";
+
 import type { AssetId } from "../../../assets/models";
 import { getImageSrcFromHash } from "../../../assets/utils";
 import { toGP } from "../../../core/geometry";
@@ -21,7 +23,7 @@ import { Polygon } from "./polygon";
 export class Asset extends IImage implements IAsset {
     type: SHAPE_TYPE = "assetrect";
     assetId: AssetId;
-    assetHash: string;
+    readonly #assetHash: Ref<string>;
 
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
 
@@ -42,17 +44,21 @@ export class Asset extends IImage implements IAsset {
     ) {
         super(img, topleft, w, h, { isSnappable: false, ...options });
         this.assetId = assetId;
-        this.assetHash = assetHash;
+        this.#assetHash = ref(assetHash);
+    }
+
+    get assetHash(): Readonly<Ref<string>> {
+        return this.#assetHash;
     }
 
     asCompact(): AssetRectCompactCore {
-        return { ...super.asCompact(), assetId: this.assetId, assetHash: this.assetHash };
+        return { ...super.asCompact(), assetId: this.assetId, assetHash: this.#assetHash.value };
     }
 
     fromCompact(core: CompactShapeCore, subShape: AssetRectCompactCore): void {
         super.fromCompact(core, subShape);
         this.assetId = subShape.assetId;
-        this.assetHash = subShape.assetHash;
+        this.#assetHash.value = subShape.assetHash;
     }
 
     async onLayerAdd(): Promise<void> {
@@ -91,7 +97,7 @@ export class Asset extends IImage implements IAsset {
 
     setImage(assetId: AssetId, hash: string, sync: boolean): void {
         this.assetId = assetId;
-        this.assetHash = hash;
+        this.#assetHash.value = hash;
         this.changeImage(getImageSrcFromHash(hash));
         const uuid = getGlobalId(this.id);
         if (uuid && sync) sendAssetRectImageChange({ uuid, assetHash: hash, assetId });

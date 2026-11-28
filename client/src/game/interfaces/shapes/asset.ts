@@ -1,10 +1,12 @@
+import type { Ref } from "vue";
+
 import type { AssetId } from "../../../assets/models";
 import type { GlobalPoint } from "../../../core/geometry";
 import type { IShape } from "../shape";
 
 export interface IAsset extends IShape {
     assetId: AssetId;
-    assetHash: string;
+    readonly assetHash: Readonly<Ref<string>>;
     svgData?: { svg: Node; rp: GlobalPoint; paths?: [number, number][][][] }[];
 
     get h(): number;

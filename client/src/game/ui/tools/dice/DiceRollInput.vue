@@ -248,7 +248,7 @@ function getImage(shapeId: GlobalId): string {
     if (local === undefined) return "";
     const shape = getShape(local);
     if (shape === undefined || shape.type !== "assetrect") return "";
-    return getImageSrcFromHash((shape as IAsset).assetHash);
+    return getImageSrcFromHash((shape as IAsset).assetHash.value);
 }
 </script>
 

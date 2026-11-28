@@ -301,7 +301,7 @@ function hasImage(actor: InitiativeData): boolean {
 
 function getImage(actor: InitiativeData): string {
     if (actor.localId === undefined) return "";
-    return getImageSrcFromHash((getShape(actor.localId) as IAsset).assetHash);
+    return getImageSrcFromHash((getShape(actor.localId) as IAsset).assetHash.value);
 }
 
 function canSee(actor: DeepReadonly<InitiativeData>): boolean {

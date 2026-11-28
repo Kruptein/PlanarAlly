@@ -60,6 +60,8 @@ const entryFocus = ref<{ index: number; mouseOver: boolean; focused: boolean }>(
     mouseOver: false,
     focused: false,
 });
+// Text typed in the initiative input of the edit-locked actor, re-renders would otherwise reset the input
+const initiativeDraft = ref<string>();
 
 const hasVisibleActor = computed(() => initiativeSystem.getDataSet().some((actor) => canSee(actor)));
 
@@ -324,14 +326,24 @@ function reset(): void {
 }
 
 function lock(globalId: GlobalId): void {
+    initiativeDraft.value = undefined;
     if (initiativeSystem.owns(globalId)) initiativeSystem.lock(globalId);
 }
 
 function unlock(): void {
+    initiativeDraft.value = undefined;
     if (initiativeState.reactive.editLock !== undefined) initiativeSystem.unlock();
 }
 
+function getInitiativeValue(actor: InitiativeData): string | number | undefined {
+    if (initiativeDraft.value !== undefined && initiativeState.reactive.editLock === actor.globalId) {
+        return initiativeDraft.value;
+    }
+    return actor.initiative;
+}
+
 function setInitiative(shape: GlobalId, value: string): void {
+    initiativeDraft.value = undefined;
     const numValue = Number.parseInt(value);
     if (isNaN(numValue)) return;
 
@@ -528,11 +540,12 @@ function n(e: any): number {
                                                 class="initiative-value"
                                                 type="text"
                                                 :placeholder="t('common.value')"
-                                                :value="actor.initiative"
+                                                :value="getInitiativeValue(actor)"
                                                 :disabled="!owns(actor.globalId)"
                                                 :class="{ disabled: !owns(actor.globalId) }"
                                                 @focus="lock(actor.globalId)"
                                                 @blur="unlock"
+                                                @input="initiativeDraft = getValue($event)"
                                                 @change="setInitiative(actor.globalId, getValue($event))"
                                                 @keyup.enter="getTarget($event).blur()"
                                                 @keydown.enter.prevent
